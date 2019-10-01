@@ -1,4 +1,9 @@
-# llvm-pdg-5.0
+# PDG
+
+This is a fork of PSU's llvm-pdg-5.0 project. This includes 
+minor changes specific to GAPS CLOSURE project and in particular, builds 
+against our fork of the LLVM project.
+
 
 ## Outline of the project
 
