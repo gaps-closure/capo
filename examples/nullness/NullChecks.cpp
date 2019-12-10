@@ -49,17 +49,17 @@ struct NullChecks : public FunctionPass {
 
     return modified;
   }
-  /*
+
   Function &getCheckFunc(Module &M) {
 
     LLVMContext &Ctx = M.getContext();
-
+    
     // Get or add the declaration.
     FunctionCallee C = M.getOrInsertFunction("qualaNullCheck",
-        Type::getVoidTy(Ctx), Type::getInt1Ty(Ctx));
+					     Type::getVoidTy(Ctx), Type::getInt1Ty(Ctx));
     //auto *F = cast<Function>(C);
     Function *F;
-    if (F = dyn_cast<Function>(&C))
+    if (F = cast<Function>(C.getCallee()))
         F->setDoesNotThrow();    
 
     // If the function does not have a body yet, write it.
@@ -88,13 +88,12 @@ struct NullChecks : public FunctionPass {
         // Call exit(3).
         //AttributeSet Attrs;
 	AttributeList Attrs;
-        Attrs.addAttribute(Ctx, AttributeList::FunctionIndex,
-            Attribute::NoReturn);
+        Attrs.addAttribute(Ctx, AttributeList::FunctionIndex, Attribute::NoReturn);
         FunctionCallee Exit = M.getOrInsertFunction("exit", Attrs,
-            Type::getVoidTy(Ctx), IntegerType::getInt32Ty(Ctx));
+			    Type::getVoidTy(Ctx), Type::getInt32Ty(Ctx));
 
 	Function *ExitF;
-	if (ExitF = dyn_cast<Function>(&Exit))
+	if (ExitF = dyn_cast<Function>(Exit.getCallee()))
 	  ExitF->setDoesNotThrow();    
 
 	Bld.CreateCall(ExitF, Bld.getInt32(1));
@@ -104,7 +103,6 @@ struct NullChecks : public FunctionPass {
 
     return *F;
   }
-*/
 
   // Insert a null check for the given pointer value just before the
   // instruction.
@@ -112,7 +110,7 @@ struct NullChecks : public FunctionPass {
     IRBuilder<> Bld(&I);
     Value *isnull = Bld.CreateIsNull(&Ptr, "isnull");
     Module *M = I.getParent()->getParent()->getParent();
-    //    Bld.CreateCall(&(getCheckFunc(*M)), isnull);
+    Bld.CreateCall(&(getCheckFunc(*M)), isnull);
   }
 };
 
