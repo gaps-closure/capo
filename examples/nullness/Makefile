@@ -9,7 +9,7 @@ PASS_TARGET := NullChecks.$(LIBEXT)
 CHECKER_OBJS := $(CHECKER_SOURCES:%.cpp=%.o)
 PASS_OBJS := $(PASS_SOURCES:%.cpp=%.o)
 
-CXXFLAGS += -I../..
+CXXFLAGS += -fPIC -I../..
 
 .PHONY: all
 all: $(CHECKER_TARGET) $(PASS_TARGET)

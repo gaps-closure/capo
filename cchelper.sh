@@ -5,7 +5,7 @@ if [ "${compiler#*++}" != "$compiler" ]; then
 else
     cc=cc
 fi
-ccpath=$base/bin/$cc
+ccpath=/home/tchen/top-level/llvm/quala-debug/bin/clang
 
 # Construct Clang arguments.
 if [ `uname` = "Darwin" ]; then

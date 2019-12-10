@@ -49,14 +49,18 @@ struct NullChecks : public FunctionPass {
 
     return modified;
   }
-
+  /*
   Function &getCheckFunc(Module &M) {
+
     LLVMContext &Ctx = M.getContext();
 
     // Get or add the declaration.
-    Constant *C = M.getOrInsertFunction("qualaNullCheck",
-        Type::getVoidTy(Ctx), Type::getInt1Ty(Ctx), NULL);
-    auto *F = cast<Function>(C);
+    FunctionCallee C = M.getOrInsertFunction("qualaNullCheck",
+        Type::getVoidTy(Ctx), Type::getInt1Ty(Ctx));
+    //auto *F = cast<Function>(C);
+    Function *F;
+    if (F = dyn_cast<Function>(&C))
+        F->setDoesNotThrow();    
 
     // If the function does not have a body yet, write it.
     if (F->empty()) {
@@ -82,18 +86,25 @@ struct NullChecks : public FunctionPass {
         Bld.CreateRetVoid();
       } else {
         // Call exit(3).
-        AttributeSet Attrs;
-        Attrs.addAttribute(Ctx, AttributeSet::FunctionIndex,
+        //AttributeSet Attrs;
+	AttributeList Attrs;
+        Attrs.addAttribute(Ctx, AttributeList::FunctionIndex,
             Attribute::NoReturn);
-        Constant *Exit = M.getOrInsertFunction("exit", Attrs,
-            Type::getVoidTy(Ctx), Type::getInt32Ty(Ctx), NULL);
-        Bld.CreateCall(Exit, Bld.getInt32(1));
-        Bld.CreateUnreachable();
+        FunctionCallee Exit = M.getOrInsertFunction("exit", Attrs,
+            Type::getVoidTy(Ctx), IntegerType::getInt32Ty(Ctx));
+
+	Function *ExitF;
+	if (ExitF = dyn_cast<Function>(&Exit))
+	  ExitF->setDoesNotThrow();    
+
+	Bld.CreateCall(ExitF, Bld.getInt32(1));
+	Bld.CreateUnreachable();
       }
     }
 
     return *F;
   }
+*/
 
   // Insert a null check for the given pointer value just before the
   // instruction.
@@ -101,7 +112,7 @@ struct NullChecks : public FunctionPass {
     IRBuilder<> Bld(&I);
     Value *isnull = Bld.CreateIsNull(&Ptr, "isnull");
     Module *M = I.getParent()->getParent()->getParent();
-    Bld.CreateCall(&(getCheckFunc(*M)), isnull);
+    //    Bld.CreateCall(&(getCheckFunc(*M)), isnull);
   }
 };
 
@@ -117,3 +128,4 @@ static void registerPass(const PassManagerBuilder &,
 static RegisterStandardPasses
   RegisterMyPass(PassManagerBuilder::EP_EarlyAsPossible,
                  registerPass);
+

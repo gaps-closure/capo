@@ -9,7 +9,20 @@ namespace {
 
 #define NULLABLE_ANN "nullable"
 
-class NullnessAnnotator: public Annotator<NullnessAnnotator> {
+/// \brief Constructs a `new T()` with the given args and returns a
+///        `unique_ptr<T>` which owns the object.
+///
+/// Example:
+///
+///     auto p = make_unique<int>();
+///     auto p = make_unique<std::tuple<int, int>>(0, 1);
+template <class T, class... Args>
+typename std::enable_if<!std::is_array<T>::value, std::unique_ptr<T>>::type
+make_unique(Args &&... args) {
+  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
+  class NullnessAnnotator: public Annotator<NullnessAnnotator> {
 public:
   NullnessAnnotator(CompilerInstance &ci, bool instrument)
       : Annotator(ci, instrument) {};
@@ -29,7 +42,7 @@ public:
           DiagnosticsEngine::Warning,
           "dereferencing nullable pointer"
         );
-        Diags().Report(E->getLocStart(), did)
+        Diags().Report(E->getBeginLoc(), did)
             << CharSourceRange(E->getSourceRange(), false);
       }
       break;
@@ -84,7 +97,7 @@ public:
       DiagnosticsEngine::Warning,
       "non-null pointer may become null"
     );
-    Diags().Report(S->getLocStart(), did)
+    Diags().Report(S->getBeginLoc(), did)
         << CharSourceRange(S->getSourceRange(), false);
   }
 };
@@ -94,7 +107,7 @@ protected:
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
                                                  llvm::StringRef) {
     // Construct a type checker for our type system.
-    return llvm::make_unique< TAConsumer<NullnessAnnotator> >(CI, true);
+    return make_unique< TAConsumer<NullnessAnnotator> >(CI, true);
   }
 
   bool ParseArgs(const CompilerInstance &CI,

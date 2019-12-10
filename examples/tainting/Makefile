@@ -6,7 +6,7 @@ TARGET := TaintTracking.$(LIBEXT)
 
 OBJS := $(SOURCES:%.cpp=%.o)
 
-CXXFLAGS += -I../..
+CXXFLAGS += -fPIC -I../..
 
 $(TARGET): $(OBJS)
 	$(CXX) $(PLUGIN_LDFLAGS) $(CXXFLAGS) \
@@ -27,5 +27,15 @@ test: $(TARGET)
 	$(BUILD)/llvm/bin/llvm-lit -v test
 dump: $(TARGET)
 	cd test ; ../ttclang -S -emit-llvm -o - ok.c
-smoke: $(TARGET)
+cond: $(TARGET)
+	cd test ; ../ttclang -S -emit-llvm -o /dev/null cond.c
+ok: $(TARGET)
+	cd test ; ../ttclang -S -emit-llvm -o /dev/null ok.c
+endorsement: $(TARGET)
 	cd test ; ../ttclang -S -emit-llvm -o /dev/null endorsement.c
+funcs: $(TARGET)
+	cd test ; ../ttclang -S -emit-llvm -o /dev/null funcs.c
+codegen_simple: $(TARGET)
+	cd test ; ../ttclang -S -emit-llvm -o /dev/null codegen_simple.c
+simple: $(TARGET)
+	cd test ; ../ttclang -S -emit-llvm -o /dev/null simple.c

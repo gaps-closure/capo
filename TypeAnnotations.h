@@ -134,7 +134,7 @@ public:
     // Unwrap pointer types to check that they have identical qualifiers in
     // their pointed-to types.
     ASTContext &Ctx = CI.getASTContext();
-    while (Ctx.UnwrapSimilarPointerTypes(T1, T2)) {
+    while (Ctx.UnwrapSimilarTypes(T1, T2)) {
       if (AnnotationOf(T1) != AnnotationOf(T2)) {
         return false;
       }
@@ -190,7 +190,7 @@ public:
     );
     StringRef LAnn = AnnotationOf(LTy);
     StringRef RAnn = AnnotationOf(RTy);
-    Diags().Report(S->getLocStart(), did)
+    Diags().Report(S->getBeginLoc(), did)
         << (RAnn.size() ? RAnn : "unannotated")
         << (LAnn.size() ? LAnn : "unannotated")
         << CharSourceRange(S->getSourceRange(), false);
@@ -244,14 +244,14 @@ public:
         }
       } else {
         // Parameter list length mismatch. Probably a varargs function. FIXME?
-        DEBUG(llvm::errs() << "UNSOUND: varargs function\n");
+        LLVM_DEBUG(llvm::errs() << "UNSOUND: varargs function\n");
       }
 
       AddAnnotation(E, AnnotationOf(D->getReturnType()));
     } else {
       // We couldn't determine which function is being called. Unsoundly, we
       // check nothing and return the null type. FIXME?
-      DEBUG(llvm::errs() << "UNSOUND: indirect call\n");
+      LLVM_DEBUG(llvm::errs() << "UNSOUND: indirect call\n");
     }
   }
   void VisitCallExpr(CallExpr *E) {
