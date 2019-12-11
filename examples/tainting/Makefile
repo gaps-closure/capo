@@ -14,8 +14,7 @@ $(TARGET): $(OBJS)
 		-o $@ $^
 
 %.o: %.cpp $(HEADERS)
-	$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) \
-		-o $@ $<
+	$(CXX) -c $(CXXFLAGS) $(LLVM_CXXFLAGS) -o $@ $<
 
 .PHONY: clean
 clean:
@@ -27,6 +26,8 @@ test: $(TARGET)
 	$(BUILD)/llvm/bin/llvm-lit -v test
 dump: $(TARGET)
 	cd test ; ../ttclang -S -emit-llvm -o - ok.c
+example: $(TARGET)
+	cd test ; ../ttclang -S -emit-llvm -o /dev/null example-typeannot.c
 cond: $(TARGET)
 	cd test ; ../ttclang -S -emit-llvm -o /dev/null cond.c
 ok: $(TARGET)

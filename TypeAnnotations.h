@@ -283,7 +283,6 @@ public:
   bool TraverseStmt(Stmt *S) {
     // Super traversal: visit children.
     RecursiveASTVisitor<TAVisitor>::TraverseStmt(S);
-
     // Now give type to parent.
     if (S) {
       Annotator->Visit(S);
@@ -293,6 +292,7 @@ public:
   }
 
   bool TraverseDecl(Decl *D) {
+    D->dump();
     // Skip traversal of declarations in system headers.
     if (SkipHeaders) {
       auto Loc = D->getLocation();
