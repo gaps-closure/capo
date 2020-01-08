@@ -21,7 +21,9 @@ namespace llvm {
             raw_string_ostream OS(Str);
             switch(instW->getType()) {
                 case ENTRY:
-                    return ("<<ENTRY>> " + instW->getFunctionName());
+                    OS << *instW->getFunction()->getMetadata("dbg");
+                    //OS << instW->getFunction()->getSectionPrefix();
+                    return ("<<ENTRY>> " + instW->getFunctionName() + " <" + OS.str() + ">");
 
                 case GLOBAL_VALUE:{
                     OS << *instW->getValue();
@@ -130,11 +132,15 @@ namespace llvm {
             llvm::Instruction *inst = Node->getData()->getInstruction();
 
             if (isSimple() && !inst->getName().empty()) {
+		//errs() << "ACAC is simple" << "\n";
                 return inst->getName().str();
             } else {
+		//errs() << "ACAC is not simple" << "\n";
                 std::string Str;
                 raw_string_ostream OS(Str);
                 OS << *inst;
+		//errs() << "ACAC :" << OS.str() << "\n";
+		//errs() << "ACAC 1:" << *(inst->getDebugLoc())  << "\n";
                 return OS.str();
             }
         }
@@ -171,16 +177,16 @@ namespace llvm {
             using namespace pdg;
             switch (IW.getDependencyType()) {
                 case CONTROL:
-                    return "";
+                    return "label = \"{CONTROL}\"";
                 case DATA_GENERAL:
                     return "style=dotted, label = \"{DATA_GENERAL}\"";
                 case GLOBAL_VALUE:
-                    return "style=dotted";
+                    return "style=dotted, label = \"{GLOBAL}\"";
                 case PARAMETER:
-                    return "style=dashed";
+                    return "style=dashed, label = \"{PARAMETER}\"";
                 case DATA_DEF_USE: {
                     Instruction *pFromInst = Node->getData()->getInstruction();
-                    return "style=dotted,label = \"{DEF_USE}\" ";
+                    return "style=dotted,label = \"{DEF_USE}\"";
                 }
                 case DATA_RAW: {
                     // should be getDependentNode
@@ -267,14 +273,14 @@ namespace llvm {
             using namespace pdg;
             switch (IW.getDependencyType()) {
                 case CONTROL:
-                    return "";
+                    return "label = \"{CONTROL}\"";
                 case DATA_GENERAL:
                     return "style=dotted, label = \"{data_g}\"";
                     //return "style=dotted, label = \"{DATA_GENERAL}\"";
                 case GLOBAL_VALUE:
-                    return "style=dotted";
+                    return "style=dotted, label = \"{GLOBAL_VAL}\"";
                 case PARAMETER:
-                    return "style=dashed, color=\"blue\"";
+                    return "style=dashed, color=\"blue\", label = \"{PARAMETER}\"";
                 case DATA_DEF_USE: {
                     Instruction *pFromInst = Node->getData()->getInstruction();
                     return "style=dotted,label = \"{DEF_USE}\" ";
