@@ -1,0 +1,87 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Partitioner Compile",
+        "type": "shell",
+        "command": "cd src; make; cd ..",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      },
+      {
+        "label": "Partitioner Example Clang Build",
+        "type": "shell",
+        "command": "cd example; make clang_ex1",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner Compile"]
+      },
+      {
+        "label": "Partitioner Preprocess",
+        "type": "shell",
+        "command": "cd example; make ex1.mod.c",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner Example Clang Build"]
+      },
+      {
+        "label": "Partitioner LLVM IR and Bitcode Gen",
+        "type": "shell",
+        "command": "cd example; make ex1.mod.bc",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner Preprocess"]
+      },
+      {
+        "label": "Partitioner Create Dependency Graph",
+        "type": "shell",
+        "command": "cd example; make dot",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner LLVM IR and Bitcode Gen"]
+      },
+      {
+        "label": "Partitioner Partition",
+        "type": "shell",
+        "command": "cd example; python3 ../src/partitioner.py ex1",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner Create Dependency Graph"]
+      },
+      {
+        "label": "Partitioner Clean",
+        "type": "shell",
+        "command": "cd src; make clean; cd ../example; make clean",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+      }
+    ]
+  }
