@@ -2,8 +2,7 @@
 
 BUILD="$(pwd)/build"
 PACKAGE_DIR="packages"
-LLVM_URL="https://github.com/gaps-closure/capo/releases/download/none/LLVM-10.0.0svn-Linux.deb"
-LLVM_DEB="${LLVM_URL##*/}"
+LLVM_URL="https://github.com/gaps-closure/capo/releases/download/T0.1/LLVM-10.0.0svn-Linux.deb"
 LLVM_DIR=llvm-project
 PRE_DOWNLOADED_DEBS=($LLVM_URL)
 PY_MODULES=(clang lark-parser pydot decorator)
@@ -13,19 +12,21 @@ usage_exit() {
   [[ -n "$1" ]] && echo $1
   echo "Usage: $0 [ -d ] \\"
   echo "-h        Help"
+  echo "-b        Build LLVM"
   echo "-c        Clean up"
   echo "-d        Dry run"
-  echo "-l        Build LLVM"
+  echo "-l        Install LLVM"
   exit 1
 }
 
 handle_opts() {
   local OPTIND
-  while getopts "cdl" options; do
+  while getopts "b:cdl" options; do
     case "${options}" in
+      b) LLVM_BRANCH=${OPTARG}  ;;
       c) CLEAN=1                ;;
       d) DRY_RUN="--dry-run"    ;;
-      l) BUILD_LLVM=1           ;;
+      l) INSTALL_LLVM=1         ;;
       h) usage_exit             ;;
       :) usage_exit "Error: -${OPTARG} requires an argument." ;;
       *) usage_exit             ;;
@@ -51,14 +52,15 @@ install_deb() {
 }    
 
 install_llvm () {
-  if [[ $BUILD_LLVM ]]; then
+  if [[ $LLVM_BRANCH ]]; then
       if [ ! "$(ls -A $LLVM_DIR)" ]; then
           git submodule init
           git submodule update
       fi
       pushd $LLVM_DIR
 
-      git checkout qualatypes
+      echo "Checking out LLVM $LLVM_BRANCH branch"
+      git checkout $LLVM_BRANCH
       mkdir build
       cd build
       cmake -G 'Unix Makefiles' -DLLVM_ENABLE_PROJECTS='clang;libclc;libcxx;libcxxabi;lld' -DCLANG_PYTHON_BINDINGS_VERSIONS='2.7;3.5' -DLLVM_TARGETS_TO_BUILD='X86' -DCMAKE_BUILD_TYPE=Release ../llvm
@@ -67,6 +69,7 @@ install_llvm () {
 
       mkdir -p ../../$PACKAGE_DIR
 
+      LLVM_DEB="${LLVM_URL##*/}"
       mv $LLVM_DEB ../../$PACKAGE_DIR
       file="${LLVM_DEB%.deb}"
       mv ${file}.rpm ../../$PACKAGE_DIR
@@ -75,7 +78,15 @@ install_llvm () {
       popd
   fi
 
-  install_deb "Qualatype LLVM" "$PACKAGE_DIR/$LLVM_DEB"
+  if [[ $INSTALL_LLVM ]]; then
+      if [ ! -f $PACKAGE_DIR/$LLVM_DEB ]; then
+          wget $LLVM_URL
+          LLVM_DEB="${LLVM_URL##*/}"
+          mkdir -p $PACKAGE_DIR
+          mv $LLVM_DEB $PACKAGE_DIR
+      fi
+      install_deb "Qualatype LLVM" "$PACKAGE_DIR/$LLVM_DEB"
+  fi
 }
 
 build_pdg () {
@@ -198,12 +209,9 @@ else
 
     check_py_module
     check_packages
-#    download_packages
-
-    mkdir -p $BUILD
 
     install_llvm
-    exit
+
     build_pdg
     build_quala
     build_partitioner

@@ -25,7 +25,7 @@ This script downloads, installs or builds the following
 * partitioner
 
 ## Running the Partitioner
-To run the partitioner in command line, following the steps [here](partitioner/README.md). To run the partitioner in Visual Studio Code, follow the instructions in [CVI](../cvi/README.md) to build and install Code. Then following the following steps.
+To run the partitioner in command line, following the steps [here](partitioner/README.md). To run the partitioner in Visual Studio Code, follow the instructions in [CVI](../cvi/README.md) to build and install Code, if it has not been installed. Then following the following steps.
 
 Start VS Code as follows, if it is not already running.
 
@@ -50,7 +50,7 @@ To run a task,
 * Select 'Continue with scanning the task output'
 
 ## Viewing the Dependency Graph
-To view the dependency graph in command line, following the steps [here](partitioner/README.md). To view it in Visual Studio Code, follow the instructions in [CVI](../cvi/README.md) to build and install Code. Then following the following steps.
+To view the dependency graph in command line, following the steps [here](partitioner/README.md). To view it in Visual Studio Code, follow the instructions in [CVI](../cvi/README.md) to build and install Code, if it has not been installed. Then following the following steps.
 Start VS Code as follows, if it is not already running.
 
 ```
