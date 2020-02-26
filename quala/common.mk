@@ -1,6 +1,6 @@
 HERE := $(dir $(lastword $(MAKEFILE_LIST)))
 BUILD := $(HERE)/build
-BUILT := /home/tchen/top-level/llvm/quala-debug/
+BUILT := /usr/local
 LLVM_CONFIG := $(BUILT)/bin/llvm-config
 
 # Get LLVM build parameters from its llvm-config program.
