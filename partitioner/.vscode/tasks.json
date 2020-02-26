@@ -1,0 +1,75 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Partitioner Compile",
+        "type": "shell",
+        "command": "cd src; make; cd ..",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      },
+      {
+        "label": "Partitioner Clang",
+        "type": "shell",
+        "command": "cd example; make PROG=ex1 clang_ex1",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner Compile"]
+      },
+      {
+        "label": "Partitioner LLVM IR and Bitcode Gen",
+        "type": "shell",
+        "command": "cd example; make PROG=ex1 ex1.mod.bc",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner Clang"]
+      },
+      {
+        "label": "Partitioner Dependency Graph",
+        "type": "shell",
+        "command": "cd example; make PROG=ex1 dot",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner LLVM IR and Bitcode Gen"]
+      },
+      {
+        "label": "Partitioner Partition",
+        "type": "shell",
+        "command": "cd example; python3 ../src/partitioner.py ex1",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "dependsOn":["Partitioner Dependency Graph"]
+      },
+      {
+        "label": "Partitioner Clean",
+        "type": "shell",
+        "command": "cd src; make clean; cd ../example; make clean",
+        "args": [
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+      }
+    ]
+  }

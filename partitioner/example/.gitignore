@@ -1,0 +1,8 @@
+*.dot
+*.bc
+*.ll
+*clemap*
+*mod.c
+ex1_orange
+ex1_purple
+ex1_plain.c
