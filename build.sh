@@ -10,18 +10,19 @@ DEB_PACKAGES=(xdot)
 
 usage_exit() {
   [[ -n "$1" ]] && echo $1
-  echo "Usage: $0 [ -d ] \\"
+  echo "Usage: $0 [ -hcdl ] \\"
+  echo "          [ -b BRANCH ]"
   echo "-h        Help"
-  echo "-b        Build LLVM"
+  echo "-b BRANCH Build LLVM from the BRANCH branch of the source"
   echo "-c        Clean up"
   echo "-d        Dry run"
-  echo "-l        Install LLVM"
+  echo "-l        Install LLVM, after build or after downloading the pre-built binary"
   exit 1
 }
 
 handle_opts() {
   local OPTIND
-  while getopts "b:cdl" options; do
+  while getopts "b:cdlh" options; do
     case "${options}" in
       b) LLVM_BRANCH=${OPTARG}  ;;
       c) CLEAN=1                ;;

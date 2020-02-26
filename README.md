@@ -15,14 +15,23 @@ This repository is maintained by Perspecta Labs.
 CAPO has been developed, deployed, and tested using Ubuntu 19.10 x86_64 Linux. We recommend this distribution to simplify installation of external dependencies. Upon cloning the CAPO repository, follow these steps to install required packages (assumes sudo permissions enabled for calling `apt`):
 
 ```
-./build.sh 
+./build.sh -h
+#Usage: ./build.sh [ -hcdl]
+#                  [ -l BRANCH ]
+#-h        Help
+#-b BRANCH Build LLVM from the BRANCH branch of the source 
+#-c        Clean up
+#-d        Dry run
+#-l        Install LLVM, after build or after downloading the pre-built binary.
 ```
 
-This script downloads, installs or builds the following
-* LLVM binaries
+This script builds the following
 * pdg
 * quala
 * partitioner
+
+Optionally, with the specified options, it also downloads, builds or install the LLVM binaries.
+
 
 ## Running the Partitioner
 To run the partitioner in command line, following the steps [here](partitioner/README.md). To run the partitioner in Visual Studio Code, follow the instructions in [CVI](../cvi/README.md) to build and install Code, if it has not been installed. Then following the following steps.
