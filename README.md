@@ -5,7 +5,6 @@ This repository is maintained by Perspecta Labs.
 
 ## Contents
 - [Build](#build)
-- [LLVM](llvm/README.md)
 - [Partitioner](partitioner/README.md)
 - [PDG](pdg/README.md)
 - [Quala](quala/README.md)

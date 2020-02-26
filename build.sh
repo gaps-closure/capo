@@ -57,12 +57,21 @@ install_llvm () {
           git submodule update
       fi
       pushd $LLVM_DIR
-      
+
+      git checkout qualatypes
       mkdir build
       cd build
       cmake -G 'Unix Makefiles' -DLLVM_ENABLE_PROJECTS='clang;libclc;libcxx;libcxxabi;lld' -DCLANG_PYTHON_BINDINGS_VERSIONS='2.7;3.5' -DLLVM_TARGETS_TO_BUILD='X86' -DCMAKE_BUILD_TYPE=Release ../llvm
       make -j24
+      cpack
 
+      mkdir -p ../../$PACKAGE_DIR
+
+      mv $LLVM_DEB ../../$PACKAGE_DIR
+      file="${LLVM_DEB%.deb}"
+      mv ${file}.rpm ../../$PACKAGE_DIR
+      mv ${file}.sh ../../$PACKAGE_DIR
+      
       popd
   fi
 
