@@ -47,17 +47,17 @@ Building the partitioner:
 Basic usage:
 ------------
 
-The Makefile containing the steps that pre-process the program has to be copied from the partitioner source directory to the directory that contains the program to be processed.
+The Makefile containing the steps that pre-process the program has to be copied from the partitioner example directory to the directory that contains the program to be processed.
 The name of the program to be processed is given as a parameter to the make file running all pre-processing steps, and then to the partitioner that runs the analysis. The syntax of these commands is:
 
 > cd \<directory where the program resides\>   
 > make PROG=\<name of C program without extension\>   
 > python3 \<path to partitioner diretory\>/partitioner.py \<name of C program without extension\>   
 
-For example, assuming the partitioner is in /home/user/partitioner/src, to process program /home/user/bar/foo.c:
+For example, assuming the partitioner is in /home/user/partitioner/, to process program /home/user/bar/foo.c:
 
 > cd /home/user/bar/   
-> cp /home/user/partitioner/Makefile .   
+> cp /home/user/partitioner/example/Makefile .   
 > make PROG=foo   
 > python3 /home/user/partitioner/src/partitioner.py foo   
 
