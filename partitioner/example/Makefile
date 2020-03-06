@@ -6,7 +6,7 @@ CC = gcc
 INCLUDE_DIRS = -I../src
 CFLAGS = -Wall -g $(INCLUDE_DIRS)
 LIBPDG=../../pdg/build/libpdg.so
-
+CLE_PRE=../../../mules/cle-preprocessor/src
 
 all: dot
 
@@ -24,7 +24,7 @@ dot: $(PROG).mod.bc
 	clang -S -g $(INCLUDE_DIRS) -emit-llvm $^
 
 %.mod.c: %.c
-	../../cle/preprocessor/scratch/qd_cle_preprocessor.py -f $^
+	$(CLE_PRE)/qd_cle_preprocessor.py -f $^
 
 clang_$(PROG): lib$(PROG).a $(PROG).mod.c
 	clang -g $^ -o $@ -L. -l$(PROG)
