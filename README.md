@@ -34,7 +34,7 @@ Optionally, with the specified options, it also downloads, builds or install the
 
 
 ## Running the Partitioner
-To run the partitioner in command line, following the steps [here](partitioner/README.md). To run the partitioner in Visual Studio Code, follow the instructions in [CVI](../cvi/README.md) to build and install Code, if it has not been installed. Then following the following steps.
+To run the partitioner in command line, following the steps [here](partitioner/README.md). To run the partitioner in Visual Studio Code, follow the instructions in [CVI](https://github.com/gaps-closure/cvi/blob/master/README.md) to build and install Code, if it has not been installed. Then follow the steps below.
 
 Start VS Code as follows, if it is not already running.
 
@@ -59,7 +59,7 @@ To run a task,
 * Select 'Continue with scanning the task output'
 
 ## Viewing the Dependency Graph
-To view the dependency graph in command line, following the steps [here](partitioner/README.md). To view it in Visual Studio Code, follow the instructions in [CVI](../cvi/README.md) to build and install Code, if it has not been installed. Then following the following steps.
+To view the dependency graph in command line, following the steps [here](partitioner/README.md). To view it in Visual Studio Code, follow the instructions in [CVI](https://github.com/gaps-closure/cvi/blob/master/README.md) to build and install Code, if it has not been installed. Then following the steps below.
 Start VS Code as follows, if it is not already running.
 
 ```
