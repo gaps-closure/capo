@@ -48,7 +48,7 @@ install_deb() {
       fi
   fi
 
-  echo "Installing $message"
+  echo "Installing $message from $PKG"
   sudo dpkg $DRY_RUN -i $PKG
 }    
 
@@ -88,6 +88,7 @@ install_llvm () {
   fi
 
   if [[ $INSTALL_LLVM ]]; then
+      LLVM_DEB="${LLVM_URL##*/}"
       if [ ! -f $PACKAGE_DIR/$LLVM_DEB ]; then
           wget $LLVM_URL
           LLVM_DEB="${LLVM_URL##*/}"
@@ -100,6 +101,12 @@ install_llvm () {
 
 build_pdg () {
   echo "Building PDG"
+
+  CMAKE=$(cmake --version)
+  if [ $? -ne 0 ]; then
+      echo "installing cmake"
+      sudo snap install cmake --classic
+  fi
 
   TMP_DIR=$(pwd)
   cd pdg
@@ -169,10 +176,11 @@ check_py_module () {
     if [ $? -eq 0 ]; then
         echo "pip3 is installed"
     else
-        # TODO: check if this is goog enough- sudo apt install python3-pip
-        curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-        python3 get-pip.py --user
-        PIP3=$HOME/.local/bin/pip3
+        sudo apt install python3-pip
+	# do the following if the above does not work
+        #curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+        #python3 get-pip.py --user
+        #PIP3=$HOME/.local/bin/pip3
     fi
     
     for m in "${PY_MODULES[@]}"
