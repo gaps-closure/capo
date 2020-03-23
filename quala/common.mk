@@ -1,6 +1,6 @@
 HERE := $(dir $(lastword $(MAKEFILE_LIST)))
 BUILD := $(HERE)/build
-BUILT := /usr/local
+BUILT := /usr
 LLVM_CONFIG := $(BUILT)/bin/llvm-config
 
 # Get LLVM build parameters from its llvm-config program.
