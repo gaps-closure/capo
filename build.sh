@@ -53,6 +53,14 @@ install_deb() {
 }    
 
 install_llvm () {
+  LLVM_CONFIG=$(llvm-config --version)
+  if [ $? -eq 0 ]; then
+      echo "LLVM_CONFIG is installed"
+      if ! [[ $DRY_RUN ]]; then
+          return
+      fi
+  fi
+
   if [[ $LLVM_BRANCH ]]; then
       if [ ! "$(ls -A $LLVM_DIR)" ]; then
           git submodule init
@@ -156,14 +164,25 @@ clean_partitioner () {
 }
 
 check_py_module () {
+    PIP3=pip3
+    RTN=$(pip3 --version)
+    if [ $? -eq 0 ]; then
+        echo "pip3 is installed"
+    else
+        # TODO: check if this is goog enough- sudo apt install python3-pip
+        curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+        python3 get-pip.py --user
+        PIP3=$HOME/.local/bin/pip3
+    fi
+    
     for m in "${PY_MODULES[@]}"
     do
-        pip3 list | grep $m
+        $PIP3 list | grep $m
         if [ $? -eq 0 ]; then
             echo "$m is already installed"
         else
             echo "$m not installed; installing it"
-            sudo pip3 install $m
+            sudo $PIP3 install $m
         fi
     done
 }
