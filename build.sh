@@ -10,23 +10,21 @@ DEB_PACKAGES=(xdot)
 
 usage_exit() {
   [[ -n "$1" ]] && echo $1
-  echo "Usage: $0 [ -hcdl ] \\"
+  echo "Usage: $0 [ -chl ] \\"
   echo "          [ -b BRANCH ]"
-  echo "-h        Help"
   echo "-b BRANCH Build LLVM from the BRANCH branch of the source"
   echo "-c        Clean up"
-  echo "-d        Dry run"
   echo "-l        Install LLVM, after build or after downloading the pre-built binary"
+  echo "-h        Help"
   exit 1
 }
 
 handle_opts() {
   local OPTIND
-  while getopts "b:cdlh" options; do
+  while getopts "b:clh" options; do
     case "${options}" in
       b) LLVM_BRANCH=${OPTARG}  ;;
       c) CLEAN=1                ;;
-      d) DRY_RUN="--dry-run"    ;;
       l) INSTALL_LLVM=1         ;;
       h) usage_exit             ;;
       :) usage_exit "Error: -${OPTARG} requires an argument." ;;
@@ -41,15 +39,11 @@ install_deb() {
 
   if [ ! -f $PKG ]; then
       echo "*** package not found: $PKG"
-      if [[ $DRY_RUN ]]; then
-          return
-      else
-          exit 1
-      fi
+      exit 1
   fi
 
   echo "Installing $message from $PKG"
-  sudo dpkg $DRY_RUN -i $PKG
+  sudo dpkg -i $PKG
 }    
 
 build_llvm () {
@@ -84,9 +78,7 @@ install_llvm () {
   # LLVM_CONFIG=$(llvm-config --version)
   # if [ $? -eq 0 ]; then
   #     echo "LLVM_CONFIG is installed"
-  #     if ! [[ $DRY_RUN ]]; then
-  #         return
-  #     fi
+  #     return
   # fi
 
   if [[ $INSTALL_LLVM ]]; then
@@ -234,16 +226,11 @@ if [[ $CLEAN ]]; then
     clean_quala
     clean_partitioner
 else
-    if [ ! "$(ls -A pdg)" ]; then
-        git submodule init
-        git submodule update
-    fi
+    build_llvm
+    install_llvm
 
     check_py_module
     check_packages
-
-    build_llvm
-    install_llvm
 
     build_pdg
     build_quala
