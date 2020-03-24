@@ -52,15 +52,7 @@ install_deb() {
   sudo dpkg $DRY_RUN -i $PKG
 }    
 
-install_llvm () {
-  LLVM_CONFIG=$(llvm-config --version)
-  if [ $? -eq 0 ]; then
-      echo "LLVM_CONFIG is installed"
-      if ! [[ $DRY_RUN ]]; then
-          return
-      fi
-  fi
-
+build_llvm () {
   if [[ $LLVM_BRANCH ]]; then
       if [ ! "$(ls -A $LLVM_DIR)" ]; then
           git submodule init
@@ -86,9 +78,20 @@ install_llvm () {
       
       popd
   fi
+}
+
+install_llvm () {
+  # LLVM_CONFIG=$(llvm-config --version)
+  # if [ $? -eq 0 ]; then
+  #     echo "LLVM_CONFIG is installed"
+  #     if ! [[ $DRY_RUN ]]; then
+  #         return
+  #     fi
+  # fi
 
   if [[ $INSTALL_LLVM ]]; then
       LLVM_DEB="${LLVM_URL##*/}"
+      # if build llvm is specified, the package should be in the $PACKAGE_DIR
       if [ ! -f $PACKAGE_DIR/$LLVM_DEB ]; then
           wget $LLVM_URL
           LLVM_DEB="${LLVM_URL##*/}"
@@ -224,8 +227,9 @@ handle_opts "$@"
 
 echo "BUILD=${BUILD}"
 
+rm -rf $BUILD cle $PACKAGE_DIR
+
 if [[ $CLEAN ]]; then
-    rm -rf $BUILD cle $PACKAGE_DIR
     clean_pdg
     clean_quala
     clean_partitioner
@@ -238,6 +242,7 @@ else
     check_py_module
     check_packages
 
+    build_llvm
     install_llvm
 
     build_pdg
