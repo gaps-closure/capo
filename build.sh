@@ -237,7 +237,7 @@ else
     check_py_module
     check_packages
 
-    build_pdg
     build_quala
+    build_pdg
     build_partitioner
 fi
