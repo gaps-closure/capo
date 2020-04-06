@@ -46,6 +46,14 @@ install_deb() {
   sudo dpkg -i $PKG
 }    
 
+install_cmake() {
+  CMAKE=$(cmake --version)
+  if [ $? -ne 0 ]; then
+      echo "installing cmake"
+      sudo snap install cmake --classic
+  fi
+}
+
 build_llvm () {
   if [[ $LLVM_BRANCH ]]; then
       if [ ! "$(ls -A $LLVM_DIR)" ]; then
@@ -90,12 +98,6 @@ install_llvm () {
 
 build_pdg () {
   echo "Building PDG"
-
-  CMAKE=$(cmake --version)
-  if [ $? -ne 0 ]; then
-      echo "installing cmake"
-      sudo snap install cmake --classic
-  fi
 
   TMP_DIR=$(pwd)
   cd pdg
@@ -227,6 +229,8 @@ if [[ $CLEAN ]]; then
     clean_quala
     clean_partitioner
 else
+    install_cmake
+    
     build_llvm
     install_llvm
 
