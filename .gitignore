@@ -3,3 +3,6 @@
 *~
 \#*
 a.out
+packages
+*.a
+build/

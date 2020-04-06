@@ -75,12 +75,6 @@ build_llvm () {
 }
 
 install_llvm () {
-  # LLVM_CONFIG=$(llvm-config --version)
-  # if [ $? -eq 0 ]; then
-  #     echo "LLVM_CONFIG is installed"
-  #     return
-  # fi
-
   if [[ $INSTALL_LLVM ]]; then
       LLVM_DEB="${LLVM_URL##*/}"
       # if build llvm is specified, the package should be in the $PACKAGE_DIR
@@ -122,6 +116,13 @@ clean_pdg () {
 build_quala () {
   echo "Bulding Quala"
 
+  LLVM_CONFIG=$(llvm-config --version)
+  if [ $? -ne 0 ]; then
+      echo "LLVM_CONFIGn not installed"
+      INSTALL_LLVM=1
+      install_llvm
+  fi
+  
   TMP_DIR=$(pwd)
   cd quala/examples/tainting
   make
