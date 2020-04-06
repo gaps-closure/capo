@@ -5,7 +5,7 @@ PACKAGE_DIR="packages"
 LLVM_URL="https://github.com/gaps-closure/capo/releases/download/T0.1/LLVM-10.0.0svn-Linux.deb"
 LLVM_DIR=llvm-project
 PRE_DOWNLOADED_DEBS=($LLVM_URL)
-PY_MODULES=(clang lark-parser pydot decorator)
+PY_MODULES=(clang lark-parser pydot decorator networkx)
 DEB_PACKAGES=(xdot)
 
 usage_exit() {

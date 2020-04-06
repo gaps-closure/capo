@@ -39,7 +39,7 @@ To run the partitioner in command line, following the steps [here](partitioner/R
 Start VS Code as follows, if it is not already running.
 
 ```
-cd $MULES/partitioner
+cd $CAPO/partitioner
 code .
 ```
 The following tasks, listed in order of dependency, are defined in the partitioner project.
