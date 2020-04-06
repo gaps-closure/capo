@@ -172,7 +172,7 @@ check_py_module () {
     if [ $? -eq 0 ]; then
         echo "pip3 is installed"
     else
-        sudo apt install python3-pip
+        sudo apt install -y python3-pip
 	# do the following if the above does not work
         #curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
         #python3 get-pip.py --user
