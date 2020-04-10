@@ -5,6 +5,19 @@ using namespace llvm;
 
 char pdg::DataDependencyGraph::ID = 0;
 
+//AC
+pdg::InstructionWrapper * getInstMap(llvm::Instruction * inst) {
+  errs() << "AC_GIM1: " << "\n";
+  if (inst == nullptr) return nullptr;
+  errs() << "AC_GIM2: " << *inst << "\n";
+  errs() << "AC_GIM3: " << (pdg::instMap[inst] == nullptr? "instW is null" : "instMap") << "\n";
+  if (pdg::instMap[inst] != nullptr) return pdg::instMap[inst];
+  errs() << "AC_GIM4: " << inst->getFunction()->getName() << "\n";
+  errs() << "AC_GIM5: " << pdg::funcMap[inst->getFunction()]->getEntry() << "\n";
+  return pdg::funcMap[inst->getFunction()]->getEntry();
+}
+//AC end
+
 void pdg::DataDependencyGraph::initializeMemoryDependencyPasses() {
   AA = &getAnalysis<AAResultsWrapperPass>().getAAResults();
   MD = &getAnalysis<MemoryDependenceWrapperPass>().getMemDep();
@@ -25,7 +38,8 @@ void pdg::DataDependencyGraph::collectDefUseDependency(llvm::Instruction *inst) 
        cuit != inst->op_end(); ++cuit) {
     if (Instruction *pInst = dyn_cast<Instruction>(*cuit)) {
       //Value *tempV = dyn_cast<Value>(*cuit);
-      DDG->addDependency(instMap[pInst], instMap[inst], DATA_DEF_USE);
+      //DDG->addDependency(instMap[pInst], instMap[inst], DATA_DEF_USE);//AC orig
+      DDG->addDependency(getInstMap(pInst), getInstMap(inst), DATA_DEF_USE);//AC
     }
   }
 }
@@ -49,7 +63,9 @@ std::vector<Instruction *> pdg::DataDependencyGraph::getDependencyInFunction(Ins
 //    StoreInst *SI = dyn_cast<StoreInst>(StoreVec[j]);
     MemoryLocation SI_Loc = MemoryLocation::get(SI);
     AliasResult AA_result = AA->alias(LI_Loc, SI_Loc);
-    if (AA_result != NoAlias) {
+    DEBUG(dbgs() << "  considering: " << *SI << "\n");
+    DEBUG(dbgs() << "    locations AA: " << AA_result << "\n");
+    if (AA_result != NoAlias && AA_result != MayAlias) {
       _flowdep_set.push_back(SI);
     }
   }
@@ -58,11 +74,12 @@ std::vector<Instruction *> pdg::DataDependencyGraph::getDependencyInFunction(Ins
 
 void pdg::DataDependencyGraph::collectRAWDependency(llvm::Instruction *inst) {
   // dealing with dependencies in a function
+  DEBUG(dbgs() << "Debugging flowdep_set for function: " << func->getName() << " for inst:" << *inst << "\n");
   std::vector<Instruction *> flowdep_set = getDependencyInFunction(inst);
   for (unsigned i = 0; i < flowdep_set.size(); i++) {
-    DEBUG(dbgs() << "Debugging flowdep_set:" << "\n");
-    DEBUG(dbgs() << *flowdep_set[i] << "\n");
-    DDG->addDependency(instMap[flowdep_set[i]], instMap[inst], DATA_RAW);
+    DEBUG(dbgs() << "      adding dep: " << *flowdep_set[i] << "\n");
+    //DDG->addDependency(instMap[flowdep_set[i]], instMap[inst], DATA_RAW);//AC orig
+    DDG->addDependency(getInstMap(flowdep_set[i]), getInstMap(inst), DATA_RAW);//AC
   }
   flowdep_set.clear();
 }
@@ -77,9 +94,13 @@ void pdg::DataDependencyGraph::collectNonLocalDependency(llvm::Instruction *inst
 
   for (NonLocalDepResult &I : result) {
     const MemDepResult &nonLocal_res = I.getResult();
-    InstructionWrapper *itInst = instMap[inst];
-    InstructionWrapper *parentInst = instMap[nonLocal_res.getInst()];
-
+    //AC orig
+    //InstructionWrapper *itInst = instMap[inst];
+    //InstructionWrapper *parentInst = instMap[nonLocal_res.getInst()];
+    InstructionWrapper *itInst = getInstMap(inst);
+    InstructionWrapper *parentInst = getInstMap(nonLocal_res.getInst());
+    //AC end
+    
     if (nullptr != nonLocal_res.getInst()) {
       DEBUG(dbgs() << "nonLocal_res.getInst(): " << *nonLocal_res.getInst()
                    << '\n');
@@ -94,6 +115,7 @@ void pdg::DataDependencyGraph::collectNonLocalDependency(llvm::Instruction *inst
 void pdg::DataDependencyGraph::collectDataDependencyInFunc() {
   for (inst_iterator instIt = inst_begin(func), E = inst_end(func); instIt != E;
        ++instIt) {
+    if (instMap[&*instIt] == nullptr) return;
     DDG->getNodeByData(instMap[&*instIt]);
     llvm::Instruction *pInstruction = dyn_cast<Instruction>(&*instIt);
     collectDefUseDependency(pInstruction);

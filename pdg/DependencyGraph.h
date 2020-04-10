@@ -33,7 +33,8 @@ namespace pdg{
         DATA_DEF_USE,
         DATA_RAW,
         PARAMETER,
-        STRUCT_FIELDS
+        STRUCT_FIELDS,
+		DATA_XD
     };
 
     enum ControlType {
@@ -428,6 +429,7 @@ namespace pdg{
         std::vector<DependencyNode<NodeT> *> getNodeSet() { return mNodes; }
 
         DependencyNode<NodeT> *getNodeByData(const NodeT *pData) {
+	  assert (reinterpret_cast<std::uintptr_t>(pData) != 0xbcc);
             typename DataToNodeMap::iterator it = mDataToNode.find(pData);
             if (it == mDataToNode.end()) {
                 it = mDataToNode.insert(it, typename DataToNodeMap::value_type(
@@ -441,6 +443,8 @@ namespace pdg{
         }
 
         void addDependency(const NodeT *from, const NodeT *to, int type) {
+	    assert(from);
+	    assert(to);
             DependencyNode<NodeT> *pFrom = getNodeByData(from);
             DependencyNode<NodeT> *pTo = getNodeByData(to);
             pFrom->addDependencyTo(pTo, type);

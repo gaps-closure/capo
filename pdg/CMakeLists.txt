@@ -36,4 +36,4 @@ endif(APPLE)
 #
 #target_compile_features(pdg PRIVATE cxx_range_for cxx_auto_type)
 #set_target_properties(pdg PROPERTIES COMPILE_FLAGS "-fno-rtti")
-set_target_properties(pdg PROPERTIES COMPILE_FLAGS "-fno-rtti -std=c++14")
+set_target_properties(pdg PROPERTIES COMPILE_FLAGS "-g -fno-rtti -std=c++14")

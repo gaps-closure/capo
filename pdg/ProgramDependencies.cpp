@@ -9,8 +9,29 @@ using namespace std;
 
 char pdg::ProgramDependencyGraph::ID = 0;
 
+pdg::InstructionWrapper * getInstMap(llvm::Instruction * inst);//AC
+  
 static std::set<Type *> recursive_types;
 //static std::set<Type*> unseparated_types;
+
+std::string get_class(llvm::Value * p) {
+  std::string ret;
+  if (isa<llvm::Value>(p)) ret.append("Value::");
+  
+  if (isa<llvm::User>(p)) ret.append("User::");
+  if (isa<llvm::BasicBlock>(p)) ret.append("BasicBlock::");
+  if (isa<llvm::Argument>(p)) ret.append("Argument::");
+  
+  if (isa<llvm::Constant>(p)) ret.append("Constant::");
+  if (isa<llvm::Instruction>(p)) ret.append("Instruction::");
+  if (isa<llvm::Operator>(p)) ret.append("Operator::");
+  
+  if (isa<llvm::GlobalValue>(p)) ret.append("GlobalValue::");
+  if (isa<llvm::ConstantExpr>(p)) ret.append("ConstantExpr::");
+  if (isa<llvm::ConstantData>(p)) ret.append("ConstantData::");
+  return ret;
+}
+  
 
 tree<pdg::InstructionWrapper *>::iterator pdg::ProgramDependencyGraph::getInstInsertLoc(pdg::ArgumentWrapper *argW, TypeWrapper *tyW, TreeType treeTy)
 {
@@ -320,8 +341,12 @@ void pdg::ProgramDependencyGraph::drawActualParameterTree(CallInst *CI,
     auto TreeBegin = (*argI)->getTree(ACTUAL_IN_TREE).begin();
     if (llvm::Instruction *tmpInst = dyn_cast<llvm::Instruction>(tmp_val))
     {
-      PDG->addDependency(*instnodes.find(instMap[tmpInst]),
+      //AC orig
+      //PDG->addDependency(*instnodes.find(instMap[tmpInst]),
+      //                   *instnodes.find(*TreeBegin), PARAMETER);
+      PDG->addDependency(*instnodes.find(getInstMap(tmpInst)),
                          *instnodes.find(*TreeBegin), PARAMETER);
+      //AC end
     }
     ARG_POS++;
 
@@ -370,6 +395,8 @@ void pdg::ProgramDependencyGraph::drawActualParameterTree(CallInst *CI,
 int pdg::ProgramDependencyGraph::connectCallerAndCallee(InstructionWrapper *InstW,
                                                         llvm::Function *callee)
 {
+
+	errs() << "ACAC connectCallerAndCallee\n" << *InstW->getInstruction() << "\n" << *callee << "\nEND ACAC connectCallerAndCallee\n";
   if (InstW == nullptr || callee == nullptr)
   {
     return 1;
@@ -613,7 +640,7 @@ void pdg::ProgramDependencyGraph::connectFunctionAndFormalTrees(llvm::Function *
             if (llvm::Instruction *tmpInst = dyn_cast<Instruction>(*userIter))
             {
               PDG->addDependency(*instnodes.find(*formal_in_TI),
-                                 instMap[tmpInst], DATA_GENERAL);
+                                 getInstMap(tmpInst), DATA_GENERAL);
               (*formal_in_TI)->setVisited(true);
             }
           }
@@ -668,6 +695,7 @@ void pdg::ProgramDependencyGraph::collectGlobalInstList()
   for (llvm::Module::global_iterator globalIt = module->global_begin();
        globalIt != module->global_end(); ++globalIt)
   {
+    errs() << "AC_GLOBAL: " << globalIt->getName() << "\n" << *globalIt << "\n";
     InstructionWrapper *globalW =
         new InstructionWrapper(nullptr, nullptr, &(*globalIt), GLOBAL_VALUE);
     instnodes.insert(globalW);
@@ -676,6 +704,7 @@ void pdg::ProgramDependencyGraph::collectGlobalInstList()
     // find all global pointer values and insert them into a list
     if (globalW->getValue()->getType()->getContainedType(0)->isPointerTy())
     {
+      errs() << "AC_GLOBAL_P\n" << *globalIt << "\n";
       gp_list.push_back(globalW);
     }
   }
@@ -717,6 +746,7 @@ void pdg::ProgramDependencyGraph::categorizeInstInFunc(llvm::Function *func)
 
 bool pdg::ProgramDependencyGraph::processingCallInst(InstructionWrapper *instW)
 {
+	errs() <<"ACAC: processingCallInst 1:" << instW->getInstruction() << "\n";
   llvm::Instruction *pInstruction = instW->getInstruction();
   if (pInstruction != nullptr && instW->getType() == INST &&
       isa<CallInst>(pInstruction) && !instW->getVisited())
@@ -735,14 +765,19 @@ bool pdg::ProgramDependencyGraph::processingCallInst(InstructionWrapper *instW)
       return false;
     }
 
+	errs() <<"ACAC: processingCallInst 2:\n" << *CI << "\n" << *callee << "\nEND ACAC: processingCallInst 2\n";
+
     if (callee->isIntrinsic())
     {
-      if (callee->getIntrinsicID() == Intrinsic::var_annotation)
+    	errs() <<"ACAC: processingCallInst 2.1:\n";
+    	if (callee->getIntrinsicID() == Intrinsic::var_annotation)
       {
+        	errs() <<"ACAC: processingCallInst 2.2:\n";
         Value *v = CI->getArgOperand(0);
         DEBUG(dbgs() << "Intrinsic var_annotation: " << *v << "\n");
         if (isa<BitCastInst>(v))
         {
+        	errs() <<"ACAC: processingCallInst 2.3:\n";
           Instruction *tempI = dyn_cast<Instruction>(v);
           DEBUG(dbgs() << "******** BitInst opcode: " << *tempI << "BitCast \n");
 
@@ -752,6 +787,7 @@ bool pdg::ProgramDependencyGraph::processingCallInst(InstructionWrapper *instW)
           }
         }
       }
+    	errs() <<"ACAC: processingCallInst 2.4:\n";
       return false;
     }
 
@@ -762,10 +798,13 @@ bool pdg::ProgramDependencyGraph::processingCallInst(InstructionWrapper *instW)
     // special cases done, common function
     CallWrapper *callW = new CallWrapper(CI);
     callMap[CI] = callW;
+	errs() <<"ACAC: processingCallInst 3:\n";
     if (!callee->isDeclaration())
     {
+    	errs() <<"ACAC: processingCallInst 4:\n";
       if (!callee->arg_empty())
       {
+    		errs() <<"ACAC: processingCallInst 5:\n";
         if (funcMap[callee]->hasTrees() != true)
         {
           errs() << "Buiding parameter tree"
@@ -781,6 +820,7 @@ bool pdg::ProgramDependencyGraph::processingCallInst(InstructionWrapper *instW)
         drawActualParameterTree(CI, ACTUAL_OUT_TREE);
       } // end if !callee
 
+  	errs() <<"ACAC: processingCallInst 6:\n";
       if (0 == connectCallerAndCallee(instW, callee))
       {
         instW->setVisited(true);
@@ -814,13 +854,22 @@ bool pdg::ProgramDependencyGraph::addNodeDependencies(InstructionWrapper *instW1
     {
       for (auto GlobalInstW : globalList)
       {
+	errs() << "AC_G_INST: " << get_class(GlobalInstW->getValue()) << "\n" << *(GlobalInstW->getValue()) << "\n";
         // iterate users of the global value
         for (User *U : GlobalInstW->getValue()->users())
         {
+	  errs() << "AC_G_INST_USER:  " << get_class(U) << "\n" << *U << "\n";
           if (Instruction *userInst = dyn_cast<Instruction>(U))
           {
+	    errs() << "AC_G_INST_USER_INSTR: " << get_class(userInst) << "\n" << *userInst << "\n";
             InstructionWrapper *userInstW = instMap[userInst];
-            PDG->addDependency(GlobalInstW, userInstW, GLOBAL_VALUE);
+	    if (userInstW == nullptr) {
+	      Function * f = userInst->getFunction();
+	      errs() << "AC_G_INST_USER_INSTR_F: " << get_class(f) << "\n" << *f << "\n";
+	      userInstW = funcMap[f]->getEntry();
+	      errs() << "AC_G_INST_USER_INSTR_F_FW: " << funcMap[f] << "\n" << funcMap[f]->getEntry() << "\n";
+	    }
+	    PDG->addDependency(GlobalInstW, userInstW, DATA_DEF_USE);
           }
         }
       }
@@ -860,7 +909,7 @@ bool pdg::ProgramDependencyGraph::addNodeDependencies(InstructionWrapper *instW1
 }
 
 // function used for finding sensitive information.
-#if 0
+#if 1
   void pdg::ProgramDependencyGraph::printSensitiveFunctions() {
      std::vector<InstructionWrapper*> sensitive_nodes;
      std::set<llvm::GlobalValue *> senGlobalSet;
@@ -868,18 +917,54 @@ bool pdg::ProgramDependencyGraph::addNodeDependencies(InstructionWrapper *instW1
      std::set<llvm::Function *> async_funcs;
      std::deque<const InstructionWrapper*> queue;
      std::set<InstructionWrapper* > coloredInstSet;
-  
-     auto global_annos = this->module->getNamedGlobal("llvm.global.annotations");
+
+     InstructionWrapper * global_annos_iw = nullptr;
+     llvm::GlobalValue * global_annos = nullptr;
+     for (auto i : globalList) {
+       if (i->getValue()->getName() == "llvm.global.annotations") {
+	 global_annos_iw = i;
+	 break;
+       }
+     }
+     if (global_annos_iw) global_annos = dyn_cast<llvm::GlobalValue>(global_annos_iw->getValue());
+     //auto global_annos = this->module->getNamedGlobal("llvm.global.annotations");
+     //errs() << "AC global_annos " << "\n" ;
+     //global_annos->dump();
      if(global_annos){
          auto casted_array = cast<ConstantArray>(global_annos->getOperand(0));
          for (int i = 0; i < casted_array->getNumOperands(); i++) {
+	     errs() << "Casted_array index " << i << "\n";
              auto casted_struct = cast<ConstantStruct>(casted_array->getOperand(i));
-             if (auto sen_gv = dyn_cast<GlobalValue>(casted_struct->getOperand(0)->getOperand(0))) {
+ 	     errs() << "casted_struct\n" << *casted_struct << "\n-----\n";
+	     auto sen_gv_1 = (casted_struct->getOperand(0));
+	     errs() << "sen_gv_1 " << get_class(sen_gv_1) << "\n" << *sen_gv_1 << "\n-----\n";;
+	     llvm::GlobalValue * sen_gv;
+	     if (! isa<GlobalValue>(sen_gv_1)) {
+	       sen_gv = dyn_cast<GlobalValue>(sen_gv_1->getOperand(0));
+	     } else {
+	       sen_gv = dyn_cast<GlobalValue>(sen_gv_1);
+	     }
+	     errs() << "sen_gv\n" << *sen_gv << "\n-----\n";;
+	     
+             if (sen_gv) {
                  auto anno = cast<ConstantDataArray>(cast<GlobalVariable>(casted_struct->getOperand(1)->getOperand(0))->getOperand(0))->getAsCString();
-                 if (anno == "sensitive") {
-                     errs() << "sensitive global found! value = " << *sen_gv << "\n";
+                 //if (anno == "sensitive") {
+		     errs() << anno << " global found! value = " << *sen_gv << "\n*****\n";
+                     errs() << get_class(global_annos) << "\n*****\n";
+                     errs() << get_class(sen_gv) << "\n*****\n";
                      senGlobalSet.insert(sen_gv);
-                 }
+		     InstructionWrapper *sen_gv_iw = nullptr;
+		     for (auto i : globalList) {
+		       if (i->getValue()->getName() == sen_gv->getName()) {
+			 sen_gv_iw = i;
+			 errs() << "AC global found " << get_class(sen_gv_iw->getValue()) << "\n*****\n";
+			 break;
+		       }
+		     }
+
+		     PDG->addDependency(sen_gv_iw, global_annos_iw, DATA_DEF_USE);
+
+		     //}
              }
   
              if (auto fn = dyn_cast<Function>(casted_struct->getOperand(0)->getOperand(0))) {
@@ -896,12 +981,12 @@ bool pdg::ProgramDependencyGraph::addNodeDependencies(InstructionWrapper *instW1
          InstructionWrapper *InstW = *nodeIt;
          llvm::Instruction *pInstruction = InstW->getInstruction();
   
-         for(int i = 0; i < sensitive_values.size(); i++){
-             if(sensitive_values[i] == pInstruction){
-                 errs() << "sensitive_values " << i << " == "<< *pInstruction << "\n";
-                 sensitive_nodes.push_back(InstW);
-             }
-         }
+         //for(int i = 0; i < sensitive_nodes.size(); i++){
+         //    if(sensitive_nodes[i] == pInstruction){
+         //        errs() << "sensitive_nodes " << i << " == "<< *pInstruction << "\n";
+         //        sensitive_nodes.push_back(InstW);
+         //    }
+         //}
   
          if(InstW->getType() == GLOBAL_VALUE){
              GlobalValue *gv = dyn_cast<GlobalValue>(InstW->getValue());
@@ -1040,9 +1125,11 @@ bool pdg::ProgramDependencyGraph::runOnModule(Module &M)
   {
     Function *F = functionQ.front();
     functionQ.pop();
+    errs() << "ACAC runOnModule: Function: " << F->getName() << "\n";
     for (CallInst *CI : funcMap[F]->getCallInstList())
     {
-      Function *calledFunction = CI->getCalledFunction();
+    	Function *calledFunction = CI->getCalledFunction();
+    	errs() << "ACAC runOnModule: CallInst: " << *CI << "\n" << calledFunction << "\n";
 
       if (calledFunction == nullptr)
         continue;
@@ -1060,7 +1147,7 @@ bool pdg::ProgramDependencyGraph::runOnModule(Module &M)
       {
         errs() << calledFunction->getName().str() << " was in the list\n";
       }
-      processingCallInst(instMap[CI]);
+      processingCallInst(getInstMap(CI));
     }
   }
 
@@ -1073,7 +1160,7 @@ bool pdg::ProgramDependencyGraph::runOnModule(Module &M)
   DEBUG(dbgs() << "funcs = " << funcs << "\n");
   DEBUG(dbgs() << "+++++++++++++++++++++++++++++++++++++++++++++\n");
 
-  //printSensitiveFunctions();
+  printSensitiveFunctions();
   cleanupGlobalVars();
   return false;
 }
