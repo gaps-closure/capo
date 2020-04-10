@@ -11,7 +11,9 @@ class PolicyResolver():
         '''
         with open(fname) as f:
             fs = f.read()
-            self.desc = json.loads(fs)
+            desc1 = json.loads(fs)
+        
+        self.desc = [x for x in desc1 if 'cle-json' in x and 'level' in x['cle-json']]
 
     def get_labels(self):
         '''
