@@ -5,7 +5,7 @@ PACKAGE_DIR="packages"
 LLVM_URL="https://github.com/gaps-closure/capo/releases/download/T0.1/LLVM-10.0.0svn-Linux.deb"
 LLVM_DIR=llvm-project
 PRE_DOWNLOADED_DEBS=($LLVM_URL)
-PY_MODULES=(clang lark-parser pydot decorator)
+PY_MODULES=(clang lark-parser pydot decorator networkx)
 DEB_PACKAGES=(xdot)
 
 usage_exit() {
@@ -46,6 +46,14 @@ install_deb() {
   sudo dpkg -i $PKG
 }    
 
+install_cmake() {
+  CMAKE=$(cmake --version)
+  if [ $? -ne 0 ]; then
+      echo "installing cmake"
+      sudo snap install cmake --classic
+  fi
+}
+
 build_llvm () {
   if [[ $LLVM_BRANCH ]]; then
       if [ ! "$(ls -A $LLVM_DIR)" ]; then
@@ -75,12 +83,6 @@ build_llvm () {
 }
 
 install_llvm () {
-  # LLVM_CONFIG=$(llvm-config --version)
-  # if [ $? -eq 0 ]; then
-  #     echo "LLVM_CONFIG is installed"
-  #     return
-  # fi
-
   if [[ $INSTALL_LLVM ]]; then
       LLVM_DEB="${LLVM_URL##*/}"
       # if build llvm is specified, the package should be in the $PACKAGE_DIR
@@ -96,12 +98,6 @@ install_llvm () {
 
 build_pdg () {
   echo "Building PDG"
-
-  CMAKE=$(cmake --version)
-  if [ $? -ne 0 ]; then
-      echo "installing cmake"
-      sudo snap install cmake --classic
-  fi
 
   TMP_DIR=$(pwd)
   cd pdg
@@ -122,6 +118,13 @@ clean_pdg () {
 build_quala () {
   echo "Bulding Quala"
 
+  LLVM_CONFIG=$(llvm-config --version)
+  if [ $? -ne 0 ]; then
+      echo "LLVM_CONFIGn not installed"
+      INSTALL_LLVM=1
+      install_llvm
+  fi
+  
   TMP_DIR=$(pwd)
   cd quala/examples/tainting
   make
@@ -171,7 +174,7 @@ check_py_module () {
     if [ $? -eq 0 ]; then
         echo "pip3 is installed"
     else
-        sudo apt install python3-pip
+        sudo apt install -y python3-pip
 	# do the following if the above does not work
         #curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
         #python3 get-pip.py --user
@@ -226,13 +229,15 @@ if [[ $CLEAN ]]; then
     clean_quala
     clean_partitioner
 else
+    install_cmake
+    
     build_llvm
     install_llvm
 
     check_py_module
     check_packages
 
-    build_pdg
     build_quala
+    build_pdg
     build_partitioner
 fi
