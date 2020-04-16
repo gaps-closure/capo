@@ -5,24 +5,21 @@
 # CC=aarch64-none-linux-gnu-gcc
 
 GCC = gcc
+
 CC ?= $(GCC)
-AR = ar
-CFLAGS += -Wall -g
+AR ?= ar
+CFLAGS ?= -Wall -g
+LDFLAGS ?=
+OBJDIR ?= .
 
-#fix POSTFIX
-POSTFIX=
-ifeq ($(findstring aarch64,$(CC)),aarch64)
-POSTFIX="-arm64"
-AR=aarch64-none-linux-gnu-ar
-endif
+all: $(OBJDIR)/libxdcomms.a
 
-all: libxdcomms$(POSTFIX).a
-
-partitioner$(POSTFIX).o:
+$(OBJDIR)/%.o: %.c
+	$(CC) -c $< -o $@
 	$(CC) -c -o $@ partitioner.c
 
-libxdcomms$(POSTFIX).a: partitioner$(POSTFIX).o
+$(OBJDIR)/libxdcomms.a: $(OBJDIR)/partitioner.o
 	$(AR) rcs $@ $^
 
 clean:
-	rm -rf *~ *.o libxdcomms*.a __pycache__
+	rm -rf $(OBJDIR)/*~ $(OBJDIR)/*.o $(OBJDIR)/libxdcomms*.a $(OBJDIR)/__pycache__
