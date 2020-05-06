@@ -46,6 +46,14 @@ install_deb() {
   sudo dpkg -i $PKG
 }    
 
+install_cmake() {
+  CMAKE=$(cmake --version)
+  if [ $? -ne 0 ]; then
+      echo "installing cmake"
+      sudo snap install cmake --classic
+  fi
+}
+
 build_llvm () {
   if [[ $LLVM_BRANCH ]]; then
       if [ ! "$(ls -A $LLVM_DIR)" ]; then
@@ -90,12 +98,6 @@ install_llvm () {
 
 build_pdg () {
   echo "Building PDG"
-
-  CMAKE=$(cmake --version)
-  if [ $? -ne 0 ]; then
-      echo "installing cmake"
-      sudo snap install cmake --classic
-  fi
 
   TMP_DIR=$(pwd)
   cd pdg
@@ -172,7 +174,7 @@ check_py_module () {
     if [ $? -eq 0 ]; then
         echo "pip3 is installed"
     else
-        sudo apt install python3-pip
+        sudo apt install -y python3-pip
 	# do the following if the above does not work
         #curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
         #python3 get-pip.py --user
@@ -227,13 +229,15 @@ if [[ $CLEAN ]]; then
     clean_quala
     clean_partitioner
 else
+    install_cmake
+    
     build_llvm
     install_llvm
 
     check_py_module
     check_packages
 
-    build_pdg
     build_quala
+    build_pdg
     build_partitioner
 fi

@@ -79,7 +79,7 @@ namespace pdg {
 
         bool addNodeDependencies(InstructionWrapper *instW1);
 
-        //void printSensitiveFunctions();
+        void printSensitiveFunctions();
 
         bool runOnModule(llvm::Module &M);
 

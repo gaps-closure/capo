@@ -17,17 +17,36 @@ namespace llvm {
                 return "null instW";
             }
 
+
             std::string Str;
             raw_string_ostream OS(Str);
             switch(instW->getType()) {
                 case ENTRY:
-                    OS << *instW->getFunction()->getMetadata("dbg");
+	            errs() <<"AC_ENTRY:|" << *instW->getFunction() << "|\n";
+		    //OS << "AC_NONE";
+		    if (instW->getFunction()->hasMetadata("dbg")) {
+		      OS << *instW->getFunction()->getMetadata("dbg");
+		    } else {
+		      OS << "NO DEBUG DATA";
+		    }
                     //OS << instW->getFunction()->getSectionPrefix();
                     return ("<<ENTRY>> " + instW->getFunctionName() + " <" + OS.str() + ">");
 
                 case GLOBAL_VALUE:{
                     OS << *instW->getValue();
-                    return ("GLOBAL_VALUE:" + OS.str());
+		    errs() << "AC_G_V:|" << OS.str() << "|\n";
+		    std::string dbgloc;
+		    raw_string_ostream OS2(dbgloc);
+		    OS2 << ", DBGLOC ";
+		    if (auto in_ac = dyn_cast<llvm::Instruction>(instW->getValue())) {
+		        if (in_ac->getDebugLoc()) {
+		        	errs() << "ACAC 1:" << *(in_ac->getDebugLoc())  << "\n";
+		        	auto *Scope = cast<DIScope>(in_ac->getDebugLoc()->getScope());
+		        	OS2 << "file " << Scope->getFilename() << " line " << in_ac->getDebugLoc()->getLine() << " col " << in_ac->getDebugLoc()->getColumn();
+		        }
+		    }
+		    OS2 << " ENDDBGLOC";
+                    return ("GLOBAL_VALUE:" + OS.str() + OS2.str());
                 }
 
                 case FORMAL_IN:{
@@ -139,9 +158,18 @@ namespace llvm {
                 std::string Str;
                 raw_string_ostream OS(Str);
                 OS << *inst;
+		inst->dump();
 		//errs() << "ACAC :" << OS.str() << "\n";
-		//errs() << "ACAC 1:" << *(inst->getDebugLoc())  << "\n";
-                return OS.str();
+		std::string dbgloc;
+		raw_string_ostream OS2(dbgloc);
+		OS2 << ", DBGLOC ";
+		if (inst->getDebugLoc()) {
+			//errs() << "ACAC 1:" << *(inst->getDebugLoc())  << "\n";
+			auto *Scope = cast<DIScope>(inst->getDebugLoc()->getScope());
+			OS2 << "file " << Scope->getFilename() << " line " << inst->getDebugLoc()->getLine() << " col " << inst->getDebugLoc()->getColumn();
+		}
+		OS2 << " ENDDBGLOC";
+                return OS.str() + OS2.str();
             }
         }
     };
@@ -282,13 +310,19 @@ namespace llvm {
                 case PARAMETER:
                     return "style=dashed, color=\"blue\", label = \"{PARAMETER}\"";
                 case DATA_DEF_USE: {
-                    Instruction *pFromInst = Node->getData()->getInstruction();
+                    //Instruction *pFromInst = Node->getData()->getInstruction();
                     return "style=dotted,label = \"{DEF_USE}\" ";
                 }
                 case DATA_RAW: {
                     Instruction *pInstruction = IW.getDependencyNode()->getInstruction();
                     // pTo Node must be a LoadInst
                     std::string ret_str;
+		    //AC
+		    if (pInstruction == nullptr) {
+		      ret_str = "style=dotted,label = \"{RAW} AC collapsed\"";
+		      return ret_str;
+		    }
+		    //AC end
                     if (isa<LoadInst>(pInstruction)) {
                         LoadInst *LI = dyn_cast<LoadInst>(pInstruction);
                         Value *valLI = LI->getPointerOperand();
@@ -310,8 +344,11 @@ namespace llvm {
 
         std::string getNodeAttributes(pdg::DepGraphNode *Node, pdg::ProgramDependencyGraph *Graph) {
             using namespace pdg;
+	    errs() << "AC GNA1:" << Node << "\n";
+	    errs() << "AC GNA2:" << Node->getData() << "\n";
+	    errs() << "AC GNA3:" << Node->getData()->getType() << "\n";
             const InstructionWrapper *instW = Node->getData();
-
+	    
             if(instW == nullptr || instW == NULL){
                 errs() <<"instW " << instW << "\n";
                 return "null instW";
@@ -427,6 +464,12 @@ struct ProgramDependencyPrinter
     ProgramDependencyPrinter()
             : DOTGraphTraitsPrinter<pdg::ProgramDependencyGraph, false>("pdgragh",
                                                                    ID) {}
+  //AC -- make only one graph file
+    bool processFunction(Function&F, pdg::ProgramDependencyGraph &A) {
+      errs() << "ACPF: " << F.getName() << "\n";
+	    return F.getName() == "main";
+    }
+  //AC end
 };
 
 char ProgramDependencyPrinter::ID = 0;
