@@ -1,0 +1,16 @@
+1) Document GEDL (Representative JSON, Description of every field, Description of where field information is pulled from)
+    a) Mike K and Rajesh to double check GEDL has all necessary elements
+2) Review and update input assumptions, provide example of inputs
+    a) Use as we agreed it will be (1 directory per enclave, directory name is level in annotation)
+3) Fix GEDL
+    a) Makefile should align with GAPS (Remove App/Enclave/Trusted terminology)
+    b) Handle directories not filenames for levels
+    c) Add warnings for incorrect input 
+    d) Call it .gedl
+    e) Provide option to suppress SGX/EDL specific code generation
+4) Document requirements for signature inference
+    a) Assignment types should be correct (no implicit type casting)
+    b) List all supported types (matched to IDL)
+    c) What input conditions will be tested, and what warnings are provided
+5) All code should be CLOSURE repo
+6) Work with PSU on push back of code to PSU master

@@ -1,0 +1,28 @@
+GEDL Pseudocode:
+Open test.ll as Module M 
+For each Function F in Module M{
+    Query F's domain, if it is new unrecorded domain:
+        Add domain and domainPath to domainMap
+    Add F's name and filePath to funcMap
+}
+Build list of ImportedFunctions and DefinedFunctions from previously created files
+Build a map of Callsites for all ImportedFunctions 
+For each Domain D in domainMap{
+    For each ImportedFunction I in D{
+        Check all DefinedFunctions in other Domains
+        If a Domain D2 contains a DefinedFunction that matches I{
+            Mark D as caller and D2 as callee
+        }
+        For each I contained in a DefinedFunction of Domain D2{
+            Mark I as func
+            Query the return type from pdg and mark as return type
+            Mark diode as false (currently)
+            For each argument in the pdg for I, under Params key{
+                Query argument's type, name, direction, and size from pdg
+            }
+            For each callsite of I, under Occurs key{
+                Mark the filePath and lineNumber of the call
+            }
+        }
+    }
+}
