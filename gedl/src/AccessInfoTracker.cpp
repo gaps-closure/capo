@@ -23,7 +23,7 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   Heuristics::populateMemFuncs();
   Heuristics::populateprintfFuncs();
 
-  std::string enclaveFile = "Enclave.edl";
+  std::string enclaveFile = "Closure.gedl";
   edl_file.open(enclaveFile);
 
   //std::map<std::string, std::string> domainMap;
@@ -36,17 +36,21 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
     std::string funcFilepath =
         funcMeta->getDirectory().str() + "/" + funcMeta->getFilename().str();
     std::string domain = funcFilepath;
-    if (domain.find("/") != std::string::npos){
-      domain = domain.substr(domain.find_last_of("/")+1, domain.length()-3 - domain.find_last_of("/"));
+    std::string functionName = funcFilepath;
+    if (functionName.find("/") != std::string::npos){
+      domain = domain.substr(0,functionName.find_last_of("/"));
+      domain = domain.substr(domain.find_last_of("/")+1, domain.length() - domain.find_last_of("/"));
+      functionName = functionName.substr(functionName.find_last_of("/")+1, functionName.length()-3 - functionName.find_last_of("/"));
     }
     else{
-      domain = domain.substr(0, domain.length()-2);
+      functionName = functionName.substr(0, functionName.length()-2);
+      domain = functionName;
     } 
     std::ifstream importedFuncs(domain + "/imported_func.txt");
     if (importedFuncs){
       domainMap.insert(make_pair(domain, funcFilepath));
     }
-    funcMap.insert(make_pair(domain, funcFilepath));
+    funcMap.insert(make_pair(functionName, funcFilepath));
   }
   populateLists();
   populateCallsiteMap(M);
@@ -315,8 +319,16 @@ void pdg::AccessInfoTracker::populateLists() {
     for (std::string line; std::getline(importedFuncs, line);)
       if (blackFuncList.find(line) == blackFuncList.end())
         importedFuncList.insert(line + ":" + domain);
-    for (std::string line; std::getline(definedFuncs, line);)
+    
+    for (std::string line; std::getline(definedFuncs, line);){
+      for (auto dupFuncCheck : definedFuncList){
+        if ((dupFuncCheck.substr(0,dupFuncCheck.find(":"))) == line){
+            errs() << "Function " << line << "is located in more than one domain. Please remove or rename the instance in either " << domain << " or " << dupFuncCheck.substr(dupFuncCheck.find(":") + 1) << "\n";
+            throw("Duplicate defined function");
+        }
+      }
       definedFuncList.insert(line + ":" + domain);
+    }
 
     // importedFuncList.insert(staticFuncptrList.begin(),
     // staticFuncptrList.end());
@@ -671,9 +683,13 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
     retTypeName = "void";
   else
     retTypeName = DIUtils::getDITypeName(funcRetType);
-  if (retTypeName.find("*") != std::string::npos){
+  if (retTypeName.find("*") != std::string::npos){ 
     llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + "is invalid: return type cannot be a pointer. Correct by changing function to void type and passing an argument to be modified as the return.\n\n";
     throw("Return type invalid (ponter)");
+  }
+  if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),retTypeName) == std::end(acceptedTypes)){
+    llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + "is invalid: return type is unsupported, please change to supported type.\n\n";
+    throw("Return type invalid (unsupported)");
   }
   edl_file << "\",\n\t\t\t\t\"return\":\t{\"type\": \"" << retTypeName << "\"},\n\t\t\t\t";
   std::string diode = "false";
@@ -689,6 +705,10 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
     Type *argType = arg.getType();
     auto &dbgInstList = pdgUtils.getFuncMap()[&F]->getDbgDeclareInstList();
     std::string argName = DIUtils::getArgName(arg, dbgInstList);
+    if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),DIUtils::getArgTypeName(arg)) == std::end(acceptedTypes)){
+      errs() << "Invalid type for argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "please change to a supported type and rerun.\n";
+      throw("Argument Type Error");
+    }
     if (argType->getTypeID() == 15 &&
         !(DIUtils::isUnionTy(DIUtils::getArgDIType(
             arg)))){  // Reject non pointer unions explicitly
@@ -696,12 +716,16 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
       std::string attributesAll = argW->getAttribute().dump();
       edl_file << "\t\t\t\t\t{\"type\": \"" << DIUtils::getArgTypeName(arg).substr(0,DIUtils::getArgTypeName(arg).find("*"));
       edl_file << "\", \"name\": \"" << argName << "\", \"dir\": \"";
-      if (attributesAll.find("in,") != std::string::npos)
+      if (attributesAll.find("in") != std::string::npos)
         edl_file << "inout\",";
-      else if (attributesAll.find("out,") != std::string::npos)
+      else if (attributesAll.find("out") != std::string::npos)
         edl_file << "out\",";
-      else
+      else if (attributesAll.find("in") != std::string::npos)
         edl_file << "in\",";
+      else {
+        errs() << "Direction for argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "could not be conclusively determined. Inferred as \"in\", modify if it is intended as output.\n";
+        edl_file << "in\",";
+      }
       edl_file << " \"sz\":";
       if (attributesAll.find("string") != std::string::npos)
         edl_file << "[string]}";
@@ -709,8 +733,10 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
         edl_file << "[" << argW->getAttribute().getCount()  << "]}";
       else if (attributesAll.find("size") != std::string::npos)
         edl_file << "[" << argW->getAttribute().getSize()  << "]}";
-      else
+      else{
+        errs() << "Size of argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "could not be conclusively determined. Marking as \"user_check\", please manually specify size or rewrite function code to comply with Capo requirements and run again.\n";
         edl_file << "[user_check]}";
+      }
 
     }
     else{

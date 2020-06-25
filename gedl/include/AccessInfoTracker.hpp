@@ -64,6 +64,7 @@ class AccessInfoTracker : public llvm::ModulePass {
   std::map<std::string, std::string> userDefinedTypes;
   std::set<std::string> processedFuncPtrNames;
   std::string curImportedTransFuncName;
+  std::string acceptedTypes[10] = {"double","ffloat","int8","uint8","int16","uint16","int32","uint32","int64","uint64"};
   bool seenFuncOps;
   bool firstDomain;
   bool crossBoundary;  // indicate whether transitive closure cross two domains

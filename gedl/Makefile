@@ -1,17 +1,12 @@
 ODIR := ./build
-UNTRUSTED := Orange
-TRUSTED := Purple
-UNTRUSTED_DIR := $(ODIR)/$(UNTRUSTED)
-TRUSTED_DIR := $(ODIR)/$(TRUSTED)
-build_folder := $(shell mkdir -p $(ODIR))
-output_folder := $(shell mkdir -p $(UNTRUSTED_DIR) $(TRUSTED_DIR))
 EDIR := ./example
+ENCLAVES := Orange Purple
+build_folder := $(shell mkdir -p $(ODIR))
+enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enclave)))
 CC := clang-9
 CC_FLAGS := -emit-llvm -S -g
-TRUSTEDFILE := Purple
-UNTRUSTEDFILE := Orange
 
-libplugin.so:
+plugin:
 	@cd $(ODIR) && cmake ..
 	@$(MAKE) -C $(ODIR)
 
@@ -23,66 +18,29 @@ clean: eclean
 #	* Rules for running the EDL pass on the project
 # #########################################################################
 
-# Do EDL generation pass
-edl: gen-u gen-t $(EDIR)/test.ll
-	cd $(ODIR) && opt -disable-output -load libpdg.so -accinfo-track -d 1 -u "untrusted/" -t "trusted/" < ../$(EDIR)/test.ll
+# Do GEDL generation pass
+gedl: compile gen $(ODIR)/gedl.ll
+	cd $(ODIR) && opt -disable-output -load libpdg.so -accinfo-track -d 1 -u "untrusted/" -t "trusted/" < ../$(ODIR)/gedl.ll
 
-# Generate function list from untrusted
-gen-u: libplugin.so $(EDIR)/App.ll
-	@cd $(ODIR) && opt -disable-output -load libpdg.so -llvm-test -prefix $(UNTRUSTED)/ < ../$(EDIR)/App.ll
-
-
-# Generate function list from trusted
-gen-t: libplugin.so $(EDIR)/Enclave.ll
-	@cd $(ODIR) && opt -disable-output -load libpdg.so -llvm-test -prefix $(TRUSTED)/ < ../$(EDIR)/Enclave.ll
-
-# Generate SGX project
-sgx: libplugin.so $(EDIR)/App.ll $(EDIR)/Enclave.ll
-	@cd $(ODIR) && opt -disable-output -load libpdg.so -sgx -defined trusted/defined_func.txt -suffix "_ECALL" < ../$(EDIR)/App.ll
-	@cd $(ODIR) && opt -disable-output -load libpdg.so -sgx -defined untrusted/defined_func.txt -suffix "_OCALL" < ../$(EDIR)/Enclave.ll
+#Generates the defined_func and imported_func files for each enclave
+gen: plugin
+	$(foreach enclave,$(ENCLAVES), opt -disable-output -load libpdg.so -llvm-test -prefix $(ODIR)/$(enclave)/ < $(EDIR)/$(enclave)/$(enclave).ll;)
 
 # Build clean cleans the files generated from passes in build directory
 bclean: eclean
 	@rm -rf $(ODIR)/Enclave.edl $(TRUSTED_DIR) $(UNTRUSTED_DIR) $(ODIR)/*.c* $(ODIR)/*.h
 
-# *************************************************************************
-
-
-# 
-#	Rules for example project
-# #########################################################################
-
-.PHONY: loadLib
-loadLib: 
-	@export LD_LIBRARY_PATH="/home/mnorris/Documents/edl/build"
-
-# Run the example project
-.PHONY: run
-run: $(EDIR)/test.ll
-	lli $(EDIR)/test.ll
 
 .PHONY: compile
-compile: $(EDIR)/App.ll $(EDIR)/Enclave.ll
-	llvm-link $(EDIR)/App.ll $(EDIR)/Enclave.ll -S -o $(EDIR)/test.ll
+compile: compEncs
+	$(foreach enclave,$(ENCLAVES), $(eval ENCLAVELL += $(EDIR)/$(enclave)/$(enclave).ll ))
+	llvm-link $(ENCLAVELL) -S -o $(ODIR)/gedl.ll
 
-# Link parts to create a combined ll
-$(EDIR)/test.ll: $(EDIR)/App.ll $(EDIR)/Enclave.ll
-	llvm-link $(EDIR)/App.ll $(EDIR)/Enclave.ll -S -o $@
-
-# Compile trusted and untrusted parts
-$(EDIR)/App.ll: $(EDIR)/$(UNTRUSTEDFILE).c $(EDIR)/$(TRUSTEDFILE).h
-	$(CC) $(CC_FLAGS) $< -o $@
-
-$(EDIR)/Enclave.ll: $(EDIR)/$(TRUSTEDFILE).c $(EDIR)/$(TRUSTEDFILE).h
-	$(CC) $(CC_FLAGS) $< -o $@
+compEncs:
+	$(foreach enclave,$(ENCLAVES), $(CC) $(CC_FLAGS) $(EDIR)/$(enclave)/$(enclave).c -o $(EDIR)/$(enclave)/$(enclave).ll;)
 
 # Example clean cleans the ll files from the example.
 eclean:
 	@rm -rf $(EDIR)/*.ll
-
-.PHONY: renameC
-renameC:
-	mv build/$(UNTRUSTEDFILE).c build/$(UNTRUSTEDFILE).cpp
-	mv build/$(TRUSTEDFILE).c build/$(TRUSTEDFILE).cpp
 
 # *************************************************************************

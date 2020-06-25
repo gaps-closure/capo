@@ -7,10 +7,10 @@
     b) Handle directories not filenames for levels
     c) Add warnings for incorrect input 
     d) Call it .gedl
-    e) Provide option to suppress SGX/EDL specific code generation
 4) Document requirements for signature inference
     a) Assignment types should be correct (no implicit type casting)
     b) List all supported types (matched to IDL)
     c) What input conditions will be tested, and what warnings are provided
 5) All code should be CLOSURE repo
 6) Work with PSU on push back of code to PSU master
+    a) Provide option to suppress SGX/EDL specific code generation
