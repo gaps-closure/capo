@@ -962,7 +962,8 @@ bool pdg::ProgramDependencyGraph::addNodeDependencies(InstructionWrapper *instW1
 		       }
 		     }
 
-		     PDG->addDependency(sen_gv_iw, global_annos_iw, DATA_DEF_USE);
+                     if(sen_gv_iw != nullptr)
+  		         PDG->addDependency(sen_gv_iw, global_annos_iw, DATA_DEF_USE);
 
 		     //}
              }
