@@ -6,3 +6,4 @@ a.out
 packages
 *.a
 build/scratch/
+scratch
