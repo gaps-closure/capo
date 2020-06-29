@@ -19,5 +19,9 @@ sudo -H pip3 install minizinc
 sudo -H pip3 install python-constraint  
 ```
 
-## Prepare sample input
+## Prepare sample input and run conflict analyzer
 
+```
+bash prep_sample.sh
+python3 conflict_free_partition.py -c ./scratch/*.clemap.json
+```

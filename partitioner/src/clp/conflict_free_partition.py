@@ -151,7 +151,7 @@ if __name__ == '__main__':
   # Solve and print solutions
   result = p.getSolutions()
   for r in result:
-    print(r)
+    print({a:levels[b] for a,b in r.items()})
 
 #############################################################################################################
 '''
