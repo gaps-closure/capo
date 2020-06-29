@@ -105,15 +105,17 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
   PDG->buildPDGForFunc(main);
 
   // Open file for ecall wrapper functions
-  ecallsH.open("Ecalls.h");
-  ecallsH << "#pragma once\n";
-  ecallsH << "#include \"Enclave_u.h\"\n#include \"sgx_urts.h\"\n#include "
-             "\"sgx_utils.h\"\n";
-  ecallsH << "extern sgx_enclave_id_t global_eid;\n";
+  if (false){
+    ecallsH.open("Ecalls.h");
+    ecallsH << "#pragma once\n";
+    ecallsH << "#include \"Enclave_u.h\"\n#include \"sgx_urts.h\"\n#include "
+              "\"sgx_utils.h\"\n";
+    ecallsH << "extern sgx_enclave_id_t global_eid;\n";
 
-  ecallsC.open("Ecalls.cpp");
-  ecallsC << "#include \"Ecalls.h\"\n";
-  ecallsC << "sgx_enclave_id_t global_eid = 0;\n";
+    ecallsC.open("Ecalls.cpp");
+    ecallsC << "#include \"Ecalls.h\"\n";
+    ecallsC << "sgx_enclave_id_t global_eid = 0;\n";
+  }
   std::set<std::string> imports;
   std::map<std::string, std::set<std::string>> importFuncs;
   for (auto funcNameDefinition : importedFuncList) {
@@ -346,13 +348,41 @@ void pdg::AccessInfoTracker::populateLists() {
 }
 
 void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
+  std::map<std::string, std::string> labelsMap;
+  if(GlobalVariable* Annotations = M.getGlobalVariable("llvm.global.annotations")) {
+    
+    for (Value *AnnotationsValue : Annotations->operands()) {
+      
+      if (ConstantArray *AnnotationsArray = dyn_cast<ConstantArray>(AnnotationsValue)) {
+        
+        for (Value *AnnotationsArrayValues : AnnotationsArray->operands()) {
+          if (ConstantStruct *ValuesStruct = dyn_cast<ConstantStruct>(AnnotationsArrayValues)) {
+            if (ValuesStruct->getNumOperands() >= 2) {
+              //labelsMap[ValuesStruct->getOperand(1)->getOperand(0)->getName()] = "Pending";
+              //errs() << "\n" << (ValuesStruct->getOperand(0)->getOperand(0)->getName()) << "\n";
+              //errs() << (ValuesStruct->getOperand(1)->getOperand(0)->getName()) << "\n";
+              //errs() << (ValuesStruct->getOperand(2)->getOperand(0)->getName()) << "\n";
+              if(GlobalVariable* GA = M.getGlobalVariable(ValuesStruct->getOperand(1)->getOperand(0)->getName(), true)) {
+                for (Value *AOp : GA->operands()) {
+                  if (ConstantDataArray *CA = dyn_cast<ConstantDataArray>(AOp)) {
+                    std::string A = CA->getAsString().substr(0,CA->getAsString().size()-1);
+                    annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName()] = A;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   for (Function &function : M) {
     for (BasicBlock &bb : function){
       for (Instruction &inst : bb){
         
         if (CallInst *callInst = dyn_cast<CallInst>(&inst)) {
           // Get the funcName this argument is used as parameter
-          //errs() << inst << "\n";
           std::string callFuncName, filePath, lineNum;
           if (callInst->getCalledFunction()) {
             Function *calledFunc = callInst->getCalledFunction();
@@ -364,8 +394,8 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
             filePath = debugInfo->getDirectory().str() + "/" + debugInfo->getFilename().str();
             lineNum = std::to_string(debugInfo->getLine());
           } else { 
-            Value* indirectVale = callInst->getCalledValue();
-            Value* strippedVal = indirectVale-> stripPointerCasts();
+            Value* indirectValue = callInst->getCalledValue();
+            Value* strippedVal = indirectValue-> stripPointerCasts();
             StringRef iFuncName = strippedVal->getName();
             const llvm::DebugLoc &debugInfo = inst.getDebugLoc();
             callFuncName = iFuncName.str();
@@ -685,15 +715,20 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
     retTypeName = DIUtils::getDITypeName(funcRetType);
   if (retTypeName.find("*") != std::string::npos){ 
     llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + "is invalid: return type cannot be a pointer. Correct by changing function to void type and passing an argument to be modified as the return.\n\n";
-    throw("Return type invalid (ponter)");
+    throw("Return type invalid (unsupported)");
   }
   if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),retTypeName) == std::end(acceptedTypes)){
     llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + "is invalid: return type is unsupported, please change to supported type.\n\n";
     throw("Return type invalid (unsupported)");
   }
   edl_file << "\",\n\t\t\t\t\"return\":\t{\"type\": \"" << retTypeName << "\"},\n\t\t\t\t";
-  std::string diode = "false";
-  edl_file << "\"diode\":\tfalse,\n\t\t\t\t\"params\": [\n";
+  std::string clelabel = "false";
+  if (annotationMap.find(F.getName().str()) == annotationMap.end()){
+    llvm::errs() << "Function " + F.getName().str() + " does not have a valid CLE label, or the label cannot be detected. Please add a label to the function then either rerun make or manually insert into GEDL";
+    edl_file << "\"clelabel\":\t[user_check],\n\t\t\t\t\"params\": [\n";
+  } else{
+      edl_file << "\"clelabel\":\t" << annotationMap[F.getName().str()] << ",\n\t\t\t\t\"params\": [\n";
+  }
 
   //edl_file << "\n\t\t\tReturn: " << retTypeName << "\n\t\t\tParams: \n";
 
@@ -705,16 +740,17 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
     Type *argType = arg.getType();
     auto &dbgInstList = pdgUtils.getFuncMap()[&F]->getDbgDeclareInstList();
     std::string argName = DIUtils::getArgName(arg, dbgInstList);
+    std::string argTypeName = DIUtils::getArgTypeName(arg).substr(0,DIUtils::getArgTypeName(arg).find("*"));
     if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),DIUtils::getArgTypeName(arg)) == std::end(acceptedTypes)){
-      errs() << "Invalid type for argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "please change to a supported type and rerun.\n";
-      throw("Argument Type Error");
+      errs() << "Invalid type for argument " << argName << " for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "please change to a supported type and rerun or modify in .gedl file.\n";
+      argTypeName = "[user_check]";
     }
     if (argType->getTypeID() == 15 &&
         !(DIUtils::isUnionTy(DIUtils::getArgDIType(
             arg)))){  // Reject non pointer unions explicitly
       std::cout << argName << "     " << argW->getAttribute().dump() << "\n";
       std::string attributesAll = argW->getAttribute().dump();
-      edl_file << "\t\t\t\t\t{\"type\": \"" << DIUtils::getArgTypeName(arg).substr(0,DIUtils::getArgTypeName(arg).find("*"));
+      edl_file << "\t\t\t\t\t{\"type\": \"" << argTypeName;
       edl_file << "\", \"name\": \"" << argName << "\", \"dir\": \"";
       if (attributesAll.find("in") != std::string::npos)
         edl_file << "inout\",";
@@ -723,8 +759,8 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
       else if (attributesAll.find("in") != std::string::npos)
         edl_file << "in\",";
       else {
-        errs() << "Direction for argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "could not be conclusively determined. Inferred as \"in\", modify if it is intended as output.\n";
-        edl_file << "in\",";
+        errs() << "Direction for argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "could not be conclusively determined. Please correct in .gedl to in/out/inout.\n";
+        edl_file << "[user_check]\",";
       }
       edl_file << " \"sz\":";
       if (attributesAll.find("string") != std::string::npos)

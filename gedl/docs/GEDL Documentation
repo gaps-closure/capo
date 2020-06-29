@@ -99,12 +99,12 @@ gedl:
                 Represented by a double quote (") enclosed string that is one of
                 IDL's supported C types [double, ffloat, int8, uint8, int16, uint16,
                 int32, uint32, int64, uint64] and not a pointer (no *)
-    diode:  
-            Boolean value determining if function is a diode or not, meaning it must
-            wait for a response if it is or continue without a response if not. 
-            Determined by the CLE file.
+    clelabel:  
+            String value denoting the CLE labels that are tainting the function. This
+            is determined by checking the CLE labels present in the LLVM IR in the function
+            definition.
 
-            Represented as a boolean value, either true or false.
+            Represented as a string value, with plaintext labels separated by commas.
     params: 
             Array containing one object for each argument passed to the function.
             Determined by querying PDGUtils for the list of arguments for the 
@@ -175,7 +175,6 @@ Criteria:
     *No functions may have a pointer return type. Any functions with pointer returns must be refactored
         to instead return void and pass a new argument by reference that will act as the return
     *No duplicate functions across domains, except for multithreaded programs where "main" can be duplicated
-    *Header files must be created and included for any cross-domain calls
     *Variables should not have any implicit casting to allow for automatic direction and size detection
     *Arguments and return types must be be of IDL supported types {"double","ffloat","int8","uint8","int16","uint16","int32","uint32","int64","uint64"} 
 
@@ -187,7 +186,8 @@ Makefile:
 
 Warnings List:
         Warning and terminating error if return type is a pointer or unsupported
-        Warning if direction for an argument is undetermined
+        Warning if direction for an argument is undetermined 
         Warning if size of an argument is undetermined
-        Warning and terminating error if argument or type is not supported
-        Warning and terminating error if function is defined in more than one domain (potentially more expensive than its worth)
+        Warning and if argument or type is not supported by IDL 
+ TODO: (check if there is a method to allow function to be defined on both sides)       Warning and terminating error if function is defined in more than one domain (potentially more expensive than its worth)
+        Warning if cross domain function does not have CLE label

@@ -1,10 +1,11 @@
 ODIR := ./build
 EDIR := ./example
-ENCLAVES := Orange Purple
+ENCLAVES := orange purple
 build_folder := $(shell mkdir -p $(ODIR))
 enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enclave)))
 CC := clang-9
 CC_FLAGS := -emit-llvm -S -g
+CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
 
 plugin:
 	@cd $(ODIR) && cmake ..
@@ -37,7 +38,10 @@ compile: compEncs
 	llvm-link $(ENCLAVELL) -S -o $(ODIR)/gedl.ll
 
 compEncs:
-	$(foreach enclave,$(ENCLAVES), $(CC) $(CC_FLAGS) $(EDIR)/$(enclave)/$(enclave).c -o $(EDIR)/$(enclave)/$(enclave).ll;)
+	rm -rf $(EDIR)/*/*.mod.c $(EDIR)/*/*.ll
+	$(foreach enclave,$(ENCLAVES),	$(CLE_PRE)/qd_cle_preprocessor.py -f $(EDIR)/$(enclave)/*.c;)
+	$(foreach enclave,$(ENCLAVES),	$(CC) $(CC_FLAGS) $(EDIR)/$(enclave)/*.mod.c -o $(EDIR)/$(enclave)/$(enclave).ll;)
+
 
 # Example clean cleans the ll files from the example.
 eclean:
