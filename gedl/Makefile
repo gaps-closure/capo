@@ -1,6 +1,6 @@
 ODIR := ./build
 EDIR := ./example
-ENCLAVES := orangeSplit purpleSplit greenSplit
+ENCLAVES := orange purple
 build_folder := $(shell mkdir -p $(ODIR))
 enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enclave)))
 CC := clang-9
