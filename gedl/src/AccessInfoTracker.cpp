@@ -26,8 +26,7 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   std::string enclaveFile = "Closure.gedl";
   edl_file.open(enclaveFile);
 
-  //std::map<std::string, std::string> domainMap;
-  
+  //For loop for every function to construct a map of every domain and the filepath for every function
   for (Function &function : M) {
     if (function.isDeclaration()) continue;  // skip intrinsic funcs
     // Get func Metadata and filepath
@@ -37,39 +36,41 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
         funcMeta->getDirectory().str() + "/" + funcMeta->getFilename().str();
     std::string domain = funcFilepath;
     std::string functionName = function.getName().str();
+
+    //Strip out all information from filepath except bottom level directory for domain name
     if (domain.find("/") != std::string::npos){
       domain = domain.substr(0,domain.find_last_of("/"));
       domain = domain.substr(domain.find_last_of("/")+1, domain.length() - domain.find_last_of("/"));
-      //functionName = functionName.substr(functionName.find_last_of("/")+1, functionName.length()-3 - functionName.find_last_of("/"));
     }
-    else{
-      //functionName = functionName.substr(0, functionName.length()-2);
-      domain = functionName;
-      errs() << domain << "\n";
-    } 
-    std::ifstream importedFuncs(domain + "/imported_func.txt");
-    if (importedFuncs){
+    //Create entry for domain if one does not already exist
+    if (domainMap.find(domain) == domainMap.end()){
       domainMap.insert(make_pair(domain, funcFilepath));
     }
     funcMap.insert(make_pair(functionName, funcFilepath));
   }
 
+  //Function to create lists for all defined functions and imported functions across all domains
   populateLists();
+
+  //Function to create a map of callsites for imported functions 
   populateCallsiteMap(M);
+
+  //Function to create a map of all function annotations
+  populateAnnotationMap(M);
+
   edl_file << "{\"gedl\": [";
   int firstElem = 0;
   firstDomain = false;
+
+  //Call create domain for each domain in the domainMap
   for(auto elem: domainMap){
 
-    //std::cout << elem.first << " " << elem.second << "\n";
     createDomain(elem.first,M);
     
 
   }
   edl_file << "\n]}";
 
-  // Read the untrusted domain information to create trusted side and wrappers
-  //createTrusted(UPREFIX, M);
 
   // Clear function lists
   lockFuncList.clear();
@@ -79,8 +80,6 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   definedFuncList.clear();
   kernelFuncList.clear();
 
-  // Read the trusted domain information to create untrusted side
-  //createUntrusted(TPREFIX, M);
 
   edl_file.close();
 
@@ -118,22 +117,28 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
     ecallsC << "#include \"Ecalls.h\"\n";
     ecallsC << "sgx_enclave_id_t global_eid = 0;\n";
   }
+
   std::set<std::string> imports;
   std::map<std::string, std::set<std::string>> importFuncs;
+  //For every imported function across all domains, check if they match current domain
   for (auto funcNameDefinition : importedFuncList) {
     if (funcNameDefinition.substr(funcNameDefinition.find(":") + 1) == domain){
       std::string funcName = funcNameDefinition.substr(0,funcNameDefinition.find(":"));
       std::string importDomain = "";
+      //If a function matches the current domain, check if it is defined in any other domain
       for (auto impName : definedFuncList) {
           if (impName.substr(0,impName.find(":")) == funcName){
               importDomain = impName.substr(impName.find(":") + 1);
               break;
           }
       }
+      //If an imported function is defined in anothed domain: 
       if (importDomain != ""){
+        //Add that domain to imports set of domains if it does not exist
         if (imports.find(importDomain) == imports.end()){
           imports.insert(importDomain);
         }
+        //Add the function to the set of imported functions in the map for that domain
         if (importFuncs.count(importDomain) > 0){
           importFuncs[importDomain].insert(funcName);
         } else{
@@ -146,7 +151,9 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
   }
   int beginningTracker = 0;
   std::string currentImport = "";
+  //For every domain that this domain imports a function from:
   for (std::string importDomain : imports){
+    //If this is the first domain pair, do not add a comma
     if (firstDomain && !(imports.empty())){
       edl_file << ",";
     } else if(!imports.empty()){
@@ -154,7 +161,9 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
     }
     beginningTracker = 0;
     currentImport = "";
+    //For every imported function for the current imported domain:
     for (std::string funcName : importFuncs[importDomain]){
+      //If this is the first function for this pair, do not add a comma
       if (beginningTracker == 0){
         beginningTracker = 1;
       }
@@ -162,17 +171,18 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
         edl_file << ",\n";
       }
       
-      //std::cout << funcName.substr(funcName.find(":") + 1) << "     " << domain << "\n";
+      //If this is the first function for this pair, create the caller, callee, and calls fields
       if (currentImport == ""){
         currentImport = importDomain;
         edl_file << "\n\t{\n\t\t\"caller\": \"" << domain << "\",\n\t\t\"callee\": \""<< importDomain << "\",\n";
         edl_file << "\t\t\"calls\": [\n\t\t\t{\n";
-      }
+      } //If this is not the first function, just add a new open brace
       else{
         edl_file << "\t\t\t{\n";
       }
       edl_file << "\t\t\t\t\"func\":\t\t\"" << funcName;
 
+      //This block of code gets all of the information for the function from its name, namely where it is called
       crossBoundary = false;
       curImportedTransFuncName = funcName;
       auto func = M.getFunction(StringRef(funcName));
@@ -183,6 +193,7 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
         if (staticFunc && !staticFunc->isDeclaration())
           transClosure.push_back(staticFunc);
       }
+      //For every callsite calling this function, gather read/write info for how the function and its arguments are used
       for (auto iter = transClosure.rbegin(); iter != transClosure.rend();
           iter++) {
         auto transFunc = *iter;
@@ -193,15 +204,21 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
         getIntraFuncReadWriteInfoForFunc(*transFunc);
       }
       writeCALLWrapper(*func, ecallsH, ecallsC, "_ECALL");
+
+      //Generate the argument and return information for the function
       if (std::find(mainClosure.begin(), mainClosure.end(), func) !=
           mainClosure.end())  // This function is in main Funcs closure
         generateIDLforFunc(*func, true);  // It is possibly a root ECALL
       else
         generateIDLforFunc(*func, false);
       edl_file << "\t\t\t\t\"occurs\": [\n";
+
+      //For every callsite of the function, generate an occurs object with the filepath and linenums
       for (auto filePath : callsiteMap[funcName]){
         edl_file << "\t\t\t\t\t{\"file\": \"" << filePath << "\", \"lines\": [";
         int startLine = 0;
+
+        //For every linenum for the filepath, insert the linenum in the field
         for (auto lineNum : callsiteLines[(funcName + ":" + filePath)]){
           if (startLine == 0){
             startLine = 1;
@@ -325,6 +342,8 @@ void pdg::AccessInfoTracker::populateLists() {
         importedFuncList.insert(line + ":" + domain);
     
     for (std::string line; std::getline(definedFuncs, line);){
+      //Loop through every function that has been added to the list so far
+      // if current function is present it is doubly defined
       for (auto dupFuncCheck : definedFuncList){
         if ((dupFuncCheck.substr(0,dupFuncCheck.find(":"))) == line){
             errs() << "Function " << line << "is located in more than one domain. Please remove or rename the instance in either " << domain << " or " << dupFuncCheck.substr(dupFuncCheck.find(":") + 1) << "\n";
@@ -349,25 +368,23 @@ void pdg::AccessInfoTracker::populateLists() {
   
 }
 
-void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
-  std::map<std::string, std::string> labelsMap;
+void pdg::AccessInfoTracker::populateAnnotationMap(Module &M){
+  //Attempt to create global varialbe for all llvm global annotations
   if(GlobalVariable* Annotations = M.getGlobalVariable("llvm.global.annotations")) {
-    
+    //For every annotation, create a constant struct for all of its values
     for (Value *AnnotationsValue : Annotations->operands()) {
-      
       if (ConstantArray *AnnotationsArray = dyn_cast<ConstantArray>(AnnotationsValue)) {
-        
         for (Value *AnnotationsArrayValues : AnnotationsArray->operands()) {
           if (ConstantStruct *ValuesStruct = dyn_cast<ConstantStruct>(AnnotationsArrayValues)) {
             if (ValuesStruct->getNumOperands() >= 2) {
-              //labelsMap[ValuesStruct->getOperand(1)->getOperand(0)->getName()] = "Pending";
-              //errs() << "\n" << (ValuesStruct->getOperand(0)->getOperand(0)->getName()) << "\n";
-              //errs() << (ValuesStruct->getOperand(1)->getOperand(0)->getName()) << "\n";
-              //errs() << (ValuesStruct->getOperand(2)->getOperand(0)->getName()) << "\n";
+              //Get the global variable for the first annotation of the function
               if(GlobalVariable* LabelAnno = M.getGlobalVariable(ValuesStruct->getOperand(1)->getOperand(0)->getName(), true)) {
                 for (Value *LabelValue : LabelAnno->operands()) {
+                  //Create constant from the label's value
                   if (ConstantDataArray *LabelArray = dyn_cast<ConstantDataArray>(LabelValue)) {
+                    //Get the label as a string and cut off the terminating /00
                     std::string LabelStringg = LabelArray->getAsString().substr(0,LabelArray->getAsString().size()-1);
+                    //Add the function and label to the annotation map
                     annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName()] = LabelStringg;
                   }
                 }
@@ -378,34 +395,38 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
       }
     }
   }
+}
 
+void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
+  //Loop through all instructions of every function in the program
   for (Function &function : M) {
     for (BasicBlock &bb : function){
       for (Instruction &inst : bb){
-        
+        //If the instruction can be cast to a CallInst, there is a call to another function here
         if (CallInst *callInst = dyn_cast<CallInst>(&inst)) {
-          // Get the funcName this argument is used as parameter
           std::string callFuncName, filePath, lineNum;
+          //Attempt to get the called function from the instruction
           if (callInst->getCalledFunction()) {
             Function *calledFunc = callInst->getCalledFunction();
+            //Skip function declarations
             if (calledFunc->isDeclaration()) continue;
             callFuncName = calledFunc->getName().str();
-            //DISubprogram *funcMeta = dyn_cast<llvm::DISubprogram>(calledFunc->getMetadata(0));
-            //std::string funcFile = funcMeta->getDirectory().str() + "/" + funcMeta->getFilename().str();
+            //Get the debug information from which filepath and linenum can be determined
             const llvm::DebugLoc &debugInfo = inst.getDebugLoc();
             filePath = debugInfo->getDirectory().str() + "/" + debugInfo->getFilename().str();
             lineNum = std::to_string(debugInfo->getLine());
-          } else { 
+          } //If the function call is indirect, get from stripped indirect called value
+          else { 
             Value* indirectValue = callInst->getCalledValue();
             Value* strippedVal = indirectValue-> stripPointerCasts();
             StringRef iFuncName = strippedVal->getName();
+            //Get the debug information from which filepath and linenum can be determined
             const llvm::DebugLoc &debugInfo = inst.getDebugLoc();
             callFuncName = iFuncName.str();
             filePath = debugInfo->getDirectory().str() + "/" + debugInfo->getFilename().str();
             lineNum = std::to_string(debugInfo->getLine());
-            //DILocation Loc(instMeta);
-            //unsigned Line = Loc.getLineNumber();
           }
+          //Add callsite filepath to map if an entry exists, otherwise create new entry with single filepath
           if (callsiteMap.count(callFuncName) > 0){
             callsiteMap[callFuncName].insert(filePath);
           } else{
@@ -413,6 +434,7 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
             tempSet.insert(filePath);
             callsiteMap[callFuncName] = tempSet;
           }
+          //Add callsite linenum to map if an entry exists, otherwise create new entry with single linenum
           if (callsiteLines.count(callFuncName + ":" + filePath) > 0){
             callsiteLines[callFuncName + ":" + filePath].insert(lineNum);
           } else{
@@ -420,7 +442,6 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
             tempSet.insert(lineNum);
             callsiteLines[callFuncName + ":" + filePath] = tempSet;
           }
-          //std::cout << callFuncName << "     " << filePath << "     " << lineNum << "\n";
         }
       }
     }
@@ -715,45 +736,50 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
     retTypeName = "void";
   else
     retTypeName = DIUtils::getDITypeName(funcRetType);
+  //Check if function return type is a pointer or a type unsupported by IDL and give a warning if it is
   if (retTypeName.find("*") != std::string::npos){ 
     llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + " is invalid: return type cannot be a pointer. Correct by changing function to void type and passing an argument to be modified as the return.\n\n";
     throw("Return type invalid (pointer)");
   }
   if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),retTypeName) == std::end(acceptedTypes)){
     llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + " is invalid: return type is unsupported, please change to supported type.\n\n";
-    //throw("Return type invalid (unsupported)");
   }
+  //Add return field to gedl
   edl_file << "\",\n\t\t\t\t\"return\":\t{\"type\": \"" << retTypeName << "\"},\n\t\t\t\t";
-  std::string clelabel = "false";
+  
+  //Check if the annotation doesn't exist or could not be found and give a warning
   if (annotationMap.find(F.getName().str()) == annotationMap.end()){
     llvm::errs() << "Function " + F.getName().str() + " does not have a valid CLE label, or the label cannot be detected. Please add a label to the function then either rerun make or manually insert into GEDL";
     edl_file << "\"clelabel\":\t[user_check],\n\t\t\t\t\"params\": [\n";
   } else{
+      //If annotation was found, add clelabel field
       edl_file << "\"clelabel\":\t\"" << annotationMap[F.getName().str()] << "\",\n\t\t\t\t\"params\": [\n";
   }
 
-  //edl_file << "\n\t\t\tReturn: " << retTypeName << "\n\t\t\tParams: \n";
-
-  //if (root) edl_file << "public ";
-  //edl_file << retTypeName << " " << F.getName().str() << "( ";
-  // handle parameters
+  // For every parameter, check if it is pointer or not and create an appropriate gedl line
   for (auto argW : pdgUtils.getFuncMap()[&F]->getArgWList()) {
     Argument &arg = *argW->getArg();
     Type *argType = arg.getType();
     auto &dbgInstList = pdgUtils.getFuncMap()[&F]->getDbgDeclareInstList();
     std::string argName = DIUtils::getArgName(arg, dbgInstList);
     std::string argTypeName = DIUtils::getArgTypeName(arg).substr(0,DIUtils::getArgTypeName(arg).find("*"));
-
+    
+    //Check if the argument is of an IDL supported type. If not, print a warning and set type to [user_check]
     if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),argTypeName) == std::end(acceptedTypes)){
       errs() << "Invalid type for argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " please change to a supported type and rerun or modify in .gedl file.\n";
       argTypeName = "[user_check]";
     }
+    //If the argument is a pointer type:
     if (argType->getTypeID() == 15 &&
         !(DIUtils::isUnionTy(DIUtils::getArgDIType(
             arg)))){  // Reject non pointer unions explicitly
+
+      //Gather list of attributes and create type and name fields
       std::string attributesAll = argW->getAttribute().dump();
       edl_file << "\t\t\t\t\t{\"type\": \"" << argTypeName;
       edl_file << "\", \"name\": \"" << argName << "\", \"dir\": \"";
+
+      //From attributes, create field for argument direction, setting to [user_check] and generating warning if it is undetermined
       if (attributesAll.find("in") != std::string::npos && attributesAll.find("out") != std::string::npos)
         edl_file << "inout\",";
       else if (attributesAll.find("out") != std::string::npos)
@@ -765,7 +791,7 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
         edl_file << "[user_check]\",";
       }
       edl_file << " \"sz\":";
-      errs() << "\n" << attributesAll << "\n\n";
+      //From attributes determine arguments size or if it is a string, if undetermined mark as [user_check] and give a warning
       if (attributesAll.find("string") != std::string::npos)
         edl_file << "\"[string]\"}";
       else if (attributesAll.find("count") != std::string::npos)
@@ -779,9 +805,11 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
 
     }
     else{
+      //If argument is not a pointer, create simple field entry
       edl_file << "\t\t\t\t\t{\"type\": \"" << argTypeName;
       edl_file << "\", \"name\": \"" << argName << "\", \"dir\": \"in\"}";
     }
+    //If there are more arguments to add, insert a comma
     if (argW->getArg()->getArgNo() < F.arg_size() - 1 && !argName.empty())
       edl_file << ", ";
     edl_file << "\n";

@@ -25,6 +25,7 @@ class AccessInfoTracker : public llvm::ModulePass {
                         std::string suffix);
   void populateLists();
   void populateCallsiteMap(llvm::Module &M);
+  void populateAnnotationMap(llvm::Module &M);
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const;
   void getIntraFuncReadWriteInfoForArg(ArgumentWrapper *argW, TreeType treeTy);
   void getIntraFuncReadWriteInfoForFunc(llvm::Function &F);

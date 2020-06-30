@@ -19,7 +19,7 @@ with open("build/Closure.gedl") as edl_file:
                 #Generate a request struct for this function
                 idl_file.write("\n\nstruct Request%s {" % (call['func']))
 
-                #If there are no parameters, create a dummy argument to meet marshalling requirements
+                #If there are no parameters, create a dummy variable to meet marshalling requirements
                 if len(call['params']) == 0:
                     idl_file.write("\n\tint x;")
                 else:
@@ -33,6 +33,7 @@ with open("build/Closure.gedl") as edl_file:
                 
                 #Generate a response struct for this function
                 idl_file.write("\n\nstruct Response%s {" % (call['func']))
+                #If return type is void, generate dummy variable to meet marshalling requirements
                 if call['return'] == "void":
                     idl_file.write("\n\tint x;")
                 else:
