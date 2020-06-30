@@ -1,6 +1,6 @@
 ODIR := ./build
 EDIR := ./example
-ENCLAVES := orange purple
+ENCLAVES := orangeSplit purpleSplit greenSplit
 build_folder := $(shell mkdir -p $(ODIR))
 enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enclave)))
 CC := clang-9
@@ -14,6 +14,7 @@ plugin:
 # Hard clean cleans whole build directory and compiled files in example directory
 clean: eclean
 	@rm -rf $(ODIR)
+	rm -rf $(EDIR)/*/*.mod.c $(EDIR)/*/*.ll
 
 # 
 #	* Rules for running the EDL pass on the project

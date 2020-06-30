@@ -36,15 +36,16 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
     std::string funcFilepath =
         funcMeta->getDirectory().str() + "/" + funcMeta->getFilename().str();
     std::string domain = funcFilepath;
-    std::string functionName = funcFilepath;
-    if (functionName.find("/") != std::string::npos){
-      domain = domain.substr(0,functionName.find_last_of("/"));
+    std::string functionName = function.getName().str();
+    if (domain.find("/") != std::string::npos){
+      domain = domain.substr(0,domain.find_last_of("/"));
       domain = domain.substr(domain.find_last_of("/")+1, domain.length() - domain.find_last_of("/"));
-      functionName = functionName.substr(functionName.find_last_of("/")+1, functionName.length()-3 - functionName.find_last_of("/"));
+      //functionName = functionName.substr(functionName.find_last_of("/")+1, functionName.length()-3 - functionName.find_last_of("/"));
     }
     else{
-      functionName = functionName.substr(0, functionName.length()-2);
+      //functionName = functionName.substr(0, functionName.length()-2);
       domain = functionName;
+      errs() << domain << "\n";
     } 
     std::ifstream importedFuncs(domain + "/imported_func.txt");
     if (importedFuncs){
@@ -52,6 +53,7 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
     }
     funcMap.insert(make_pair(functionName, funcFilepath));
   }
+
   populateLists();
   populateCallsiteMap(M);
   edl_file << "{\"gedl\": [";
@@ -362,11 +364,11 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
               //errs() << "\n" << (ValuesStruct->getOperand(0)->getOperand(0)->getName()) << "\n";
               //errs() << (ValuesStruct->getOperand(1)->getOperand(0)->getName()) << "\n";
               //errs() << (ValuesStruct->getOperand(2)->getOperand(0)->getName()) << "\n";
-              if(GlobalVariable* GA = M.getGlobalVariable(ValuesStruct->getOperand(1)->getOperand(0)->getName(), true)) {
-                for (Value *AOp : GA->operands()) {
-                  if (ConstantDataArray *CA = dyn_cast<ConstantDataArray>(AOp)) {
-                    std::string A = CA->getAsString().substr(0,CA->getAsString().size()-1);
-                    annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName()] = A;
+              if(GlobalVariable* LabelAnno = M.getGlobalVariable(ValuesStruct->getOperand(1)->getOperand(0)->getName(), true)) {
+                for (Value *LabelValue : LabelAnno->operands()) {
+                  if (ConstantDataArray *LabelArray = dyn_cast<ConstantDataArray>(LabelValue)) {
+                    std::string LabelStringg = LabelArray->getAsString().substr(0,LabelArray->getAsString().size()-1);
+                    annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName()] = LabelStringg;
                   }
                 }
               }
@@ -714,12 +716,12 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
   else
     retTypeName = DIUtils::getDITypeName(funcRetType);
   if (retTypeName.find("*") != std::string::npos){ 
-    llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + "is invalid: return type cannot be a pointer. Correct by changing function to void type and passing an argument to be modified as the return.\n\n";
-    throw("Return type invalid (unsupported)");
+    llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + " is invalid: return type cannot be a pointer. Correct by changing function to void type and passing an argument to be modified as the return.\n\n";
+    throw("Return type invalid (pointer)");
   }
   if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),retTypeName) == std::end(acceptedTypes)){
-    llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + "is invalid: return type is unsupported, please change to supported type.\n\n";
-    throw("Return type invalid (unsupported)");
+    llvm::errs() << "Return type " + retTypeName + " of function " + F.getName().str() + " is invalid: return type is unsupported, please change to supported type.\n\n";
+    //throw("Return type invalid (unsupported)");
   }
   edl_file << "\",\n\t\t\t\t\"return\":\t{\"type\": \"" << retTypeName << "\"},\n\t\t\t\t";
   std::string clelabel = "false";
@@ -727,7 +729,7 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
     llvm::errs() << "Function " + F.getName().str() + " does not have a valid CLE label, or the label cannot be detected. Please add a label to the function then either rerun make or manually insert into GEDL";
     edl_file << "\"clelabel\":\t[user_check],\n\t\t\t\t\"params\": [\n";
   } else{
-      edl_file << "\"clelabel\":\t" << annotationMap[F.getName().str()] << ",\n\t\t\t\t\"params\": [\n";
+      edl_file << "\"clelabel\":\t\"" << annotationMap[F.getName().str()] << "\",\n\t\t\t\t\"params\": [\n";
   }
 
   //edl_file << "\n\t\t\tReturn: " << retTypeName << "\n\t\t\tParams: \n";
@@ -741,42 +743,43 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
     auto &dbgInstList = pdgUtils.getFuncMap()[&F]->getDbgDeclareInstList();
     std::string argName = DIUtils::getArgName(arg, dbgInstList);
     std::string argTypeName = DIUtils::getArgTypeName(arg).substr(0,DIUtils::getArgTypeName(arg).find("*"));
-    if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),DIUtils::getArgTypeName(arg)) == std::end(acceptedTypes)){
-      errs() << "Invalid type for argument " << argName << " for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "please change to a supported type and rerun or modify in .gedl file.\n";
+
+    if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),argTypeName) == std::end(acceptedTypes)){
+      errs() << "Invalid type for argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " please change to a supported type and rerun or modify in .gedl file.\n";
       argTypeName = "[user_check]";
     }
     if (argType->getTypeID() == 15 &&
         !(DIUtils::isUnionTy(DIUtils::getArgDIType(
             arg)))){  // Reject non pointer unions explicitly
-      std::cout << argName << "     " << argW->getAttribute().dump() << "\n";
       std::string attributesAll = argW->getAttribute().dump();
       edl_file << "\t\t\t\t\t{\"type\": \"" << argTypeName;
       edl_file << "\", \"name\": \"" << argName << "\", \"dir\": \"";
-      if (attributesAll.find("in") != std::string::npos)
+      if (attributesAll.find("in") != std::string::npos && attributesAll.find("out") != std::string::npos)
         edl_file << "inout\",";
       else if (attributesAll.find("out") != std::string::npos)
         edl_file << "out\",";
       else if (attributesAll.find("in") != std::string::npos)
         edl_file << "in\",";
       else {
-        errs() << "Direction for argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "could not be conclusively determined. Please correct in .gedl to in/out/inout.\n";
+        errs() << "Direction for argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " could not be conclusively determined. Please correct in .gedl to in/out/inout.\n";
         edl_file << "[user_check]\",";
       }
       edl_file << " \"sz\":";
+      errs() << "\n" << attributesAll << "\n\n";
       if (attributesAll.find("string") != std::string::npos)
-        edl_file << "[string]}";
+        edl_file << "\"[string]\"}";
       else if (attributesAll.find("count") != std::string::npos)
-        edl_file << "[" << argW->getAttribute().getCount()  << "]}";
+        edl_file << "[\"" << argW->getAttribute().getCount()  << "\"]}";
       else if (attributesAll.find("size") != std::string::npos)
-        edl_file << "[" << argW->getAttribute().getSize()  << "]}";
+        edl_file << "[\"" << argW->getAttribute().getSize()  << "\"]}";
       else{
-        errs() << "Size of argument " << argName << "for function" << F.getName().str() << "in file" << funcMap[F.getName().str()] << "could not be conclusively determined. Marking as \"user_check\", please manually specify size or rewrite function code to comply with Capo requirements and run again.\n";
+        errs() << "Size of argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " could not be conclusively determined. Marking as \"user_check\", please manually specify size or rewrite function code to comply with Capo requirements and run again.\n";
         edl_file << "[user_check]}";
       }
 
     }
     else{
-      edl_file << "\t\t\t\t\t{\"type\": \"" << DIUtils::getArgTypeName(arg);
+      edl_file << "\t\t\t\t\t{\"type\": \"" << argTypeName;
       edl_file << "\", \"name\": \"" << argName << "\", \"dir\": \"in\"}";
     }
     if (argW->getArg()->getArgNo() < F.arg_size() - 1 && !argName.empty())
