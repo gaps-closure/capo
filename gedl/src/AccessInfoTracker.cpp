@@ -500,6 +500,7 @@ AccessType pdg::AccessInfoTracker::getAccessTypeForInstW(
     InstructionWrapper *depInstW =
         const_cast<InstructionWrapper *>(depPair.first->getData());
     DependencyType depType = depPair.second;
+    //errs() << "\n" << *(depInstW->getInstruction()) << "\n";
     // check for read
     if (!depInstW->getInstruction() || depType != DependencyType::DATA_DEF_USE)
       continue;
@@ -509,11 +510,12 @@ AccessType pdg::AccessInfoTracker::getAccessTypeForInstW(
       accessType = AccessType::READ;
 
     // check for store instruction.
-
+    //errs() << *(depInstW->getInstruction()) << "\n";
     if (StoreInst *st = dyn_cast<StoreInst>(depInstW->getInstruction())) {
       // if a value is used in a store instruction and is the store destination
       if (dyn_cast<Instruction>(st->getPointerOperand()) ==
           instW->getInstruction()) {
+        //errs() << *(st->getValueOperand()) << "\n";
         if (isa<Argument>(st->getValueOperand()))  // ignore the store inst that
                                                    // store arg to stack mem
           break;
@@ -576,14 +578,14 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
   // if (!(*treeI)->getTreeNodeType()->isPointerTy())
 
   if ((*treeI)->getDIType() == nullptr) {
-    errs() << "Empty debugging info for " << func->getName() << " - "
-           << argW->getArg()->getArgNo() << "\n";
+    //errs() << "Empty debugging info for " << func->getName() << " - "
+    //       << argW->getArg()->getArgNo() << "\n";
     return;
   }
   if ((*treeI)->getDIType()->getTag() != dwarf::DW_TAG_pointer_type &&
       !DIUtils::isTypeDefPtrTy(*argW->getArg())) {
-    // errs() << func->getName() << " - " << argW->getArg()->getArgNo()
-    //        << " Find non-pointer type parameter, do not track...\n";
+     //errs() << func->getName() << " - " << argW->getArg()->getArgNo()
+     //       << " Find non-pointer type parameter, do not track...\n";
     return;
   }
 
@@ -605,6 +607,7 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
     for (auto valDepPair : valDepPairList) {
       auto dataW = valDepPair.first->getData();
       AccessType accType = getAccessTypeForInstW(dataW, argW);
+
       if (static_cast<int>(accType) >
           static_cast<int>((*treeI)->getAccessType())) {
         auto &dbgInstList =
@@ -618,9 +621,9 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
         if (count == 1 && accType == AccessType::READ) {
           argW->getAttribute().setIn();
         }
-        // errs() << argName << " n" << count << "-"
-        //        << getAccessAttributeName(treeI) << " => "
-        //        << getAccessAttributeName((unsigned)accType) << "\n";
+         //errs() << argName << " n" << count << "-"
+         //       << getAccessAttributeName(treeI) << " => "
+         //       << getAccessAttributeName((unsigned)accType) << "\n";
 
         (*treeI)->setAccessType(accType);
       }
@@ -628,14 +631,23 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
   }
 
   //Here is where return with pointer fails
+  auto &dbgInstList2 =
+            pdgUtils.getFuncMap()[func]->getDbgDeclareInstList();
+  std::string argName2 =
+      DIUtils::getArgName(*(argW->getArg()), dbgInstList2);
+  errs() << "\n\n" << argName2 << "\n";
     for (auto func : pdgUtils.getFuncMap()) {
     if (!func.second->hasTrees()) {
       PDG->buildPDGForFunc(func.second->getRetW()->getFunc());
     }
+    errs() << "\n\n";
     for (auto ecallInst :
          pdgUtils.getFuncMap()[func.first]->getCallInstList()) {
+      errs() << "Begin1:\n" << *(ecallInst->getCalledFunction()) << " \nBegin2:\n " <<  *(argW->getFunc()) << "\n\n";
       if (ecallInst->getCalledFunction() != argW->getFunc()) continue;
+      //errs() << *(ecallInst) << "\n"; 
       if (ecallInst->getNumArgOperands() < argW->getArg()->getArgNo()) continue;
+      
       Value *v = ecallInst->getOperand(argW->getArg()->getArgNo());
       if (isa<Instruction>(v) || isa<Argument>(v)) {
         // V is used in inst

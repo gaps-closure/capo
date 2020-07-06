@@ -6,6 +6,7 @@ enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enc
 CC := clang-9
 CC_FLAGS := -emit-llvm -S -g
 CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
+HAL_API=/home/mnorris/gaps/build/src/hal/api
 
 plugin:
 	@cd $(ODIR) && cmake ..
@@ -24,6 +25,10 @@ clean: eclean
 gedl: compile gen $(ODIR)/gedl.ll
 	cd $(ODIR) && opt -disable-output -load libpdg.so -accinfo-track -d 1 -u "untrusted/" -t "trusted/" < ../$(ODIR)/gedl.ll
 
+#Do IDL generation script
+idl: gedl
+	python IDLGenerator.py "$(ODIR)/Closure.gedl" "$(ODIR)/Closure.idl"
+	
 #Generates the defined_func and imported_func files for each enclave
 gen: plugin
 	$(foreach enclave,$(ENCLAVES), opt -disable-output -load libpdg.so -llvm-test -prefix $(ODIR)/$(enclave)/ < $(EDIR)/$(enclave)/$(enclave).ll;)

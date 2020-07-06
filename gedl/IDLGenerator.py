@@ -1,8 +1,13 @@
 import json
+import sys
+
+if len(sys.argv) < 3:
+    print("Missing command line arguments. Usage of IDLGenerator is \"python IDLGenerator.py </path/to/gedl/file> </path/for/idl/file>\"")
+    exit()
 
 #Open the generated GEDL JSON file for parsing and IDL file for generation
-with open("build/Closure.gedl") as edl_file:
-    with open("build/Closure.idl","w") as idl_file:
+with open(sys.argv[1]) as edl_file:
+    with open(sys.argv[2],"w") as idl_file:
 
         #Load in the json data to "gedl" variable
         gedl = json.load(edl_file)
@@ -17,7 +22,7 @@ with open("build/Closure.gedl") as edl_file:
             #creates corresponding request/response structs
             for call in enclavePair['calls']:
                 #Generate a request struct for this function
-                idl_file.write("\n\nstruct Request%s {" % (call['func']))
+                idl_file.write("\n\nstruct Request_%s {" % (call['func']))
 
                 #If there are no parameters, create a dummy variable to meet marshalling requirements
                 if len(call['params']) == 0:
@@ -32,10 +37,10 @@ with open("build/Closure.gedl") as edl_file:
                 idl_file.write("\n};")
                 
                 #Generate a response struct for this function
-                idl_file.write("\n\nstruct Response%s {" % (call['func']))
+                idl_file.write("\n\nstruct Response_%s {" % (call['func']))
                 #If return type is void, generate dummy variable to meet marshalling requirements
                 if call['return'] == "void":
-                    idl_file.write("\n\tint x;")
+                    idl_file.write("\n\tint dummy;")
                 else:
-                    idl_file.write("\n\t%s y;" % (call['return']['type']))
+                    idl_file.write("\n\t%s ret;" % (call['return']['type']))
                 idl_file.write("\n};")
