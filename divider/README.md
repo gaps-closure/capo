@@ -45,3 +45,14 @@ One challenge to the above is how pre-processor directives are handled; for
 example if a version of the function is within a #ifdef 0 block and another
 is outside.
 
+```
+for each file
+ get parse tree
+ for each declaration/definition of a function/globalvar in the parse tree
+   get spelling and get level
+   add to data structure D of extent,level sorted by extent.start
+
+ loop through source correlating with D
+   for portions in source not covered in D, we will need to infer what to do with it, esp. annotations
+   if portion of code is in D, then we simply copy over entire extent to file in correct level 
+```

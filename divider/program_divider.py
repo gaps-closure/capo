@@ -62,18 +62,24 @@ def walk_source_tree(jdata,opdir,cargs):
         newd = os.path.join(odir, l, r, name)
         os.makedirs(newd, mode=0o755, exist_ok=True)  
     for name in files:
-      process_file(idir,odir,r,name,cargs)
+      process_file(lvls,fn2lvl,idir,odir,r,name,cargs)
 
-def process_file(idir,odir,relpath,fname,cargs):
+def process_file(lvls,fn2lvl,idir,odir,relpath,fname,cargs):
   ifile = os.path.join(idir, relpath, fname)
-  print('Processing:', ifile)
-
+  # print('Processing:', ifile)
   index = Index.create()
-  # tu = index.parse(ifile, args=cargs)
-  tu = index.parse(ifile)
+
+  # XXX: check if not a C/C++ file, and copy at each level (or ignore?)
+  # XXX: parse only if C file, if C++ generate not handled error
+
+  tu = index.parse(ifile, args=cargs.split(','))
   if not tu: raise Exception("unable to load input")
-  print(('diags', [get_diag_info(d) for d in  tu.diagnostics]))
-  print(('nodes', get_info(tu.cursor)))
+
+  from pprint import pprint
+  # pprint(('diags', [get_diag_info(d) for d in  tu.diagnostics]))
+  pprint(('nodes', get_info(tu.cursor)))
+
+  # XXX: handle the tree per design notes
 
 def get_args():
   p = ArgumentParser(description='CLOSURE Program Divider')
@@ -86,6 +92,6 @@ def get_args():
 
 if __name__ == '__main__':
   args   = get_args()
-  print('Options selected:')
-  for x in vars(args).items(): print('  %s: %s' % x)
+  # print('Options selected:')
+  # for x in vars(args).items(): print('  %s: %s' % x)
   walk_source_tree(load_topology(args.file), args.output_dir, args.clang_args)
