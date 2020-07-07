@@ -6,7 +6,7 @@ Once the CAPO partitioning conflict analyzer has analyzed the CLE-annotated appl
 
 ```
 {
-   "levels": ["orange, "purple"],
+   "levels": ["orange", "purple"],
    "source_path": ["./refactored"],
    "functions": [
       {"name": "get_a", "level": "orange", "file": "test1_refactored.c", "line": 29},
