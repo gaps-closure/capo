@@ -13,8 +13,8 @@ with open(sys.argv[1]) as edl_file:
         gedl = json.load(edl_file)
 
         #Create NextRPC and Okay structs necessary for singlethreaded style
-        idl_file.write("struct NextRPC {\n\tint mux;\n\tint sec;\n\tint typ;\n};");
-        idl_file.write("\n\nstruct Okay {\n\tint x;\n};")
+        idl_file.write("struct NextRPC_1 {\n\tint mux;\n\tint sec;\n\tint typ;\n};");
+        idl_file.write("\n\nstruct Okay_2 {\n\tint x;\n};")
 
         #For loop that iterates through each enclave pair in gedl
         for enclavePair in gedl['gedl']:
@@ -26,7 +26,7 @@ with open(sys.argv[1]) as edl_file:
 
                 #If there are no parameters, create a dummy variable to meet marshalling requirements
                 if len(call['params']) == 0:
-                    idl_file.write("\n\tint x;")
+                    idl_file.write("\n\tint dummy;")
                 else:
                     #For loop that iterates through each call parameter and creates a struct variable
                     for arg in call['params']:
@@ -40,7 +40,7 @@ with open(sys.argv[1]) as edl_file:
                 idl_file.write("\n\nstruct Response_%s {" % (call['func']))
                 #If return type is void, generate dummy variable to meet marshalling requirements
                 if call['return'] == "void":
-                    idl_file.write("\n\tint dummy;")
+                    idl_file.write("\n\tint ret;")
                 else:
                     idl_file.write("\n\t%s ret;" % (call['return']['type']))
                 idl_file.write("\n};")

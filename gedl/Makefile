@@ -6,7 +6,7 @@ enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enc
 CC := clang-9
 CC_FLAGS := -emit-llvm -S -g
 CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
-HAL_API=/home/mnorris/gaps/build/src/hal/api
+HAL_PATH=/home/mnorris/gaps/build/src/hal
 
 plugin:
 	@cd $(ODIR) && cmake ..
@@ -28,6 +28,14 @@ gedl: compile gen $(ODIR)/gedl.ll
 #Do IDL generation script
 idl: gedl
 	python IDLGenerator.py "$(ODIR)/Closure.gedl" "$(ODIR)/Closure.idl"
+
+#Perform autogeneration
+autogen: idl
+	cd $(ODIR) && python3 $(HAL_PATH)/autogen/autogen.py -i "Closure.idl" -g Closurebw_v1 -d Closure_bw.dfdl -e codec
+	cd $(ODIR) && $(HAL_PATH)/autogen/autogen.py -i "Closure.idl" -g be_v1 -d Closure_be.dfdl -e codec
+
+autogen-libraries: autogen
+
 	
 #Generates the defined_func and imported_func files for each enclave
 gen: plugin
