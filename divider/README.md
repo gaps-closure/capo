@@ -41,3 +41,7 @@ This `divvied` source becomes the input to the GAPS Enclave Definition Language 
           * when copying function, also get applicable block annotations and add them as well
         * for all other directives and comments that are not covered by the JSON (i.e., not functions, global variables, or CLE), copy to both sides
 
+One challenge to the above is how pre-processor directives are handled; for 
+example if a version of the function is within a #ifdef 0 block and another
+is outside.
+
