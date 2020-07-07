@@ -2,11 +2,13 @@ ODIR := ./build
 EDIR := ./example
 ENCLAVES := orange purple
 build_folder := $(shell mkdir -p $(ODIR))
+autogen_folder := $(shell mkdir -p $(ODIR)/autogen)
 enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enclave)))
 CC := clang-9
 CC_FLAGS := -emit-llvm -S -g
 CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
 HAL_PATH=/home/mnorris/gaps/build/src/hal
+IPC_MODE=Singlethreaded
 
 plugin:
 	@cd $(ODIR) && cmake ..
@@ -27,14 +29,18 @@ gedl: compile gen $(ODIR)/gedl.ll
 
 #Do IDL generation script
 idl: gedl
-	python IDLGenerator.py "$(ODIR)/Closure.gedl" "$(ODIR)/Closure.idl"
+	rm -rf $(ODIR)/autogen/Closure.idl
+	python IDLGenerator.py "$(ODIR)/Closure.gedl" "$(ODIR)/autogen/Closure.idl"
+	
 
-#Perform autogeneration
+#Do autogeneration
 autogen: idl
 	cd $(ODIR) && python3 $(HAL_PATH)/autogen/autogen.py -i "Closure.idl" -g Closurebw_v1 -d Closure_bw.dfdl -e codec
 	cd $(ODIR) && $(HAL_PATH)/autogen/autogen.py -i "Closure.idl" -g be_v1 -d Closure_be.dfdl -e codec
 
-autogen-libraries: autogen
+#Do RPC Generation
+rpc: idl
+	python RPCGenerator.py -o $(ODIR) -g $(ODIR)/Closure.gedl -i $(IPC_MODE) -a $(HAL_PATH)/api -n inuri -t outuri -f example/orange/test1_orange.mod.c example/purple/test1_purple.mod.c
 
 	
 #Generates the defined_func and imported_func files for each enclave
