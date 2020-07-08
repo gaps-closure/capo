@@ -1,14 +1,23 @@
 import json
 import sys
+from argparse import ArgumentParser
 
 if len(sys.argv) < 3:
     print("Missing command line arguments. Usage of IDLGenerator is \"python IDLGenerator.py </path/to/gedl/file> </path/for/idl/file>\"")
     exit()
 
-#Open the generated GEDL JSON file for parsing and IDL file for generation
-with open(sys.argv[1]) as edl_file:
-    with open(sys.argv[2],"w") as idl_file:
+def argparser():
+    parser = ArgumentParser(description='CLOSURE IDL File Generator')
+    parser.add_argument('-g','--gedl', required=True, type=str, help='Input GEDL Filepath')
+    parser.add_argument('-o','--odir', required=True, type=str, help='Output Directory')
+    parser.add_argument('-i','--ipc', required=True, type=str, help='IPC Type (Singlethreaded/Multithreaded)')
+    return parser.parse_args()
 
+#Open the generated GEDL JSON file for parsing and IDL file for generation
+args = argparser()
+with open(args.gedl) as edl_file:
+    with open(args.odir + "/Closure.idl","w") as idl_file:
+        
         #Load in the json data to "gedl" variable
         gedl = json.load(edl_file)
 
