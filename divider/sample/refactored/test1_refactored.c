@@ -20,7 +20,9 @@
     } \
   ] }
   
+#pragma cle begin PURPLE
 int bar;
+#pragma cle end PURPLE
 
 double calc_ewma(double a, double b) {
   const  double alpha = 0.25;
