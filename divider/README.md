@@ -24,35 +24,3 @@ Given the refactored, annotated application, and the topology, the divider creat
 
 This `divvied` source becomes the input to the GAPS Enclave Definition Language (GEDL) generator tool. The GEDL drives further code generation and modification needed to build the application binaries for each enclave.
 
-
-# Design
- 
-* Parse arguments
-* Load the topology JSON
-* Created the divvied directory and a subdirectory per enclave
-* Walk the refactored directory
-  * For each file in refactored
-    * if entire content is of one level, copy file over to corresponding enclave subdirectory with same relative path
-    * Else create an empty file for each enclave
-      * rename \<file>.\<suffix> with \<file>_\<enclave>.\<suffix>
-      * for each parsed block
-        * if it is a function or global variable that is either declared or defined in that file, get level from JSON, and copy entire extent to correspnding side
-          * if function or global variable is missing a level assignment in JSON, that constitutes an exception
-          * when copying function, also get applicable block annotations and add them as well
-        * for all other directives and comments that are not covered by the JSON (i.e., not functions, global variables, or CLE), copy to both sides
-
-One challenge to the above is how pre-processor directives are handled; for 
-example if a version of the function is within a #ifdef 0 block and another
-is outside.
-
-```
-for each file
- get parse tree
- for each declaration/definition of a function/globalvar in the parse tree
-   get spelling and get level
-   add to data structure D of extent,level sorted by extent.start
-
- loop through source correlating with D
-   for portions in source not covered in D, we will need to infer what to do with it, esp. annotations
-   if portion of code is in D, then we simply copy over entire extent to file in correct level 
-```

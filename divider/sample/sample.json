@@ -9,6 +9,7 @@
       {"name": "main",  "level": "purple"}
     ],
    "global_scoped_vars": [
+      {"name": "bar", "level": "purple"}
     ]
 }
 

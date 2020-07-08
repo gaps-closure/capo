@@ -20,6 +20,8 @@
     } \
   ] }
   
+int bar;
+
 double calc_ewma(double a, double b) {
   const  double alpha = 0.25;
   static double c = 0.0;
