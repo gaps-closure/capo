@@ -13,8 +13,8 @@ with open(sys.argv[1]) as edl_file:
         gedl = json.load(edl_file)
 
         #Create NextRPC and Okay structs necessary for singlethreaded style
-        idl_file.write("struct NextRPC_1 {\n\tint mux;\n\tint sec;\n\tint typ;\n};");
-        idl_file.write("\n\nstruct Okay_2 {\n\tint x;\n};")
+        idl_file.write("struct NextRPC {\n\tint mux;\n\tint sec;\n\tint typ;\n};");
+        idl_file.write("\n\nstruct Okay {\n\tint x;\n};")
 
         #For loop that iterates through each enclave pair in gedl
         for enclavePair in gedl['gedl']:
