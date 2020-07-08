@@ -19,7 +19,9 @@ endif
 
 OBJ = \
 	verifier.o \
-	Partition.o
+	Partition.o \
+	cle_json.o \
+	util.o
 
 EXEC = verifier
 
