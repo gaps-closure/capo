@@ -20,11 +20,11 @@ class GuardHint
     
     ~GuardHint() {};
 
-    string getOperation() {
+    string getOperation() const {
         return operation;
     }
     
-    vector<int> getGapstag() {
+    vector<int> getGapstag() const {
         return gapstag;
     }
 
@@ -65,15 +65,15 @@ class Cdf
     
     ~Cdf() {};
 
-    string getRemoteLevel() {
+    string getRemoteLevel() const {
         return remotelevel;
     }
     
-    string getDirection() {
+    string getDirection() const {
         return direction;
     }
 
-    GuardHint getGuardHint() {
+    GuardHint getGuardHint() const {
         return guardhint;
     }
 
@@ -166,7 +166,7 @@ class Cle
         return cleJson.getLevel();
     }
 
-    string getLabel() {
+    string &getLabel() {
         return label;
     }
     

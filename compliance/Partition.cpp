@@ -44,7 +44,7 @@ static inline void trim(std::string &s)
 
 void print_map(const char *name, unordered_map<string, string> &map)
 {
-   cout << "Map: " << name << endl;
+   cout << name << endl;
    
    for_each(map.begin(),
             map.end() ,
@@ -63,16 +63,73 @@ string toString(vector<int> v)
     return rtn;
 }
 
+
+struct Point { float x, y, z; };
+
+void to_json(json& j, const Point& p)
+{
+    j = {{"x", p.x}, {"y", p.y}, {"z", p.z}};
+}
+
+void to_json(json& j, const GuardHint& p) {
+    string x = p.getOperation();
+
+    std::vector<int> g = p.getGapstag();
+    json j2 = g;
+
+    j = json{
+            {"operation", x},
+            {"gapstag", j2}
+    };
+}
+
+
+void to_json(json& j, const Cdf& p) {
+    string r = p.getRemoteLevel();
+    string d = p.getDirection();
+    GuardHint g = p.getGuardHint();
+
+    j = json{
+            {"remotelevel", r },
+            {"direction", d },
+            {"guardhint", g },
+    };
+}
+
+void to_json(json& j, CleJson& p)
+{
+    std::vector<Cdf> x = p.getCdf();
+    json j2 = x;
+
+    j = json{
+            {"level", p.getLevel()},
+            {"cdf", j2}
+    };
+}
+
+void to_json(json& j, Cle& p) {
+    CleJson cleJson = p.getCleJson();
+
+    json j2;
+    to_json(j2, cleJson);
+
+    j = json{
+        {"cle-label", p.getLabel()},
+        {"cle-json", j2}
+    };
+}
+
 void print_map_obj(const char *name, unordered_map<string, Cle> &map)
 {
-   cout << "Map: " << name << endl;
+   cout << name << endl;
    
    for_each(map.begin(),
             map.end() ,
             [](std::pair<std::string, Cle > element) {
                Cle cle = element.second;
-               std::cout << "    " << element.first << " : "<< cle.getLabel()
-                         << " " << cle.getCleJson().getLevel() << endl;
+               json clejson;
+               to_json(clejson, cle);
+               std::cout << clejson.dump(4) << endl;
             });
    cout << endl;
 }
@@ -450,7 +507,7 @@ void Partition::readIRFile(char *filename)
 void Partition::print()
 {
    print_map_obj("CLE", cleMap);
-   print_map("Annotation", annotationMap);
+   print_map("Annotations", annotationMap);
 }
 
 void print_functions(Expected<std::unique_ptr<Module> > &Mod)
