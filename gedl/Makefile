@@ -1,13 +1,17 @@
 ODIR := ./build
-EDIR := ./example
-ENCLAVES := orange2 purple2
+EDIR := ./example/Enclaves
+#ENCLAVES := orange purple
 CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
 HAL_PATH=/home/mnorris/gaps/build/src/hal
 IPC_MODE=Multithreaded
 
+INURI="ipc:///tmp/test1sub"
+OUTURI="ipc:///tmp/test1pub"
+
 
 build_folder := $(shell mkdir -p $(ODIR))
 autogen_folder := $(shell mkdir -p $(ODIR)/autogen)
+encSet := $(foreach enclave,$(sort $(dir $(wildcard $(EDIR)//*/))), $(eval ENCLAVES+=$(notdir $(enclave:%/=%))))
 enclave_folders := $(foreach enclave,$(ENCLAVES), $(shell mkdir -p $(ODIR)/$(enclave)))
 CC_FLAGS := -emit-llvm -S -g
 CFLAGS = -O2 -Wall -Wstrict-prototypes
@@ -21,6 +25,7 @@ LIBS=../autogen/libcodecs.a -lpthread
 plugin:
 	@cd $(ODIR) && cmake ..
 	@$(MAKE) -C $(ODIR)
+	@cd $(ODIR) && mv libpdg.so libgedl.so
 
 # Hard clean cleans whole build directory and compiled files in example directory
 clean: eclean
@@ -33,7 +38,7 @@ clean: eclean
 
 # Do GEDL generation pass
 gedl: compile gen $(ODIR)/gedl.ll
-	cd $(ODIR) && opt -disable-output -load libpdg.so -accinfo-track -d 1 -u "untrusted/" -t "trusted/" < ../$(ODIR)/gedl.ll
+	cd $(ODIR) && opt -disable-output -load libgedl.so -accinfo-track -d 1 -u "untrusted/" -t "trusted/" < ../$(ODIR)/gedl.ll
 
 #Do IDL generation script
 idl: gedl
@@ -61,29 +66,25 @@ $(autogen_dir)/%.o:	%.c
 	gcc $(CFLAGS) -fPIC -c $< -o $@
 
 #Compile partitioned code	
-compilePartitioned: 
+compilePartitioned: rpc
 	cd $(ODIR) && $(foreach enclave,$(ENCLAVES), cd $(enclave); gcc -c *.c ${INCLUDES}; cd ../;)
 	cd $(ODIR) && $(foreach enclave,$(ENCLAVES), cd $(enclave); gcc -o $(enclave) *.o  ${LDLIBS} ${LIBS} -lxdcomms;cd ../;)
 	
-#cd $(ODIR) && $(foreach enclave,$(ENCLAVES), gcc -c $(enclave)/*.c ${INCLUDES};)
-#cd $(ODIR) && $(foreach enclave,$(ENCLAVES), gcc -o $(enclave)/$(enclave) $(enclave)/*.o  ${LDLIBS} ${LIBS} -lxdcomms;)
 	
 $(ODIR)/$(enclave)/%.o:	%.c
 	gcc -c $< -o $@
 	
-#gcc -c test1_orange.c test1_orange_rpc.c ${INCLUDES}
-#gcc -o test1_orange test1_orange.o test1_orange_rpc.o ${LDLIBS} ${LIBS} -lxdcomms
 
 
 #Do RPC Generation
 rpc: autogen libraries
 	$(foreach enclave,$(ENCLAVES), $(eval ENCLAVEFL += $(EDIR)/$(enclave)/*.mod.c ))
-	python RPCGenerator.py -o $(ODIR) -g $(ODIR)/Closure.gedl -i $(IPC_MODE) -a $(HAL_PATH)/api -n "ipc:///tmp/test1suborange" -t "ipc:///tmp/test1puborange" -f $(ENCLAVEFL)
+	python RPCGenerator.py -o $(ODIR) -g $(ODIR)/Closure.gedl -i $(IPC_MODE) -a $(HAL_PATH)/api -n $(INURI) -t $(OUTURI) -f $(ENCLAVEFL)
 
 	
 #Generates the defined_func and imported_func files for each enclave
 gen: plugin
-	$(foreach enclave,$(ENCLAVES), opt -disable-output -load libpdg.so -llvm-test -prefix $(ODIR)/$(enclave)/ < $(EDIR)/$(enclave)/$(enclave).ll;)
+	$(foreach enclave,$(ENCLAVES), opt -disable-output -load libgedl.so -llvm-test -prefix $(ODIR)/$(enclave)/ < $(EDIR)/$(enclave)/$(enclave).ll;)
 
 
 # Build clean cleans the files generated from passes in build directory
