@@ -14,9 +14,9 @@ target triple = "x86_64-unknown-linux-gnu"
 @_handle_requesta.inited = internal global i32 0, align 4, !dbg !0
 @_handle_requesta.psocket = internal global i8* null, align 8, !dbg !13
 @_handle_requesta.ssocket = internal global i8* null, align 8, !dbg !15
-@.str = private unnamed_addr constant [13 x i8] c"TAG_REQUESTA\00", section "llvm.metadata"
+@.str = private unnamed_addr constant [18 x i8] c"TAG_REQUEST_GET_A\00", section "llvm.metadata"
 @.str.1 = private unnamed_addr constant [23 x i8] c"test1_orange_rpc.mod.c\00", section "llvm.metadata"
-@.str.2 = private unnamed_addr constant [14 x i8] c"TAG_RESPONSEA\00", section "llvm.metadata"
+@.str.2 = private unnamed_addr constant [19 x i8] c"TAG_RESPONSE_GET_A\00", section "llvm.metadata"
 @_handle_nxtrpc.inited = internal global i32 0, align 4, !dbg !17
 @_handle_nxtrpc.psocket = internal global i8* null, align 8, !dbg !36
 @_handle_nxtrpc.ssocket = internal global i8* null, align 8, !dbg !38
@@ -39,10 +39,10 @@ define dso_local void @_handle_requesta(i8* %0) #0 !dbg !2 {
   call void @llvm.dbg.declare(metadata %struct._tag* %4, metadata !48, metadata !DIExpression()), !dbg !49
   call void @llvm.dbg.declare(metadata %struct._requesta_datatype* %5, metadata !50, metadata !DIExpression()), !dbg !71
   %8 = bitcast %struct._requesta_datatype* %5 to i8*, !dbg !72
-  call void @llvm.var.annotation(i8* %8, i8* getelementptr inbounds ([13 x i8], [13 x i8]* @.str, i32 0, i32 0), i8* getelementptr inbounds ([23 x i8], [23 x i8]* @.str.1, i32 0, i32 0), i32 17), !dbg !72
+  call void @llvm.var.annotation(i8* %8, i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str, i32 0, i32 0), i8* getelementptr inbounds ([23 x i8], [23 x i8]* @.str.1, i32 0, i32 0), i32 17), !dbg !72
   call void @llvm.dbg.declare(metadata %struct._responsea_datatype* %6, metadata !73, metadata !DIExpression()), !dbg !80
   %9 = bitcast %struct._responsea_datatype* %6 to i8*, !dbg !81
-  call void @llvm.var.annotation(i8* %9, i8* getelementptr inbounds ([14 x i8], [14 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([23 x i8], [23 x i8]* @.str.1, i32 0, i32 0), i32 22), !dbg !81
+  call void @llvm.var.annotation(i8* %9, i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([23 x i8], [23 x i8]* @.str.1, i32 0, i32 0), i32 22), !dbg !81
   call void @tag_write(%struct._tag* %3, i32 1, i32 1, i32 3), !dbg !82
   %10 = load i32, i32* @_handle_requesta.inited, align 4, !dbg !83
   %11 = icmp ne i32 %10, 0, !dbg !83

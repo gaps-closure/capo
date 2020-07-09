@@ -1,6 +1,6 @@
 [
   {
-    "cle-label": "TAG_RESPONSEA",
+    "cle-label": "TAG_RESPONSE_GET_A",
     "cle-json": {
       "level": "orange",
       "cdf": [
@@ -20,7 +20,7 @@
     }
   },
   {
-    "cle-label": "TAG_REQUESTA",
+    "cle-label": "TAG_REQUEST_GET_A",
     "cle-json": {
       "level": "orange",
       "cdf": [

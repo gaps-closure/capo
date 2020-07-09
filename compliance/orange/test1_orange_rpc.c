@@ -12,16 +12,12 @@ void _handle_requesta(__attribute__((unused))void* tag) {
     static void *ssocket;
     gaps_tag t_tag;
     gaps_tag o_tag;
-#pragma clang attribute push (__attribute__((annotate("TAG_REQUEST_GET_A"))), apply_to = any(function,type_alias,record,enum,variable,field))
     #pragma cle begin TAG_REQUEST_GET_A
     requesta_datatype  reqA; 
     #pragma cle end TAG_REQUEST_GET_A
-#pragma clang attribute pop
-#pragma clang attribute push (__attribute__((annotate("TAG_RESPONSE_GET_A"))), apply_to = any(function,type_alias,record,enum,variable,field))
     #pragma cle begin TAG_RESPONSE_GET_A
     responsea_datatype resA;
     #pragma cle end TAG_RESPONSE_GET_A
-#pragma clang attribute pop
                                
     tag_write(&t_tag, MUX_REQUESTA, SEC_REQUESTA, DATA_TYP_REQUESTA);
     if (!inited) {
@@ -48,16 +44,12 @@ void _handle_nxtrpc(gaps_tag* n_tag) {
     static void *ssocket;
     gaps_tag t_tag;
     gaps_tag o_tag;
-#pragma clang attribute push (__attribute__((annotate("TAG_NEXTRPC"))), apply_to = any(function,type_alias,record,enum,variable,field))
     #pragma cle begin TAG_NEXTRPC
     nextrpc_datatype nxt;
     #pragma cle end TAG_NEXTRPC
-#pragma clang attribute pop
-#pragma clang attribute push (__attribute__((annotate("TAG_OKAY"))), apply_to = any(function,type_alias,record,enum,variable,field))
     #pragma cle begin TAG_OKAY
     okay_datatype okay;
     #pragma cle end TAG_OKAY
-#pragma clang attribute pop
 
     tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);
     if (!inited) {

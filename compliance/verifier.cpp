@@ -185,8 +185,8 @@ int main(int argc, char **argv)
 
    verify(all_partitions);
 
-   for (Partition partition: all_partitions) {
-       badtags += partition.getNumErrors();
+   for (int i = 1; i < all_partitions.size(); i++) {
+       badtags += all_partitions[i].getNumErrors();
    }
 
    int total = inconsistencies + missings + duplications + badtags;
