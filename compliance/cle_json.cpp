@@ -40,7 +40,8 @@ void to_json(json& j, CleJson& p)
     };
 }
 
-void to_json(json& j, Cle& p) {
+void to_json(json& j, Cle& p)
+{
     CleJson cleJson = p.getCleJson();
 
     json j2;
@@ -50,4 +51,34 @@ void to_json(json& j, Cle& p) {
         {"cle-label", p.getLabel()},
         {"cle-json", j2}
     };
+}
+
+void from_json(const json& j, GuardHint& p)
+{
+    j.at("operation").get_to(p.operation);
+    j.at("gapstag").get_to(p.gapstag);
+}
+
+void from_json(const json& j, Cdf& p)
+{
+    j.at("remotelevel").get_to(p.remotelevel);
+    j.at("direction").get_to(p.direction);
+    j.at("guardhint").get_to(p.guardhint);
+}
+
+void from_json(const json& j, CleJson& p)
+{
+    j.at("level").get_to(p.level);
+
+    try {
+        j.at("cdf").get_to(p.cdf);
+    }
+    catch (...) {
+    }
+}
+
+void from_json(const json& j, Cle& p)
+{
+    j.at("cle-label").get_to(p.label);
+    j.at("cle-json").get_to(p.cleJson);
 }

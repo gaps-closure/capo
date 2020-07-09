@@ -355,12 +355,11 @@ void Partition::readCleJson(char *filename)
 
    if (verbose)
       std::cout << "File: " << filename << endl;
-   // cout << cleJson.size() << endl;
-   for (int i = 0; i < cleJson.size(); i++) {
-      string label = cleJson[i]["cle-label"];
-      Cle cle = Cle::from_json(cleJson, i);
 
-      cleMap[label] = cle;
+   vector<Cle> cle_list = cleJson.get<vector<Cle>>();
+   for (Cle cle : cle_list) {
+       string label = cle.getLabel();
+       cleMap[label] = cle;
    }
 }
 
