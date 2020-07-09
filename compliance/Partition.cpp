@@ -18,6 +18,7 @@ using json = nlohmann::json;
 #include "Report.h"
 #include "cle_json.h"
 #include "util.h"
+#include "Annotation.h"
 
 extern int verbose;
 
@@ -181,7 +182,15 @@ void Partition::find_local_annotations()
                string val = data->getAsString().str();
                // the string constnts in .ll file has an extra \00 at the end
                val = val.substr(0, val.length() -1);
-               annotationMap[fname.str() + "." + item] = val;
+               string var = fname.str() + "." + item;
+               annotationMap[var] = val;
+
+               std::string targetStr;
+               llvm::raw_string_ostream rso(targetStr);
+               target->print(rso);
+
+               Annotation ann((**module)->getName().str(), val, targetStr);
+               newAnnotationMap[var] = ann;
             }
          }
       }
@@ -213,6 +222,13 @@ void Partition::find_global_annotations()
          string val = annotation.str();
          trim(val);
          annotationMap[item] = val;
+
+         std::string targetStr;
+         llvm::raw_string_ostream rso(targetStr);
+         targetGV->print(rso);
+
+         Annotation ann((**module)->getName().str(), val, targetStr);
+         newAnnotationMap[item] = ann;
       }
       
       GlobalVariable *fileGV = dyn_cast<GlobalVariable>(CS->getOperand(2)->getOperand(0));

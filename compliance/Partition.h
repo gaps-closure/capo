@@ -21,6 +21,7 @@
 
 #include "Cle.h"
 #include "Report.h"
+#include "Annotation.h"
 
 using namespace std;
 using namespace llvm;
@@ -32,6 +33,8 @@ class Partition
     unordered_map<string, Cle> cleMap;
     unordered_map<string, string> annotationMap;
 
+    unordered_map<string, Annotation> newAnnotationMap;
+
     Expected<std::unique_ptr<Module>>* module;
 
     Report report;
@@ -41,10 +44,6 @@ class Partition
     };
     
     ~Partition() {};
-
-    const string &getName() const {
-        return name;
-    }
 
     int getNumErrors() {
         int count = 0;
@@ -62,8 +61,6 @@ class Partition
     unordered_map<string, string> &getAnnotationMap() {
         return annotationMap;
     }
-
-
 
     void readIRFile(char *filename);
     void readCleJson(char *filename);
@@ -84,6 +81,23 @@ class Partition
     void setReport(const Report& report)
     {
         this->report = report;
+    }
+
+    const string &getName() const {
+        return name;
+    }
+
+    void setName(string name) {
+        this->name = name;
+    }
+
+    unordered_map<string, Annotation> getNewAnnotationMap() const {
+        return newAnnotationMap;
+    }
+
+    void setNewAnnotationMap(
+            unordered_map<string, Annotation> newAnnotationMap) {
+        this->newAnnotationMap = newAnnotationMap;
     }
 };
 

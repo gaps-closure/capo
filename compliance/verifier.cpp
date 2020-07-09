@@ -63,6 +63,10 @@ void verify(vector<Partition>& partitions)
           else {
               entry.setPass(true);
               reason = label + " is in " + enclave;
+
+              Annotation ann = partition.getNewAnnotationMap()[label];
+              entry.setModule(ann.getModule());
+              entry.setInstruction(ann.getInstruction());
           }
       }
       else {
@@ -122,6 +126,8 @@ static void read_files(char *in_dir, Partition& partition, const char *extension
 
 static void read_dir(char *in_dir, Partition& partition)
 {
+    partition.setName(string(in_dir));
+
     // make sure .json are read first because .ll processing depends on it
     read_files(in_dir, partition, ".json");
     read_files(in_dir, partition, ".ll");
