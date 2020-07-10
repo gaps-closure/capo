@@ -2,11 +2,14 @@
 import argparse
 import os
 import re
+import json
 
 import policy_resolver
 import ir_reader
 import dot_reader
 import graph_helper
+
+topology = {}
 
 class AnnotationInfo():
     class ALabel():
@@ -55,34 +58,59 @@ class AnnotationInfo():
         return list(self.by_lab.keys())
 
 class ConflictInfo():
-    def __init__(self, l, dinfo):
-        self.kind = "UNKN"
+    def __init__(self, dinfo, dinfo_src=None):
+        self.kind_str = "UNKN"
         self.name = "UNKN"
-        self.label = l.replace('\\\n', '')
+        self.label = dot_reader.DotReader.get_fixed_node_label(dinfo.get_node())
+        self.label = self.label.replace('\\\n', '')
         self.line = dinfo.get_line() if dinfo is not None else 0
         self.column = dinfo.get_column() if dinfo is not None else 0
+        #print("CI: dinfo(dst)", dinfo, "<<>>", dinfo.get_node())
+        #print("CI: dinfo(src)", dinfo_src, "<<>>", dinfo_src and dinfo_src.get_node())
         m = re.match(r'.+call .+ @(\w+)\(', self.label)
         if m is not None:
-            self.kind = 'Function call'
+            self.kind_str = 'Function call'
             self.name = m.group(1)
             return
         m = re.match(r'call .+ @(\w+)\(', self.label)#most likely C++ call, otherwise would be caught before
         if m is not None:
-            self.kind = 'Method invocation'
+            self.kind_str = 'Method invocation'
             self.name = ir_reader.demangle(m.group(1))
             return
         m = re.match(r'.+ENTRY\\>\\> (\w+) .+ line: (\d+)', self.label)
         if m is not None:
-            self.kind = 'Definition in a function'
+            self.kind_str = 'Definition in a function'
             self.name = m.group(1)
             self.line = m.group(2)
             return
+        #print("SL:", self.label)
+        #print("DINFO_SRC:",dinfo_src)
+        m = re.match(r'ACTUAL_IN: (\d+)', self.label)
+        if m is not None:
+            self.kind_str = 'Passing parameter to function'
+            #pnam = dinfo_src.get_name() if dinfo_src else "UNKN"
+            self.name = '"Parameter number %s"' %(m.group(1))
+            self.line = dinfo_src.get_line()
+            self.column = dinfo_src.get_column()
+            #print("Got passing: ", self.name)
 
     def __str__(self):
-        #return "Conflict on line %s, column %s (%s, name: %s) |%s|" % (self.line, self.column, self.kind, self.name, self.label)
-        return "Conflict on line %s, column %s (%s, name: %s)" % (self.line, self.column, self.kind, self.name)
+        #return "Conflict on line %s, column %s (%s, name: %s) |%s|" % (self.line, self.column, self.kind_str, self.name, self.label)
+        return "Conflict on line %s, column %s (%s, name: %s)" % (self.line, self.column, self.kind_str, self.name)
     def __repr__(self):
         return self.__str__()
+    
+    @classmethod
+    def get_conflict_info(cls, ir_reader, c_pair):
+        node_d = c_pair.get_dst()
+        dinfo_d = ir_reader.get_DbgInfo(node_d)
+        node_d.set('dbginfo', dinfo_d)
+        dinfo_s = None
+        node_s = c_pair.get_src()
+        if node_s is not None:
+            dinfo_s = ir_reader.get_DbgInfo(node_s)
+            node_s.set('dbginfo', dinfo_s)        
+        return ConflictInfo(dinfo_d, dinfo_s)
         
 class Partitioner():
     def __init__(self, pol_, irr_, dot_):
@@ -90,7 +118,6 @@ class Partitioner():
         self.irr = irr_
         self.dot = dot_
         self.gh = graph_helper.GraphHelper(self.dot.get_pdg())
-        self.info_out = []
         self.ann_info = AnnotationInfo()
         self.progname = "EXAMPLE"
         self.ext = ".c"
@@ -101,11 +128,8 @@ class Partitioner():
         
     def extract_annotation_info(self):
         labs = self.pol.get_labels()
-        print("LABELS:", labs)
         lab_str = self.irr.get_label_irstring(labs)
-        print("LABELS2:", lab_str)
         lab_enc = self.pol.get_label_enclave(labs)
-        print("LABELS3:", lab_enc)
         for l in lab_str:
             self.ann_info.add_annotation_info(l, lab_str[l], lab_enc[l])
             #print(lab_str[l], lab_enc[l])
@@ -117,166 +141,249 @@ class Partitioner():
         for l in self.ann_info.get_labels():
             enc = self.ann_info.get_by_label(l).get_enclave()
             l_str = self.ann_info.get_by_label(l).get_irstring()
+            
+            #local vars
             di = self.dot.find_nodes_for_irstring(l_str)
             for n in di:
                 tmp_n = self.gh.find_root_declaration(n)
+                old_ann = n.get('annotation')
                 tmp_n.set('annotation', enc)
                 tmp_name = self.irr.get_variable_name(tmp_n.get_label())
                 dinfo = self.irr.get_DbgInfo(n, var=tmp_name)
                 tmp_n.set('dbginfo', dinfo)
+                if old_ann:
+                    print("Item has more than one annotations:", dinfo)
+                    print("  ACTION: refactoring needed, make sure there is no incompatible annotations on this item.")
+                    exit()
+                #print("LOCAL DINFO:", n, "<<>>", tmp_n, "<<>>", dinfo)
+                
+            #global vars
             di = self.dot.find_global_vars_for_irstring(l_str)
             for n in di:
+                old_ann = n.get('annotation')
                 n.set('annotation', enc)
                 dinfo = self.irr.get_DbgInfo(n)
                 n.set('dbginfo', dinfo)
-                #print("DINFO:", dinfo)
-                print(tmp_n.get('dbginfo'))
-
+                if old_ann:
+                    print("Item has more than one annotations:", dinfo)
+                    print("  ACTION: refactoring needed, make sure there is no incompatible annotations on this item.")
+                    exit()
+                #print("GLOBAL DINFO:", n, "<<>>", dinfo)
+                #print(n.get('dbginfo'))
+                
+            #functions annotation
+            di = self.dot.find_functions_for_irstring(l_str)
+            for n in di:
+                old_ann = n.get('annotation')
+                n.set('annotation', enc)
+                dinfo = self.irr.get_DbgInfo(n)
+                n.set('dbginfo', dinfo)
+                if old_ann:
+                    print("Item has more than one annotations:", dinfo)
+                    print("  ACTION: refactoring needed, make sure there is no incompatible annotations on this item.")
+                    exit()
+                #print("FUNCTION DINFO:", n, "<<>>", dinfo)
+                #print(n.get('dbginfo'))
+                
+        #now, follow up 'DEF_USE' to color definition from annotations
+        ret = set()
+        for n in [x for x in self.gh.get_dot_node_list() if x.get('annotation')]:
+            c = self.gh.propagate_enclave_oneway(n, n.get('annotation'), direction='dst', label=['DEF_USE'])
+            graph_helper.GraphHelper.ConflictPair.set_merge(ret, c)
+            
+        #we do not expect to have conflicts here
+        return ret
+    
+    def color_scope(self):
+        '''
+        color only the ENTRY nodes for functions in which annotated nodes are defined
+        '''
+        conflicts_def = set()
+        for n in self.dot.get_pdg_nodes():
+            col = n.get('annotation')
+            if col:
+                dinfo = n.get('dbginfo')
+                labels = None
+                if dinfo.get_kind() == dinfo.LOCAL:
+                    if 'GLOBAL_VALUE' not in n.get_label():
+                        labels = ['CONTROL']
+                    else:
+                        labels = ['SCOPE']
+                if labels is not None:
+                    for upnode in self.gh.get_neighbors(n, direction='dst', label=labels):
+                        c = self.gh.propagate_enclave_oneway(upnode, col, direction='dst', label=labels, stop_at_function=True, from_node=n)
+                        graph_helper.GraphHelper.ConflictPair.set_merge(conflicts_def, c)
+        return conflicts_def
+                
+    def color_body(self):
+        '''
+        color instructions in colored functions
+        '''
+        ret = set()
+        for n in self.dot.get_pdg_nodes():
+            if self.dot.is_entry(n):
+                col = n.get('enclave')
+                if col:
+                    labels = ['CONTROL']
+                    #going down the relation
+                    for downnode in self.gh.get_neighbors(n, direction='src', label=labels):
+                        c = self.gh.propagate_enclave_oneway(downnode, col, direction='src', label=labels, stop_at_function=True, from_node=n)
+                        graph_helper.GraphHelper.ConflictPair.set_merge(ret, c)
+            
+        return ret
+                
     def partition_to(self, encs, enc):
         '''
         encs - all the enclaves
-        enc - the enclave into which the data flows (through guards)
+        enc - the enclave into which the data flows (through guards). If data can flow to all, a random one 
         '''
+        all_conflict_pairs = set()
+        conflicts_exist = False
+        resolvable_only = True
         if len(encs) != 2:
             print("This version of partitioner can only handle exactly 2 enclaves")
             return
-        other_enc = encs[0] if encs[1] == enc else encs[1]
-        secmark_out_conflict = []
-        secmark_out_no_conflict = []
 
         self.extract_annotation_info()
-        self.annotate_nodes()
-        smcl = "Data items with security markings:"
-        secmark_out_conflict.append(smcl)
-        secmark_out_no_conflict.append(smcl)
+        marking_conflicts = self.annotate_nodes()
+        if len(marking_conflicts) > 0:
+            print("Data item(s) have more than one annotation!")
+            print("ACTION: refactoring needed, make sure no incompatible annotations exist:")
+            for c in marking_conflicts:
+                print("  " + ConflictInfo.get_conflict_info(self.irr, c))
+            return 
+        smcl = "Items with security markings:"
+        print(smcl)
         data_items = []
+        global_scoped_vars = []
+        topology['global_scoped_vars'] = global_scoped_vars
         for n in self.dot.get_pdg_nodes():
             n_ann = n.get('annotation')
             if n_ann:
                 data_items.append(n)
                 dinfo = n.get('dbginfo')
                 smcl = "  Enclave: %s, item: %s" %(n_ann, str(dinfo))
-                secmark_out_conflict.append(smcl)
-                secmark_out_no_conflict.append(smcl)
-                if n_ann != enc:
-                    smcl = "    ACTION: Define variable in the same scope, of the same type, named %s, without any annotations" % (dinfo.name + '_' + enc)
-                    secmark_out_conflict.append(smcl)
-        #start coloring, up to definitions, then down to usage
-        #finds if data of different markings is used in the same statement
-        conflicts = self.gh.balanced_coloring(encs, enc)
-        #conflicts = set()
-        #for n in data_items:
-        #    col = n.get('annotation')
-        #    conflicts.update(self.gh.propagate_enclave(n, col))
-        if len(conflicts) == 0:
-            smcl = "There is no data usage conflicts between enclaves"
-            secmark_out_conflict.append(smcl)
-            secmark_out_no_conflict.append(smcl)
-        else:
-            self.info_out.extend(secmark_out_conflict)
-            secmark_out_conflict = []
-            self.info_out.append("There exist at least one conflict statement where data from different enclaves are mixed:")
-            self.info_out.append("    ACTION: Include 'partitioner.h' in the source file")
-            for c in conflicts:
-                #print("C:", c)
-                tmp_l = self.dot.get_fixed_node_label(c)
-                dinfo = self.irr.get_DbgInfo(c)#tmp_l)
-                cinfo = ConflictInfo(tmp_l, dinfo)
-                self.info_out.append("  " + str(cinfo))
-                if cinfo.kind == 'Method invocation':
-                    self.info_out.append("    ACTION: Just before this statement, put shadow variables that have 'guarded_send()' and 'guarded_receive()' for all variables annotated with '%s'" % other_enc)
-                else:
-                    self.info_out.append("    ACTION: Just before this statement, put a pair of send/receive statements for all variables annotated with '%s' as follows:" % other_enc)
-                    self.info_out.append("    ACTION: 'guarded_send()' to enclave '%s' for the original variable" % enc)
-                    self.info_out.append("    ACTION: 'guarded_receive()' for the variable with '_%s' postfix created in previous step" % enc)
-                    self.info_out.append("    ACTION: Then, in the conflicting statement, change the variable to the _%s counterpart" % enc)
-                    self.info_out.append("    ACTION: For example, for variable XXX, and its counterpart XXX_%s:" % enc)
-                    self.info_out.append('    ACTION:   guarded_send(%s, "XXX", sizeof(XXX), &XXX)' % enc)
-                    self.info_out.append('    ACTION:   guarded_receive("XXX", sizeof(XXX_%s), &XXX_%s)' % (enc, enc))
-                    self.info_out.append("    ACTION:   change XXX to XXX_%s in the conflicting statement" %(enc))
-            self.info_out.append("    ACTION: <end of step1>")  
-        #see if the data are declared in the same function
-        #we assume the annotation is at the variable declaration
-        #which is, color up the CONTROL links
-        conflicts_def = set()
-        for n in data_items:
-            col =  n.get('annotation')
-            for upnode in self.gh.get_neighbors(n, direction='dst', label=['CONTROL']):
-                conflicts_def.update(self.gh.propagate_enclave_oneway(upnode, col, direction='dst', label=['CONTROL'], stop_at_function=True))
-        for n in self.dot.get_pdg_nodes():
-            n.set('dbginfo', "REMOVED")
-        self.dot.get_pdg().write('enclaves.dot')
-        #self.dot.get_pdg().write_png('enclaves.png')
-        main_copied = False
-        if len(conflicts_def) == 0:
-            self.info_out.extend(secmark_out_no_conflict)
-            self.info_out.append("There is no definition conflicts between enclaves")
-        else:
-            self.info_out.extend(secmark_out_conflict)
-            self.info_out.append("There exist at least one conflict where data from different enclaves is defined in the same function:")
-            for c in conflicts_def:
-                tmp_l = self.dot.get_fixed_node_label(c)
-                cinfo = ConflictInfo(tmp_l, None)
-                self.info_out.append("  " + str(cinfo))
-                orig_f_name = cinfo.name
-                new_f_name = orig_f_name  + "_" + enc
-                other_new_f_name =  orig_f_name  + "_" + other_enc
-                if orig_f_name == 'main': main_copied = True
-                self.info_out.append("    ACTION: Copy function '%s' as '%s'" % (orig_f_name, new_f_name))
-                self.info_out.append("    ACTION: In '%s':" % orig_f_name)
-                self.info_out.append("      ACTION: delete all variables annotated as '%s'" %enc)
-                self.info_out.append("      ACTION: delete all variables created previously as 'XXX_%s'" % enc)
-                self.info_out.append("      ACTION: delete all 'guarded_receive()' calls")
-                self.info_out.append("      ACTION: delete all the conflicting statement(s)")
-                self.info_out.append("      ACTION: delete statements using the deleted variables")
-                self.info_out.append("    ACTION: In '%s':" % (new_f_name))
-                self.info_out.append("      ACTION: delete all variables annotated other than '%s'" % enc)
-                self.info_out.append("      ACTION: delete all 'guarded_send()' calls")
-                self.info_out.append("      ACTION: delete statements using the deleted variables")
-                #the following is needed because pdg software does not handle control flow right
-                self.info_out.append("    ACTION: Rename '%s' as '%s':" % (orig_f_name, other_new_f_name))
-                self.info_out.append("    ACTION: Add function '%s' that will call both '%s' and '%s'" % (orig_f_name, new_f_name, other_new_f_name))
-            self.info_out.append("    ACTION: <end of step2>")  
-        self.info_out.append("Other (if there is no more conflicts):")
-        self.info_out.append("    ACTION: Add 'libpartitioner.a' to the linking statement for the program")
-        new_main = "main_" + enc
-        other_new_main = "main_" + other_enc
-        new_file_enc = "%s_%s.mod%s" % (self.progname, enc, self.ext)
-        new_file_other_enc = "%s_%s.mod%s" % (self.progname, other_enc, self.ext)
-        if not main_copied:
-            self.info_out.append("    ACTION: If '%s' does not exist, copy function 'main' as a new function '%s'" % (new_main, new_main))
-            self.info_out.append("    ACTION: If '%s' does not exist, copy function 'main' as a new function '%s'" % (other_new_main, other_new_main))
-            self.info_out.append("    ACTION: Make sure that the new functions '*_%s' are reachable from '%s', and none of them are reachable from '%s'" % (enc, new_main, other_new_main))
-        self.info_out.append("    ACTION: copy the modified program to new source file called %s" %(new_file_enc))
-        self.info_out.append("    ACTION: Rename original file to %s" %(new_file_other_enc))
-        self.info_out.append("    ACTION: From file %s remove 'main' and all '*_%s' functions. Rename 'main_%s' to 'main'. As the first statement in 'main' add 'initialize_partitioner(\"%s\");'. As the last statement add 'cleanup_partitioner();'. This is the program running in enclave %s" % (new_file_other_enc, enc, other_enc, other_enc, other_enc))
-        self.info_out.append("    ACTION: From file %s remove 'main' and 'main_%s'; and rename 'main_%s' to 'main'. As the first statement in 'main' add 'initialize_partitioner(\"%s\");'. As the last statement add 'cleanup_partitioner();'. This is the program running in enclave %s" % (new_file_enc, other_enc, enc, enc, enc))
-        self.info_out.append("    ACTION: Remove dead code from both files")
+                json_var = {"name" : dinfo.get_name(), "level" : n_ann}
+                if dinfo.get_kind() == dinfo.GLOBAL:
+                    global_scoped_vars.append(json_var)
+                print(smcl)
+                
+        #start coloring
         
+        conflicts_def = self.color_scope()
+        if len(conflicts_def) == 0:
+            print("There is no definition conflicts (data from different enclaves defined in the same function)")
+        else:
+            print("There exist at least one conflict where data from different enclaves is defined in the same function:")
+            print("    ACTION: These conflicts usually require refactoring")
+            conflicts_exist = True
+            resolvable_only = False
+            self.gh.ConflictPair.set_merge(all_conflict_pairs, conflicts_def)
+            for c_pair in conflicts_def:
+                c = c_pair.get_dst()
+                cinfo = ConflictInfo( self.irr.get_DbgInfo(c), self.irr.get_DbgInfo(c_pair.get_src()))
+                print("  " + str(cinfo))
+
+
+        conflicts_body = self.color_body()
+        for c_pair in conflicts_body:
+            conflicts_exist = True
+            if not c_pair.is_in_set(all_conflict_pairs):
+                c = c_pair.get_dst()
+                cinfo = ConflictInfo(self.irr.get_DbgInfo(c_pair.get_src()), self.irr.get_DbgInfo(c))
+                print("Conflict resolvable by RPC:")
+                print("  " + str(cinfo))
+        self.gh.ConflictPair.set_merge(all_conflict_pairs, conflicts_body)
+        
+        #finds if data of different markings is used in the same statement
+        
+        conflicts = self.gh.balanced_coloring(encs, enc)
+        if len(conflicts) == 0:
+            print("There is no data usage conflicts between enclaves")
+        else:
+            print("There exist at least one conflict statement where data from different enclaves are mixed:")
+            print("    ACTION: These conflicts can be resolved by the guarded RPC calls")
+            for c_pair in conflicts:
+                if not c_pair.is_in_set(all_conflict_pairs):
+                    #print("C:", c_pair)
+                    c = c_pair.get_dst()
+                    dinfo = self.irr.get_DbgInfo(c)
+                    #print("DINFO:", dinfo)
+                    dinfo_src = self.irr.get_DbgInfo(c_pair.get_src())
+                    cinfo = ConflictInfo(dinfo, dinfo_src)
+                    print("  " + str(cinfo))
+        self.gh.ConflictPair.set_merge(all_conflict_pairs, conflicts)
+
+        #add global variables to topology file
+        global_scoped_vars = []
+        topology['global_scoped_vars'] = global_scoped_vars
+        for n in self.dot.get_pdg_nodes():
+            if n.get_label() and "GLOBAL_VALUE" in n.get_label():
+                n_ann = n.get('enclave')
+                dinfo = n.get('dbginfo')
+                dinfo = self.irr.get_DbgInfo(n)
+                if dinfo.get_kind() == dinfo.GLOBAL:
+                    if n_ann:
+                        json_var = {"name" : dinfo.get_name(), "level" : n_ann}
+                        global_scoped_vars.append(json_var)
+                    else:
+                        print("Global variable is not marked at the end of analysis:", dinfo)
+                        print("  ACTION: Check annotations and policies in the program")
+                        print("  ACTION: This may only happen if security policies are incorrect")
+
+        #ADD FUNCTIONS TO TOPOLOGY FILE
+        function_labels = []
+        topology['functions'] = function_labels
+        for n in self.dot.get_pdg_nodes():
+            if self.dot.is_entry(n):
+                fdinfo = self.irr.get_DbgInfo(n)
+                n_ann = n.get('enclave')
+                if n_ann:
+                    func_l = {"name" : fdinfo.get_name(), "level" : n_ann, "line" : fdinfo.get_line()}
+                    function_labels.append(func_l)
+                else:
+                    print("A function is not marked at the end of analysis:", fdinfo)
+                    print("  ACTION: Check annotations and policies in the program")
+                    print("  ACTION: This may only happen if security policies are incorrect")
+        
+        #write enclaves.dot file, make sure debug info is a string        
+        for n in self.dot.get_pdg_nodes():
+            n.set('dbginfo', "\"" + str(n.get('dbginfo')) + "\"")
+        self.dot.get_pdg().write('enclaves.dot')
+                
+        if conflicts_exist:
+            if resolvable_only:
+                print("There exist conflict, resolvable with RPC:")
+                print("    ACTION: Please run divider tool to perform the resolution using generated 'topology.json' file")
+            else:
+                print("There exist conflict, but they may not be resolvable without refactoring:")
+                print("    ACTION: Please refactor code and run this tool again")
+                
+
     def get_partition_information(self):
         enc = self.pol.get_enclaves()
+        topology['levels'] = enc
         if len(enc) == 0:
-            self.info_out.append("This program has no security enclaves defined! Use CLE to annotate the source code.")
+            print("This program has no security enclaves defined! Use CLE to annotate the source code.")
         elif len(enc) == 1:
-            self.info_out.append("This program has one security enclave defined.")
-            self.info_out.append("It can be only run in enclave '" + enc[0] + "', and can be run without modifications.")
+            print("This program has one security enclave defined.")
+            print("It can be run in enclave '" + enc[0] + "', and can be run without modifications.")
         elif len(enc) > 2:
-            self.info_out.append("This program has %d security enclaves defined." % (len(enc)))
-            self.info_out.append("Currently maximum of 2 is permitted.")
+            print("This program has %d security enclaves defined." % (len(enc)))
+            print("Currently maximum of 2 is permitted.")
         else:
-            self.info_out.append("Two security enclaves defined: %s" % " and ".join(enc))
+            print("Two security enclaves defined: %s" % " and ".join(enc))
             enc_c = self.pol.get_common_enclaves()
             if len(enc_c) == 0:
-                self.info_out.append("No data transfer between the two enclaves is permitted.")
-                self.info_out.append("This program cannot be partitioned.")
-                self.info_out.append("Please add the data flow rules for one of the labels.")
+                print("No data transfer between the two enclaves is permitted.")
+                print("This program cannot be partitioned.")
+                print("Please add the data flow rules for one of the labels.")
             elif len(enc_c) == 1:
-                self.info_out.append("Data can flow only to %s (through guards)" % (enc_c[0]))
+                print("Data can flow only to %s (through guards)" % (enc_c[0]))
                 self.partition_to(enc, enc_c[0])
             else:
-                self.info_out.append("Data can flow to enclaves: %s (through guards)" % " or ".join(enc_c))
+                print("Data can flow to enclaves: %s (through guards)" % " or ".join(enc_c))
                 self.partition_to(enc, enc_c[0])
-        return self.info_out
             
 
 def main(fullprogname):
@@ -293,10 +400,13 @@ def main(fullprogname):
         irr.read_ir(pre + ".ll")
         dot.read_dot("pdgragh.main.dot", "cdgragh.main.dot", "ddgragh.main.dot")
         print("Source file to be modified: %s" % source_file_name)
+        topology['source_path'] = "./refactored" #source_file_name #os.path.dirname(source_file_name)
         p = Partitioner(pol, irr, dot)
         p.set_input_names(progname, ext)
-        for i in p.get_partition_information():
-            print(i)
+        p.get_partition_information()
+        with open("topology.json", "w") as f:
+            json.dump(topology, f, indent=4)
+            
     except FileNotFoundError as e:
         print("Canot read input files: " + str(e))
         print("Make sure to run 'make PROG=%s' before this program is called" % (progname))

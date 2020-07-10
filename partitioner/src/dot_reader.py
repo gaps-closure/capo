@@ -15,7 +15,7 @@ class DotReader():
             print("Expected exactly one PDG graph in file: " + fname_pdg)
             exit()
         self.pdg = dd[0]
-        
+        self.add_scope_edges()
         '''
         dd = pydot.graph_from_dot_file(fname_cdg)
         if len(dd) != 1:
@@ -29,7 +29,19 @@ class DotReader():
             exit()
         self.ddg = dd[0]
         '''
-        #self.find_global_annotations()
+        self.find_global_annotations()
+        
+    def add_scope_edges(self):
+        n_set = [ x for x in self.pdg.get_nodes() if x.get_label() and "GLOBAL_VALUE" in x.get_label()]
+        f_set = [ x for x in self.pdg.get_nodes() if self.is_entry(x)]
+        for n in n_set:
+            m = re.match(r'.+GLOBAL_VALUE:@(\w+)\.(\w+)', n.get_label())
+            if m and m.group(1) != 'llvm':
+                scope_n = m.group(1)
+                for f in f_set:
+                    m2 = re.match(r'.+ENTRY\\>\\>.+name: \\"([^\"]+)\\",', f.get_label())
+                    if m2 and scope_n == m2.group(1):
+                        self.pdg.add_edge(pydot.Edge(f, n, label='{SCOPE}'))
         
         
     def find_global_annotations(self):
@@ -43,6 +55,7 @@ class DotReader():
                 else:
                     for i in range(4, len(tmp), 2):
                         self.global_annotations.append(tmp[i])
+        #print("GLOBAL ANNOS:", self.global_annotations)
 
                         
     def get_pdg(self):
@@ -74,21 +87,48 @@ class DotReader():
         returns list of global variable declarations as nodes if the var is annotated with irstring
         '''
         ret = []
-        re_str = ".+ @(\w+)[, ].+ @" + irstr + "[, ].+"
+        re_str = ".+ @([\.\w]+)[, ].+ @" + irstr + "[, ].+"
         for ga in self.global_annotations:
             m = re.match(re_str, ga)
+            #print("MATCHING", ga)
             if m:
+                #print("MATCHED", m.group(1))
                 re_str2 = "\"{GLOBAL_VALUE:@" + m.group(1) + " = .+"
                 for n in [x for x in self.get_pdg_nodes() if x.get_label()]:
                     m2 = re.match(re_str2, n.get_label())
                     if m2:
-                       ret.append(n)
+                        ret.append(n)
+                        #print("APPENDING:", n)
         return ret
-             
-    def get_fixed_node_label(self, n):
+            
+    def find_functions_for_irstring(self, irstr):
+        '''
+        returns list of function definitions if they are annotated with irstr
+        '''
+        ret = []
+        re_str = ".+ @([\.\w]+)[, ].+ @" + irstr + "[, ].+"
+        for ga in self.global_annotations:
+            m = re.match(re_str, ga)
+            #print("MATCHINGF", ga)
+            if m:
+                #print("MATCHEDF", m.group(1))
+                re_str2 = r".+ENTRY\\>\\> " + m.group(1) + " "
+                for n in [x for x in self.get_pdg_nodes() if x.get_label()]:
+                    m2 = re.match(re_str2, n.get_label())
+                    if m2:
+                        ret.append(n)
+                        #print("APPENDINGF:", n)
+        return ret
+
+    @classmethod
+    def is_entry(cls, node):
+        return node.get_label() and "\<\<ENTRY\>\>" in node.get_label()
+        
+    @classmethod
+    def get_fixed_node_label(cls, n):
         l = n.get_label().strip()
         if l.startswith('"{'):
-            return l[3:-3].strip()
+            return l[2:-2].strip()
         return l
         
 if __name__ == "__main__":
