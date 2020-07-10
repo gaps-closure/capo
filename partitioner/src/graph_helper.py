@@ -108,8 +108,8 @@ class GraphHelper():
             #print("ee", existing_enc)
             if existing_enc != enclave:
                 #print("Node: %s has conflict" % str(node))
-                edg = self.dot.get_pdg().get_edge(from_node, node)
-                print("EDGE:", edg)
+                #edg = self.dot.get_pdg().get_edge(from_node, node)
+                #print("EDGE:", edg)
                 return [GraphHelper.ConflictPair(from_node, node, None)]
             return []
         node.set('enclave', enclave)
