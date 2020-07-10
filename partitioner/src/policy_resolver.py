@@ -42,7 +42,7 @@ class PolicyResolver():
         for l in self.desc:
             if l['cle-json']['level'] == oe and 'cdf' in l['cle-json']:
                 for c in l['cle-json']['cdf']:
-                    if c['remotelevel'] == '=='+e and c['direction'] == 'egress':
+                    if c['remotelevel'] == e and c['direction'] == 'egress':
                         return True
         return False
         

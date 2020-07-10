@@ -93,6 +93,22 @@ class TagProcessor:
                             fdinfo = irr.get_DbgInfo(u, f_name)
                             u.set('dbginfo', "\"" + str(fdinfo) + "\"")
                             self.info.append("setting dbginfo for function: " + f_name + ": " + str(fdinfo))
+                            print("NODE:", str(u))
+                            f_param_nodes = gh.get_neighbors(u, direction='dst', label=['DEF_USE'])                           
+                            print("  USES:", str([str(x) for x in f_param_nodes]))
+                            f_2 = [gh.find_root_declaration(x) for x in f_param_nodes]
+                            print("    ROOT:", str([str(x) for x in f_2]))
+                            f_3 = [gh.find_dbg_declare(x) for x in f_2]
+                            print("       DBGDEC:", str([str(x) for x in f_3]))
+                            #print("  TYPES:", str([irr.get_type_name(x_.get_label()) for x_ in f_param_nodes]))
+                            f_param_types = [irr.get_type_name(x_.get_label()) for x_ in f_param_nodes]
+                            #for x in f_param_nodes:
+                            #    f_param_2 = gh.get_neighbors(x, direction='dst', label=['DEF_USE'])
+                            #    print("    USES2:", str([str(x_) for x_ in f_param_2]))
+                            #    for y in f_param_2:
+                            #        f_param_3 = gh.get_neighbors(y, direction='src', label=['DEF_USE'])
+                            #        print("      USES3:", str([str(x_) for x_ in f_param_3]))
+                            u.set('uses_types', f_param_types)
                             xdc_by_tag[t_str].append(u)
                 self.info.append("GHRAPH: " + fn + " nodes:" + str(len(dr.get_pdg_nodes())) + " links: " + str(len(dr.pdg.get_edges())))
             for n in dr.pdg.get_nodes():
@@ -108,13 +124,17 @@ class TagProcessor:
         for tag, nodes in xdc_by_tag.items():
             if len(nodes) == 2:
                 for n in nodes:
-                    self.info.append("Tag: " + tag + ", function: " + str(n.get('dbginfo')) + ", datatype: " + determineDataTypeName(tag))
+                    param_types = n.get('uses_types')
+                    if not param_types:
+                        param_types = ["?"]
+                    filtered_p_t_list = [x for x in param_types if x not in ['i8*', 'struct._tag']]
+                    self.info.append("Tag: " + tag + ", function: " + str(n.get('dbginfo')) + ", tag type: " + determineDataTypeName(tag) + ", xdc parameter type: " + str(filtered_p_t_list))
                     n.set('style', 'filled')
                     n.set('fillcolor', 'gray')
                 e = pydot.Edge(nodes[0], nodes[1], label="{CROSSDOMAIN}")#, weight=20)
                 medg.add_edge(e)
             else:
-                print("WARNING: More than two nodes have the same tag: " + tag)
+                print("WARNING: Number of nodes with the same tag is not two, skipping: " + tag)
                 
         jgname = "join_graph.dot"
         self.info.append("Writing join graph: " + jgname)

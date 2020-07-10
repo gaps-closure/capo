@@ -1,7 +1,49 @@
-#import networkx
-from sympy.functions.elementary.tests.test_trigonometric import nn
+import re
 
 class GraphHelper():
+    
+    class ConflictPair:
+        def __init__(self, src, dst, edge):
+            '''
+            src and dst are nodes that conflict.
+            '''
+            self.src = src
+            self.dst = dst
+            self.edge = edge
+
+        def get_src(self):
+            return self.src
+        
+        def get_dst(self):
+            return self.dst
+        
+        def __str__(self):
+            return "Conflict between nodes: " + str(self.src) + " and " + str(self.dst)
+        
+        def has_same_nodes(self, other):
+            if other is None: return False
+            if type(other) is type(self):
+                return (self.get_src() == other.get_src() and self.get_dst() == other.get_dst()) or \
+                     (self.get_dst() == other.get_src() and self.get_src() == other.get_dst())
+            return False
+        
+        def is_in_set(self, cpset):
+            if cpset is None: return False
+            for c in cpset: 
+                if self.has_same_nodes(c): return True
+            return False      
+              
+        def is_data_dep(self):
+            l = self.edge.get_label()
+            if l:
+                return 'D_general' in l or 'DEF_USE' in l or 'RAW' in l or 'D_ALIAS' in l or 'PARAMETER' in l
+            else:
+                return False
+        @staticmethod
+        def set_merge(to_set, from_set):
+            tm = [x for x in from_set if not x.is_in_set(to_set)]
+            to_set.update(tm)
+     
     def __init__(self, dot_graph):
         self.dot = dot_graph
         self.dot_nodes = {n.get_name() : n for n in self.dot.get_nodes()}
@@ -19,26 +61,26 @@ class GraphHelper():
         encs is a list of enclaves, enc is the one to which data can flow
         '''
         ret = set()
-        #first up 'DEF_USE' to color definition from annotations
+        
         remaining_enc = list(encs)
         remaining_enc.remove(enc)
-        #for ee in [enc, *remaining_enc]:
-        for n in [x for x in self.get_dot_node_list() if x.get('annotation')]:
-            ret.update(self.propagate_enclave_oneway(n, n.get('annotation'), direction='dst', label=['DEF_USE']))
+        
         #then down to color usage
-        for n in [x for x in self.get_dot_node_list() if x.get('enclave')]:
-            for dn in self.get_neighbors(n, direction = 'src', label=['DEF_USE', 'RAW']):
-                #print("Down node:", dn.get_label())
-                c = self.propagate_enclave_oneway(dn, n.get('enclave'), direction='src', label=['DEF_USE', 'RAW'])
-                ret.update(c)
+        for ee in [enc, *remaining_enc]:
+            for n in [x for x in self.get_dot_node_list() if x.get('enclave') and x.get('enclave') == ee]:
+                for dn in self.get_neighbors(n, direction = 'src', label=['DEF_USE', 'RAW', 'PARAMETER', 'CONTROL', 'GLOBAL_DEP', 'D_general']):
+                    #print("Down node:", dn.get_label())
+                    c = self.propagate_enclave_oneway(dn, n.get('enclave'), direction='src', label=['DEF_USE', 'RAW', 'PARAMETER', 'CONTROL', 'GLOBAL_DEP', 'D_general'], from_node=n)
+                    GraphHelper.ConflictPair.set_merge(ret, c)
         #then up again to color structures
-        '''
-        for n in [x for x in self.get_dot_node_list() if x.get('enclave')]:
-            for dn in self.get_neighbors(n, direction = 'dst', label=['DEF_USE', 'RAW']):
-                #print("Down node:", dn.get_label())
-                c = self.propagate_enclave_oneway(dn, n.get('enclave'), direction='dst', label=['DEF_USE', 'RAW'])
-                ret.update(c)
-        '''
+        
+        for ee in [enc, *remaining_enc]:
+            for n in [x for x in self.get_dot_node_list() if x.get('enclave') and x.get('enclave') == ee]:
+                for dn in self.get_neighbors(n, direction = 'dst', label=['DEF_USE', 'RAW', 'CONTROL']):
+                    #print("Down node:", dn.get_label())
+                    c = self.propagate_enclave_oneway(dn, n.get('enclave'), direction='dst', label=['DEF_USE', 'RAW', 'CONTROL'], from_node=n)
+                    GraphHelper.ConflictPair.set_merge(ret, c)
+        
         return ret
     
     def propagate_enclave(self, node, enclave):
@@ -51,20 +93,24 @@ class GraphHelper():
         for n in [x for x in self.get_dot_node_list() if x.get('enclave') == enclave]:
             for dn in self.get_neighbors(n, direction = 'src', label=['DEF_USE', 'RAW']):
                 #print("Down node:", dn.get_label())
-                c = self.propagate_enclave_oneway(dn, enclave, direction='src', label=['DEF_USE', 'RAW'])
-                ret.update(c)
+                c = self.propagate_enclave_oneway(dn, enclave, direction='src', label=['DEF_USE', 'RAW'], from_node=n)
+                GraphHelper.ConflictPair.set_merge(ret, c)
         return ret
         
-    def propagate_enclave_oneway(self, node, enclave, direction=None, label=None, stop_at_function=False):
+    def propagate_enclave_oneway(self, node, enclave, direction=None, label=None, stop_at_function=False, from_node=None):
         #print("Node start: %s " % node.get_label())
         #treat global annotation node as non-existing for coloring purposes
         if 'llvm.global.annotations' in node.get_label(): return []
+        #treat local annotation node as non-existing for coloring purposes
+        if 'llvm.var.annotation' in node.get_label(): return []
         existing_enc = node.get('enclave')
         if existing_enc is not None:
             #print("ee", existing_enc)
             if existing_enc != enclave:
                 #print("Node: %s has conflict" % str(node))
-                return [node]
+                edg = self.dot.get_pdg().get_edge(from_node, node)
+                print("EDGE:", edg)
+                return [GraphHelper.ConflictPair(from_node, node, None)]
             return []
         node.set('enclave', enclave)
         node.set_fillcolor(enclave)
@@ -72,8 +118,8 @@ class GraphHelper():
         if stop_at_function and node.get_label().startswith('"{\<\<ENTRY\>\>'): return set()
         ret = set()
         for n in self.get_neighbors(node, direction=direction, label=label):
-            c = self.propagate_enclave_oneway(n, enclave, direction=direction, label=label)
-            ret.update(c)
+            c = self.propagate_enclave_oneway(n, enclave, direction=direction, label=label, from_node=node)
+            GraphHelper.ConflictPair.set_merge(ret, c)
         return ret
     
     def find_users(self, node):
@@ -133,6 +179,23 @@ class GraphHelper():
         if len(up_n) == 1: return self.find_root_declaration(up_n[0])
         print("More than one definition?")
         return None #this should not happen
+    
+    def find_dbg_declare(self, n):
+        down_n = self.get_neighbors(n, direction='src', label=['DEF_USE'])
+        for dn in down_n:
+            print("DOWN_N", str(dn))
+            if 'llvm.dbg.declare' in dn.get_label():
+                print("DOWN_N RETURNING:", str(dn))
+                return dn
+        for dn in down_n:
+            print("DOWN_N Trying:", str(dn))
+            ret = self.find_dbg_declare(dn)
+            print("DOWN_N Ret is:", str(ret))
+            if ret is not None:
+                print("DOWN_N Returning ret:", str(ret))
+                return ret
+            print("DOWN_N Returning None")
+        return None
     
     def print_info(self):
         #for n in self.dot.get_nodes():
