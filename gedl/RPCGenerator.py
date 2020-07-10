@@ -11,6 +11,7 @@ def argparser(enclaveList, enclaveMap):
     parser.add_argument('-a','--hal', required=True, type=str, help='HAL Api Directory Path')
     parser.add_argument('-n','--inuri', required=True, type=str, help='Input URI')
     parser.add_argument('-t','--outuri', required=True, type=str, help='Output URI')
+    parser.add_argument('-x','--xdconf', required=True, type=str, help='Hal Config Map Filename')
     parser.add_argument('-f','--files', required=True, type=str, nargs='+', help='List of Mod Files')
     args = parser.parse_args()
     for index, enclaveFile in enumerate(args.files):
@@ -94,65 +95,61 @@ def RPCGeneratorH(enclave,args,enclaveMap,callerList,calleeList):
     rpchFile = enclaveMap[enclave][0][enclaveMap[enclave][0].rfind('/') + 1:].replace(".mod.c","_rpc.h")
     enclaveIndex = enclaveMap[enclave][2]
     with open((args.odir + "/" + enclave + "/" + rpchFile),"w") as rpch_file:
-        with open((args.odir + "/Closure.map"),"w") as map_file:
-            map_file.write("Map Begin\n")
-            rpch_file.write("#ifndef _" + enclave.capitalize() + "_RPC_\n#define _" + enclave.capitalize() + "_RPC_\n#include \"xdcomms.h\"\n#include \"codec.h\"\n")
-            if args.ipc != "Singlethreaded" and enclaveMap[enclave][1] != "master":
-                rpch_file.write("#include <pthread.h>\n")
-            rpch_file.write("\n# define APP_BASE 0\n")
-            for callerPair in callerList[enclaveIndex]:
-                if 1: #args.ipc == "Singlethreaded":
-                    rpch_file.write("# define MUX_NEXTRPC APP_BASE + " + str(callerPair[1] + 1) + "\n")
-                    rpch_file.write("# define SEC_NEXTRPC APP_BASE + " + str(callerPair[1] + 1) + "\n")
-                    rpch_file.write("# define MUX_OKAY APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-                    rpch_file.write("# define SEC_OKAY APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-                for call in callerPair[2]:
-                    rpch_file.write("# define MUX_REQUEST_" + call[0].upper() + " APP_BASE + " + str(callerPair[1] + 1) + "\n")
-                    rpch_file.write("# define SEC_REQUEST_" + call[0].upper() + " APP_BASE + " + str(callerPair[1] + 1) + "\n")
-                    rpch_file.write("# define MUX_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-                    rpch_file.write("# define SEC_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-            for calleePair in calleeList[enclaveIndex]:
-                if 1: #args.ipc == "Singlethreaded":
-                    rpch_file.write("# define MUX_NEXTRPC APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-                    rpch_file.write("# define SEC_NEXTRPC APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-                    rpch_file.write("# define MUX_OKAY APP_BASE + " + str(calleePair[1] + 1) + "\n")
-                    rpch_file.write("# define SEC_OKAY APP_BASE + " + str(calleePair[1] + 1) + "\n")
-                for call in calleePair[2]:
-                    rpch_file.write("# define MUX_REQUEST_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-                    rpch_file.write("# define SEC_REQUEST_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
-                    rpch_file.write("# define MUX_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(calleePair[1] + 1) + "\n")
-                    rpch_file.write("# define SEC_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(calleePair[1] + 1) + "\n")
-
-            rpch_file.write("\n#define INURI  \"" + args.inuri + enclave + "\"\n#define OUTURI \"" + args.outuri + enclave + "\"\n")
-            for callerPair in callerList[enclaveIndex]:
-                for call in callerPair[2]:
-                    rpch_file.write("#pragma cle def TAG_RESPONSE_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
-                    rpch_file.write("#pragma cle def TAG_REQUEST_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + callerPair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
-                    map_file.write(enclave + "," + callerPair[0] + "," + str(callerPair[1] + 1) + "," + str(callerPair[1] + 1) + "," + str(call[3]) + ",REQUEST_" + call[0].upper() + "\n")
-                    map_file.write(callerPair[0] + "," + enclave + "," + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]+1) + ",RESPONSE_" + call[0].upper() + "\n")
-            for calleePair in calleeList[enclaveIndex]:
-                for call in calleePair[2]:
-                    rpch_file.write("#pragma cle def TAG_RESPONSE_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + calleePair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
-                    rpch_file.write("#pragma cle def TAG_REQUEST_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
-                    
+        rpch_file.write("#ifndef _" + enclave.capitalize() + "_RPC_\n#define _" + enclave.capitalize() + "_RPC_\n#include \"xdcomms.h\"\n#include \"codec.h\"\n")
+        if args.ipc != "Singlethreaded" and enclaveMap[enclave][1] != "master":
+            rpch_file.write("#include <pthread.h>\n")
+        rpch_file.write("\n# define APP_BASE 0\n")
+        for callerPair in callerList[enclaveIndex]:
             if 1: #args.ipc == "Singlethreaded":
-                for callerPair in callerList[enclaveIndex]:
-                    #REMOVE HARDCODE ONCE IDL GEN FINISHED
-                    rpch_file.write("#pragma cle def TAG_OKAY {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",2] }} \\\n\t] }\n")
-                    rpch_file.write("#pragma cle def TAG_NEXTRPC {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + callerPair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + ",1] }} \\\n\t] }\n")
-                    map_file.write(enclave + "," + callerPair[0] + "," + str(callerPair[1] + 1) + "," + str(callerPair[1] + 1) + "," + str(1) + ",NEXTRPC\n")
-                    map_file.write(callerPair[0] + "," + enclave + "," + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(2) + ",OKAY\n")
-                for calleePair in calleeList[enclaveIndex]:
-                    rpch_file.write("#pragma cle def TAG_OKAY {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + calleePair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + ",2] }} \\\n\t] }\n")
-                    rpch_file.write("#pragma cle def TAG_NEXTRPC {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                        "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",1] }} \\\n\t] }\n")
+                rpch_file.write("# define MUX_NEXTRPC APP_BASE + " + str(callerPair[1] + 1) + "\n")
+                rpch_file.write("# define SEC_NEXTRPC APP_BASE + " + str(callerPair[1] + 1) + "\n")
+                rpch_file.write("# define MUX_OKAY APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+                rpch_file.write("# define SEC_OKAY APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+            for call in callerPair[2]:
+                rpch_file.write("# define MUX_REQUEST_" + call[0].upper() + " APP_BASE + " + str(callerPair[1] + 1) + "\n")
+                rpch_file.write("# define SEC_REQUEST_" + call[0].upper() + " APP_BASE + " + str(callerPair[1] + 1) + "\n")
+                rpch_file.write("# define MUX_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+                rpch_file.write("# define SEC_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+        for calleePair in calleeList[enclaveIndex]:
+            if 1: #args.ipc == "Singlethreaded":
+                rpch_file.write("# define MUX_NEXTRPC APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+                rpch_file.write("# define SEC_NEXTRPC APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+                rpch_file.write("# define MUX_OKAY APP_BASE + " + str(calleePair[1] + 1) + "\n")
+                rpch_file.write("# define SEC_OKAY APP_BASE + " + str(calleePair[1] + 1) + "\n")
+            for call in calleePair[2]:
+                rpch_file.write("# define MUX_REQUEST_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+                rpch_file.write("# define SEC_REQUEST_" + call[0].upper() + " APP_BASE + " + str(enclaveIndex+ 1) + "\n")
+                rpch_file.write("# define MUX_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(calleePair[1] + 1) + "\n")
+                rpch_file.write("# define SEC_RESPONSE_" + call[0].upper() + " APP_BASE + " + str(calleePair[1] + 1) + "\n")
+
+        rpch_file.write("\n#define INURI  \"" + args.inuri + enclave + "\"\n#define OUTURI \"" + args.outuri + enclave + "\"\n")
+        for callerPair in callerList[enclaveIndex]:
+            for call in callerPair[2]:
+                rpch_file.write("#pragma cle def TAG_RESPONSE_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
+                rpch_file.write("#pragma cle def TAG_REQUEST_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + callerPair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
+                
+        for calleePair in calleeList[enclaveIndex]:
+            for call in calleePair[2]:
+                rpch_file.write("#pragma cle def TAG_RESPONSE_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + calleePair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
+                rpch_file.write("#pragma cle def TAG_REQUEST_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
+                
+        if 1: #args.ipc == "Singlethreaded":
+            for callerPair in callerList[enclaveIndex]:
+                #REMOVE HARDCODE ONCE IDL GEN FINISHED
+                rpch_file.write("#pragma cle def TAG_OKAY {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",2] }} \\\n\t] }\n")
+                rpch_file.write("#pragma cle def TAG_NEXTRPC {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + callerPair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + ",1] }} \\\n\t] }\n")
+                
+            for calleePair in calleeList[enclaveIndex]:
+                rpch_file.write("#pragma cle def TAG_OKAY {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + calleePair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + ",2] }} \\\n\t] }\n")
+                rpch_file.write("#pragma cle def TAG_NEXTRPC {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
+                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",1] }} \\\n\t] }\n")
             
         
                  
@@ -168,7 +165,7 @@ def RPCGeneratorH(enclave,args,enclaveMap,callerList,calleeList):
                     rpch_file.write(param[0] + " " + param[1])
                     if param != call[2][-1]:
                         rpch_file.write(",")
-                rpch_file.write(");")
+                rpch_file.write(");\n")
         for calleePair in calleeList[enclaveIndex]:
             for call in calleePair[2]:
                 rpch_file.write("extern " + call[1] + " " + call[0] + "(")
@@ -312,17 +309,46 @@ def RPCGeneratorC(enclave,args,enclaveMap,callerList,calleeList):
                         rpcc_file.write("\t\ttag_write(&t_tag, MUX_REQUEST_" + call[0].upper() + ", SEC_REQUEST_" + call[0].upper() + ", DATA_TYP_REQUEST_" + call[0].upper() + ");\n")
                         rpcc_file.write("\t\tif (TAG_MATCH(n_tag, t_tag)) {\n\t\t\t_handle_request_"+ call[0] + "(NULL);\n\t\t\tcontinue;\n\t\t}\n\t\tcontinue;\n\t}\n}\n\n")
 
+def writeHALEntry(file, fromName , toName, mux, sec, typ, funcName):
+    file.write("(\"from\":\"" + fromName + "\",\"to\":\"" + toName + "\"," + str(mux) + "," + str(sec) + "," + str(typ) + "," + funcName +")")
 
-
-
+def XDCONFGenerator(args,enclaveMap,callerList,enclaveList):
+    with open((args.odir + "/" + args.xdconf),"a") as map_file:
+        map_file.write("{\"enclaves\": [\n")
+        first = 1
+        for enclave in enclaveList:
+            if first == 1:
+                first = 0
+            else:
+                map_file.write(",")
+            map_file.write("\n\t{\n\t\t\"enclave\":\"" + enclave + "\",\n\t\t\"inuri\":\"" + args.inuri + enclave + "\",\n\t\t\"outuri\":\"" + args.outuri + enclave + "\",\n\t\t\"halmaps\":[")
+            enclaveIndex = enclaveMap[enclave][2]
+            if enclaveMap[enclave][1] == "master":
+                for callerPair in callerList[enclaveIndex]:
+                    writeHALEntry(map_file, enclave , callerPair[0], (callerPair[1] + 1), (callerPair[1] + 1), 1, "NEXTRPC")
+                    map_file.write(",")
+                    writeHALEntry(map_file, callerPair[0] , enclave, (enclaveIndex + 1), (enclaveIndex + 1), 2, "OKAY")
+            else:
+                for calleePair in calleeList[enclaveIndex]:
+                    writeHALEntry(map_file, calleePair[0] , enclave, (enclaveIndex + 1), (enclaveIndex + 1), 1, "NEXTRPC")
+                    map_file.write(",")
+                    writeHALEntry(map_file, enclave , calleePair[0], (calleePair[1] + 1), (calleePair[1] + 1), 2, "OKAY")
+            for callerPair in callerList[enclaveIndex]:
+                for call in callerPair[2]:
+                    map_file.write(",")
+                    writeHALEntry(map_file, enclave , callerPair[0], (callerPair[1] + 1), (callerPair[1] + 1), call[3], ("REQUEST_" + call[0].upper()))
+                    map_file.write(",")
+                    writeHALEntry(map_file, callerPair[0] , enclave, (enclaveIndex + 1), (enclaveIndex + 1), (call[3]+1), ("RESPONSE_" + call[0].upper()))
+            for calleePair in calleeList[enclaveIndex]:
+                for call in calleePair[2]:
+                    map_file.write(",")
+                    writeHALEntry(map_file, calleePair[0] , enclave, (enclaveIndex + 1), (enclaveIndex + 1), call[3], ("REQUEST_" + call[0].upper()))
+                    map_file.write(",")
+                    writeHALEntry(map_file, enclave , calleePair[0], (calleePair[1] + 1), (calleePair[1] + 1), (call[3]+1), ("RESPONSE_" + call[0].upper()))
+            map_file.write("]\n\t}")
+        map_file.write("\n]}")
 
 #Main Script
-#outputDirectory = sys.argv[1]
-#GEDLFilepath = sys.argv[2]
-#IPCStyle = sys.argv[3]
-#halApiPath = sys.argv[4]
-#inuri = sys.argv[5]
-#outuri = sys.argv[6]
 enclaveMap = {}
 enclaveList = []
 replaceList = []
@@ -335,3 +361,4 @@ for enclave in enclaveList:
 for enclave in enclaveList:
     RPCGeneratorH(enclave, args, enclaveMap,callerList,calleeList)
     RPCGeneratorC(enclave, args, enclaveMap,callerList,calleeList)
+XDCONFGenerator(args, enclaveMap,callerList,enclaveList)

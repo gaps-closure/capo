@@ -9,14 +9,14 @@ if len(sys.argv) < 3:
 def argparser():
     parser = ArgumentParser(description='CLOSURE IDL File Generator')
     parser.add_argument('-g','--gedl', required=True, type=str, help='Input GEDL Filepath')
-    parser.add_argument('-o','--odir', required=True, type=str, help='Output Directory')
+    parser.add_argument('-o','--ofile', required=True, type=str, help='Output Filepath')
     parser.add_argument('-i','--ipc', required=True, type=str, help='IPC Type (Singlethreaded/Multithreaded)')
     return parser.parse_args()
 
 #Open the generated GEDL JSON file for parsing and IDL file for generation
 args = argparser()
 with open(args.gedl) as edl_file:
-    with open(args.odir + "/Closure.idl","w") as idl_file:
+    with open(args.ofile,"w") as idl_file:
         
         #Load in the json data to "gedl" variable
         gedl = json.load(edl_file)

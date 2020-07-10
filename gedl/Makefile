@@ -1,12 +1,12 @@
 ODIR := ./build
-EDIR := ./example/Enclaves
-#ENCLAVES := orange purple
+EDIR := ./example/divvied
 CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
 HAL_PATH=/home/mnorris/gaps/build/src/hal
 IPC_MODE=Multithreaded
 
 INURI="ipc:///tmp/test1sub"
 OUTURI="ipc:///tmp/test1pub"
+XDCONF_FILE="xdconf.ini"
 
 
 build_folder := $(shell mkdir -p $(ODIR))
@@ -38,15 +38,15 @@ clean: eclean
 
 # Do GEDL generation pass
 gedl: compile gen $(ODIR)/gedl.ll
-	cd $(ODIR) && opt -disable-output -load libgedl.so -accinfo-track -d 1 -u "untrusted/" -t "trusted/" < ../$(ODIR)/gedl.ll
+	cd $(ODIR) && opt -disable-output -load libgedl.so -accinfo-track -d 1 -u "untrusted/" -t "trusted/" < gedl.ll
 
 #Do IDL generation script
 idl: gedl
-	python IDLGenerator.py -g "$(ODIR)/Closure.gedl" -o "$(ODIR)/autogen" -i $(IPC_MODE)
+	python IDLGenerator.py -g "$(ODIR)/Closure.gedl" -o "$(ODIR)/autogen/Closure.idl" -i $(IPC_MODE)
 	
 #Do autogeneration
 autogen: idl
-	cd $(autogen_dir) && python3 $(HAL_PATH)/autogen/autogen.py -i "Closure.idl" -g Closurebw_v1 -d Closure_bw.dfdl -e codec
+	cd $(autogen_dir) && python3 $(HAL_PATH)/autogen/autogen.py -i "Closure.idl" -g bw_v1 -d Closure_bw.dfdl -e codec
 	cd $(autogen_dir) && $(HAL_PATH)/autogen/autogen.py -i "Closure.idl" -g be_v1 -d Closure_be.dfdl -e codec
 
 #Do autogen libraries
@@ -78,8 +78,9 @@ $(ODIR)/$(enclave)/%.o:	%.c
 
 #Do RPC Generation
 rpc: autogen libraries
+	@rm -f $(ODIR)/$(XDCONF_FILE) 
 	$(foreach enclave,$(ENCLAVES), $(eval ENCLAVEFL += $(EDIR)/$(enclave)/*.mod.c ))
-	python RPCGenerator.py -o $(ODIR) -g $(ODIR)/Closure.gedl -i $(IPC_MODE) -a $(HAL_PATH)/api -n $(INURI) -t $(OUTURI) -f $(ENCLAVEFL)
+	python RPCGenerator.py -o $(ODIR) -g $(ODIR)/Closure.gedl -i $(IPC_MODE) -a $(HAL_PATH)/api -n $(INURI) -t $(OUTURI) -x $(XDCONF_FILE) -f $(ENCLAVEFL)
 
 	
 #Generates the defined_func and imported_func files for each enclave
