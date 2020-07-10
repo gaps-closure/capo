@@ -111,7 +111,7 @@ static void read_files(char *in_dir, Partition& partition, const char *extension
         
         sprintf(path, "%s/%s", in_dir, in_file->d_name);
         if (endsWith(in_file->d_name, extension)) {
-           if (!strcmp(extension, ".json"))
+           if (!strcmp(extension, ".clemap.json"))
               partition.readCleJson(path);
            else if (!strcmp(extension, ".ll"))
               partition.readIRFile(path);
@@ -123,7 +123,7 @@ static void read_files(char *in_dir, Partition& partition, const char *extension
 static void read_dir(char *in_dir, Partition& partition)
 {
     // make sure .json are read first because .ll processing depends on it
-    read_files(in_dir, partition, ".json");
+    read_files(in_dir, partition, ".clemap.json");
     read_files(in_dir, partition, ".ll");
 
     if (verbose)
