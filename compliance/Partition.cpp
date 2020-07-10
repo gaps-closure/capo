@@ -149,7 +149,7 @@ void Partition::find_local_annotations()
             Instruction *target = dyn_cast<Instruction>(call->getOperand(0));
             if (!target)
                continue;
-            
+
             Value *targetGV = dyn_cast<Value>(target->getOperand(0));
             if (targetGV) {
                MDNode *md = find_var(targetGV, &f);
@@ -183,14 +183,21 @@ void Partition::find_local_annotations()
                // the string constnts in .ll file has an extra \00 at the end
                val = val.substr(0, val.length() -1);
                string var = fname.str() + "." + item;
-               annotationMap[var] = val;
+//               annotationMap[var] = val;
 
+               const llvm::DebugLoc &debugInfo = target->getDebugLoc();
                std::string targetStr;
                llvm::raw_string_ostream rso(targetStr);
-               target->print(rso);
+               debugInfo.print(rso);
 
-               Annotation ann((**module)->getName().str(), val, targetStr);
-               newAnnotationMap[var] = ann;
+//               std::string directory = debugInfo->getDirectory();
+//               std::string filePath = debugInfo->getFilename();
+//               int line = debugInfo->getLine();
+//               int column = debugInfo->getColumn();
+//               cout << "XXXXXXXX " << directory << "XX" << endl;
+
+               Annotation ann((**module)->getName().str(), val, rso.str());
+               annotationMap[var] = ann;
             }
          }
       }
@@ -221,14 +228,19 @@ void Partition::find_global_annotations()
       if (item.length() > 0) {
          string val = annotation.str();
          trim(val);
-         annotationMap[item] = val;
+//         annotationMap[item] = val;
 
          std::string targetStr;
          llvm::raw_string_ostream rso(targetStr);
          targetGV->print(rso);
 
-         Annotation ann((**module)->getName().str(), val, targetStr);
-         newAnnotationMap[item] = ann;
+//         const llvm::DebugLoc &debugInfo = targetGV->getDebugLoc();
+//         std::string targetStr;
+//         llvm::raw_string_ostream rso(targetStr);
+//         debugInfo.print(rso);
+
+         Annotation ann((**module)->getName().str(), val, rso.str());
+         annotationMap[item] = ann;
       }
       
       GlobalVariable *fileGV = dyn_cast<GlobalVariable>(CS->getOperand(2)->getOperand(0));
@@ -271,7 +283,8 @@ string Partition::find_tag_annotation(const Instruction* value, const Function* 
 
 void Partition::verify_tag(string tag_ann, vector<int> tags, Entry &entry)
 {
-   string label = annotationMap[tag_ann];
+   Annotation annotation = annotationMap[tag_ann];
+   string label = annotation.getLabel();
 
 /*
    for (std::pair<std::string, Cle> element : cleMap) {

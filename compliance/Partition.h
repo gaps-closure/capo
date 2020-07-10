@@ -31,9 +31,9 @@ class Partition
   private:
     string name;
     unordered_map<string, Cle> cleMap;
-    unordered_map<string, string> annotationMap;
+//    unordered_map<string, string> annotationMap;
 
-    unordered_map<string, Annotation> newAnnotationMap;
+    unordered_map<string, Annotation> annotationMap;
 
     Expected<std::unique_ptr<Module>>* module;
 
@@ -58,10 +58,6 @@ class Partition
         return cleMap;
     }
     
-    unordered_map<string, string> &getAnnotationMap() {
-        return annotationMap;
-    }
-
     void readIRFile(char *filename);
     void readCleJson(char *filename);
     void find_local_annotations();
@@ -91,13 +87,8 @@ class Partition
         this->name = name;
     }
 
-    unordered_map<string, Annotation> getNewAnnotationMap() const {
-        return newAnnotationMap;
-    }
-
-    void setNewAnnotationMap(
-            unordered_map<string, Annotation> newAnnotationMap) {
-        this->newAnnotationMap = newAnnotationMap;
+    unordered_map<string, Annotation> &getAnnotationMap() {
+        return annotationMap;
     }
 };
 

@@ -22,12 +22,13 @@ int verbose = 0;
 void verify(vector<Partition>& partitions)
 {
    Partition &originalPart = partitions[0];
-   unordered_map<string, string> &ann_map = originalPart.getAnnotationMap();
+   unordered_map<string, Annotation> &ann_map = originalPart.getAnnotationMap();
    unordered_map<string, Cle> &cle_map = originalPart.getCleMap();
 
-   for (std::pair<std::string, string> element : ann_map) {
+   for (std::pair<std::string, Annotation> element : ann_map) {
       string label = element.first;
-      string annotation = element.second;
+      Annotation ann = element.second;
+      string annotation = ann.getLabel();
       Cle &cle = cle_map[annotation];
       string enclave = cle.getLevel();
 
@@ -35,9 +36,9 @@ void verify(vector<Partition>& partitions)
       for (int i = 1; i < partitions.size(); i++) {
           Partition &partition = partitions[i];
 
-          unordered_map<string, string> &part_map = partition.getAnnotationMap();
+          unordered_map<string, Annotation> &part_map = partition.getAnnotationMap();
 
-          std::unordered_map<std::string, string>::const_iterator ann1 = part_map.find(label);
+          std::unordered_map<std::string, Annotation>::const_iterator ann1 = part_map.find(label);
           if (ann1 == part_map.end())
               continue;
 
@@ -53,20 +54,21 @@ void verify(vector<Partition>& partitions)
       }
       else if (foundInParts.size() == 1) {
           Partition partition = foundInParts[0];
-          unordered_map<string, string> &part_map = partition.getAnnotationMap();
+          unordered_map<string, Annotation> &part_map = partition.getAnnotationMap();
 
-          if (annotation.compare(part_map[label]) != 0) {
+          Annotation part_ann = part_map[label];
+
+          if (annotation.compare(part_ann.getLabel()) != 0) {
              inconsistencies++;
              reason = label + " is expected to be in " + enclave + ", but found in" +
-                             part_map[label] + " in Partition " + partition.getName();
+                     part_ann.getLabel() + " in Partition " + partition.getName();
           }
           else {
               entry.setPass(true);
               reason = label + " is in " + enclave;
 
-              Annotation ann = partition.getNewAnnotationMap()[label];
-              entry.setModule(ann.getModule());
-              entry.setInstruction(ann.getInstruction());
+              entry.setModule(part_ann.getModule());
+              entry.setInstruction(part_ann.getInstruction());
           }
       }
       else {

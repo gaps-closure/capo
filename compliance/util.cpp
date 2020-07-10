@@ -42,14 +42,15 @@ void trim(std::string &s)
     rtrim(s);
 }
 
-void print_map(const char *name, unordered_map<string, string> &map)
+void print_map(const char *name, unordered_map<string, Annotation> &map)
 {
    cout << name << endl;
    
    for_each(map.begin(),
             map.end() ,
-            [](std::pair<std::string, string > element) {
-               std::cout << "    " << element.first << " : "<< element.second << std::endl;
+            [](std::pair<std::string, Annotation > element) {
+
+               std::cout << "    " << element.first << " : "<< element.second.getLabel() << std::endl;
             });
    cout << endl;
 }
