@@ -21,6 +21,7 @@ using json = nlohmann::json;
 #include "Annotation.h"
 
 extern int verbose;
+extern std::fstream tagMap;
 
 MDNode* Partition::find_var(const Value* V, const Function* f)
 {
@@ -140,6 +141,9 @@ void Partition::find_local_annotations()
                continue;
             
             Function *func = call->getCalledFunction();
+            if (!func)
+               continue;
+            
             string item = "";
 
             if (func->getName().compare("llvm.var.annotation")) {
@@ -199,6 +203,27 @@ void Partition::find_local_annotations()
                Annotation ann((**module)->getName().str(), val, rso.str());
                annotationMap[var] = ann;
             }
+         }
+      }
+   }
+}
+
+void Partition::gen_tag_map()
+{
+   for (auto &Global : (**module)->getGlobalList()) {
+      ConstantDataSequential *data = dyn_cast<ConstantDataSequential>(Global.getInitializer());
+      if (!data)
+         continue;
+
+      if (data->isString()) {
+         string val = data->getAsString().str();
+         // the string constnts in .ll file has an extra \00 at the end
+         val = val.substr(0, val.length() -1);
+
+         if (val.rfind("TAG_", 0) == 0) {
+            tagMap << "'" << val << "' : "
+                   << "'"  << Global.getName().str() << "',"
+                   << endl;
          }
       }
    }
@@ -344,6 +369,9 @@ void Partition::find_rpc()
                continue;
             
             Function *func = call->getCalledFunction();
+            if (!func)
+               continue;
+            
             string item = "";
 
             if (func->getName().compare("xdc_asyn_send")) {
@@ -404,11 +432,13 @@ void Partition::readIRFile(char *filename)
    }
 
    this->module = &m;
-   
-   // std::cout << "File: " << (**module)->getName().str() << std::endl;
+
+   if (verbose)
+      std::cout << "File: " << (**module)->getName().str() << std::endl;
    // std::cout << "Target triple: " << (*module)->getTargetTriple() << std::endl;
 
    find_global_annotations();
+   gen_tag_map();
    find_local_annotations();
    find_rpc();
 }

@@ -30,6 +30,7 @@ class Partition
 {
   private:
     string name;
+    
     unordered_map<string, Cle> cleMap;
 //    unordered_map<string, string> annotationMap;
 
@@ -64,6 +65,7 @@ class Partition
     void find_global_annotations();
     void find_rpc();
     MDNode* find_var(const Value* V, const Function* f);
+    void gen_tag_map();
     string find_tag_annotation(const Instruction* V, const Function* f);
     vector<int> find_local_variable(const Instruction *rpc_call, Value *value);
     void verify_tag(string tag_ann, vector<int> tags, Entry &entry);

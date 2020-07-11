@@ -44,12 +44,12 @@ $(EXEC): $(OBJ)
 	clang -S -g -emit-llvm $^
 
 run:
-	./$(EXEC) annotated orange purple
+	./$(EXEC) refactored orange purple
 
 verbose:
-	./$(EXEC) -v annotated orange purple
+	./$(EXEC) -v refactored orange purple
 
 
 clean:
-	-rm -f *.o *~ $(EXEC)
+	-rm -f *.o *~ $(EXEC) */ann_map.txt
 

@@ -11,6 +11,7 @@ tag_processor -- join two PDGs on the tagged send/receive calls
 import sys
 import os
 import re
+import ast
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -39,6 +40,7 @@ class TagProcessor:
     def __init__(self, graph_l):
         self.graphs = {}
         self.irs = {}
+        self.ann_map = {}
         self.graph_helpers = {}
         self.info = []
         for fn in graph_l:
@@ -56,6 +58,7 @@ class TagProcessor:
             irr = ir_reader.IRReader()
             irr.read_ir(ir_fn)
             self.irs[fn] = irr
+            self.ann_map[fn] = fn_items[0].split('/')[0] + "/ann_map.txt"
             self.info.append("Done.")
             self.info.append("Creating graph helper")
             self.graph_helpers[fn] = graph_helper.GraphHelper(dr.get_pdg())
@@ -71,7 +74,8 @@ class TagProcessor:
         for fn, dr in self.graphs.items():
             irr = self.irs[fn]
             gh = self.graph_helpers[fn]
-            irstrings = irr.get_label_irstring([r'TAG_\d+_\d+_\d+'])
+            #            irstrings = irr.get_label_irstring([r'TAG_\d+_\d+_\d+'])
+            irstrings = self.get_dictionary(self.ann_map[fn])
             #irstrings is {irstring : tag}
             self.info.append("Graph: " + fn + ": tags found: " + str(irstrings))
             for t_str, l_str in irstrings.items():
@@ -121,6 +125,14 @@ class TagProcessor:
         medg.write(jgname)
         self.info.append("Done.")
         return True
+
+    def get_dictionary(self, map_file):
+        file = open(map_file, "r")
+        contents = file.read()
+        dictionary = ast.literal_eval(contents)
+        file.close()
+        return dictionary
+
     
     def get_info(self):
         return self.info

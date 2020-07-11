@@ -4,3 +4,4 @@ string toString(vector<int> v);
 void print_map_obj(const char *name, unordered_map<string, Cle> &map);
 void setResult(Entry &entry, bool pass, string &reason);
 void print_functions(Expected<std::unique_ptr<Module> > &Mod);
+bool endsWith(std::string const &fullString, std::string const &ending);

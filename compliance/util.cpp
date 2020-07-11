@@ -64,6 +64,16 @@ string toString(vector<int> v)
     return rtn;
 }
 
+bool endsWith(std::string const &fullString, std::string const &ending)
+{
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else {
+        return false;
+    }
+}
+
 void print_map_obj(const char *name, unordered_map<string, Cle> &map)
 {
    cout << name << endl;

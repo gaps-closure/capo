@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
 #include <exception>
@@ -11,6 +12,7 @@ using namespace std;
 
 #include "Partition.h"
 #include "Report.h"
+#include "util.h"
 
 int inconsistencies = 0;
 int missings = 0;
@@ -18,6 +20,7 @@ int duplications = 0;
 int badtags = 0;
 
 int verbose = 0;
+std::fstream tagMap;
 
 void verify(vector<Partition>& partitions)
 {
@@ -85,16 +88,6 @@ void verify(vector<Partition>& partitions)
    }
 }
 
-bool endsWith(std::string const &fullString, std::string const &ending)
-{
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    }
-    else {
-        return false;
-    }
-}
-
 static void read_files(char *in_dir, Partition& partition, const char *extension)
 {
     DIR* FD;
@@ -130,12 +123,19 @@ static void read_dir(char *in_dir, Partition& partition)
 {
     partition.setName(string(in_dir));
 
+    string fname(in_dir);
+    tagMap.open(fname + "/ann_map.txt", std::ofstream::out);
+    tagMap << "{\n";
+    
     // make sure .json are read first because .ll processing depends on it
     read_files(in_dir, partition, ".json");
     read_files(in_dir, partition, ".ll");
 
     if (verbose)
        partition.print();
+
+    tagMap << "}\n";
+    tagMap.close();
 }
 
 static void print_usage(char *cmd)
