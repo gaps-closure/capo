@@ -57,12 +57,13 @@ vector<int> Partition::find_local_variable(const Instruction *rpc_call, Value *v
    AllocaInst *AI = dyn_cast<AllocaInst>(value);
    if (!AI)
       return tags;
-   
+
+   /*
    if (AI->hasName() ) {
       errs() << AI->getName() << "\n";
       return tags;
    }
-
+   */
    Function *Caller = AI->getParent()->getParent();
    // Search for llvm.dbg.declare
    for (BasicBlock& BB : *Caller) {
