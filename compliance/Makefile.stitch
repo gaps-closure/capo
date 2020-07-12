@@ -11,16 +11,17 @@ all: dot
 
 dot: $(PROG)_all.mod.bc
 	opt -load $(LIBPDG) -dot-pdg $(PROG)/$^
+	mv pdgragh.main.dot $(PROG)_all.pdgragh.main.dot
 	mv *.dot $(PROG)
-	llvm-dis -o $(PROG)/pdgragh.mod.ll $(PROG)/$^
+	llvm-dis -o $(PROG)/$(PROG)_all.mod.ll $(PROG)/$^
 
 $(PROG)_all.mod.bc: $(ALL_LL)
 	llvm-link -o $(PROG)/$@ $^
 
 capotags:
-	python3 $(PARTITIONER_DIR)/tag_processor.py orange/pdgragh.main.dot purple/pdgragh.main.dot
+	python3 $(PARTITIONER_DIR)/tag_processor.py orange/orange_all.pdgragh.main.dot purple/purple_all.pdgragh.main.dot
 	$(PARTITIONER_DIR)/cutzoom/cutzoom.py -f join_graph.dot -k1 -o abridged_1_colored.dot
 	$(PARTITIONER_DIR)/cutzoom/cutzoom.py -f join_graph.dot -k2 -o abridged_2_colored.dot
 
 capoclean:
-	rm -f $(PROG)/*.bc $(PROG)/*.dot $(PROG)/pdgragh.* join_graph.* abridged* 
+	rm -f $(PROG)/*.bc $(PROG)/*.dot $(PROG)/*pdgragh* $(PROG)/$(PROG)_all.mod.ll join_graph.* abridged* 

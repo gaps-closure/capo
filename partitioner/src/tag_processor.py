@@ -72,18 +72,22 @@ class TagProcessor:
         xdc_by_tag = defaultdict(list)
         #find tags in the graphs
         for fn, dr in self.graphs.items():
+            print("================== " + fn)
             irr = self.irs[fn]
             gh = self.graph_helpers[fn]
-            #            irstrings = irr.get_label_irstring([r'TAG_\d+_\d+_\d+'])
-            irstrings = self.get_dictionary(self.ann_map[fn])
+            irstrings = irr.get_label_irstring([r'TAG_.+'])
+            # irstrings = self.get_dictionary(self.ann_map[fn])
+            print("================== " + str(irstrings))
             #irstrings is {irstring : tag}
             self.info.append("Graph: " + fn + ": tags found: " + str(irstrings))
             for t_str, l_str in irstrings.items():
                 self.info.append("doing irstring and tag: " + l_str + ":" + t_str)
                 di = dr.find_nodes_for_irstring(l_str)
                 for n in di:
+                    print("######### n = " + str(n))
                     #elf.info.append("node for irstring and tag: " + str(n) + ":" + l_str + ":" + t_str)
                     tmp_n = gh.find_root_declaration(n)
+                    print("######### tmp_n = " + str(tmp_n))
                     tmp_n.set('annotation', t_str)
                     self.info.append("setting annotation: " + t_str + ": " + str(tmp_n))
                     tmp_name = irr.get_variable_name(tmp_n.get_label())
@@ -92,12 +96,15 @@ class TagProcessor:
                     self.info.append("setting dbginfo: " + str(dinfo))
                     users = gh.find_users(tmp_n)
                     for u in users:
+                        print("#################====== " + str(u))
                         f_name = irr.get_function_name(u.get_label())
+                        print(f_name)
                         if f_name is not None and f_name in ['xdc_asyn_send', 'xdc_blocking_recv']:
                             fdinfo = irr.get_DbgInfo(u, f_name)
                             u.set('dbginfo', "\"" + str(fdinfo) + "\"")
                             self.info.append("setting dbginfo for function: " + f_name + ": " + str(fdinfo))
                             xdc_by_tag[t_str].append(u)
+                            print("####################### " + f_name + "====" + t_str)
                 self.info.append("GHRAPH: " + fn + " nodes:" + str(len(dr.get_pdg_nodes())) + " links: " + str(len(dr.pdg.get_edges())))
             for n in dr.pdg.get_nodes():
                 if medg.get_node(n.get_name()):
@@ -118,7 +125,11 @@ class TagProcessor:
                 e = pydot.Edge(nodes[0], nodes[1], label="{CROSSDOMAIN}")#, weight=20)
                 medg.add_edge(e)
             else:
-                print("WARNING: More than two nodes have the same tag: " + tag)
+                print("WARNING: not exactly two nodes have the same tag: " + tag + " " + str(len(nodes)))
+                for n in nodes:
+                    print("==== Tag: " + tag + ", function: " + str(n.get('dbginfo')) + ", datatype: " + determineDataTypeName(tag))
+#                e = pydot.Edge(nodes[0], nodes[1], label="{CROSSDOMAIN}")#, weight=20)
+#                medg.add_edge(e)
                 
         jgname = "join_graph.dot"
         self.info.append("Writing join graph: " + jgname)
