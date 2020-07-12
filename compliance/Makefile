@@ -53,3 +53,7 @@ verbose:
 clean:
 	-rm -f *.o *~ $(EXEC) */ann_map.txt
 
+squeaky:
+	-rm -f *.o *~ $(EXEC) */ann_map.txt
+	make -f Makefile.stitch capoclean	
+	make -f Makefile.stitch capoclean PROG=purple

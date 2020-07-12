@@ -21,7 +21,7 @@ using json = nlohmann::json;
 #include "Annotation.h"
 
 extern int verbose;
-extern std::fstream tagMap;
+//extern std::fstream tagMap;
 
 MDNode* Partition::find_var(const Value* V, const Function* f)
 {
@@ -220,11 +220,11 @@ void Partition::gen_tag_map()
          // the string constnts in .ll file has an extra \00 at the end
          val = val.substr(0, val.length() -1);
 
-         if (val.rfind("TAG_", 0) == 0) {
-            tagMap << "'" << val << "' : "
-                   << "'"  << Global.getName().str() << "',"
-                   << endl;
-         }
+         //if (val.rfind("TAG_", 0) == 0) {
+         //   tagMap << "'" << val << "' : "
+         //          << "'"  << Global.getName().str() << "',"
+         //          << endl;
+         //}
       }
    }
 }
@@ -438,7 +438,7 @@ void Partition::readIRFile(char *filename)
    // std::cout << "Target triple: " << (*module)->getTargetTriple() << std::endl;
 
    find_global_annotations();
-   gen_tag_map();
+   // gen_tag_map();
    find_local_annotations();
    find_rpc();
 }

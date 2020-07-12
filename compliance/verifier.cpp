@@ -20,7 +20,7 @@ int duplications = 0;
 int badtags = 0;
 
 int verbose = 0;
-std::fstream tagMap;
+///std::fstream tagMap;
 
 void verify(vector<Partition>& partitions)
 {
@@ -123,9 +123,9 @@ static void read_dir(char *in_dir, Partition& partition)
 {
     partition.setName(string(in_dir));
 
-    string fname(in_dir);
-    tagMap.open(fname + "/ann_map.txt", std::ofstream::out);
-    tagMap << "{\n";
+    //string fname(in_dir);
+    //tagMap.open(fname + "/ann_map.txt", std::ofstream::out);
+    //tagMap << "{\n";
     
     // make sure .json are read first because .ll processing depends on it
     read_files(in_dir, partition, ".json");
@@ -134,8 +134,8 @@ static void read_dir(char *in_dir, Partition& partition)
     if (verbose)
        partition.print();
 
-    tagMap << "}\n";
-    tagMap.close();
+    //tagMap << "}\n";
+    //tagMap.close();
 }
 
 static void print_usage(char *cmd)
