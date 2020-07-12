@@ -11,7 +11,6 @@ tag_processor -- join two PDGs on the tagged send/receive calls
 import sys
 import os
 import re
-import ast
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -40,7 +39,6 @@ class TagProcessor:
     def __init__(self, graph_l):
         self.graphs = {}
         self.irs = {}
-        self.ann_map = {}
         self.graph_helpers = {}
         self.info = []
         for fn in graph_l:
@@ -58,7 +56,6 @@ class TagProcessor:
             irr = ir_reader.IRReader()
             irr.read_ir(ir_fn)
             self.irs[fn] = irr
-            self.ann_map[fn] = fn_items[0].split('/')[0] + "/ann_map.txt"
             self.info.append("Done.")
             self.info.append("Creating graph helper")
             self.graph_helpers[fn] = graph_helper.GraphHelper(dr.get_pdg())
@@ -72,22 +69,17 @@ class TagProcessor:
         xdc_by_tag = defaultdict(list)
         #find tags in the graphs
         for fn, dr in self.graphs.items():
-            print("================== " + fn)
             irr = self.irs[fn]
             gh = self.graph_helpers[fn]
             irstrings = irr.get_label_irstring([r'TAG_.+'])
-            # irstrings = self.get_dictionary(self.ann_map[fn])
-            print("================== " + str(irstrings))
             #irstrings is {irstring : tag}
             self.info.append("Graph: " + fn + ": tags found: " + str(irstrings))
             for t_str, l_str in irstrings.items():
                 self.info.append("doing irstring and tag: " + l_str + ":" + t_str)
                 di = dr.find_nodes_for_irstring(l_str)
                 for n in di:
-                    print("######### n = " + str(n))
                     #elf.info.append("node for irstring and tag: " + str(n) + ":" + l_str + ":" + t_str)
                     tmp_n = gh.find_root_declaration(n)
-                    print("######### tmp_n = " + str(tmp_n))
                     tmp_n.set('annotation', t_str)
                     self.info.append("setting annotation: " + t_str + ": " + str(tmp_n))
                     tmp_name = irr.get_variable_name(tmp_n.get_label())
@@ -96,15 +88,28 @@ class TagProcessor:
                     self.info.append("setting dbginfo: " + str(dinfo))
                     users = gh.find_users(tmp_n)
                     for u in users:
-                        print("#################====== " + str(u))
                         f_name = irr.get_function_name(u.get_label())
-                        print(f_name)
                         if f_name is not None and f_name in ['xdc_asyn_send', 'xdc_blocking_recv']:
                             fdinfo = irr.get_DbgInfo(u, f_name)
                             u.set('dbginfo', "\"" + str(fdinfo) + "\"")
                             self.info.append("setting dbginfo for function: " + f_name + ": " + str(fdinfo))
+                            print("NODE:", str(u))
+                            f_param_nodes = gh.get_neighbors(u, direction='dst', label=['DEF_USE'])                           
+                            print("  USES:", str([str(x) for x in f_param_nodes]))
+                            f_2 = [gh.find_root_declaration(x) for x in f_param_nodes]
+                            print("    ROOT:", str([str(x) for x in f_2]))
+                            f_3 = [gh.find_dbg_declare(x) for x in f_2]
+                            print("       DBGDEC:", str([str(x) for x in f_3]))
+                            #print("  TYPES:", str([irr.get_type_name(x_.get_label()) for x_ in f_param_nodes]))
+                            f_param_types = [irr.get_type_name(x_.get_label()) for x_ in f_param_nodes]
+                            #for x in f_param_nodes:
+                            #    f_param_2 = gh.get_neighbors(x, direction='dst', label=['DEF_USE'])
+                            #    print("    USES2:", str([str(x_) for x_ in f_param_2]))
+                            #    for y in f_param_2:
+                            #        f_param_3 = gh.get_neighbors(y, direction='src', label=['DEF_USE'])
+                            #        print("      USES3:", str([str(x_) for x_ in f_param_3]))
+                            #u.set('uses_types', f_param_types)
                             xdc_by_tag[t_str].append(u)
-                            print("####################### " + f_name + "====" + t_str)
                 self.info.append("GHRAPH: " + fn + " nodes:" + str(len(dr.get_pdg_nodes())) + " links: " + str(len(dr.pdg.get_edges())))
             for n in dr.pdg.get_nodes():
                 if medg.get_node(n.get_name()):
@@ -119,31 +124,23 @@ class TagProcessor:
         for tag, nodes in xdc_by_tag.items():
             if len(nodes) == 2:
                 for n in nodes:
-                    self.info.append("Tag: " + tag + ", function: " + str(n.get('dbginfo')) + ", datatype: " + determineDataTypeName(tag))
+                    param_types = n.get('uses_types')
+                    if not param_types:
+                        param_types = ["?"]
+                    filtered_p_t_list = [x for x in param_types if x not in ['i8*', 'struct._tag']]
+                    self.info.append("Tag: " + tag + ", function: " + str(n.get('dbginfo')) + ", tag type: " + determineDataTypeName(tag) + ", xdc parameter type: " + str(filtered_p_t_list))
                     n.set('style', 'filled')
                     n.set('fillcolor', 'gray')
                 e = pydot.Edge(nodes[0], nodes[1], label="{CROSSDOMAIN}")#, weight=20)
                 medg.add_edge(e)
             else:
-                print("WARNING: not exactly two nodes have the same tag: " + tag + " " + str(len(nodes)))
-                for n in nodes:
-                    print("==== Tag: " + tag + ", function: " + str(n.get('dbginfo')) + ", datatype: " + determineDataTypeName(tag))
-#                e = pydot.Edge(nodes[0], nodes[1], label="{CROSSDOMAIN}")#, weight=20)
-#                medg.add_edge(e)
+                print("WARNING: Number of nodes with the same tag is not two, skipping: " + tag)
                 
         jgname = "join_graph.dot"
         self.info.append("Writing join graph: " + jgname)
         medg.write(jgname)
         self.info.append("Done.")
         return True
-
-    def get_dictionary(self, map_file):
-        file = open(map_file, "r")
-        contents = file.read()
-        dictionary = ast.literal_eval(contents)
-        file.close()
-        return dictionary
-
     
     def get_info(self):
         return self.info

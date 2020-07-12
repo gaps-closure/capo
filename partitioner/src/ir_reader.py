@@ -3,13 +3,26 @@ import sys
 import re
 
 class DbgInfo():
-    def __init__(self, node_, name_, line_, column_, file_ = None):
+    LOCAL=0
+    GLOBAL=1
+    PARAMETER=2
+    FUNCTION=3
+    def __init__(self, node_, name_, line_, column_, file_ = None, local_ = True, function_ = False):
         self.node = node_
         self.name = name_
         self.line = str(line_)
         self.column = str(column_)
         self.file = file_
-
+        self.local = local_
+        if self.name and re.match(r'\w+\.addr', self.name):
+            self.kind_str = DbgInfo.PARAMETER
+        elif self.local:
+            self.kind_str = DbgInfo.LOCAL
+        elif function_:
+            self.kind_str = DbgInfo.FUNCTION
+        else:
+            self.kind_str = DbgInfo.GLOBAL
+        
     def set_name(self, n):
         self.name = n
 
@@ -31,10 +44,24 @@ class DbgInfo():
     def get_file(self):
         return self.file   
         
+    def get_local(self):
+        return self.local
+        
+    def get_kind(self):
+        return self.kind_str
         
     def __str__(self):
         fstr = "" if self.file is None else " in file " + self.file
-        return "Name: %s on line %s column %s%s" % (self.name, self.line, self.column, fstr)
+        gstr = ""
+        if self.kind_str == self.PARAMETER:
+            gstr = " (formal param) "
+        elif self.kind_str == self.LOCAL:
+            gstr = " (local)"
+        elif self.kind_str == self.GLOBAL:
+            gstr = " (global)"
+        elif self.kind_str == self.FUNCTION:
+            gstr = " (function)"
+        return "Name: %s on line %s column %s%s%s" % (self.name, self.line, self.column, fstr, gstr)
 
     def __repr__(self):
         return self.__str__()
@@ -83,38 +110,48 @@ class IRReader():
         '''
         from the node label of DOT graph find debug info about data item
         '''
+        tmp_d = node.get('dbginfo')
+        if tmp_d is not None: return tmp_d
         ret = None
         label = node.get_label().replace('\\\n', "")
         #print("label:", label)
-        if label is None: return None
+        
         #for some reason the dgb label at the end of the line gets mangled
         if var is None and label.startswith("\"{GLOBAL_VALUE"):
-            m = re.match(r".+GLOBAL_VALUE:@(\w+) .+!dbg !(\d+)", label)
+            m = re.match(r".+GLOBAL_VALUE:@([\.\w]+) .+!dbg !(\d+)", label)
             if m:
                 var = m.group(1)
-                l, c = self.get_line_col(m.group(2))
-                ret = DbgInfo(node, var, l, c)
+                n, l, c = self.get_name_line_local(m.group(2))
+                ret = DbgInfo(node, n, l, 0, local_=c)
                 return ret
+            
+        m = re.match(r'.+ENTRY\\>\\>.+name: \\"([^\"]+)\\",.+line: (\d+)', label)
+        #print("AAA", label, m)
+        if m is not None:
+            return DbgInfo(node, m.group(1),  m.group(2), 0, local_=False, function_=True)
+        
         m = re.match(r'.+DBGLOC file (\S+) line (\d+) col (\d+) ENDDBGLOC', label)
         if m is not None:
             #print("l", m.group(1), "c", m.group(2))
-            ret = DbgInfo(node, var,  m.group(2), m.group(3), m.group(1))
-        
-        return ret
+            return DbgInfo(node, var,  m.group(2), m.group(3), file_=m.group(1))
+                
+        return ret or DbgInfo(node, var, None, None)
 
-
-    def get_line_col(self, num):
+    def get_name_line_local(self, num):
         dbg_line = self.get_prefix('!' + num)
         if len(dbg_line) < 1:
-            return None, None
+            return None, None, None
         m = re.match(r".+DIGlobalVariableExpression\(var: !(\d+), expr: .+", dbg_line[0])
         if m:
-            return self.get_line_col(m.group(1))
+            return self.get_name_line_local(m.group(1))
         else:
-            m2 = re.match(r".+DIGlobalVariable.+ line: (\d+)", dbg_line[0])
+            # like this: distinct !DIGlobalVariable(name: "a", scope: !13, file: !3, line: 22, type: !6, isLocal: true, isDefinition: true)
+            m2 = re.match(r".+DIGlobalVariable.+name: \"([^\"]+)\",.+line: (\d+),.+isLocal: (\w+)", dbg_line[0])
+            #print("MATCHING_123", dbg_line[0])
             if m2:
-                return m2.group(1), 0
-        return None, None
+                #print("MATCHED_123", m2)
+                return m2.group(1), m2.group(2), m2.group(3) == "true"
+        return None, None, None
             
                 
         
@@ -140,11 +177,10 @@ class IRReader():
         desc is of form 
         "{  %i = alloca i8*, align 8}"
         '''
-        m = re.match(r'.+ %(\w+) = ', desc)
+        m = re.match(r'.+ %([\.\w]+) = ', desc)
         if m is not None:
             return m.group(1)
         else:
-            #print("Programming error!")
             return None
         
     def get_function_name(self, desc):
@@ -158,6 +194,24 @@ class IRReader():
         else:
             #print("Programming error!")
             return None
+        
+    def get_type_name(self, desc):
+        '''
+        desc is of form 
+        "{  %37 = bitcast %struct._position_datatype* %pos to i8*, !dbg !3691..."
+        "{  %36 = load i8*, i8** %send_pos_socket21, align 8, !dbg !3690
+        "{   %t_tag = alloca %struct._tag, align 4
+        '''
+        m = re.match(r'.+bitcast %(\S+) %', desc)
+        if m is not None:
+            return m.group(1)
+        m = re.match(r'.+load (\S+),', desc)
+        if m is not None:
+            return m.group(1)
+        m = re.match(r'.+alloca %(\S+),', desc)
+        if m is not None:
+            return m.group(1)
+        return "?"
 
 def demangle(n):
     args = ['c++filt', n]
