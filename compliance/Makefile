@@ -49,9 +49,14 @@ run:
 verbose:
 	./$(EXEC) -v refactored orange purple
 
-
 clean:
-	-rm -f *.o *~ $(EXEC) */ann_map.txt
+	-rm -f *.o *~ $(EXEC)
+
+zoom:
+	./$(EXEC) -v refactored orange purple
+	make -f Makefile.stitch PROG=orange
+	make -f Makefile.stitch PROG=purple
+	make -f Makefile.stitch capotags
 
 squeaky:
 	-rm -f *.o *~ $(EXEC) */ann_map.txt
