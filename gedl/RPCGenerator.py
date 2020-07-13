@@ -1,6 +1,7 @@
 import json
 import sys
 import copy
+import os
 from argparse import ArgumentParser
 
 def argparser(enclaveList, enclaveMap):
@@ -68,6 +69,9 @@ def GEDLParser(args,enclaveList, enclaveMap,replaceList,callerList,calleeList):
             replaceList.append(copy.copy(occursList))
             
 def CModFunction(enclave,args,enclaveMap,replaceList,callerList,calleeList):
+    if not os.path.isfile(enclaveMap[enclave][0]):
+        print("File" + enclaveMap[enclave][0] + "does not exist. Please update GEDL Schema with valid C file.\n")
+        exit(0)
     with open(enclaveMap[enclave][0]) as old_file:
         newFile = enclaveMap[enclave][0][enclaveMap[enclave][0].rfind('/') + 1:].replace(".mod","")
         enclaveIndex = enclaveMap[enclave][2]
@@ -310,11 +314,11 @@ def RPCGeneratorC(enclave,args,enclaveMap,callerList,calleeList):
                         rpcc_file.write("\t\tif (TAG_MATCH(n_tag, t_tag)) {\n\t\t\t_handle_request_"+ call[0] + "(NULL);\n\t\t\tcontinue;\n\t\t}\n\t\tcontinue;\n\t}\n}\n\n")
 
 def writeHALEntry(file, fromName , toName, mux, sec, typ, funcName):
-    file.write("(\"from\":\"" + fromName + "\",\"to\":\"" + toName + "\"," + str(mux) + "," + str(sec) + "," + str(typ) + "," + funcName +")")
+    file.write("{\"from\":\"" + fromName + "\",\"to\":\"" + toName + "\",\"mux\":" + str(mux) + ",\"sec\":" + str(sec) + ",\"typ\":" + str(typ) + ",\"name\":\"" + funcName +"\"}")
 
 def XDCONFGenerator(args,enclaveMap,callerList,enclaveList):
     with open((args.odir + "/" + args.xdconf),"a") as map_file:
-        map_file.write("{\"enclaves\": [\n")
+        map_file.write("{\"enclaves\": [")
         first = 1
         for enclave in enclaveList:
             if first == 1:

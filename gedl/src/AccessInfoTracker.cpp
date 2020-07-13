@@ -6,11 +6,17 @@
 using namespace llvm;
 
 char pdg::AccessInfoTracker::ID = 0;
+llvm::cl::opt<std::string> programName("prog", llvm::cl::desc("Name of partitioned program"), llvm::cl::value_desc("programName"));
+
 
 bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   if (!USEDEBUGINFO) {
     errs() << "[WARNING] No debug information avaliable... \nUse [-debug 1] in "
               "the pass to generate debug information\n";
+    exit(0);
+  }
+  if (programName.empty()) {
+    errs() << "[WARNING] No program name provided. Use -p argument to provide program name for artifact generation.\n";
     exit(0);
   }
 
@@ -23,7 +29,7 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   Heuristics::populateMemFuncs();
   Heuristics::populateprintfFuncs();
 
-  std::string enclaveFile = "Closure.gedl";
+  std::string enclaveFile = programName + ".gedl";
   edl_file.open(enclaveFile);
 
   //For loop for every function to construct a map of every domain and the filepath for every function
@@ -805,14 +811,14 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
       edl_file << " \"sz\":";
       //From attributes determine arguments size or if it is a string, if undetermined mark as [user_check] and give a warning
       if (attributesAll.find("string") != std::string::npos)
-        edl_file << "\"[string]\"}";
+        edl_file << "\"string\"}";
       else if (attributesAll.find("count") != std::string::npos)
-        edl_file << "[\"" << argW->getAttribute().getCount()  << "\"]}";
+        edl_file << "" << argW->getAttribute().getCount()  << "}";
       else if (attributesAll.find("size") != std::string::npos)
-        edl_file << "[\"" << argW->getAttribute().getSize()  << "\"]}";
+        edl_file << "" << argW->getAttribute().getSize()  << "}";
       else{
         errs() << "Size of argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " could not be conclusively determined. Marking as \"user_check\", please manually specify size or rewrite function code to comply with Capo requirements and run again.\n";
-        edl_file << "[user_check]}";
+        edl_file << "\"user_check\"}";
       }
 
     }

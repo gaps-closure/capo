@@ -6,38 +6,51 @@ std::map<std::string, std::set<unsigned>> Heuristics::outStr;
 std::map<std::string, unsigned> Heuristics::printfFuncs;
 std::map<std::string, std::set<unsigned>> Heuristics::inMem;
 std::map<std::string, std::set<unsigned>> Heuristics::outMem;
+static llvm::cl::opt<std::string> heuristicPath("he", llvm::cl::desc("Path to heuristics directory"), llvm::cl::value_desc("heuristicPath"));
 
 void Heuristics::populateStringFuncs() {
   json::JSON strJSON;
-  std::ifstream t("../heuristics/str.json");
-  std::stringstream buffer;
-  buffer << t.rdbuf();
-  strJSON = json::JSON::Load(buffer.str());  // Load the json
-  populateMapFrom(inStr, strJSON["in"]);
-  populateMapFrom(outStr, strJSON["out"]);
+  std::ifstream t("../" + heuristicPath + "/str.json");
+  if(!t)
+    llvm::errs() << "File " << heuristicPath + "/str.json does not exist. Please pass proper path to -he argument for complete heuristic directory.\n";
+  else{
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    strJSON = json::JSON::Load(buffer.str());  // Load the json
+    populateMapFrom(inStr, strJSON["in"]);
+    populateMapFrom(outStr, strJSON["out"]);
+  }
 }
 
 void Heuristics::populateMemFuncs() {
   json::JSON memJSON;
-  std::ifstream t("../heuristics/mem.json");
-  std::stringstream buffer;
-  buffer << t.rdbuf();
-  memJSON = json::JSON::Load(buffer.str());  // Load the json
+  std::ifstream t("../" + heuristicPath + "/mem.json");
+  if(!t)
+    llvm::errs() << "File " << heuristicPath + "/mem.json does not exist. Please pass proper path to -he argument for complete heuristic directory.\n";
+  else{
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    memJSON = json::JSON::Load(buffer.str());  // Load the json
 
-  populateMapFrom(inMem, memJSON["in"]);
-  populateMapFrom(outMem, memJSON["out"]);
+    populateMapFrom(inMem, memJSON["in"]);
+    populateMapFrom(outMem, memJSON["out"]);
+  }
 }
 
 void Heuristics::populateprintfFuncs() {
   json::JSON printfJSON;
-  std::ifstream t("../heuristics/printf.json");
-  std::stringstream buffer;
-  buffer << t.rdbuf();
-  printfJSON = json::JSON::Load(buffer.str());
+  std::ifstream t("../" + heuristicPath + "/printf.json");
+  if(!t)
+    llvm::errs() << "File " << heuristicPath + "/str.json does not exist. Please pass proper path to -he argument for complete heuristic directory.\n";
+  else{
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    printfJSON = json::JSON::Load(buffer.str());
 
-  unsigned length = printfJSON.length();
-  for (unsigned i = 0; i < length; i += 1) {
-    printfFuncs[printfJSON[i][0].ToString()] = printfJSON[i][1].ToInt();
+    unsigned length = printfJSON.length();
+    for (unsigned i = 0; i < length; i += 1) {
+      printfFuncs[printfJSON[i][0].ToString()] = printfJSON[i][1].ToInt();
+    }
   }
 }
 

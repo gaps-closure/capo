@@ -33,6 +33,7 @@ class Heuristics {
   static std::map<std::string, std::set<unsigned>> inMem;
   static std::map<std::string, std::set<unsigned>> outMem;
   static std::map<std::string, unsigned> printfFuncs;
+  
 };
 
 }  // namespace pdg

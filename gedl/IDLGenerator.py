@@ -2,9 +2,7 @@ import json
 import sys
 from argparse import ArgumentParser
 
-if len(sys.argv) < 3:
-    print("Missing command line arguments. Usage of IDLGenerator is \"python IDLGenerator.py </path/to/gedl/file> </path/for/idl/file>\"")
-    exit()
+
 
 def argparser():
     parser = ArgumentParser(description='CLOSURE IDL File Generator')
@@ -41,7 +39,7 @@ with open(args.gedl) as edl_file:
                     for arg in call['params']:
                         idl_file.write("\n\t %s %s" % (arg['type'],arg['name']))
                         if "sz" in arg:
-                            idl_file.write("%s" % (arg['sz']))
+                            idl_file.write("[%s]" % (arg['sz']))
                         idl_file.write(";")
                 idl_file.write("\n};")
                 
