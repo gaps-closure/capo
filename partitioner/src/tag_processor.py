@@ -71,7 +71,7 @@ class TagProcessor:
         for fn, dr in self.graphs.items():
             irr = self.irs[fn]
             gh = self.graph_helpers[fn]
-            irstrings = irr.get_label_irstring([r'TAG_\d+_\d+_\d+'])
+            irstrings = irr.get_label_irstring([r'TAG_.+'])
             #irstrings is {irstring : tag}
             self.info.append("Graph: " + fn + ": tags found: " + str(irstrings))
             for t_str, l_str in irstrings.items():
@@ -108,7 +108,7 @@ class TagProcessor:
                             #    for y in f_param_2:
                             #        f_param_3 = gh.get_neighbors(y, direction='src', label=['DEF_USE'])
                             #        print("      USES3:", str([str(x_) for x_ in f_param_3]))
-                            u.set('uses_types', f_param_types)
+                            #u.set('uses_types', f_param_types)
                             xdc_by_tag[t_str].append(u)
                 self.info.append("GHRAPH: " + fn + " nodes:" + str(len(dr.get_pdg_nodes())) + " links: " + str(len(dr.pdg.get_edges())))
             for n in dr.pdg.get_nodes():
