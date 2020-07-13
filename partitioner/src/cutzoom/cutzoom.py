@@ -73,14 +73,13 @@ def main():
   G   = None
   print('Computed induced subgraph')
 
-  green_nodes = [n for n,c in nx.get_node_attributes(AG, 'side').items() if c =='green']
-  orange_nodes = [n for n,c in nx.get_node_attributes(AG, 'side').items() if c =='orange']
-
+  green_nodes = [n for n,c in nx.get_node_attributes(AG, 'side').items() if c =='"purple/purple"']
+  orange_nodes = [n for n,c in nx.get_node_attributes(AG, 'side').items() if c =='"orange/orange"']
   AG.add_node('N', side='green', style='invis', shape='polygon', pos='"0,25!"')
   AG.add_node('S', side='orange', style='invis', shape='polygon', pos='"0,-25!"')
 
   for n in green_nodes:
-    if not 'fillcolor' in AG.nodes[n]: nx.set_node_attributes(AG, {n: {'fillcolor': 'green', 'style': 'filled'}})
+    if not 'fillcolor' in AG.nodes[n]: nx.set_node_attributes(AG, {n: {'fillcolor': 'purple', 'style': 'filled'}})
     if n in diffhop:
       AG.add_edge('N', n, style='invis')
 
