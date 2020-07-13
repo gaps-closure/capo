@@ -1,0 +1,62 @@
+{
+	"$schema": "../gedl-schema.json",
+	"gedl": [
+	{
+		"caller": "greenSplit",
+		"callee": "orangeSplit",
+		"calls": [
+			{
+				"func":		"get_a",
+				"return":	{"type": "double"},
+				"clelabel":	"XDLINKAGE_GET_A",
+				"params": [
+				],
+				"occurs": [
+					{"file": "/home/mnorris/gaps/build/src/capo/gedl/./example/greenSplit/test1_green.mod.c", "lines": [22]}
+				]
+			}
+		]
+	},
+	{
+		"caller": "greenSplit",
+		"callee": "purpleSplit",
+		"calls": [
+			{
+				"func":		"ewma_main",
+				"return":	{"type": "int32"},
+				"clelabel":	"XDLINKAGE_MAIN",
+				"params": [
+				],
+				"occurs": [
+					{"file": "/home/mnorris/gaps/build/src/capo/gedl/./example/greenSplit/test1_green.mod.c", "lines": [30]}
+				]
+			},
+			{
+				"func":		"get_b",
+				"return":	{"type": "double"},
+				"clelabel":	"XDLINKAGE_GET_B",
+				"params": [
+				],
+				"occurs": [
+					{"file": "/home/mnorris/gaps/build/src/capo/gedl/./example/greenSplit/test1_green.mod.c", "lines": [23]}
+				]
+			}
+		]
+	},
+	{
+		"caller": "purpleSplit",
+		"callee": "greenSplit",
+		"calls": [
+			{
+				"func":		"calc_ewma",
+				"return":	{"type": "double"},
+				"clelabel":	"XDLINKAGE_CALC_EWMA",
+				"params": [
+				],
+				"occurs": [
+					{"file": "/home/mnorris/gaps/build/src/capo/gedl/./example/purpleSplit/test1_purple.mod.c", "lines": [52]}
+				]
+			}
+		]
+	}
+]}
