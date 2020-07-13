@@ -44,12 +44,21 @@ $(EXEC): $(OBJ)
 	clang -S -g -emit-llvm $^
 
 run:
-	./$(EXEC) annotated orange purple
+	./$(EXEC) refactored orange purple
 
 verbose:
-	./$(EXEC) -v annotated orange purple
-
+	./$(EXEC) -v refactored orange purple
 
 clean:
 	-rm -f *.o *~ $(EXEC)
 
+zoom: $(EXEC)
+	./$(EXEC) -v refactored orange purple
+	make -f Makefile.stitch PROG=orange
+	make -f Makefile.stitch PROG=purple
+	make -f Makefile.stitch capotags
+
+squeaky:
+	-rm -f *.o *~ $(EXEC) */ann_map.txt
+	make -f Makefile.stitch capoclean	
+	make -f Makefile.stitch capoclean PROG=purple

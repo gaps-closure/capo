@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <string>
 #include <exception>
@@ -11,6 +12,7 @@ using namespace std;
 
 #include "Partition.h"
 #include "Report.h"
+#include "util.h"
 
 int inconsistencies = 0;
 int missings = 0;
@@ -18,16 +20,18 @@ int duplications = 0;
 int badtags = 0;
 
 int verbose = 0;
+///std::fstream tagMap;
 
 void verify(vector<Partition>& partitions)
 {
    Partition &originalPart = partitions[0];
-   unordered_map<string, string> &ann_map = originalPart.getAnnotationMap();
+   unordered_map<string, Annotation> &ann_map = originalPart.getAnnotationMap();
    unordered_map<string, Cle> &cle_map = originalPart.getCleMap();
 
-   for (std::pair<std::string, string> element : ann_map) {
+   for (std::pair<std::string, Annotation> element : ann_map) {
       string label = element.first;
-      string annotation = element.second;
+      Annotation ann = element.second;
+      string annotation = ann.getLabel();
       Cle &cle = cle_map[annotation];
       string enclave = cle.getLevel();
 
@@ -35,9 +39,9 @@ void verify(vector<Partition>& partitions)
       for (int i = 1; i < partitions.size(); i++) {
           Partition &partition = partitions[i];
 
-          unordered_map<string, string> &part_map = partition.getAnnotationMap();
+          unordered_map<string, Annotation> &part_map = partition.getAnnotationMap();
 
-          std::unordered_map<std::string, string>::const_iterator ann1 = part_map.find(label);
+          std::unordered_map<std::string, Annotation>::const_iterator ann1 = part_map.find(label);
           if (ann1 == part_map.end())
               continue;
 
@@ -53,16 +57,21 @@ void verify(vector<Partition>& partitions)
       }
       else if (foundInParts.size() == 1) {
           Partition partition = foundInParts[0];
-          unordered_map<string, string> &part_map = partition.getAnnotationMap();
+          unordered_map<string, Annotation> &part_map = partition.getAnnotationMap();
 
-          if (annotation.compare(part_map[label]) != 0) {
+          Annotation part_ann = part_map[label];
+
+          if (annotation.compare(part_ann.getLabel()) != 0) {
              inconsistencies++;
              reason = label + " is expected to be in " + enclave + ", but found in" +
-                             part_map[label] + " in Partition " + partition.getName();
+                     part_ann.getLabel() + " in Partition " + partition.getName();
           }
           else {
               entry.setPass(true);
               reason = label + " is in " + enclave;
+
+              entry.setModule(part_ann.getModule());
+              entry.setInstruction(part_ann.getInstruction());
           }
       }
       else {
@@ -77,16 +86,6 @@ void verify(vector<Partition>& partitions)
 
       foundInParts.clear();
    }
-}
-
-bool endsWith(std::string const &fullString, std::string const &ending)
-{
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    }
-    else {
-        return false;
-    }
 }
 
 static void read_files(char *in_dir, Partition& partition, const char *extension)
@@ -111,7 +110,7 @@ static void read_files(char *in_dir, Partition& partition, const char *extension
         
         sprintf(path, "%s/%s", in_dir, in_file->d_name);
         if (endsWith(in_file->d_name, extension)) {
-           if (!strcmp(extension, ".clemap.json"))
+           if (!strcmp(extension, ".json"))
               partition.readCleJson(path);
            else if (!strcmp(extension, ".ll"))
               partition.readIRFile(path);
@@ -122,12 +121,21 @@ static void read_files(char *in_dir, Partition& partition, const char *extension
 
 static void read_dir(char *in_dir, Partition& partition)
 {
+    partition.setName(string(in_dir));
+
+    //string fname(in_dir);
+    //tagMap.open(fname + "/ann_map.txt", std::ofstream::out);
+    //tagMap << "{\n";
+    
     // make sure .json are read first because .ll processing depends on it
-    read_files(in_dir, partition, ".clemap.json");
+    read_files(in_dir, partition, ".json");
     read_files(in_dir, partition, ".ll");
 
     if (verbose)
        partition.print();
+
+    //tagMap << "}\n";
+    //tagMap.close();
 }
 
 static void print_usage(char *cmd)

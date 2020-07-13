@@ -21,6 +21,7 @@
 
 #include "Cle.h"
 #include "Report.h"
+#include "Annotation.h"
 
 using namespace std;
 using namespace llvm;
@@ -29,8 +30,11 @@ class Partition
 {
   private:
     string name;
+    
     unordered_map<string, Cle> cleMap;
-    unordered_map<string, string> annotationMap;
+//    unordered_map<string, string> annotationMap;
+
+    unordered_map<string, Annotation> annotationMap;
 
     Expected<std::unique_ptr<Module>>* module;
 
@@ -41,10 +45,6 @@ class Partition
     };
     
     ~Partition() {};
-
-    const string &getName() const {
-        return name;
-    }
 
     int getNumErrors() {
         int count = 0;
@@ -59,18 +59,13 @@ class Partition
         return cleMap;
     }
     
-    unordered_map<string, string> &getAnnotationMap() {
-        return annotationMap;
-    }
-
-
-
     void readIRFile(char *filename);
     void readCleJson(char *filename);
     void find_local_annotations();
     void find_global_annotations();
     void find_rpc();
     MDNode* find_var(const Value* V, const Function* f);
+    void gen_tag_map();
     string find_tag_annotation(const Instruction* V, const Function* f);
     vector<int> find_local_variable(const Instruction *rpc_call, Value *value);
     void verify_tag(string tag_ann, vector<int> tags, Entry &entry);
@@ -84,6 +79,18 @@ class Partition
     void setReport(const Report& report)
     {
         this->report = report;
+    }
+
+    const string &getName() const {
+        return name;
+    }
+
+    void setName(string name) {
+        this->name = name;
+    }
+
+    unordered_map<string, Annotation> &getAnnotationMap() {
+        return annotationMap;
     }
 };
 

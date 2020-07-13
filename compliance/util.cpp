@@ -42,14 +42,15 @@ void trim(std::string &s)
     rtrim(s);
 }
 
-void print_map(const char *name, unordered_map<string, string> &map)
+void print_map(const char *name, unordered_map<string, Annotation> &map)
 {
    cout << name << endl;
    
    for_each(map.begin(),
             map.end() ,
-            [](std::pair<std::string, string > element) {
-               std::cout << "    " << element.first << " : "<< element.second << std::endl;
+            [](std::pair<std::string, Annotation > element) {
+
+               std::cout << "    " << element.first << " : "<< element.second.getLabel() << std::endl;
             });
    cout << endl;
 }
@@ -61,6 +62,16 @@ string toString(vector<int> v)
         rtn += to_string(i) + " ";
 
     return rtn;
+}
+
+bool endsWith(std::string const &fullString, std::string const &ending)
+{
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else {
+        return false;
+    }
 }
 
 void print_map_obj(const char *name, unordered_map<string, Cle> &map)

@@ -18,8 +18,10 @@ using json = nlohmann::json;
 #include "Report.h"
 #include "cle_json.h"
 #include "util.h"
+#include "Annotation.h"
 
 extern int verbose;
+//extern std::fstream tagMap;
 
 MDNode* Partition::find_var(const Value* V, const Function* f)
 {
@@ -57,13 +59,12 @@ vector<int> Partition::find_local_variable(const Instruction *rpc_call, Value *v
    AllocaInst *AI = dyn_cast<AllocaInst>(value);
    if (!AI)
       return tags;
-
-   /*
+/*   
    if (AI->hasName() ) {
       errs() << AI->getName() << "\n";
       return tags;
    }
-   */
+*/
    Function *Caller = AI->getParent()->getParent();
    // Search for llvm.dbg.declare
    for (BasicBlock& BB : *Caller) {
@@ -140,6 +141,9 @@ void Partition::find_local_annotations()
                continue;
             
             Function *func = call->getCalledFunction();
+            if (!func)
+               continue;
+            
             string item = "";
 
             if (func->getName().compare("llvm.var.annotation")) {
@@ -149,7 +153,7 @@ void Partition::find_local_annotations()
             Instruction *target = dyn_cast<Instruction>(call->getOperand(0));
             if (!target)
                continue;
-            
+
             Value *targetGV = dyn_cast<Value>(target->getOperand(0));
             if (targetGV) {
                MDNode *md = find_var(targetGV, &f);
@@ -182,9 +186,45 @@ void Partition::find_local_annotations()
                string val = data->getAsString().str();
                // the string constnts in .ll file has an extra \00 at the end
                val = val.substr(0, val.length() -1);
-               annotationMap[fname.str() + "." + item] = val;
+               string var = fname.str() + "." + item;
+//               annotationMap[var] = val;
+
+               const llvm::DebugLoc &debugInfo = target->getDebugLoc();
+               std::string targetStr;
+               llvm::raw_string_ostream rso(targetStr);
+               debugInfo.print(rso);
+
+//               std::string directory = debugInfo->getDirectory();
+//               std::string filePath = debugInfo->getFilename();
+//               int line = debugInfo->getLine();
+//               int column = debugInfo->getColumn();
+//               cout << "XXXXXXXX " << directory << "XX" << endl;
+
+               Annotation ann((**module)->getName().str(), val, rso.str());
+               annotationMap[var] = ann;
             }
          }
+      }
+   }
+}
+
+void Partition::gen_tag_map()
+{
+   for (auto &Global : (**module)->getGlobalList()) {
+      ConstantDataSequential *data = dyn_cast<ConstantDataSequential>(Global.getInitializer());
+      if (!data)
+         continue;
+
+      if (data->isString()) {
+         string val = data->getAsString().str();
+         // the string constnts in .ll file has an extra \00 at the end
+         val = val.substr(0, val.length() -1);
+
+         //if (val.rfind("TAG_", 0) == 0) {
+         //   tagMap << "'" << val << "' : "
+         //          << "'"  << Global.getName().str() << "',"
+         //          << endl;
+         //}
       }
    }
 }
@@ -213,7 +253,19 @@ void Partition::find_global_annotations()
       if (item.length() > 0) {
          string val = annotation.str();
          trim(val);
-         annotationMap[item] = val;
+//         annotationMap[item] = val;
+
+         std::string targetStr;
+         llvm::raw_string_ostream rso(targetStr);
+         targetGV->print(rso);
+
+//         const llvm::DebugLoc &debugInfo = targetGV->getDebugLoc();
+//         std::string targetStr;
+//         llvm::raw_string_ostream rso(targetStr);
+//         debugInfo.print(rso);
+
+         Annotation ann((**module)->getName().str(), val, rso.str());
+         annotationMap[item] = ann;
       }
       
       GlobalVariable *fileGV = dyn_cast<GlobalVariable>(CS->getOperand(2)->getOperand(0));
@@ -256,7 +308,8 @@ string Partition::find_tag_annotation(const Instruction* value, const Function* 
 
 void Partition::verify_tag(string tag_ann, vector<int> tags, Entry &entry)
 {
-   string label = annotationMap[tag_ann];
+   Annotation annotation = annotationMap[tag_ann];
+   string label = annotation.getLabel();
 
 /*
    for (std::pair<std::string, Cle> element : cleMap) {
@@ -316,6 +369,9 @@ void Partition::find_rpc()
                continue;
             
             Function *func = call->getCalledFunction();
+            if (!func)
+               continue;
+            
             string item = "";
 
             if (func->getName().compare("xdc_asyn_send")) {
@@ -376,11 +432,13 @@ void Partition::readIRFile(char *filename)
    }
 
    this->module = &m;
-   
-   // std::cout << "File: " << (**module)->getName().str() << std::endl;
+
+   if (verbose)
+      std::cout << "File: " << (**module)->getName().str() << std::endl;
    // std::cout << "Target triple: " << (*module)->getTargetTriple() << std::endl;
 
    find_global_annotations();
+   // gen_tag_map();
    find_local_annotations();
    find_rpc();
 }
