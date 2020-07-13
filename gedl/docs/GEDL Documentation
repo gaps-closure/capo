@@ -8,37 +8,37 @@ An example GEDL file would look like:
 			{
 				"func":		"sampleFunc",
 				"return":	{"type": "double"},
-				"diode":	false,
+				"clelabel":	"enclave1",
 				"params": [
 					{"type": "int", "name": "sampleInt", "dir": "in"}, 
-					{"type": "double", "name": "sampleDoubleArray", "dir": "inout", "sz":[15]} 
+					{"type": "double", "name": "sampleDoubleArray", "dir": "inout", "sz":15} 
 				],
 				"occurs": [
 					{"file": "/sample/Enclave1/Path/Enclave1File.c", "lines": [44]},
-                    {"file": "/sample/Enclave1/Path/Enclave1File2.c", "lines": [15,205]}
+                                        {"file": "/sample/Enclave1/Path/Enclave1File2.c", "lines": [15,205]}
 
 				]
 			},
-            {
+        {
 				"func":		"sampleFunc2",
 				"return":	{"type": "int"},
-				"diode":	false,
+				"clelabel":	enclave1Extra,
 				"params": [
 				],
 				"occurs": [
-					{"file": "/sample/Enclave1/Path/Enclave1File.c", "lines": [45]}
+					{"file": "/sample/Enclave1/Path/Enclave1File.c", "lines": 45}
 				]
 			}
 		]
 	},
-    {
+        {
 		"caller": "enclave2",
 		"callee": "enclave3",
 		"calls": [
 			{
 				"func":		"sampleFunc3",
 				"return":	{"type": "void"},
-				"diode":	false,
+				"clelabel":	enclave2,
 				"params": [
 					{"type": "uint8", "name": "sampleUInt8", "dir": "in"} 
 				],
@@ -140,7 +140,7 @@ gedl:
                 using arg.getAttribute() and checking if count, size, string, or user_check
                 are attributes for arg.
 
-                Represented by a bracket enclosed ([]) unsigned integer or a string that is 
+                Represented by an unsigned integer or a string that is 
                 either [string] or [user_check].
     occurs:
             Array containing one object for each callsite of function in "caller".

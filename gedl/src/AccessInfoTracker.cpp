@@ -7,6 +7,7 @@ using namespace llvm;
 
 char pdg::AccessInfoTracker::ID = 0;
 llvm::cl::opt<std::string> programName("prog", llvm::cl::desc("Name of partitioned program"), llvm::cl::value_desc("programName"));
+llvm::cl::opt<std::string> schemaPath("schema", llvm::cl::desc("Relative path to gedl schema"), llvm::cl::value_desc("schemaPath"));
 
 
 bool pdg::AccessInfoTracker::runOnModule(Module &M) {
@@ -63,8 +64,16 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
 
   //Function to create a map of all function annotations
   populateAnnotationMap(M);
+  
+  edl_file << "{\n";
+  std::ifstream schema;
+  schema.open(schemaPath);
+  if ((!(schemaPath.empty())) && schema){
+    edl_file << "\"$schema\": \"" << schemaPath << "\",\n";
+  }
 
-  edl_file << "{\"gedl\": [";
+
+  edl_file << "\"gedl\": [";
   int firstElem = 0;
   firstDomain = false;
 

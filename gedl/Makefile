@@ -2,6 +2,7 @@ ODIR := ./build
 EDIR := ./example/EnclaveSplit
 PROG := Closure
 HEURISTICS_DIR:= ./heuristics
+SCHEMA_PATH:= ../gedl-schema/gedl-schema.json
 CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
 HAL_PATH=/home/mnorris/gaps/build/src/hal
 IPC_MODE=Multithreaded
@@ -40,7 +41,7 @@ clean: eclean
 
 # Do GEDL generation pass
 gedl: compile gen $(ODIR)/gedl.ll
-	cd $(ODIR) && opt -disable-output -load libgedl.so -accinfo-track -d 1  -prog $(PROG) -he $(HEURISTICS_DIR)< gedl.ll
+	cd $(ODIR) && opt -disable-output -load libgedl.so -accinfo-track -d 1  -prog $(PROG) -schema $(SCHEMA_PATH) -he $(HEURISTICS_DIR)< gedl.ll
 
 #Do IDL generation script
 idl: gedl
