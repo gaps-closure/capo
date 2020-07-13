@@ -811,14 +811,14 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
       edl_file << " \"sz\":";
       //From attributes determine arguments size or if it is a string, if undetermined mark as [user_check] and give a warning
       if (attributesAll.find("string") != std::string::npos)
-        edl_file << "\"[string]\"}";
+        edl_file << "\"string\"}";
       else if (attributesAll.find("count") != std::string::npos)
-        edl_file << "[\"" << argW->getAttribute().getCount()  << "\"]}";
+        edl_file << "" << argW->getAttribute().getCount()  << "}";
       else if (attributesAll.find("size") != std::string::npos)
-        edl_file << "[\"" << argW->getAttribute().getSize()  << "\"]}";
+        edl_file << "" << argW->getAttribute().getSize()  << "}";
       else{
         errs() << "Size of argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " could not be conclusively determined. Marking as \"user_check\", please manually specify size or rewrite function code to comply with Capo requirements and run again.\n";
-        edl_file << "[user_check]}";
+        edl_file << "\"user_check\"}";
       }
 
     }

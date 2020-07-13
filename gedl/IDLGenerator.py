@@ -39,7 +39,7 @@ with open(args.gedl) as edl_file:
                     for arg in call['params']:
                         idl_file.write("\n\t %s %s" % (arg['type'],arg['name']))
                         if "sz" in arg:
-                            idl_file.write("%s" % (arg['sz']))
+                            idl_file.write("[%s]" % (arg['sz']))
                         idl_file.write(";")
                 idl_file.write("\n};")
                 

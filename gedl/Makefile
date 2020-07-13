@@ -1,5 +1,5 @@
 ODIR := ./build
-EDIR := ./example/divvied
+EDIR := ./example/EnclaveSplit
 PROG := Closure
 HEURISTICS_DIR:= ./heuristics
 CLE_PRE=/home/mnorris/gaps/build/src/mules/cle-preprocessor/src
