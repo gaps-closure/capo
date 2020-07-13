@@ -33,6 +33,40 @@ class Heuristics {
   static std::map<std::string, std::set<unsigned>> inMem;
   static std::map<std::string, std::set<unsigned>> outMem;
   static std::map<std::string, unsigned> printfFuncs;
+  /*std::string inString = "{\n \
+\"in\": [\n \
+{\"name\": \"strlen\", \"idx\": [0]},\n \
+{\"name\": \"strnlen\", \"idx\": [0]},\n \
+{\"name\": \"strcmp\", \"idx\": [0,1]},\n \
+{\"name\": \"strncmp\", \"idx\": [0,1]},\n \
+{\"name\": \"strcoll\", \"idx\": [0]},\n \
+{\"name\": \"strtok\", \"idx\": [0,1]},\n \
+{\"name\": \"strchr\", \"idx\": [0]},\n \
+{\"name\": \"strrchr\", \"idx\": [0]},\n \
+{\"name\": \"strpbrk\", \"idx\": [0,1]},\n \
+{\"name\": \"strspn\", \"idx\": [0,1]},\n \
+{\"name\": \"strcspn\", \"idx\": [0,1]},\n \
+{\"name\": \"strstr\", \"idx\": [0,1]},\n \
+{\"name\": \"strdup\", \"idx\": [0]},\n \
+{\"name\": \"strndup\", \"idx\": [0]},\n \
+{\"name\": \"strcasecmp\", \"idx\": [0,1]},\n \
+{\"name\": \"\01_open\", \"idx\": [0]},\n \
+{\"name\": \"\01_fopen\", \"idx\": [0]},\n \
+{\"name\": \"__vsnprintf_chk\", \"idx\": [4]},\n \
+{\"name\": \"__strcat_chk\", \"idx\": [1] },\n \
+{\"name\": \"__strncat_chk\", \"idx\": [1] },\n \
+{\"name\": \"__strcpy_chk\", \"idx\": [1] },\n \
+{\"name\": \"__strncpy_chk\", \"idx\": [1] }\n \
+],\n \
+\"out\": [\n \
+{\"name\": \"__vsnprintf_chk\", \"idx\": [0]},\n \
+{\"name\": \"__snprintf_chk\", \"idx\": [0]},\n \
+{\"name\":\"__strcat_chk\", \"idx\": [0]},\n \
+{\"name\":\"__strncat_chk\", \"idx\": [0]},\n \
+{\"name\":\"__strcpy_chk\", \"idx\": [0]},\n \
+{\"name\":\"__strncpy_chk\", \"idx\": [0]}\n \
+]\n \
+}";*/
 };
 
 }  // namespace pdg

@@ -2,9 +2,7 @@ import json
 import sys
 from argparse import ArgumentParser
 
-if len(sys.argv) < 3:
-    print("Missing command line arguments. Usage of IDLGenerator is \"python IDLGenerator.py </path/to/gedl/file> </path/for/idl/file>\"")
-    exit()
+
 
 def argparser():
     parser = ArgumentParser(description='CLOSURE IDL File Generator')

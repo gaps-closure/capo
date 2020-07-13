@@ -6,11 +6,17 @@
 using namespace llvm;
 
 char pdg::AccessInfoTracker::ID = 0;
+llvm::cl::opt<std::string> programName("prog", llvm::cl::desc("Name of partitioned program"), llvm::cl::value_desc("programName"));
+
 
 bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   if (!USEDEBUGINFO) {
     errs() << "[WARNING] No debug information avaliable... \nUse [-debug 1] in "
               "the pass to generate debug information\n";
+    exit(0);
+  }
+  if (programName.empty()) {
+    errs() << "[WARNING] No program name provided. Use -p argument to provide program name for artifact generation.\n";
     exit(0);
   }
 
@@ -23,7 +29,7 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   Heuristics::populateMemFuncs();
   Heuristics::populateprintfFuncs();
 
-  std::string enclaveFile = "Closure.gedl";
+  std::string enclaveFile = programName + ".gedl";
   edl_file.open(enclaveFile);
 
   //For loop for every function to construct a map of every domain and the filepath for every function

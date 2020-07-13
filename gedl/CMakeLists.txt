@@ -18,6 +18,7 @@ option(ENABLE_FUNC_LIST "generate result based on func list" ON)
 include_directories("include")
 include_directories("src")
 
+
 file(GLOB TPPSRC "src/*.tpp")
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB HEADERS "include/*.hpp")
