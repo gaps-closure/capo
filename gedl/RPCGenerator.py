@@ -1,6 +1,7 @@
 import json
 import sys
 import copy
+import os
 from argparse import ArgumentParser
 
 def argparser(enclaveList, enclaveMap):
@@ -68,6 +69,9 @@ def GEDLParser(args,enclaveList, enclaveMap,replaceList,callerList,calleeList):
             replaceList.append(copy.copy(occursList))
             
 def CModFunction(enclave,args,enclaveMap,replaceList,callerList,calleeList):
+    if not os.path.isfile(enclaveMap[enclave][0]):
+        print("File" + enclaveMap[enclave][0] + "does not exist. Please update GEDL Schema with valid C file.\n")
+        exit(0)
     with open(enclaveMap[enclave][0]) as old_file:
         newFile = enclaveMap[enclave][0][enclaveMap[enclave][0].rfind('/') + 1:].replace(".mod","")
         enclaveIndex = enclaveMap[enclave][2]
