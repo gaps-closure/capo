@@ -32,8 +32,8 @@ def get_gedl_schema(schema_location):
         #schema not found relitive to the python enviroment, check a local path
         path = schema_location
         if(not os.path.exists(path)):
-        #Unable to get python schema
-        raise(IOError("Unable to fild cle schema (expected at): " + path))
+            #Unable to get python schema
+            raise(IOError("Unable to fild cle schema (expected at): " + path))
     
     #we found the schema load it into ram
     print("Using GEDL schema: " + path)
