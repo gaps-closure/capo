@@ -12,7 +12,8 @@ def argparser():
     parser = ArgumentParser(description='CLOSURE IDL File Generator')
     parser.add_argument('-g','--gedl', required=True, type=str, help='Input GEDL Filepath')
     parser.add_argument('-o','--ofile', required=True, type=str, help='Output Filepath')
-    parser.add_argument('-i','--ipc', required=True, type=str, help='IPC Type (Singlethreaded/Multithreaded)')
+    parser.add_argument('-i','--ipc', required=True, type=str, 
+                 choices=("Singlethreaded", "Multithreaded"), help='IPC Type')
     parser.add_argument('-s', '--schema', required=False, type=str,
                  default='./GEDLSchema.json',
                  help='override the location of the of the schema if required')
