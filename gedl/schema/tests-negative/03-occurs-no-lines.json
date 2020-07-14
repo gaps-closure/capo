@@ -10,10 +10,11 @@
 				"return":	{"type": "double"},
 				"clelabel":	"ORANGE_SHAREABLE",
 				"params": [
-				    {"type": "int32", "name": "sampleIntArray", "dir": "in", "sz": ["error"]}
+				    {"type": "int32", "name": "sampleIntArray", "dir": "in", "sz": 22}
 				],
 				"occurs": [
-					{"file": "/home/mnorris/gaps/build/src/capo/gedl/./example/purple3/test3_purple.mod.c", "lines": [12]}
+                    {"file": "/home/mnorris/gaps/build/src/capo/gedl/./example/purple3/test3_purple.mod.c",
+                        "lines": []}
 				]
 			}
 		]
