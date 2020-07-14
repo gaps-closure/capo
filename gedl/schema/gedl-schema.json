@@ -21,22 +21,8 @@
         },
         "sizeInfo":{
             "description": "size information for arrays, either a positive number, or the string \"string\" or \"user_check\"",
-            "type": "array",
-            "default": [],
-            "items":{
-                "anyOf": [
-                    {
-                        "type": "integer",
-                        "minimum": 0
-                    },
-                    {
-                        "type": "string",
-                        "enum": [
-                            "string", "user_check"
-                        ]
-                    }
-                ]
-            }
+            "type": "integer",
+            "minimum": 0
         },
         
         "cIdentifier":{
@@ -107,9 +93,6 @@
                         "type": { "$ref": "#/definitions/typesEnum" }
                     }
                 },
-                "diode":{
-                    "type": "boolean"
-                },
                 "params":{
                     "description": "Array of parameter information",
                     "type": "array",
@@ -118,10 +101,11 @@
                     "items": { "$ref": "#/definitions/paramsType" }
                 },
                 "occurs":{
-                    "description": "Array of parameter information",
+                    "description": "Array of callsite information",
                     "type": "array",
                     "uniqueItems": true,
                     "default": [],
+                    "minItems": 1,
                     "items": { "$ref": "#/definitions/occursType" }
                 },
                 "clelabel":{
@@ -154,6 +138,7 @@
                 "calls": {
                     "description": "An array containing one object for each cross-domain function",
                     "type": "array",
+                    "minItems": 1,
                     "items": { "$ref": "#/definitions/callsType" }
                 }
             }
