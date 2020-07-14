@@ -19,13 +19,27 @@
                 "in","inout","out"
             ]
         },
-        
+        "dynamicSizeEnum":{
+            "description": "[ENUM] dynamic sizes",
+            "type": "string",
+            "enum":[
+                "string"
+            ]
+        },
+
         "sizeInfo":{
             "description": "size information for arrays, (positive number)",
-            "type": "integer",
-            "minimum": 0
+            "anyOf": [
+                {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                {
+                    "$ref": "#/definitions/dynamicSizeEnum"
+                }
+            ]
         },
-        
+
         "cIdentifier":{
             "$comment": "Valid C identifier (funciton/variable/ect) as new versions support some utf8 filter is just checks we don't start with a number, and contain no spaces",
             "type": "string",

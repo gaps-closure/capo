@@ -1,0 +1,21 @@
+{
+	"$schema": "../gedl-schema.json",
+	"gedl": [
+	{
+		"caller": "purple3",
+		"callee": "orange3",
+		"calls": [
+			{
+				"func":		"get_ewma",
+				"return":	{"type": "double"},
+				"clelabel":	"ORANGE_SHAREABLE",
+				"params": [
+				    {"type": "int32", "name": "sampleIntArray", "dir": "in", "sz": "string" }
+				],
+				"occurs": [
+					{"file": "/home/mnorris/gaps/build/src/capo/gedl/./example/purple3/test3_purple.mod.c", "lines": [12]}
+				]
+			}
+		]
+	}
+]}
