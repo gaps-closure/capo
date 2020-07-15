@@ -9,7 +9,7 @@
             "description": "[ENUM] variable type",
             "type": "string",
             "enum": [
-                "double","ffloat","int8","uint8","int16","uint16","int32","uint32","int64","uint64"
+                "double","float","char","unsigned char","short","unsigned short","int","unsigned int","long","unsigned long"
             ]
         },
         "directionEnum":{

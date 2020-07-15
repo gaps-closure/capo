@@ -1,5 +1,5 @@
 ODIR := ./build
-EDIR := ./example/EnclaveSplit
+EDIR := ./example/Enclaves
 PROG := Closure
 HEURISTICS_DIR:= ./heuristics
 SCHEMA_PATH:= ../GEDLSchema.json
@@ -45,7 +45,7 @@ gedl: compile gen $(ODIR)/gedl.ll
 
 #Do IDL generation script
 idl: gedl
-	python IDLGenerator.py -g "$(ODIR)/$(PROG).gedl" -o "$(ODIR)/autogen/$(PROG).idl" -i $(IPC_MODE)
+	python3 IDLGenerator.py -g "$(ODIR)/$(PROG).gedl" -o "$(ODIR)/autogen/$(PROG).idl" -i $(IPC_MODE)
 	
 #Do autogeneration
 autogen: idl
@@ -83,7 +83,7 @@ $(ODIR)/$(enclave)/%.o:	%.c
 rpc: autogen libraries
 	@rm -f $(ODIR)/$(XDCONF_FILE) 
 	$(foreach enclave,$(ENCLAVES), $(eval ENCLAVEFL += $(EDIR)/$(enclave)/*.mod.c ))
-	python RPCGenerator.py -o $(ODIR) -g $(ODIR)/$(PROG).gedl -i $(IPC_MODE) -a $(HAL_PATH)/api -n $(INURI) -t $(OUTURI) -x $(XDCONF_FILE) -f $(ENCLAVEFL)
+	python3 RPCGenerator.py -o $(ODIR) -g $(ODIR)/$(PROG).gedl -i $(IPC_MODE) -a $(HAL_PATH)/api -n $(INURI) -t $(OUTURI) -x $(XDCONF_FILE) -f $(ENCLAVEFL)
 
 	
 #Generates the defined_func and imported_func files for each enclave
