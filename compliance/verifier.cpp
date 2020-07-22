@@ -8,6 +8,12 @@
 #include <dirent.h>
 #include <getopt.h>
 
+#include <boost/graph/graphviz.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/property_map/dynamic_property_map.hpp>
+#include <boost/graph/graph_utility.hpp>
+
 using namespace std;
 
 #include "Partition.h"
@@ -20,7 +26,7 @@ int duplications = 0;
 int badtags = 0;
 
 int verbose = 0;
-///std::fstream tagMap;
+std::set<string> cross_domain_labels;
 
 void verify(vector<Partition>& partitions)
 {
@@ -192,6 +198,18 @@ int main(int argc, char **argv)
    }
 
    verify(all_partitions);
+
+   ofstream cross_fs;
+   cross_fs.open ("tags-from-verifier");
+   bool first = true;
+   for (std::set<std::string>::iterator it = cross_domain_labels.begin();
+        it != cross_domain_labels.end(); ++it) {
+       if (!first)
+           cross_fs << endl;
+       cross_fs << *it;
+       first = false;
+   }
+   cross_fs.close();
 
    for (int i = 1; i < all_partitions.size(); i++) {
        badtags += all_partitions[i].getNumErrors();

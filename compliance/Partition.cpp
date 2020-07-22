@@ -21,7 +21,8 @@ using json = nlohmann::json;
 #include "Annotation.h"
 
 extern int verbose;
-//extern std::fstream tagMap;
+
+extern std::set<string> cross_domain_labels;
 
 MDNode* Partition::find_var(const Value* V, const Function* f)
 {
@@ -311,6 +312,8 @@ void Partition::verify_tag(string tag_ann, vector<int> tags, Entry &entry)
    Annotation annotation = annotationMap[tag_ann];
    string label = annotation.getLabel();
 
+   cross_domain_labels.insert(label);
+
 /*
    for (std::pair<std::string, Cle> element : cleMap) {
       string labelx = element.first;
@@ -374,7 +377,8 @@ void Partition::find_rpc()
             
             string item = "";
 
-            if (func->getName().compare("xdc_asyn_send")) {
+            if (func->getName().compare("xdc_asyn_send") &&
+                func->getName().compare("xdc_blocking_recv")) {
                continue;
             }
 
@@ -394,6 +398,14 @@ void Partition::find_rpc()
             Value *val11 = call->getArgOperand(1);   // tag annotation
             if (const Instruction* DbgValue = dyn_cast<Instruction>(val11)) {
                tag_ann = find_tag_annotation(DbgValue, &f);
+
+               if (!func->getName().compare("xdc_blocking_recv")) {
+                   Annotation annotation = annotationMap[tag_ann];
+                   string label = annotation.getLabel();
+
+                   cross_domain_labels.insert(label);
+                   continue;
+               }
 
                entry.setVariable(tag_ann);
                verify_tag(tag_ann, tags, entry);

@@ -1,7 +1,9 @@
 # make PROG=green will override this
 PROG=orange
-LIBPDG=../pdg/build/libpdg.so
-PARTITIONER_DIR=../partitioner/src
+
+CAPO_DIR=~/gaps/capo.sec_comp
+LIBPDG=$(CAPO_DIR)/pdg/build/libpdg.so
+PARTITIONER_DIR=$(CAPO_DIR)/partitioner/src
 
 ALL_LL = $(wildcard $(PROG)/*.ll)
 

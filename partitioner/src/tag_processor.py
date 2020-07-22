@@ -60,7 +60,7 @@ class TagProcessor:
             self.info.append("Creating graph helper")
             self.graph_helpers[fn] = graph_helper.GraphHelper(dr.get_pdg())
             self.info.append("Done.")
-            
+
     def process(self):
         '''
         returns True if processing is successfull
@@ -71,7 +71,11 @@ class TagProcessor:
         for fn, dr in self.graphs.items():
             irr = self.irs[fn]
             gh = self.graph_helpers[fn]
-            irstrings = irr.get_label_irstring([r'TAG_.+'])
+            with open("tags-from-verifier") as fp:
+                cross_domains = [line.rstrip('\n') for line in fp]
+            
+            irstrings = irr.get_label_irstring(cross_domains)
+            #irstrings = irr.get_label_irstring([r'TAG_.+'])
             #irstrings is {irstring : tag}
             self.info.append("Graph: " + fn + ": tags found: " + str(irstrings))
             for t_str, l_str in irstrings.items():

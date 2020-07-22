@@ -10,7 +10,7 @@ CXX=g++
 
 LDFLAGS +=
 LLVMFLAGS = `llvm-config --cxxflags --libs --ldflags --system-libs`
-LLVMFLAGS += -frtti -fexceptions -L/usr/lib/x86_64-linux-gnu  -DLLVM_ENABLE_DUMP=ON
+LLVMFLAGS += -frtti -fexceptions -L/usr/lib/x86_64-linux-gnu  -DLLVM_ENABLE_DUMP=ON -lboost_graph
 CXXFLAGS += -g $(LLVMFLAGS) -std=c++14
 
 ifeq ($(WITHLICENSE), yes)
@@ -52,7 +52,7 @@ verbose:
 clean:
 	-rm -f *.o *~ $(EXEC)
 
-zoom:
+zoom: $(EXEC)
 	./$(EXEC) -v refactored orange purple
 	make -f Makefile.stitch PROG=orange
 	make -f Makefile.stitch PROG=purple
