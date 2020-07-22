@@ -119,6 +119,7 @@ class DotReader():
                         ret.append(n)
                         #print("APPENDINGF:", n)
         return ret
+        
 
     @classmethod
     def is_entry(cls, node):

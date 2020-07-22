@@ -156,21 +156,20 @@ class IRReader():
                 
         
         
-    def get_variable_DbgInfo(self, pname):
-        return None
-    '''
-        rr = re.compile(r'call void @llvm.dbg.declare\(metadata .+ %' + pname + ', metadata !(\d+),')
-        ret = []
-        for l in self.ir_lines:
-            m = rr.match(l)
-            if m is not None:
-                dbg_line = self.get_prefix('!' + m.group(1))
-                dbg_m = re.match(r'.+name: "(\w+)", .+line: (\d+)', dbg_line[0])
-                if dbg_m is not None:
-                    d = DbgInfo(dbg_m.group(1), dbg_m.group(2), 0)
-                    ret.append(d)
+    def get_decl_DbgInfo(self, n):
+        rr = re.compile(r'.*call void @llvm.dbg.declare\(metadata .+, metadata !(\d+),')
+        ret = None
+        #print("DBG_DECL: ", n.get_label())
+        m = rr.match(n.get_label())
+        if m is not None:
+            dbg_line = self.get_prefix('!' + m.group(1))
+            #print("DBG_LINE", dbg_line)
+            dbg_m = re.match(r'.+name: "(\w+)", .+line: (\d+)', dbg_line[0])
+            if dbg_m is not None:
+                d = DbgInfo(n, dbg_m.group(1), dbg_m.group(2), 0)
+                ret = d
         return ret
-    '''
+
     
     def get_variable_name(self, desc):
         '''

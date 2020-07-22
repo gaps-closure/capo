@@ -17,8 +17,11 @@ class GraphHelper():
         def get_dst(self):
             return self.dst
         
+        def get_edge(self):
+            return self.edge
+        
         def __str__(self):
-            return "Conflict between nodes: " + str(self.src) + " and " + str(self.dst)
+            return "Conflict between nodes: " + str(self.src) + " and " + str(self.dst) + " via " + str(self.edge)
         
         def has_same_nodes(self, other):
             if other is None: return False
@@ -48,6 +51,7 @@ class GraphHelper():
         self.dot = dot_graph
         self.dot_nodes = {n.get_name() : n for n in self.dot.get_nodes()}
         self.dot_edges = self.dot.get_edges()
+        self.dot_edges_by_src_name = {x.get_source() : [z for z in self.dot_edges if z.get_source() == x.get_source()] for x in self.dot_edges}
         #self.nxg = networkx.drawing.nx_pydot.from_pydot(dot_graph)
 
     def get_dot_node_list(self):
@@ -108,9 +112,18 @@ class GraphHelper():
             #print("ee", existing_enc)
             if existing_enc != enclave:
                 #print("Node: %s has conflict" % str(node))
-                #edg = self.dot.get_pdg().get_edge(from_node, node)
-                #print("EDGE:", edg)
-                return [GraphHelper.ConflictPair(from_node, node, None)]
+                if direction == 'src':
+                    n1 = from_node
+                    n2 = node
+                else:
+                    n1 = node
+                    n2 = from_node
+                edgs = [e for e in self.dot_edges_by_src_name.get(n1.get_name()) if e.get_destination() == n2.get_name()]
+                #edgs2 = [e for e in self.dot_edges_by_src_name.get(from_node.get_name()) if e.get_destination() == node.get_name()]
+                #print("eee1", edgs, set(edgs))
+                if len(edgs) < 1:
+                    print("ERROR in edge analysis: ")
+                return [GraphHelper.ConflictPair(n1, n2, edgs[0])]
             return []
         node.set('enclave', enclave)
         node.set_fillcolor(enclave)
@@ -183,18 +196,18 @@ class GraphHelper():
     def find_dbg_declare(self, n):
         down_n = self.get_neighbors(n, direction='src', label=['DEF_USE'])
         for dn in down_n:
-            print("DOWN_N", str(dn))
+            #print("DOWN_N", str(dn))
             if 'llvm.dbg.declare' in dn.get_label():
-                print("DOWN_N RETURNING:", str(dn))
+                #print("DOWN_N RETURNING:", str(dn))
                 return dn
         for dn in down_n:
-            print("DOWN_N Trying:", str(dn))
+            #print("DOWN_N Trying:", str(dn))
             ret = self.find_dbg_declare(dn)
-            print("DOWN_N Ret is:", str(ret))
+            #print("DOWN_N Ret is:", str(ret))
             if ret is not None:
-                print("DOWN_N Returning ret:", str(ret))
+                #print("DOWN_N Returning ret:", str(ret))
                 return ret
-            print("DOWN_N Returning None")
+            #print("DOWN_N Returning None")
         return None
     
     def print_info(self):
