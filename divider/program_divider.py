@@ -80,7 +80,8 @@ def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
   fs       = fname.rsplit('.',1)
   basename = fs[0]
   suffix   = '.' + fs[1] if len(fs) == 2 else ''
-  def ofile(l): return os.path.join(odir, l, relpath, basename + '_' + l + suffix)
+  # def ofile(l): return os.path.join(odir, l, relpath, basename + '_' + l + suffix)
+  def ofile(l): return os.path.join(odir, l, relpath, basename + suffix)
 
   if len(fs) != 2 and (suffix != '.c' or suffix != '.h'): # not a .c/.h file
     print('Renaming and copying to all levels:', ifile)

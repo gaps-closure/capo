@@ -3,7 +3,8 @@ import sys
 
 class PolicyResolver():
     def __init__(self):
-        self.desc = {}
+        self.desc = []
+        self.desc_by_label = {}
 
     def read_json(self, fname):
         '''
@@ -14,6 +15,13 @@ class PolicyResolver():
             desc1 = json.loads(fs)
         
         self.desc = [x for x in desc1 if 'cle-json' in x and 'level' in x['cle-json']]
+        self.desc_by_label = {x["cle-label"] : x for x in self.desc}
+        
+        if len(self.desc) != len(desc1):
+            nojs = [x["cle-label"] for x in desc1 if 'cle-json' not in x]
+            return "No definition for following label(s): " + ",".join(nojs)
+        else:
+            return None
 
     def get_labels(self):
         '''
@@ -67,7 +75,7 @@ class PolicyResolver():
 
     def get_label_enclave(self, ll):
         '''
-        returns map {label : enclave} where label is one of the labels defined by the programmer
+        returns map {label : enclave} where label is one of the labels in parameter
         and enclave is the enclave name for that label
         '''
         ret = {}
@@ -77,6 +85,31 @@ class PolicyResolver():
                     ret[l] = o['cle-json']['level']
         return ret
 
+    def resolve_function(self, funct_node, target_enc):
+        ann = funct_node.get('annotation')
+        tai = funct_node.get('taint')
+        dbinf = funct_node.get('dbginfo')
+        f_name = dbinf.get_name()
+        if tai is None:
+            return False, "Function '%s' needs XD annotation"%(f_name)
+        if self.get_label_enclave([tai]).get(tai, "") != ann:
+            return False, "Need to verify active annotations for '%s'"%(f_name)
+        desc = self.desc_by_label.get(tai)
+        if not (desc and 'cle-json' in desc):
+            return False, "Function '%s' should be annotated with label '%s' that has no definition"%(f_name, tai)
+        cjd = desc['cle-json']
+        if not ('cdf' in cjd and len(cjd['cdf']) == 1):
+                return False, "Definition of label '%s' does not have exactly one 'cdf' section"
+        cdf = cjd['cdf'][0]
+        needed = set(['argtaints' ,'codtaints', 'rettaints' ,'remotelevel', 'direction', 'guardhint'])
+        if  not needed.issubset(set(cdf.keys())):
+            return False, "Definition of label '%s' has to comply with XD convention"%(tai)
+        if cdf['remotelevel'] != target_enc:
+            return False, "Label '%s' needs 'remotelevel' to be '%s'"%(tai, target_enc)
+        
+        return True, "Ready to be replaced with RPC"
+
+                
 if __name__ == "__main__":
     p = PolicyResolver()
     p.read_json(sys.argv[1])

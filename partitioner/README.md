@@ -27,6 +27,11 @@ Processing steps:
 
 Partitioner colors the program dependency graph, and detects conflicts, as follows:
 
+0. Process the CLE JSON file, look through the program for labels used but not defined, and defined, but not used.
+   - possible conflicts:
+     . fatal error if an annotation does not have enclave defined
+     . warning if annotation or enclave is defined but not used
+
 1. Color all items directly annotated, finding the actual item definition nodes
    - possible conflicts: 
      . more than one annotation for an item
