@@ -27,7 +27,7 @@ LIBS=../autogen/libcodecs.a -lpthread
 
 plugin:
 	@cd $(ODIR) && cmake ..
-	@$(MAKE) -C $(ODIR)
+	@make -C $(ODIR)
 	@cd $(ODIR) && mv libpdg.so libgedl.so
 
 # Hard clean cleans whole build directory and compiled files in example directory
@@ -42,6 +42,7 @@ clean: eclean
 # Do GEDL generation pass
 gedl: compile gen $(ODIR)/gedl.ll
 	cd $(ODIR) && opt -disable-output -load libgedl.so -accinfo-track -d 1  -prog $(PROG) -schema $(SCHEMA_PATH) -he $(HEURISTICS_DIR)< gedl.ll
+
 
 #Do IDL generation script
 idl: gedl
@@ -104,7 +105,7 @@ compile: compEncs
 compEncs:
 	rm -rf $(EDIR)/*/*.mod.c $(EDIR)/*/*.ll $(EDIR)/*/*.json
 	$(foreach enclave,$(ENCLAVES),	$(CLE_PRE)/qd_cle_preprocessor.py -L -f $(EDIR)/$(enclave)/*.c;)
-	$(foreach enclave,$(ENCLAVES),	clang-9 $(CC_FLAGS) $(EDIR)/$(enclave)/*.mod.c -o $(EDIR)/$(enclave)/$(enclave).ll;)
+	$(foreach enclave,$(ENCLAVES),	clang $(CC_FLAGS) $(EDIR)/$(enclave)/*.mod.c -o $(EDIR)/$(enclave)/$(enclave).ll;)
 
 
 # Example clean cleans the ll files from the example.

@@ -11,6 +11,7 @@
 #include "DebugInfoUtils.hpp"
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
+#include "llvm/Support/CommandLine.h"
 
 namespace pdg {
 struct CALLLoc {

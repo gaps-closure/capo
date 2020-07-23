@@ -10,6 +10,7 @@
 #include "llvm/Support/Debug.h"
 #include "DebugInfoUtils.hpp"
 #include "PDGCommandLineOptions.hpp"
+#include "llvm/Pass.h"
 #include <fstream>
 #include <sstream>
 

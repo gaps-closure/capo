@@ -18,6 +18,7 @@
 #include "llvm/IR/Instructions.h" 
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/Pass.h"
 
 #include <vector>
 #include <set>
