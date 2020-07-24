@@ -591,7 +591,6 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
   auto func = argW->getArg()->getParent();
   auto treeI = argW->getTree(treeTy).begin();
   // if (!(*treeI)->getTreeNodeType()->isPointerTy())
-
   if ((*treeI)->getDIType() == nullptr) {
     //errs() << "Empty debugging info for " << func->getName() << " - "
     //       << argW->getArg()->getArgNo() << "\n";
@@ -603,7 +602,6 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
      //       << " Find non-pointer type parameter, do not track...\n";
     return;
   }
-
   AccessType accessType = AccessType::NOACCESS;
   auto &pdgUtils = PDGUtils::getInstance();
   int count = -1;
@@ -644,25 +642,22 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
       }
     }
   }
-
   //Here is where return with pointer fails
   auto &dbgInstList2 =
             pdgUtils.getFuncMap()[func]->getDbgDeclareInstList();
   std::string argName2 =
       DIUtils::getArgName(*(argW->getArg()), dbgInstList2);
-  errs() << "\n\n" << argName2 << "\n";
+  errs() << "\nArgname:" << argName2 << "\n";
     for (auto func : pdgUtils.getFuncMap()) {
     if (!func.second->hasTrees()) {
       PDG->buildPDGForFunc(func.second->getRetW()->getFunc());
     }
-    errs() << "\n\n";
     for (auto ecallInst :
          pdgUtils.getFuncMap()[func.first]->getCallInstList()) {
-      errs() << "Begin1:\n" << *(ecallInst->getCalledFunction()) << " \nBegin2:\n " <<  *(argW->getFunc()) << "\n\n";
       if (ecallInst->getCalledFunction() != argW->getFunc()) continue;
       //errs() << *(ecallInst) << "\n"; 
       if (ecallInst->getNumArgOperands() < argW->getArg()->getArgNo()) continue;
-      
+      errs() << "Failed in arg8\n";
       Value *v = ecallInst->getOperand(argW->getArg()->getArgNo());
       if (isa<Instruction>(v) || isa<Argument>(v)) {
         // V is used in inst
