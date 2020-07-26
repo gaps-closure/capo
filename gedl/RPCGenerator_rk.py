@@ -25,7 +25,7 @@ def argparser():
 
 def remove_prefix(t,pfx): return t[len(pfx):] if t.startswith(pfx) else t
 
-def gotMain(fn): # XXX: brittle, will fail on #ifdef'd out main, ought to actually use clang.cindex to determine if there is indeed a main function
+def gotMain(fn): # XXX: will fail on #ifdef'd out main, consider using clang.cindex to determine if there is indeed a main function
   with open(fn,'r') as fp:
     for row in fp:
       if re.match(r'\s*int\s+main\s*\(',row): return True
@@ -43,9 +43,18 @@ class GEDLProcessor:
     self.muxAssign   = {x: i for i,x in enumerate(cartesian)}
     self.secAssign   = {x: i for i,x in enumerate(cartesian)}
     self.masters     = []
+    self.affected    = {}
     y = [x for x in self.gedl if x['caller'] not in enclaveList or x['callee'] not in enclaveList]
     if len(y) > 0: raise Exception('Enclaves referenced in GEDL not in provided enclave list: ' + ','.join(y))
     if len(self.xdcalls) != len(set(self.xdcalls)): raise Exception('Cross-domain function calls are not unique')
+    for x in self.gedl:
+      for c in x['calls']:
+        for f in c['occurs']:
+          canon = os.path.abspath(f['file'])
+          if not canon in self.affected: self.affected[canon] = {}
+          for line in f['lines']:
+            if not line in self.affected[canon]: self.affected[canon][line] = []
+            self.affected[canon][line].append(c['func'])
 
   ##############################################################################################################
   def callees(self, e):  return [x['callee'] for x in self.gedl if x['caller'] == e]
@@ -87,8 +96,7 @@ class GEDLProcessor:
 
   ##############################################################################################################
   def genrpcH(self, e, inu, outu, ipc):
-    n = '\n' 
-    t = '    '
+    n,t = '\n','    '
     def boiler(): 
       s  = '#ifndef _' + e.upper() + '_RPC_' + n
       s += '#define _' + e.upper() + '_RPC_' + n + n
@@ -101,17 +109,19 @@ class GEDLProcessor:
       if e in self.masters: s += 'extern void _master_rpc_init();' + n + n
       else:                 s += 'extern int _slave_rpc_loop();' + n + n
       return s
-    def muxsec(l): return '#define ' + l['muxdef'] + ' APP_BASE + ' + str(l['mux']) + n + '#define ' + l['secdef'] + ' APP_BASE ' + str(l['sec']) + n
+    def muxsec(l): return '#define ' + l['muxdef'] + ' APP_BASE + ' + str(l['mux']) + n + '#define ' + l['secdef'] + ' APP_BASE + ' + str(l['sec']) + n
     def tagcle(x,y,f,outgoing=True): 
       l  = self.const(x,y,f,outgoing)
       s  = '#pragma cle def ' + l['clelabl'] + ' {"level": "' + e + '", \\' + n
       s += t + '"cdf": [{"remotelevel": "' + l['to'] + '", "direction": "egress", \\' + n
       s += t + t + t + '"guardhint": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.appbase),str(l['sec']+self.appbase),str(l['typ'])]) + ']}}]}' + n + n
       return s
-    def specials(x,y):
+    def specialstags(x,y):
       s  = muxsec(self.const(x,y,'nextrpc',True))
       s += muxsec(self.const(x,y,'okay',False)) + n
-      s += tagcle(x,y,'nextrpc',outgoing=True) 
+      return s
+    def specialscle(x,y):
+      s  = tagcle(x,y,'nextrpc',outgoing=True) 
       s += tagcle(x,y,'okay',outgoing=False) 
       return s
     def fundecl(fd, wrap=True): 
@@ -123,21 +133,25 @@ class GEDLProcessor:
     s = boiler()
     if len(self.enclaveList) == 2 and len(self.masters) == 1:   # XXX: multi-enclave scenario not handled, NEXTRPC will have different mux,sec per peer
       if e in self.masters:
-        for p in self.callees(e): s +=  specials(e,p)
+        for p in self.callees(e): s +=  specialscle(e,p)
       else:
-        for p in self.masters:    s +=  specials(p,e)
-    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e):  s += tagcle(x,y,f,outgoing=True) + tagcle(x,y,f,outgoing=False) 
-    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e):  s += muxsec(self.const(x,y,f,True)) + muxsec(self.const(x,y,f,False))
+        for p in self.masters:    s +=  specialscle(p,e)
+    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e): s += tagcle(x,y,f,outgoing=True)    + tagcle(x,y,f,outgoing=False) 
+    if len(self.enclaveList) == 2 and len(self.masters) == 1:   # XXX: multi-enclave scenario not handled, NEXTRPC will have different mux,sec per peer
+      if e in self.masters:
+        for p in self.callees(e): s +=  specialstags(e,p)
+      else:
+        for p in self.masters:    s +=  specialstags(p,e)
+    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e): s += muxsec(self.const(x,y,f,True)) + muxsec(self.const(x,y,f,False))
     s += n
-    for (x,y,f,fd) in self.outCalls(e):                    s += fundecl(fd, wrap=True)
-    for (x,y,f,fd) in self.inCalls(e):                     s += fundecl(fd, wrap=False)
-    s += n
+    for (x,y,f,fd) in self.outCalls(e): s += fundecl(fd, wrap=True)
+    for (x,y,f,fd) in self.inCalls(e):  s += fundecl(fd, wrap=False)
+    s += trailer()
     return s
 
   ##############################################################################################################
   def genrpcC(self, e, ipc): 
-    n = '\n' 
-    t = '    '
+    n,t = '\n','    '
     def boiler():
       s  = '#include "' + e + '_rpc.h"' + n
       s += '#define TAG_MATCH(X, Y) (X.mux == Y.mux && X.sec == Y.sec && X.typ == Y.typ)' + n
@@ -145,7 +159,7 @@ class GEDLProcessor:
       return s
     def regdtyp(x,y,f,outgoing=True): 
       l  = self.const(x,y,f,outgoing)
-      return t + 'xdc_register(request_' + f + "_data_encode, request_" + f + '_data_decode, ' + l['typdef'] + ');' + n
+      return 'xdc_register(request_' + f + "_data_encode, request_" + f + '_data_decode, ' + l['typdef'] + ');' + n
     def halinit(e):    # XXX: hardcoded tags, should use self.const
       s  = 'void _hal_init(char *inuri, char *outuri) {' + n 
       s += t + 'xdc_set_in(inuri);' + n 
@@ -178,15 +192,15 @@ class GEDLProcessor:
       s += t + '#pragma cle begin TAG_NEXTRPC' + n                                              
       s += t + 'nextrpc_datatype nxt;' + n
       s += t + '#pragma cle end TAG_NEXTRPC' + n
+      s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
       s += t + '#pragma cle begin TAG_OKAY' + n
       s += t + 'okay_datatype okay;' + n
-      s += t + '#pragma cle end TAG_OKAY' + n + n
+      s += t + '#pragma cle end TAG_OKAY' + n
+      s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
+      s += BLOCK2()
       s += t + 'nxt.mux = n_tag->mux;' + n
       s += t + 'nxt.sec = n_tag->sec;' + n
       s += t + 'nxt.typ = n_tag->typ;' + n
-      s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
-      s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n + n
-      s += BLOCK2()
       s += t + 'xdc_asyn_send(psocket, &nxt, &t_tag);' + n
       s += t + 'xdc_blocking_recv(ssocket, &okay, &o_tag);' + n
       s += t + '// XXX: check that we got valid OK?' + n
@@ -195,12 +209,12 @@ class GEDLProcessor:
     def handlerdef(x,y,f,fd,ipc):
       s  = 'void _handle_request_' + f + '(gaps_tag* tag) {' + n
       s += BLOCK1()
-      l  = self.const(x,y,f,False)
+      l  = self.const(x,y,f,True)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'request_' + f + '_datatype req_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
       s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      l  = self.const(x,y,f,True)
+      l  = self.const(x,y,f,False)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'response_' + f + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
@@ -249,6 +263,7 @@ class GEDLProcessor:
         s += '#define NXDRPC ' + str(len(calls) + 1) + n
         s += 'WRAP(nextrpc)' + n
         for (x,y,f,fd) in calls: s += 'WRAP(request_' + f + ')' + n
+        s += n
         s += 'int _slave_rpc_loop() {' + n
         s += t + 'pthread_t tid[NXDRPC];'  + n
         s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n
@@ -289,61 +304,54 @@ class GEDLProcessor:
     return s
 
   ##############################################################################################################
-  def processFile(self, prog, enclaves, idir, odir, rel, fname): 
-    canonold  = os.path.normpath(idir + '/' + rel + '/' + fname)
-    canonmain = os.path.normpath(idir + '/' + rel + '/' + prog + '.c')
-    canonnew  = os.path.normpath(odir + '/' + rel + '/' + fname)
-    if canonold == canonmain: # process main files
-      # check if in master
-      pass
-    # else if canonold in self.affectedFiles:
-    else:
-      copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
-
-  ##############################################################################################################
-  def processSourceTree(self,prog,enclaves,idirp,odirp):
-    idir   = idirp.rstrip('/')
-    odir   = odirp.rstrip('/')
-    os.makedirs(odir, mode=0o755, exist_ok=True)  
-    for l in enclaves: os.makedirs(odir + '/' + l, mode=0o755, exist_ok=True)  
-    for root, dirs, files in os.walk(idir):
-      rel = remove_prefix(root,idir).lstrip('/')
-      for name in dirs:
-        for l in enclaves:
-          newd = os.path.join(odir, rel, name)
-          os.makedirs(newd, mode=0o755, exist_ok=True)  
-      for fname in files: self.processFile(prog,enclaves,idir,odir,rel,fname)
-
-  ##############################################################################################################
   def findMaster(self,enclaves,idirp,prog): 
     idir   = idirp.rstrip('/')
     for e in enclaves:
       fn = idir + '/' + e + '/' + prog + '.c'
       if gotMain(fn): self.masters.append(e)
 
-"""
-    with open(enclaveMap[enclave][0]) as old_file:
-        with open((args.odir + "/" + enclave + "/" + newFile),"w") as modc_file:
-            modc_file.write("#include \"" + newFile[:newFile.rfind(".")] + "_rpc.h\"\n")
-            oldFileLines = list(old_file)
-            for index, line in enumerate(oldFileLines):
-                if "int main(" in line:
-                    modc_file.write(line)
-                    modc_file.write("\t_master_rpc_init();\n")
-                    enclaveMap[enclave][1] = "master"
-                    continue
-                while len(replaceList[enclaveIndex]) > 0 and (index+1) == replaceList[enclaveIndex][0][0]:
-                    callIndex = line.find(replaceList[enclaveIndex][0][1])
-                    if callIndex == -1:
-                        print("Error: GEDL Cross-Enclave callsite in file %s for function %d at line %s could not be found" % (enclaveMap[enclave][0],index,replaceList[enclaveIndex][0][1]))
-                    else:
-                        line = line.replace(replaceList[enclaveIndex][0][1],"_rpc_" + replaceList[enclaveIndex][0][1])
-                    del replaceList[enclaveIndex][0]
-                modc_file.write(line)
-            if enclaveMap[enclave][1] != "master":
-                modc_file.write("int main(int argc, char **argv) {\n\treturn _slave_rpc_loop();\n}")
+  ##############################################################################################################
+  def processSourceTree(self,prog,enclaves,idirp,odirp):
+    idir   = idirp.rstrip('/')
+    odir   = odirp.rstrip('/')
+    os.makedirs(odir, mode=0o755, exist_ok=True)  
+    for e in enclaves: 
+      os.makedirs(odir + '/' + e, mode=0o755, exist_ok=True)  
+      for root, dirs, files in os.walk(idir + '/' + e):
+        rel = remove_prefix(root,idir).lstrip('/')
+        for name in dirs:
+          newd = os.path.join(odir, rel, name)
+          os.makedirs(newd, mode=0o755, exist_ok=True)  
+        for fname in files: self.processFile(prog,e,idir,odir,rel,fname)
 
-"""
+  ##############################################################################################################
+  def processFile(self, prog, e, idir, odir, rel, fname): # XXX: ought to use a C Parser, not regex
+    canonold  = os.path.abspath(idir + '/' + rel + '/' + fname)
+    canonmain = os.path.abspath(idir + '/' + e   + '/' + prog + '.c')
+    canonnew  = os.path.abspath(odir + '/' + rel + '/' + fname)
+    if canonold == canonmain or canonold in self.affected:
+      with open(canonold, 'r') as oldf:
+        with open(canonnew, 'w') as newf:
+          newf.write('#include "' + e + '_rpc.h"' + '\n')
+          oldfLines = list(oldf)
+          for index, line in enumerate(oldfLines):
+            if "int main(" in line:
+              print('adding rpc init to main in: ' + canonold)
+              newf.write(line)
+              newf.write("  _master_rpc_init();\n")
+              continue
+            if canonold in self.affected:
+              if index+1 in self.affected[canonold]:
+                for func in self.affected[canonold][index+1]:
+                  if line.find(func) == -1: raise Exception(func + ' not found in ' + canonold + ' at line ' + str(index) + ':' + line)
+                  line = line.replace(func, '_rpc_' + func)
+                  print('replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonold)
+            newf.write(line)
+          if e not in self.masters:
+            print('adding slave main to: ' + canonold)
+            newf.write('int main(int argc, char *argv[]) {\n  return _slave_rpc_loop();\n}')
+    else:
+      copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
 
 #####################################################################################################################################################
 if __name__ == '__main__':
