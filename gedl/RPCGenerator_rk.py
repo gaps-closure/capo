@@ -173,7 +173,7 @@ class GEDLProcessor:
       return s
     def BLOCK1():
       s  = t + 'static int inited = 0;' + n
-      s += t + 'static static void *psocket;' + n
+      s += t + 'static void *psocket;' + n
       s += t + 'static void *ssocket;' + n
       s += t + 'gaps_tag t_tag;' + n
       s += t + 'gaps_tag o_tag;' + n
@@ -206,6 +206,56 @@ class GEDLProcessor:
       s += t + '// XXX: check that we got valid OK?' + n
       s += '}' + n + n
       return s
+    def rpcwrapdef(x,y,f,fd,ipc):
+      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      s = fd['return']['type'] + ' _rpc_' + f + '(' + ','.join([mparam(q) for q in fd['params']]) +') {' + n
+      s += BLOCK1()
+      l  = self.const(x,y,f,True)
+      s += t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + 'request_' + f + '_datatype req_' + f + ';' + n
+      s += t + '#pragma cle end ' + l['clelabl'] + n
+      s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      l  = self.const(x,y,f,False)
+      s += t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + 'response_' + f + '_datatype res_' + f + ';' + n
+      s += t + '#pragma cle end ' + l['clelabl'] + n
+      s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      if len(fd['params']) == 0:
+        s += t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void 
+      else:
+        for q in fd['params']:
+          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']: 
+            s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + q['name'] + '[i];' + n
+          else:
+            s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
+      s += BLOCK2()
+      if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
+      s += t + 'xdc_asyn_send(psocket, &req_' + f + ', &t_tag);' + n
+      s += t + 'xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag);' + n
+      # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
+      s += t + 'return (res_' + f + '.ret);' + n
+      s += '}' + n + n
+      return s
+    def handlernextrpc(): #XXX: hardcoded tags
+      s = 'void _handle_nextrpc(gaps_tag* n_tag) {' + n
+      s += BLOCK1()
+      s += t + '#pragma cle begin TAG_NEXTRPC' + n
+      s += t + 'nextrpc_datatype nxt;' + n
+      s += t + '#pragma cle end TAG_NEXTRPC' + n
+      s += t + '#pragma cle begin TAG_OKAY' + n
+      s += t + 'okay_datatype okay;' + n
+      s += t + '#pragma cle end TAG_OKAY' + n
+      s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
+      s += BLOCK2()
+      s += t + 'xdc_blocking_recv(ssocket, &nxt, &t_tag);' + n
+      s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
+      s += t + 'okay.x = 0;' + n
+      s += t + 'xdc_asyn_send(psocket, &okay, &o_tag);' + n
+      s += t + 'n_tag->mux = nxt.mux;' + n
+      s += t + 'n_tag->sec = nxt.sec;' + n
+      s += t + 'n_tag->typ = nxt.typ;' + n
+      s += '}' + n + n
+      return s
     def handlerdef(x,y,f,fd,ipc):
       s  = 'void _handle_request_' + f + '(gaps_tag* tag) {' + n
       s += BLOCK1()
@@ -226,34 +276,6 @@ class GEDLProcessor:
       s += t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
       s += '}' + n + n
       return s
-    def rpcwrapdef(x,y,f,fd,ipc):
-      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
-      s = fd['return']['type'] + ' _rpc_' + f + '(' + ','.join([mparam(q) for q in fd['params']]) +') {' + n
-      s += BLOCK1()
-      l  = self.const(x,y,f,True)
-      s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'request_' + f + '_datatype req_' + f + ';' + n
-      s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      l  = self.const(x,y,f,False)
-      s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'response_' + f + '_datatype res_' + f + ';' + n
-      s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      if len(fd['params']) == 0:
-        s += t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void 
-      else:
-        for q in fd['params']:
-          s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
-          # XXX: check if this is adequate for arrays, also marshalling/unmarshalling must be called out as general reusable functions
-      s += BLOCK2()
-      if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
-      s += t + 'xdc_asyn_send(psocket, &req_' + f + ', &t_tag);' + n
-      s += t + 'xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag);' + n
-      # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
-      s += t + 'return (res_' + f + '.ret);' + n
-      s += '}' + n + n
-      return s
     def masterdispatch(e,ipc):
       return 'void _master_rpc_init() {' + n + t + '_hal_init((char*)INURI, (char *)OUTURI);' +n + '}' + n + n
     def slavedispatch(e,ipc):
@@ -265,6 +287,7 @@ class GEDLProcessor:
         for (x,y,f,fd) in calls: s += 'WRAP(request_' + f + ')' + n
         s += n
         s += 'int _slave_rpc_loop() {' + n
+        s += t + 'gaps_tag n_tag;' + n
         s += t + 'pthread_t tid[NXDRPC];'  + n
         s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n
         tidIndex = 0
@@ -278,8 +301,8 @@ class GEDLProcessor:
         s += '}' + n + n
       else: 
         s += 'int _slave_rpc_loop() {' + n
-        s += 'gaps_tag n_tag;' + n
-        s += 'gaps_tag t_tag;' + n + n
+        s += t + 'gaps_tag n_tag;' + n
+        s += t + 'gaps_tag t_tag;' + n + n
         s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n + n
         s += t + 'while (1) {' + n
         s += t + t + '_handle_nextrpc(&n_tag);' + n
@@ -297,7 +320,7 @@ class GEDLProcessor:
       return s
 
     s = boiler() + halinit(e)
-    if e in self.masters: s += notify_nxtag() + n    # XXX: redundant for multithreaded
+    s += notify_nxtag() if e in self.masters else handlernextrpc()
     for (x,y,f,fd) in self.inCalls(e):  s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e): s += rpcwrapdef(x,y,f,fd,ipc)
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
@@ -336,7 +359,7 @@ class GEDLProcessor:
           oldfLines = list(oldf)
           for index, line in enumerate(oldfLines):
             if "int main(" in line:
-              print('adding rpc init to main in: ' + canonold)
+              print('Adding rpc init to master main in: ' + canonnew)
               newf.write(line)
               newf.write("  _master_rpc_init();\n")
               continue
@@ -345,10 +368,10 @@ class GEDLProcessor:
                 for func in self.affected[canonold][index+1]:
                   if line.find(func) == -1: raise Exception(func + ' not found in ' + canonold + ' at line ' + str(index) + ':' + line)
                   line = line.replace(func, '_rpc_' + func)
-                  print('replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonold)
+                  print('Replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
             newf.write(line)
           if e not in self.masters:
-            print('adding slave main to: ' + canonold)
+            print('Adding slave main to: ' + canonnew)
             newf.write('int main(int argc, char *argv[]) {\n  return _slave_rpc_loop();\n}')
     else:
       copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
@@ -363,9 +386,9 @@ if __name__ == '__main__':
   print('Processing source tree from ' + args.edir + ' to ' + args.odir)
   gp.processSourceTree(args.mainprog,args.enclave_list,args.edir,args.odir)
   for e in args.enclave_list:
-    print('Generating RPC Header')
+    print('Generating RPC Header for:', e)
     with open(args.odir + '/' + e + '/' + e + '_rpc.h', 'w') as rh: rh.write(gp.genrpcH(e, args.inuri, args.outuri, args.ipc))
-    print('Generating RPC Code')
+    print('Generating RPC Code for:', e)
     with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc))
   print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
