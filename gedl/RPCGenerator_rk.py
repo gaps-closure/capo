@@ -3,7 +3,9 @@ import json
 import sys
 import copy
 import os
+import re
 from argparse import ArgumentParser
+from shutil import copyfile
 
 #####################################################################################################################################################
 def argparser():
@@ -18,9 +20,17 @@ def argparser():
   parser.add_argument('-e','--edir', required=True, type=str, help='Input Directory')
   parser.add_argument('-E','--enclave_list', required=True, type=str, nargs='+', help='List of enclaves')
   parser.add_argument('-B','--app_base', required=False, type=int, default=0, help='Application base index for tags')
-  parser.add_argument('-m','--mainprog', required=True, type=str, help='File with main program on master side')
+  parser.add_argument('-m','--mainprog', required=True, type=str, help='Application program name, <mainprog>.c must exsit')
   return parser.parse_args()
 
+def remove_prefix(t,pfx): return t[len(pfx):] if t.startswith(pfx) else t
+
+def gotMain(fn): # XXX: brittle, will fail on #ifdef'd out main, ought to actually use clang.cindex to determine if there is indeed a main function
+  with open(fn,'r') as fp:
+    for row in fp:
+      if re.match(r'\s*int\s+main\s*\(',row): return True
+  return False
+  
 #####################################################################################################################################################
 class GEDLProcessor:
   def __init__(self, gedlfile, enclaveList, appbase):
@@ -106,7 +116,7 @@ class GEDLProcessor:
       return s
     def fundecl(fd, wrap=True): 
       s  = 'extern ' + fd['return']['type'] + ' ' + ('_rpc_' if wrap else '') + fd['func'] + '('
-      s += ','.join([p['type'] + '[]' if 'sz' in p else '' + ' ' + p['name'] for p in fd['params']]) + ');' + n  # XXX: check array/pointer
+      s += ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]) + ');' + n  # XXX: check array/pointer
       return s
     def trailer(): return n + '#endif /* _' + e.upper() + '_RPC_ */' + n
 
@@ -203,7 +213,7 @@ class GEDLProcessor:
       s += '}' + n + n
       return s
     def rpcwrapdef(x,y,f,fd,ipc):
-      def mparam(q): return q['type'] + ('[]' if 'sz' in q else '') + ' ' + q['name']  # XXX: check array/pointer issues
+      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
       s = fd['return']['type'] + ' _rpc_' + f + '(' + ','.join([mparam(q) for q in fd['params']]) +') {' + n
       s += BLOCK1()
       l  = self.const(x,y,f,True)
@@ -221,7 +231,7 @@ class GEDLProcessor:
       else:
         for q in fd['params']:
           s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
-          # XXX: check if this is adequate for arrays
+          # XXX: check if this is adequate for arrays, also marshalling/unmarshalling must be called out as general reusable functions
       s += BLOCK2()
       if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
       s += t + 'xdc_asyn_send(psocket, &req_' + f + ', &t_tag);' + n
@@ -279,25 +289,40 @@ class GEDLProcessor:
     return s
 
   ##############################################################################################################
-  def walkSourceTree(self): pass
-  # look for main program in each enclave
-  # confirm only one has main
-  # update self.masters with enclave
-  # process the main 
-  # for every program and line requiring mod
-  def inferMaster(self): pass
-  def processFiles(self): pass
+  def processFile(self, prog, enclaves, idir, odir, rel, fname): 
+    canonold  = os.path.normpath(idir + '/' + rel + '/' + fname)
+    canonmain = os.path.normpath(idir + '/' + rel + '/' + prog + '.c')
+    canonnew  = os.path.normpath(odir + '/' + rel + '/' + fname)
+    if canonold == canonmain: # process main files
+      # check if in master
+      pass
+    # else if canonold in self.affectedFiles:
+    else:
+      copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
 
+  ##############################################################################################################
+  def processSourceTree(self,prog,enclaves,idirp,odirp):
+    idir   = idirp.rstrip('/')
+    odir   = odirp.rstrip('/')
+    os.makedirs(odir, mode=0o755, exist_ok=True)  
+    for l in enclaves: os.makedirs(odir + '/' + l, mode=0o755, exist_ok=True)  
+    for root, dirs, files in os.walk(idir):
+      rel = remove_prefix(root,idir).lstrip('/')
+      for name in dirs:
+        for l in enclaves:
+          newd = os.path.join(odir, rel, name)
+          os.makedirs(newd, mode=0o755, exist_ok=True)  
+      for fname in files: self.processFile(prog,enclaves,idir,odir,rel,fname)
+
+  ##############################################################################################################
+  def findMaster(self,enclaves,idirp,prog): 
+    idir   = idirp.rstrip('/')
+    for e in enclaves:
+      fn = idir + '/' + e + '/' + prog + '.c'
+      if gotMain(fn): self.masters.append(e)
 
 """
-# XXX: to be rewritten for source trees
-def CModFunction(enclave,args,enclaveMap,replaceList,callerList,calleeList):
-    if not os.path.isfile(enclaveMap[enclave][0]):
-        print("File" + enclaveMap[enclave][0] + "does not exist. Please update GEDL Schema with valid C file.\n")
-        exit(0)
     with open(enclaveMap[enclave][0]) as old_file:
-        newFile = enclaveMap[enclave][0][enclaveMap[enclave][0].rfind('/') + 1:]
-        enclaveIndex = enclaveMap[enclave][2]
         with open((args.odir + "/" + enclave + "/" + newFile),"w") as modc_file:
             modc_file.write("#include \"" + newFile[:newFile.rfind(".")] + "_rpc.h\"\n")
             oldFileLines = list(old_file)
@@ -324,16 +349,16 @@ def CModFunction(enclave,args,enclaveMap,replaceList,callerList,calleeList):
 if __name__ == '__main__':
   args = argparser()
   gp   = GEDLProcessor(args.gedl,args.enclave_list,args.app_base)
-
-  # gp.findMaster()
-  # XXX: hack until we infer this from code
-  gp.masters.append('orange')
-
-  # gp.processSourceTree()
-
+  if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
+  gp.findMaster(args.enclave_list,args.edir,args.mainprog)
+  if len(gp.masters) != 1: raise Exception('Need one master, got:' + ' '.join(gp.masters))
+  print('Processing source tree from ' + args.edir + ' to ' + args.odir)
+  gp.processSourceTree(args.mainprog,args.enclave_list,args.edir,args.odir)
   for e in args.enclave_list:
+    print('Generating RPC Header')
     with open(args.odir + '/' + e + '/' + e + '_rpc.h', 'w') as rh: rh.write(gp.genrpcH(e, args.inuri, args.outuri, args.ipc))
+    print('Generating RPC Code')
     with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc))
-
+  print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
 
