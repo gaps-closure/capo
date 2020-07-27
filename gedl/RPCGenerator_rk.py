@@ -178,11 +178,11 @@ class GEDLProcessor:
       s += t + 'gaps_tag t_tag;' + n
       s += t + 'gaps_tag o_tag;' + n
       return s;
-    def BLOCK2():
+    def BLOCK2(tag):
       s  = t + 'if (!inited) {' + n
       s += t + t + 'inited = 1;' + n
       s += t + t + 'psocket = xdc_pub_socket();' + n
-      s += t + t + 'ssocket = xdc_sub_socket(t_tag);' + n
+      s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
       s += t + t + 'sleep(1); /* zmq socket join delay */' + n
       s += t + '}' + n 
       return s;
@@ -197,7 +197,7 @@ class GEDLProcessor:
       s += t + 'okay_datatype okay;' + n
       s += t + '#pragma cle end TAG_OKAY' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
-      s += BLOCK2()
+      s += BLOCK2('o_tag')
       s += t + 'nxt.mux = n_tag->mux;' + n
       s += t + 'nxt.sec = n_tag->sec;' + n
       s += t + 'nxt.typ = n_tag->typ;' + n
@@ -228,7 +228,7 @@ class GEDLProcessor:
             s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + q['name'] + '[i];' + n
           else:
             s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
-      s += BLOCK2()
+      s += BLOCK2('o_tag')
       if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
       s += t + 'xdc_asyn_send(psocket, &req_' + f + ', &t_tag);' + n
       s += t + 'xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag);' + n
@@ -246,7 +246,7 @@ class GEDLProcessor:
       s += t + 'okay_datatype okay;' + n
       s += t + '#pragma cle end TAG_OKAY' + n
       s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
-      s += BLOCK2()
+      s += BLOCK2('t_tag')
       s += t + 'xdc_blocking_recv(ssocket, &nxt, &t_tag);' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
       s += t + 'okay.x = 0;' + n
@@ -269,7 +269,7 @@ class GEDLProcessor:
       s += t + 'response_' + f + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
       s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      s += BLOCK2()
+      s += BLOCK2('t_tag')
       s += t + 'xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag);' + n
       s += t + ('res_' + f + '.ret = ' if fd['return']['type'] != 'void' else '') + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
       # XXX: marshaller needs to copy output arguments (including arrays) to res here !!
