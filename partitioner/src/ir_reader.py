@@ -10,8 +10,8 @@ class DbgInfo():
     def __init__(self, node_, name_, line_, column_, file_ = None, local_ = True, function_ = False):
         self.node = node_
         self.name = name_
-        self.line = str(line_)
-        self.column = str(column_)
+        self.line = str(line_) if line_ else None
+        self.column = str(column_) if column_ else None
         self.file = file_
         self.local = local_
         if self.name and re.match(r'\w+\.addr', self.name):

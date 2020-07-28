@@ -101,7 +101,7 @@ class PolicyResolver():
         if not ('cdf' in cjd and len(cjd['cdf']) == 1):
                 return False, "Definition of label '%s' does not have exactly one 'cdf' section"
         cdf = cjd['cdf'][0]
-        needed = set(['argtaints' ,'codtaints', 'rettaints' ,'remotelevel', 'direction', 'guardhint'])
+        needed = set(['argtaints' ,'codtaints', 'rettaints' ,'remotelevel', 'direction', 'guarddirective'])
         if  not needed.issubset(set(cdf.keys())):
             return False, "Definition of label '%s' has to comply with XD convention"%(tai)
         if cdf['remotelevel'] != target_enc:

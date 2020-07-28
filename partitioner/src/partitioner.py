@@ -80,6 +80,7 @@ class ConflictInfo():
         self.label = self.label.replace('\\\n', '')
         self.line = dinfo.get_line() if dinfo is not None else 0
         self.column = dinfo.get_column() if dinfo is not None else 0
+        self.file = dinfo.get_file() if dinfo is not None else None
         #print("CI: dinfo(dst)", dinfo, "<<>>", dinfo.get_node())
         #print("CI: dinfo(src)", dinfo_src, "<<>>", dinfo_src and dinfo_src.get_node())
         m = re.match(r'.+call .+ @(\w+)\(', self.label)
@@ -100,7 +101,7 @@ class ConflictInfo():
             return
         #print("SL:", self.label)
         #print("DINFO_SRC:",dinfo_src)
-        m = re.match(r'ACTUAL_IN: (\d+)', self.label)
+        m = re.match(r'(?:ACTUAL|FORMAL)_(?:IN|OUT): (\d+)', self.label)
         if m is not None:
             self.kind = ConflictInfo.FUNCTION_PARAMETER
             #pnam = dinfo_src.get_name() if dinfo_src else "UNKN"
@@ -116,13 +117,18 @@ class ConflictInfo():
         return self.kind
     
     def __str__(self):
+        if self.line is None or self.line == 0:
+            return "Spurious or duplicated conflict, omitted"
         dep = ""
         if self.edge:
             if "CONTROL" in self.edge.get_label():
                 dep = " (control dep.)"
             else:
                 dep = " (data dep.)"
-        return "Conflict on line %s, column %s (%s, name: %s)%s" % (self.line, self.column, self.kind_str(), self.name, dep)
+        fil = ""
+        if self.file:
+            fil = ", " + self.file
+        return "Conflict on line %s, column %s%s (%s, name: %s)%s" % (self.line, self.column, fil, self.kind_str(), self.name, dep)
     def __repr__(self):
         return self.__str__()
     
@@ -410,8 +416,9 @@ class Partitioner():
                     function_labels.append(func_l)
                 else:
                     print("A function is not marked at the end of analysis:", fdinfo)
-                    print("  ACTION: Check annotations and policies in the program")
-                    print("  ACTION: This may only happen if security policies are incorrect")
+                    print("  ACTION: This may only happen if the program or the security policies are incorrect")
+                    print("  ACTION: Check annotations and policies in the program.")
+                    print("  ACTION: Check for unused functions. Check for functions called with wrong number of parameters.")
         
         #write enclaves.dot file, make sure debug info is a string        
         for n in self.dot.get_pdg_nodes():
