@@ -159,7 +159,10 @@ class GEDLProcessor:
       return s
     def regdtyp(x,y,f,outgoing=True): 
       l  = self.const(x,y,f,outgoing)
-      return 'xdc_register(request_' + f + "_data_encode, request_" + f + '_data_decode, ' + l['typdef'] + ');' + n
+      if outgoing:
+        return 'xdc_register(request_' + f + "_data_encode, request_" + f + '_data_decode, ' + l['typdef'] + ');' + n
+      else:
+        return 'xdc_register(response_' + f + "_data_encode, response_" + f + '_data_decode, ' + l['typdef'] + ');' + n
     def halinit(e):    # XXX: hardcoded tags, should use self.const
       s  = 'void _hal_init(char *inuri, char *outuri) {' + n 
       s += t + 'xdc_set_in(inuri);' + n 
