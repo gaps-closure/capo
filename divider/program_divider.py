@@ -8,6 +8,7 @@ from   pprint        import pprint
 import json
 import sys
 import os
+import os.path
 import re
 
 def get_diag_info(diag):
@@ -77,17 +78,19 @@ def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
   print('Processing:', ifile)
   index = Index.create()
 
-  fs       = fname.rsplit('.',1)
-  basename = fs[0]
-  suffix   = '.' + fs[1] if len(fs) == 2 else ''
+  #split the file basename/extention
+  fs       = os.path.splitext(fname)
+  (basename,suffix) = fs
+  
   # def ofile(l): return os.path.join(odir, l, relpath, basename + '_' + l + suffix)
   def ofile(l): return os.path.join(odir, l, relpath, basename + suffix)
 
-  if len(fs) != 2 and (suffix != '.c' or suffix != '.h'): # not a .c/.h file
+  if len(fs) != 2 or (suffix != '.c' and suffix != '.h'): # not a .c/.h file
     print('Renaming and copying to all levels:', ifile)
     for l in lvls: copyfile(ifile, ofile(l))
     return
 
+  #print("Process [%s%s]"%(str(fs[0]),str(fs[1])))
   tu = index.parse(ifile, args=cargs.split(','))
   if not tu: raise Exception("unable to load input")
   # cindex_dump(tu)
@@ -124,8 +127,13 @@ def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
         lvlfp[lvl].write(line)
         # print('Warning: clebegin on line %d sent to next fun/var level %s' % (curl,lvl))
       elif re.match(r'\s*#\s*pragma\s+cle\s+end\s+.*', line):
-        lvlfp[llvl].write(line)
-        # print('Warning: cleend on line %d sent to previous fun/var level %s' % (curl,llvl))
+        if(llvl is None):
+          #Empty block? or #if out
+          lvlfp[lvl].write(line)
+          # print('Warning: cleend on line %d without a previous fun/var level, seend to next level %s' % (curl,lvl))
+        else:
+          lvlfp[llvl].write(line)
+          # print('Warning: cleend on line %d sent to previous fun/var level %s' % (curl,llvl))
       else: 
         for l in lvls: lvlfp[l].write(line)
   for l in lvls: lvlfp[l].close()
