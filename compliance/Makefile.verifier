@@ -1,0 +1,83 @@
+PROG=secdesk
+OPT_DBG=opt
+LLVMLINK=llvm-link
+LLVMDIS=llvm-dis
+IPCMODE=multithreaded
+CAPO_DIR=~/gaps/capo.sec_comp
+LIBPDG=$(CAPO_DIR)/pdg/build/libpdg.so
+PYTHON=python3
+PARTITIONER_DIR=$(CAPO_DIR)/partitioner/src
+TAGPROC=$(PARTITIONER_DIR)/tag_processor.py
+CLOSURE_SCHEMAS=~/gaps/mules/cle-spec/schema
+PREPROCESSOR=~/gaps/mules/cle-preprocessor/src/qd_cle_preprocessor.py
+CLANG=clang
+CLANG_FLAGS= -g
+CLOSURE_INCLUDES=-S -emit-llvm -I.solution/refactored/facilio/include
+VERIFIER=./verifier
+
+########## standalone test, remove above for integration
+########################################################
+
+IDIR=./divvied
+ODIR=./partitioned/$(IPCMODE)
+
+ENCLAVES=
+enclaves_set := $(foreach enclave,$(sort $(dir $(wildcard $(IDIR)//*/))), $(eval ENCLAVES+=$(notdir $(enclave:%/=%))))
+
+REFACTORED=.solution/refactored
+PARTITIONED=
+partitioned_set := $(foreach enclave,$(ENCLAVES), $(eval PARTITIONED += $(ODIR)/$(enclave)))
+
+# preprocess each C and H file, rename them back
+# $(EDIR)/preproc.done: $(EDIR)/cleancopy.done
+SRC=
+src_rpc_set := $(foreach enclave,$(ENCLAVES), $(eval SRC += $(ODIR)/$(enclave)/${enclave}_rpc.c))
+#src_c_set := $(foreach enclave,$(ENCLAVES), $(eval SRC += $(ODIR)/$(enclave)/${enclave}.c))
+src_refactor_set := $(foreach enclave,$(ENCLAVES), $(eval SRC += ./$(REFACTORED)/${PROG}.c))
+
+# run the preprocessor for *_rpc only
+RPC_SRC=
+src_rpc_set := $(foreach enclave,$(ENCLAVES), $(eval RPC_SRC += $(ODIR)/$(enclave)/${enclave}_rpc.c))
+src_ref_set := $(foreach enclave,$(ENCLAVES), $(eval RPC_SRC += $(REFACTORED)/${PROG}.c))
+
+HDR=
+hdr_set := $(foreach enclave,$(ENCLAVES), $(eval HDR += $(ODIR)/$(enclave)/${enclave}_rpc.h))
+
+
+#CLANG_INCLUDES=-I $(CLOSURE_INCLUDES) -I $(ODIR)/autogen
+CLANG_INCLUDES= $(CLOSURE_INCLUDES) -I $(ODIR)/autogen
+
+MODC=$(patsubst %.c, %.mod.c, $(SRC)) 
+MODH=$(patsubst %.h, %.mod.h, $(HDR)) 
+
+RPC=$(patsubst %.c, %.mod.c, $(RPC_SRC)) 
+
+MODLL=$(patsubst %.mod.c, %.mod.ll, $(MODC))
+MODCJC=$(patsubst %.c, %.c.clemap.json,$(SRC))
+MODCJH=$(patsubst %.h,%.h.clemap.json,$(HDR))
+
+all: verify
+	echo done
+
+clean:
+	rm -f $(MODC) $(MODH) $(MODLL) $(MODCJC) $(MODCJH)
+
+#.SECONDARY:
+
+verify: prep
+	$(VERIFIER) -v $(REFACTORED) $(PARTITIONED)
+
+prep: $(RPC) $(MODH) $(MODLL)
+	# rename foo.mod.? to foo.? 
+	# invoke llvm-link?
+	echo Done
+
+%.mod.ll: %.mod.c
+	@echo $(SRC)
+	$(CLANG) $(CLANG_FLAGS) $(CLANG_INCLUDES) -o $@ $<
+
+%.mod.c: %.c
+	$(PYTHON) $(PREPROCESSOR) -s ${CLOSURE_SCHEMAS}/cle-schema.json -f $<
+
+%.mod.h: %.h
+	$(PYTHON) $(PREPROCESSOR) -s ${CLOSURE_SCHEMAS}/cle-schema.json -f $<
