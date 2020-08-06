@@ -33,9 +33,15 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   std::string enclaveFile = programName + ".gedl";
   edl_file.open(enclaveFile);
 
+  auto main = M.getFunction(StringRef("main"));
+  PDG->buildPDGForFunc(main);
   //For loop for every function to construct a map of every domain and the filepath for every function
   for (Function &function : M) {
     if (function.isDeclaration()) continue;  // skip intrinsic funcs
+
+    if (!pdgUtils.getFuncMap()[&function]->hasTrees()) {
+      PDG->buildPDGForFunc(&function);
+    }
     // Get func Metadata and filepath
     DISubprogram *funcMeta =
         dyn_cast<llvm::DISubprogram>(function.getMetadata(0));
@@ -118,7 +124,7 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
   // Get the main Functions closure for root ECALLs
   auto main = M.getFunction(StringRef("main"));
   auto mainClosure = getTransitiveClosure(*main);
-  PDG->buildPDGForFunc(main);
+  //PDG->buildPDGForFunc(main);
 
   // Open file for ecall wrapper functions
   if (false){
@@ -515,15 +521,19 @@ AccessType pdg::AccessInfoTracker::getAccessTypeForInstW(
     InstructionWrapper *depInstW =
         const_cast<InstructionWrapper *>(depPair.first->getData());
     DependencyType depType = depPair.second;
-    //errs() << "\n" << *(depInstW->getInstruction()) << "\n";
+    //errs() << "\nDependency Instruction: " << *(depInstW->getInstruction()) << "\n";
     // check for read
+    
     if (!depInstW->getInstruction() || depType != DependencyType::DATA_DEF_USE)
       continue;
-
+    AccessType accType = getAccessTypeForInstW(depInstW,argW);
+    if (accType != AccessType::NOACCESS){
+      accessType = accType;
+    }
     if (isa<LoadInst>(depInstW->getInstruction()) ||
-        isa<GetElementPtrInst>(depInstW->getInstruction()))
+        isa<GetElementPtrInst>(depInstW->getInstruction())){
       accessType = AccessType::READ;
-
+    }
     // check for store instruction.
     //errs() << *(depInstW->getInstruction()) << "\n";
     if (StoreInst *st = dyn_cast<StoreInst>(depInstW->getInstruction())) {
@@ -538,7 +548,6 @@ AccessType pdg::AccessInfoTracker::getAccessTypeForInstW(
         break;
       }
     }
-    // Heuristic checks for string-only functions
     if (CallInst *callInst = dyn_cast<CallInst>(depInstW->getInstruction())) {
       // Get the funcName this argument is used as parameter
       std::string funcName;
@@ -571,10 +580,13 @@ AccessType pdg::AccessInfoTracker::getAccessTypeForInstW(
             ArgumentWrapper *innerArgW = funcW->getArgWList()[argNum];
             if (innerArgW->getAttribute().isString())
               argW->getAttribute().setString();
+            else if (argW->getAttribute().isString())
+              innerArgW->getAttribute().setString();
           }
         }
       }
-      if (DIUtils::isVoidPointerTy(*argW->getArg()))
+      // Removed if as non-void pointers should be checked: if (DIUtils::isVoidPointerTy(*argW->getArg()))
+      if (DIUtils::isPointerType(DIUtils::getArgDIType(*argW->getArg())))
         Heuristics::addSizeAttribute(funcName, argNum, callInst, argW, PDG);
     }
   }
@@ -582,109 +594,6 @@ AccessType pdg::AccessInfoTracker::getAccessTypeForInstW(
 }
 
 void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
-    ArgumentWrapper *argW, TreeType treeTy) {
-  auto argTree = argW->getTree(treeTy);
-  if (argTree.size() == 0) return;
-  // throw new ArgParameterTreeSizeIsZero("Argment tree is empty... Every param
-  // should have at least one node...\n");
-
-  auto func = argW->getArg()->getParent();
-  auto treeI = argW->getTree(treeTy).begin();
-  // if (!(*treeI)->getTreeNodeType()->isPointerTy())
-
-  if ((*treeI)->getDIType() == nullptr) {
-    errs() << "Empty debugging info for " << func->getName() << " - "
-           << argW->getArg()->getArgNo() << "\n";
-    return;
-  }
-  if ((*treeI)->getDIType()->getTag() != dwarf::DW_TAG_pointer_type &&
-      !DIUtils::isTypeDefPtrTy(*argW->getArg())) {
-    // errs() << func->getName() << " - " << argW->getArg()->getArgNo()
-    //        << " Find non-pointer type parameter, do not track...\n";
-    return;
-  }
-
-  AccessType accessType = AccessType::NOACCESS;
-  auto &pdgUtils = PDGUtils::getInstance();
-  int count = -1;
-  if (DIUtils::isTypeDefPtrTy(*argW->getArg())) {
-    argW->getAttribute().setIsPtr();
-    // it can also be readonly
-    if (DIUtils::isTypeDefConstPtrTy(*argW->getArg())) {
-      argW->getAttribute().setReadOnly();
-    }
-  }
-  for (auto treeI = argW->tree_begin(TreeType::FORMAL_IN_TREE);
-       treeI != argW->tree_end(TreeType::FORMAL_IN_TREE); ++treeI) {
-    count += 1;
-    auto valDepPairList =
-        PDG->getNodesWithDepType(*treeI, DependencyType::VAL_DEP);
-    for (auto valDepPair : valDepPairList) {
-      auto dataW = valDepPair.first->getData();
-      AccessType accType = getAccessTypeForInstW(dataW, argW);
-      if (static_cast<int>(accType) >
-          static_cast<int>((*treeI)->getAccessType())) {
-        auto &dbgInstList =
-            pdgUtils.getFuncMap()[func]->getDbgDeclareInstList();
-        std::string argName =
-            DIUtils::getArgName(*(argW->getArg()), dbgInstList);
-
-        if (accType == AccessType::WRITE) {
-          argW->getAttribute().setOut();
-        }
-        if (count == 1 && accType == AccessType::READ) {
-          argW->getAttribute().setIn();
-        }
-        // errs() << argName << " n" << count << "-"
-        //        << getAccessAttributeName(treeI) << " => "
-        //        << getAccessAttributeName((unsigned)accType) << "\n";
-
-        (*treeI)->setAccessType(accType);
-      }
-    }
-  }
-
-
-  auto main = pdgUtils.getFuncMap()[func]
-                  ->getDbgDeclareInstList()[0]
-                  ->getModule()
-                  ->getFunction(StringRef("main"));
-  for (auto callinst : pdgUtils.getFuncMap()[main]->getCallInstList()) {
-    
-    Function* calledFunction = callinst->getCalledFunction();
-    std::string funcName;
-    if (calledFunction != NULL){
-      funcName = calledFunction->getName().str();
-    }
-    else{
-      Value* v = callinst->getCalledValue();
-      Value* sv = v->stripPointerCasts();
-      funcName = sv->getName();
-    }
-    if (funcName != argW->getFunc()->getName().str()) continue;
-    //if ((callinst->getCalledFunction() != argW->getFunc())) continue;
-    
-    if (callinst->getNumArgOperands() < argW->getArg()->getArgNo()) continue;
-
-    Value *v = callinst->getOperand(argW->getArg()->getArgNo());
-    if (isa<Instruction>(v) || isa<Argument>(v)) {
-      // V is used in inst
-      if (dyn_cast<Instruction>(v)) {
-        if (GetElementPtrInst *getEl =
-                dyn_cast<GetElementPtrInst>(dyn_cast<Instruction>(v))) {
-          Type *T = dyn_cast<PointerType>(getEl->getPointerOperandType())
-                        ->getElementType();
-          if (isa<ArrayType>(T)) {
-            argW->getAttribute().setCount(
-                std::to_string(T->getArrayNumElements()));
-          }
-        }
-      }
-    }
-  }
-}
-
-/*void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
     ArgumentWrapper *argW, TreeType treeTy) {
   auto argTree = argW->getTree(treeTy);
   if (argTree.size() == 0) return;
@@ -714,26 +623,32 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
       argW->getAttribute().setReadOnly();
     }
   }
+
+
   for (auto treeI = argW->tree_begin(TreeType::FORMAL_IN_TREE);
        treeI != argW->tree_end(TreeType::FORMAL_IN_TREE); ++treeI) {
+
     count += 1;
     auto valDepPairList =
         PDG->getNodesWithDepType(*treeI, DependencyType::VAL_DEP);
     for (auto valDepPair : valDepPairList) {
       auto dataW = valDepPair.first->getData();
       AccessType accType = getAccessTypeForInstW(dataW, argW);
-
+      
       if (static_cast<int>(accType) >
           static_cast<int>((*treeI)->getAccessType())) {
         auto &dbgInstList =
             pdgUtils.getFuncMap()[func]->getDbgDeclareInstList();
+        //for (auto inst : dbgInstList){
+        //  errs() << "\nDebugInst: " << *(inst) << "\n";
+        //}
         std::string argName =
             DIUtils::getArgName(*(argW->getArg()), dbgInstList);
-
         if (accType == AccessType::WRITE) {
           argW->getAttribute().setOut();
         }
         if (count == 1 && accType == AccessType::READ) {
+          errs() << "     READ\n";
           argW->getAttribute().setIn();
         }
          //errs() << argName << " n" << count << "-"
@@ -744,12 +659,7 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
       }
     }
   }
-  //Here is where return with pointer fails
-  auto &dbgInstList2 =
-            pdgUtils.getFuncMap()[func]->getDbgDeclareInstList();
-  std::string argName2 =
-      DIUtils::getArgName(*(argW->getArg()), dbgInstList2);
-  errs() << "\nArgname:" << argName2 << "\n";
+
   for (auto func : pdgUtils.getFuncMap()) {
     if (!func.second->hasTrees()) {
       PDG->buildPDGForFunc(func.second->getRetW()->getFunc());
@@ -757,15 +667,26 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
     for (auto ecallInst :
          pdgUtils.getFuncMap()[func.first]->getCallInstList()) {
       //errs() << *(ecallInst) << "\n"; 
-      if (ecallInst->getCalledFunction() != argW->getFunc()) continue;
-      
+      Function* calledFunction = ecallInst->getCalledFunction();
+      std::string funcName;
+      if (calledFunction != NULL){
+        funcName = calledFunction->getName().str();
+      }
+      else{
+        Value* v = ecallInst->getCalledValue();
+        Value* sv = v->stripPointerCasts();
+        funcName = sv->getName();
+        
+      }
+    
+      //if (ecallInst->getCalledFunction() != argW->getFunc()) continue;
+      if (funcName != argW->getFunc()->getName().str()) continue;
       if (ecallInst->getNumArgOperands() < argW->getArg()->getArgNo()) continue;
       
       Value *v = ecallInst->getOperand(argW->getArg()->getArgNo());
       
       if (isa<Instruction>(v) || isa<Argument>(v)) {
         // V is used in inst
-        errs () << "\nEcall:  " << *(ecallInst) << "\n";
         if (dyn_cast<Instruction>(v)) {
           // Get static array information
           if (GetElementPtrInst *getEl =
@@ -781,7 +702,7 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
       }
     }
   }
-}*/
+}
 
 void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForFunc(Function &F) {
   auto &pdgUtils = PDGUtils::getInstance();

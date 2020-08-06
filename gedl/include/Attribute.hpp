@@ -76,7 +76,7 @@ class Attribute {
     if (string) {  // If there is a string attribute there should not be size or
                    // count
       attrs.push_back("string");
-    } else if (in || out) {
+    } else {
       if (size.length() != 0) attrs.push_back("size=" + size);
       if (count.length() != 0 && count != "1")
         attrs.push_back("count=" + count);  // Count 1 is what EDL assumes

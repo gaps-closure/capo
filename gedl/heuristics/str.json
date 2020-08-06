@@ -17,18 +17,18 @@
     {"name": "strcasecmp", "idx": [0,1]},
     {"name": "\01_open", "idx": [0]},
     {"name": "\01_fopen", "idx": [0]},
-    {"name": "__vsnprintf_chk", "idx": [4]},
-    {"name": "__strcat_chk", "idx": [1] },
-    {"name": "__strncat_chk", "idx": [1] },
-    {"name": "__strcpy_chk", "idx": [1] },
-    {"name": "__strncpy_chk", "idx": [1] }
+    {"name": "vsnprintf", "idx": [4]},
+    {"name": "strcat", "idx": [1] },
+    {"name": "strncat", "idx": [1] },
+    {"name": "strcpy", "idx": [1] },
+    {"name": "strncpy", "idx": [1] }
   ],
   "out": [
-    {"name": "__vsnprintf_chk", "idx": [0]},
-    {"name": "__snprintf_chk", "idx": [0]},
-    {"name":"__strcat_chk", "idx": [0]},
-    {"name":"__strncat_chk", "idx": [0]},
-    {"name":"__strcpy_chk", "idx": [0]},
-    {"name":"__strncpy_chk", "idx": [0]}
+    {"name": "vsnprintf", "idx": [0]},
+    {"name": "snprintf", "idx": [0]},
+    {"name":"strcat", "idx": [0]},
+    {"name":"strncat", "idx": [0]},
+    {"name":"strcpy", "idx": [0]},
+    {"name":"strncpy", "idx": [0]}
   ]
 }
