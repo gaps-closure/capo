@@ -75,25 +75,41 @@ def generate_idl(gedl, args):
                 #Generate a request struct for this function
                 idl_file.write("\n\nstruct Request_%s {" % (call['func']))
 
-                #If there are no parameters, create a dummy variable to meet marshalling requirements
-                if len(call['params']) == 0:
-                    idl_file.write("\n\tint dummy;")
-                else:
-                    #For loop that iterates through each call parameter and creates a struct variable
-                    for arg in call['params']:
-                        idl_file.write("\n\t %s %s" % (arg['type'],arg['name']))
+                #Initialize variable to check for input values
+                dummy = 1
+                #For loop that iterates through each call parameter and creates a struct variable
+                for arg in call['params']:
+                    if "in" in arg['dir']:
+                        dummy = 0
+                        idl_file.write("\n\t%s %s" % (arg['type'],arg['name']))
                         if "sz" in arg:
                             idl_file.write("[%s]" % (arg['sz']))
                         idl_file.write(";")
+
+                #If there are no in parameters, create a dummy variable to meet marshalling requirements
+                if dummy == 1:
+                    idl_file.write("\n\tint dummy;")
                 idl_file.write("\n};")
                 
                 #Generate a response struct for this function
                 idl_file.write("\n\nstruct Response_%s {" % (call['func']))
-                #If return type is void, generate dummy variable to meet marshalling requirements
-                if call['return'] == "void":
+
+                #Initialize variable to check for return or output values
+                ret = 1
+                if call['return'] != "void":
+                    ret = 0
+                    idl_file.write("\n\t%s ret;" % (call['return']['type']))  
+                #For loop that iterates through each call parameter and creates a struct variable
+                for arg in call['params']:
+                    if "out" in arg['dir']:
+                        ret = 0
+                        idl_file.write("\n\t%s %s" % (arg['type'],arg['name']))
+                        if "sz" in arg:
+                            idl_file.write("[%s]" % (arg['sz']))
+                        idl_file.write(";")
+                #If return type is void and no out parameters, generate dummy variable to meet marshalling requirements
+                if ret == 1:
                     idl_file.write("\n\tint ret;")
-                else:
-                    idl_file.write("\n\t%s ret;" % (call['return']['type']))
                 idl_file.write("\n};")
 
 def main():
