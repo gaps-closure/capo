@@ -339,7 +339,7 @@ void Partition::verify_tag(string tag_ann, vector<int> tags, Entry &entry)
    entry.setEnclave(cle.getDirection());
 
    Cdf cdf = cdfs[0];
-   vector<int> spec = cdf.getGuardHint().getGapstag();
+   vector<int> spec = cdf.getGuardDirective().getGapstag();
    if (spec != tags) {
       string reason = "mismatched tag, " + toString(spec) + " v.s. " + toString(tags);
       setResult(entry, false, reason);

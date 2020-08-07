@@ -8,16 +8,16 @@ using json = nlohmann::json;
 
 using namespace std;
 
-class GuardHint
+class GuardDirective
 {
 public:
     string operation;
     vector<int> gapstag;
 
-    GuardHint() {
+    GuardDirective() {
     };
     
-    ~GuardHint() {};
+    ~GuardDirective() {};
 
     string getOperation() const {
         return operation;
@@ -33,7 +33,7 @@ class Cdf
 public:
     string remotelevel;
     string direction;
-    GuardHint guardhint;
+    GuardDirective guarddirective;
 
   public:
     Cdf() {
@@ -49,8 +49,8 @@ public:
         return direction;
     }
 
-    GuardHint getGuardHint() const {
-        return guardhint;
+    GuardDirective getGuardDirective() const {
+        return guarddirective;
     }
 };
 

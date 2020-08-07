@@ -4,7 +4,7 @@ using namespace std;
 using json = nlohmann::json;
 
 
-void to_json(json& j, const GuardHint& p) {
+void to_json(json& j, const GuardDirective& p) {
     string x = p.getOperation();
 
     std::vector<int> g = p.getGapstag();
@@ -20,12 +20,12 @@ void to_json(json& j, const GuardHint& p) {
 void to_json(json& j, const Cdf& p) {
     string r = p.getRemoteLevel();
     string d = p.getDirection();
-    GuardHint g = p.getGuardHint();
+    GuardDirective g = p.getGuardDirective();
 
     j = json{
             {"remotelevel", r },
             {"direction", d },
-            {"guardhint", g },
+            {"guarddirective", g },
     };
 }
 
@@ -53,7 +53,7 @@ void to_json(json& j, Cle& p)
     };
 }
 
-void from_json(const json& j, GuardHint& p)
+void from_json(const json& j, GuardDirective& p)
 {
     j.at("operation").get_to(p.operation);
     j.at("gapstag").get_to(p.gapstag);
@@ -63,7 +63,7 @@ void from_json(const json& j, Cdf& p)
 {
     j.at("remotelevel").get_to(p.remotelevel);
     j.at("direction").get_to(p.direction);
-    j.at("guardhint").get_to(p.guardhint);
+    j.at("guarddirective").get_to(p.guarddirective);
 }
 
 void from_json(const json& j, CleJson& p)
