@@ -1,63 +1,65 @@
-# EDL generation for Intel-SGX using LLVM passes
+# GEDL Generation for Cross-Domain Function Context Extraction
 
-This project is an automatization tool for converting general C/C++ projects to Intel SGX projects. 
+This project is an automatization tool for extracting cross-domain function information necessary for remote procedural call generation, data serialization and marshalling, and cross-domain callsite wrapping. GEDL generates PROG.gedl json formatted file.
 
-- It injects necessary headers to both trusted and untrusted domains and modifies function calls in the untrusted domain to comply with the SGX syntax.
-- Generates EDL file for the trusted(Enclave) domain.
+## Origin
+
+GEDL is derived from a Penn State University project for generating Intel SGX wrappings and EDL files:
+(https://github.com/eralpsahin/edl)
 
 
 ## Requirements
-- [LLVM and Clang 9.0.0](https://releases.llvm.org/download.html)
+- [LLVM and Clang 9.0.1](https://releases.llvm.org/download.html)
 - Make sure that LLVM is added to $PATH.
-- Make sure `make` creates the build folder and compiles the project without any problem before getting started. 
-
+- Input is a single directory divided into one subdirectory for each domain.
+- All functions are CLE Annotated and Preprocessed (Clang attributes for CLE annotations are pushed/popped)
+- The following Makefile variables are set:
+  - ODIR = /path/to/output/directory
+  - EDIR := /path/to/input/directory
+  - PROG := ProgramName
+  - HEURISTICS_DIR:= /path/to/heuristics/directory
+  - SCHEMA_PATH:= /path/to/json/schema.json
+  - CLE_PRE=/path/to/cle-preprocessor/src
+  - HAL_PATH=/path/to/CLOSURE/HAL
+  - IPC_MODE=Singlethreaded/Multithreaded
+  - INURI="inputURI"
+  - OUTURI="outputURI"
 
 ## Getting Started
-For quickly getting started just run the `edl` and `sgx` phony targets from the Makefile to generate EDL file and the SGX complied code.
-```
-make edl
-make sgx
-```
-Above commands will generate the following files that you can use directly within an SGX project.
-- `build/Enclave.edl`
-- `build/App.cpp`
-- `build/Enclave.cpp`
+Once the requirements are met, for quickly getting started, run the following commands from the main gedl directory to build the library:
+- `mkdir build`
+- `cd build`
+- `cmake ..`
+- `make`
 
-You need a SGX project such as [SampleSGX](https://github.com/eralpsahin/sample-sgx). You can copy paste the above generated files and the header file from the example folder. Follow the regular steps to compile and run the SGX project.
+Then run  `make gedl` from the Makefile to generate GEDL file.
+
+Above commands will generate the following files.
+- `$(ODIR)/$(PROG).gedl`
+- `$(ODIR)/gedl.ll`
+
+From the GEDL, you need the remainder of CLOSURE tools to generate working cross-enclave code. The next step is to run IDL generation python script and RPC generation python script on the $(PROG).gedl file.
 
 ## More information about each step
 
-### 1. Compiling a C/C++ code to LLVM IR
-- The path for the sample code project we execute our passes on is the following:
-  - `example/App.c` is the untrusted domain.
-  - `example/Enclave.c` is the trusted domain.
-  - `example/Enclave.h` is the header for function prototypes and user defined types.
-- The rules under last section of the Makefile is for compiling and testing the sample project.
-- You can test the code before executing the passes with `run` target in Makefile. This will compile and run the sample code.
+### 1. Preprocessing annotation on C files
+- Running `make preproc` will run the MULES CLE Preprocessor on all C files in the inpput directory. 
+- The preprocessor will add Clang attributes for CLE annotations
 
+### 2. Compiling a C code to LLVM IR
+- Running `make compencs` will use Clang to interate through each C file in each subdirectory and compile into llvm linked files using the CLANG_FLAGS
 
+### 3. Linking Subdirectory LLVM Linked Files
+- Running `make perencll` will use llvm-link to link every .ll file in each subdirectory into one .ll file for each subdirectory
+- Then it will run an opt pass using GEDL library on each combined .ll file to generate lists of defined and imported functions for each enclave
 
-### 2. Auxiliary information
-- We need some auxiliary information to generate the EDL and convert the project to SGX complied one.
-- `gen-u` and `gen-t` are phony targets in the `Makefile` that generates the necessary files under the `build/trusted` and `build/untrusted` folders.
+### 4. Linking GEDL LLVM Linked File
+- Running `make gedlir` will use llvm-link to link the core .ll file for each subdirectory into a core gedl.ll file in $(ODIR)
 
+### 5. Generating GEDL
+-Running `make gedl` will run an opt pass using GEDL library on the gedl.ll file to generate the $(PROG).gedl file in $(ODIR)
 
-### 3. Generating EDL
-- `edl` target in the Makefile bootstraps everything by first compiling the sample code, generating auxiliary information and then using those files to execute the EDL generation pass on the sample code.
-- This will generate the `build/Enclave.edl` file.
+## Additional Files
+- IDLGenerator.py is used to generate $(PROG).idl for use with HAL Autogen CLOSURE Tool 
+- RPCGenerator.py is used to generate *_rpc.c, *_rpc.h, and *.c files for compilation by MBIG CLOSURE tool
 
-### 4. Converting the C/C++ code to SGX complied code
-- `sgx` target in the Makefile again uses the auxiliary information to convert the sample code to SGX complied code.
-
-## Progress Slides
-
-[![Progress Slides](https://user-images.githubusercontent.com/10602289/82127969-45759600-9785-11ea-864d-616e14e2ed7b.png)](https://github.com/eralpsahin/edl/files/4403922/slides.pptx)
-
-## Future work 
-
-- [X] Automatizing C project to SGX
-- [X] Public (root) ECALL
-- [X] Struct, enum declarations
-- [X] Additional include statement features
-- [X] [String] attribute
-- [ ] [count - size] attributes
