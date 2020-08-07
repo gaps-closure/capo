@@ -5,6 +5,7 @@ from   clang.cindex  import Index, CursorKind
 from   argparse      import ArgumentParser
 from   shutil        import copyfile
 from   pprint        import pprint
+import csv
 import json
 import sys
 import os
@@ -48,7 +49,7 @@ def cindex_dump(tu):
    'nodes': get_info(tu.cursor)
   })
 
-def top_fun_vars(root, ifile, levelof):
+def top_fun_vars(root, ifile, levelof, audit=False):
   tfv = []
   if root.kind != CursorKind.TRANSLATION_UNIT:
     raise Exception('Expecting CursorKind.TRANSLATION_UNIT, got: ' + str(root.kind))
@@ -58,12 +59,20 @@ def top_fun_vars(root, ifile, levelof):
       if str(node.extent.start.file) != ifile: 
         print('Skipping:', node.extent.start.file, '!=', ifile)
         continue
+       
       if not node.spelling in levelof:
-        raise Exception('No level (enclave) assignment founnd for: ' + node.spelling)
+        if not audit:
+            raise Exception('No level (enclave) assignment founnd for: ' + node.spelling)
+        else:
+            print('No level (enclave) assignment founnd for: ' + node.spelling)
+            lvlname = "__LEVEL_UNKNOWN__"
+      else:
+        lvlname = levelof[node.spelling]
+            
       tfv.append({ 
         'kind'  : node.kind,
         'name'  : node.spelling,
-        'level' : levelof[node.spelling],
+        'level' : lvlname,
         'soff'  : int(node.extent.start.offset),
         'slin'  : int(node.extent.start.line),
         'scol'  : int(node.extent.start.column),
@@ -72,6 +81,29 @@ def top_fun_vars(root, ifile, levelof):
         'ecol'  : int(node.extent.end.column)
       })
   return tfv
+
+def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs, output):
+  ifile = os.path.join(idir, relpath, fname)
+  print('Reading:', ifile)
+  index = Index.create()
+  
+  #split the file basename/extention
+  fs = os.path.splitext(fname)
+  (basename,suffix) = fs
+  
+  if len(fs) != 2 or (suffix != '.c' and suffix != '.h'): # not a .c/.h file
+    print('Skip [in all levels]:' +  ifile)
+    return
+  
+  tu = index.parse(ifile, args=cargs.split(','))
+  if not tu: raise Exception("unable to load input")
+  # cindex_dump(tu)
+  tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof, audit = True), key = lambda i: i['slin'])
+  # pprint(tfv)
+  for obj in tfv:
+    output.writerow([os.path.join(relpath,fname), obj["name"], obj["kind"], obj["level"], obj["slin"], obj["soff"], obj["scol"],
+                    obj["elin"], obj["eoff"], obj["ecol"]])
+  
 
 def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
   ifile = os.path.join(idir, relpath, fname)
@@ -141,7 +173,7 @@ def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
 def remove_prefix(t,pfx):
   return t[len(pfx):] if t.startswith(pfx) else t
 
-def walk_source_tree(jdata,opdir,cargs):
+def walk_source_tree(jdata,opdir,cargs,debug_map):
   levelof = {}
   idir   = jdata['source_path'].rstrip('/')
   odir   = opdir.rstrip('/')
@@ -149,9 +181,20 @@ def walk_source_tree(jdata,opdir,cargs):
   for f in jdata['functions']: levelof[f['name']] = f['level']
   for f in jdata['global_scoped_vars']: levelof[f['name']] = f['level']
 
-  os.makedirs(odir, mode=0o755, exist_ok=True)  
+  os.makedirs(odir, mode=0o755, exist_ok=True)
   for l in lvls: os.makedirs(odir + '/' + l, mode=0o755, exist_ok=True)  
 
+  debugcsv = None
+  if(debug_map):
+    try:
+      csvfile = open(opdir + ".map.csv","w")
+      debugcsv = csv.writer(csvfile)
+      #headers
+      debugcsv.writerow(["file", "name", "kind", "level", "sline", "soff", "scol", "eline", "eoff", "ecol"])
+    except Exception as e:
+      print("Error opening map file: %s [%s]"%(opdir + ".map.csv",str(e)))
+      return
+    
   for root, dirs, files in os.walk(idir):
     r = remove_prefix(root,idir).lstrip('/')
     for name in dirs:
@@ -159,7 +202,12 @@ def walk_source_tree(jdata,opdir,cargs):
         newd = os.path.join(odir, l, r, name)
         os.makedirs(newd, mode=0o755, exist_ok=True)  
     for name in files:
-      process_file(lvls,levelof,idir,odir,r,name,cargs)
+      if debugcsv is None:
+        process_file(lvls,levelof,idir,odir,r,name,cargs)
+      else:
+        process_debug_map(lvls,levelof,idir,odir,r,name,cargs,debugcsv)
+  if(debug_map):
+    csvfile.close()
 
 def load_topology(jfile):
   with open(jfile, 'r') as jf:
@@ -170,6 +218,8 @@ def get_args():
   p.add_argument('-f', '--file', required=True, type=str, help='Input JSON file')
   p.add_argument('-o', '--output_dir', required=False, type=str, 
                  default='./divvied', help='Output directory [./divvied]')
+  p.add_argument('-m', '--debug_map',help="Instead of standard output, generate a map file to help debug mappings",
+                 default=False, action='store_true')
   p.add_argument('-c', '--clang_args', required=False, type=str, 
                  default='-x,c++,-stdlib=libc++', help='Arguments for clang')
   return p.parse_args()
@@ -178,4 +228,4 @@ if __name__ == '__main__':
   args   = get_args()
   print('Options selected:')
   for x in vars(args).items(): print('  %s: %s' % x)
-  walk_source_tree(load_topology(args.file), args.output_dir, args.clang_args)
+  walk_source_tree(load_topology(args.file), args.output_dir, args.clang_args, args.debug_map)
