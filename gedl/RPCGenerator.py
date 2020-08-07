@@ -130,30 +130,30 @@ def RPCGeneratorH(enclave,args,enclaveMap,callerList,calleeList):
         for callerPair in callerList[enclaveIndex]:
             for call in callerPair[2]:
                 rpch_file.write("#pragma cle def TAG_RESPONSE_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
                 rpch_file.write("#pragma cle def TAG_REQUEST_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + callerPair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
                 
         for calleePair in calleeList[enclaveIndex]:
             for call in calleePair[2]:
                 rpch_file.write("#pragma cle def TAG_RESPONSE_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + calleePair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + "," + str(call[3]+1) + "] }} \\\n\t] }\n")
                 rpch_file.write("#pragma cle def TAG_REQUEST_" + call[0].upper() + " {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + "," + str(call[3]) + "] }} \\\n\t] }\n")
                 
         if 1: #args.ipc == "Singlethreaded":
             for callerPair in callerList[enclaveIndex]:
                 #REMOVE HARDCODE ONCE IDL GEN FINISHED
                 rpch_file.write("#pragma cle def TAG_OKAY {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",2] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",2] }} \\\n\t] }\n")
                 rpch_file.write("#pragma cle def TAG_NEXTRPC {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + callerPair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + ",1] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(callerPair[1]+ 1) + "," + str(callerPair[1]+ 1) + ",1] }} \\\n\t] }\n")
                 
             for calleePair in calleeList[enclaveIndex]:
                 rpch_file.write("#pragma cle def TAG_OKAY {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + calleePair[0] + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + ",2] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(calleePair[1]+ 1) + "," + str(calleePair[1]+ 1) + ",2] }} \\\n\t] }\n")
                 rpch_file.write("#pragma cle def TAG_NEXTRPC {\"level\":\"" + enclave + "\",\\\n\t\"cdf\": [\\\n\t\t{\"remotelevel\":\"" + enclave + "\", \\\n\t\t\t\"direction\": \"egress\", \\\n" \
-                    "\t\t\t\"guardhint\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",1] }} \\\n\t] }\n")
+                    "\t\t\t\"guarddirective\": { \"operation\": \"allow\", \\\n\t\t\t\t\t\t\"gapstag\": [" + str(enclaveIndex + 1) + "," + str(enclaveIndex + 1) + ",1] }} \\\n\t] }\n")
             
         
                  
