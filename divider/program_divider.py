@@ -100,9 +100,23 @@ def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs, output):
   # cindex_dump(tu)
   tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof, audit = True), key = lambda i: i['slin'])
   # pprint(tfv)
+  
+  try:
+    textfile = open(ifile,"r").read()
+    
+  except Exception as e:
+    print("WARN: Unable to load source file %s: %s"%(ifile,e))
+    textfile=""
+    
   for obj in tfv:
+    try:
+      firstln = textfile[obj["soff"]:obj["eoff"]]
+      firstln = firstln.split("\n")[0]
+    except Exception as e:
+      print("WARN: Unable to get first line of element " + obj["name"])
+      firstln = ""
     output.writerow([os.path.join(relpath,fname), obj["name"], obj["kind"], obj["level"], obj["slin"], obj["soff"], obj["scol"],
-                    obj["elin"], obj["eoff"], obj["ecol"]])
+                    obj["elin"], obj["eoff"], obj["ecol"], firstln])
   
 
 def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
@@ -190,7 +204,7 @@ def walk_source_tree(jdata,opdir,cargs,debug_map):
       csvfile = open(opdir + ".map.csv","w")
       debugcsv = csv.writer(csvfile)
       #headers
-      debugcsv.writerow(["file", "name", "kind", "level", "sline", "soff", "scol", "eline", "eoff", "ecol"])
+      debugcsv.writerow(["file", "name", "kind", "level", "sline", "soff", "scol", "eline", "eoff", "ecol", "code_start"])
     except Exception as e:
       print("Error opening map file: %s [%s]"%(opdir + ".map.csv",str(e)))
       return
