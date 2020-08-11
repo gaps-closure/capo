@@ -49,7 +49,7 @@ def cindex_dump(tu):
    'nodes': get_info(tu.cursor)
   })
 
-def top_fun_vars(root, ifile, levelof, audit=False):
+def top_fun_vars(root, ifile, levelof, defaults, audit=False):
   tfv = []
   if root.kind != CursorKind.TRANSLATION_UNIT:
     raise Exception('Expecting CursorKind.TRANSLATION_UNIT, got: ' + str(root.kind))
@@ -66,8 +66,10 @@ def top_fun_vars(root, ifile, levelof, audit=False):
         else:
             print('No level (enclave) assignment founnd for: ' + node.spelling)
             lvlname = "__LEVEL_UNKNOWN__"
+            default = False
       else:
         lvlname = levelof[node.spelling]
+        default = defaults[node.spelling]
             
       tfv.append({ 
         'kind'  : node.kind,
@@ -78,11 +80,12 @@ def top_fun_vars(root, ifile, levelof, audit=False):
         'scol'  : int(node.extent.start.column),
         'eoff'  : int(node.extent.end.offset),
         'elin'  : int(node.extent.end.line),
-        'ecol'  : int(node.extent.end.column)
+        'ecol'  : int(node.extent.end.column),
+        'default': default
       })
   return tfv
 
-def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs, output):
+def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs,defaults, output):
   ifile = os.path.join(idir, relpath, fname)
   print('Reading:', ifile)
   index = Index.create()
@@ -98,7 +101,7 @@ def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs, output):
   tu = index.parse(ifile, args=cargs.split(','))
   if not tu: raise Exception("unable to load input")
   # cindex_dump(tu)
-  tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof, audit = True), key = lambda i: i['slin'])
+  tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof, defaults, audit = True), key = lambda i: i['slin'])
   # pprint(tfv)
   
   try:
@@ -116,10 +119,10 @@ def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs, output):
       print("WARN: Unable to get first line of element " + obj["name"])
       firstln = ""
     output.writerow([os.path.join(relpath,fname), obj["name"], obj["kind"], obj["level"], obj["slin"], obj["soff"], obj["scol"],
-                    obj["elin"], obj["eoff"], obj["ecol"], firstln])
+                    obj["elin"], obj["eoff"], obj["ecol"], obj["default"], firstln])
   
 
-def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
+def process_file(lvls,levelof,idir,odir,relpath,fname,cargs,defaults):
   ifile = os.path.join(idir, relpath, fname)
   print('Processing:', ifile)
   index = Index.create()
@@ -140,7 +143,7 @@ def process_file(lvls,levelof,idir,odir,relpath,fname,cargs):
   tu = index.parse(ifile, args=cargs.split(','))
   if not tu: raise Exception("unable to load input")
   # cindex_dump(tu)
-  tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof), key = lambda i: i['slin'])
+  tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof, defaults), key = lambda i: i['slin'])
   # pprint(tfv)
 
   lvlfp = {l:open(ofile(l), 'w') for l in lvls}
@@ -189,11 +192,22 @@ def remove_prefix(t,pfx):
 
 def walk_source_tree(jdata,opdir,cargs,debug_map):
   levelof = {}
+  defaults = {}
   idir   = jdata['source_path'].rstrip('/')
   odir   = opdir.rstrip('/')
   lvls   = jdata['levels']
-  for f in jdata['functions']: levelof[f['name']] = f['level']
-  for f in jdata['global_scoped_vars']: levelof[f['name']] = f['level']
+  for f in jdata['functions']:
+    levelof[f['name']] = f['level']
+    if 'default' in f:
+      defaults[f['name']] = f['default']
+    else:
+      defaults[f['name']] = False
+  for f in jdata['global_scoped_vars']:
+    levelof[f['name']] = f['level']
+    if 'default' in f:
+      defaults[f['name']] = f['default']
+    else:
+      defaults[f['name']] = False
 
   os.makedirs(odir, mode=0o755, exist_ok=True)
   for l in lvls: os.makedirs(odir + '/' + l, mode=0o755, exist_ok=True)  
@@ -204,7 +218,7 @@ def walk_source_tree(jdata,opdir,cargs,debug_map):
       csvfile = open(opdir + ".map.csv","w")
       debugcsv = csv.writer(csvfile)
       #headers
-      debugcsv.writerow(["file", "name", "kind", "level", "sline", "soff", "scol", "eline", "eoff", "ecol", "code_start"])
+      debugcsv.writerow(["file", "name", "kind", "level", "sline", "soff", "scol", "eline", "eoff", "ecol", "default", "code_start"])
     except Exception as e:
       print("Error opening map file: %s [%s]"%(opdir + ".map.csv",str(e)))
       return
@@ -217,9 +231,9 @@ def walk_source_tree(jdata,opdir,cargs,debug_map):
         os.makedirs(newd, mode=0o755, exist_ok=True)  
     for name in files:
       if debugcsv is None:
-        process_file(lvls,levelof,idir,odir,r,name,cargs)
+        process_file(lvls,levelof,idir,odir,r,name,cargs,defaults)
       else:
-        process_debug_map(lvls,levelof,idir,odir,r,name,cargs,debugcsv)
+        process_debug_map(lvls,levelof,idir,odir,r,name,cargs,defaults,debugcsv)
   if(debug_map):
     csvfile.close()
 
@@ -240,6 +254,11 @@ def get_args():
 
 if __name__ == '__main__':
   args   = get_args()
+  
+  #cleanup clang_args if it starts with a "," or " ", since a "-" can't be the first char of an argument
+  args.clang_args = args.clang_args.lstrip()
+  if(args.clang_args.startswith(",")):
+    args.clang_args = args.clang_args[1:]
   print('Options selected:')
   for x in vars(args).items(): print('  %s: %s' % x)
   walk_source_tree(load_topology(args.file), args.output_dir, args.clang_args, args.debug_map)
