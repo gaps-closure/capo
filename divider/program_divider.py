@@ -46,7 +46,7 @@ def get_info(node, depth=0):
 def cindex_dump(tu):
   pprint({
    'diags': [get_diag_info(d) for d in  tu.diagnostics],
-   'nodes': get_info(tu.cursor)
+   #'nodes': get_info(tu.cursor)
   })
 
 def top_fun_vars(root, ifile, levelof, defaults, audit=False):
@@ -54,6 +54,8 @@ def top_fun_vars(root, ifile, levelof, defaults, audit=False):
   if root.kind != CursorKind.TRANSLATION_UNIT:
     raise Exception('Expecting CursorKind.TRANSLATION_UNIT, got: ' + str(root.kind))
 
+  print(ifile)
+  #print_tree(root)
   for node in root.get_children():
     if node.kind == CursorKind.FUNCTION_DECL or node.kind == CursorKind.VAR_DECL:
       if str(node.extent.start.file) != ifile: 
@@ -84,7 +86,20 @@ def top_fun_vars(root, ifile, levelof, defaults, audit=False):
         'default': default
       })
   return tfv
-
+  
+def print_tree(node,prefix = " "):
+  try:
+    print("%sNode : %s (%s): [%s(%s),%s(%s)] "%(
+            prefix,node.spelling,str(node.kind),str(node.extent.start.line),str(node.extent.start.column),
+            str(node.extent.end.line),str(node.extent.end.column))
+    )
+    print("%s     **%s:%s**"%(prefix,str(node.extent.start.file),str(node.extent.start.line)))
+  except:
+    print("%sNode : Unknown"%(prefix))
+    
+  for child in node.get_children():
+    print_tree(child,"--" + prefix)
+    
 def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs,defaults, output):
   ifile = os.path.join(idir, relpath, fname)
   print('Reading:', ifile)
@@ -100,7 +115,7 @@ def process_debug_map(lvls,levelof,idir,odir,relpath,fname,cargs,defaults, outpu
   
   tu = index.parse(ifile, args=cargs.split(','))
   if not tu: raise Exception("unable to load input")
-  # cindex_dump(tu)
+  cindex_dump(tu)
   tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof, defaults, audit = True), key = lambda i: i['slin'])
   # pprint(tfv)
   
@@ -142,7 +157,7 @@ def process_file(lvls,levelof,idir,odir,relpath,fname,cargs,defaults):
   #print("Process [%s%s]"%(str(fs[0]),str(fs[1])))
   tu = index.parse(ifile, args=cargs.split(','))
   if not tu: raise Exception("unable to load input")
-  # cindex_dump(tu)
+  cindex_dump(tu)
   tfv = sorted(top_fun_vars(tu.cursor, ifile, levelof, defaults), key = lambda i: i['slin'])
   # pprint(tfv)
 
