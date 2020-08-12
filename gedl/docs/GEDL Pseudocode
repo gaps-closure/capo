@@ -12,16 +12,16 @@ For each Domain D in domainMap{
         Check all DefinedFunctions in other Domains
         If a Domain D2 contains a DefinedFunction that matches I{
             Mark D as caller and D2 as callee
-        }
-        For each I contained in a DefinedFunction of Domain D2{
-            Mark I as func
-            Query the return type from pdg and mark as return type
-            Mark diode as false (currently)
-            For each argument in the pdg for I, under Params key{
-                Query argument's type, name, direction, and size from pdg
-            }
-            For each callsite of I, under Occurs key{
-                Mark the filePath and lineNumber of the call
+            Examine LLVM annotations for the CLE Label of DefinedFunction
+            For each I contained in a DefinedFunction of Domain D2{
+                Mark I as func
+                Query the return type from pdg and mark as return type
+                For each argument in the pdg for I, under Params key{
+                    Query argument's type, name, direction, and size from pdg
+                }
+                For each callsite of I, under Occurs key{
+                    Mark the filePath and lineNumber of the call
+                }
             }
         }
     }

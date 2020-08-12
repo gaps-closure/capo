@@ -62,4 +62,7 @@ From the GEDL, you need the remainder of CLOSURE tools to generate working cross
 ## Additional Files
 - IDLGenerator.py is used to generate $(PROG).idl for use with HAL Autogen CLOSURE Tool 
 - RPCGenerator.py is used to generate *_rpc.c, *_rpc.h, and *.c files for compilation by MBIG CLOSURE tool
+- schema/gedl-schema.json describes the JSON schema that the output .gedl file will be validated against during IDL generation
+- docs/GEDL Documentation contains an example .gedl file, descriptions of all keys for .gedl files, input requirements for gedl, and descriptions of warnings produced by gedl
+- docs/Pseudocode gives a high level description of the logic behind the gedl opt passes
 

@@ -178,12 +178,6 @@ Criteria:
     *Variables should not have any implicit casting to allow for automatic direction and size detection
     *Arguments and return types must be be of IDL supported types {"double","ffloat","int8","uint8","int16","uint16","int32","uint32","int64","uint64"} 
 
-Makefile:
-        There are three variables at the top of the Makefile that are to be changed to suite the project being built
-                ODIR: The output directory where the gedl should be placed.
-                EDIR: The input directory, where the enclave directories are stored
-                ENCLAVES: A list of the names of each enclave directory, separated by spaces.
-
 Warnings List:
         Warning and terminating error if return type is a pointer or unsupported
         Warning if direction for an argument is undetermined 
