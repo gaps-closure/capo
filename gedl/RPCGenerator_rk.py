@@ -403,7 +403,7 @@ class GEDLProcessor:
       if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n 
       s += t + 'my_xdc_asyn_send(psocket, &req_' + f + ', &t_tag, mycmap);' + n
-      s += t + 'my_xdc_blocking_recv(ssocket, &res' + f + ', &o_tag, mycmap);' + n
+      s += t + 'my_xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag, mycmap);' + n
       s += t + 'zmq_close(psocket);' + n
       s += t + 'zmq_close(ssocket);' + n
       s += t + 'zmq_ctx_shutdown(ctx);' + n
