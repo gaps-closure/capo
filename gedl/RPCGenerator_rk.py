@@ -100,11 +100,41 @@ class GEDLProcessor:
     def boiler(): 
       s  = '#ifndef _' + e.upper() + '_RPC_' + n
       s += '#define _' + e.upper() + '_RPC_' + n + n
-      s += '#include "xdcomms.h"' + n
       s += '#include "codec.h"' + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += '#include <pthread.h>' + n if ipc != 'Singlethreaded' and e not in self.masters else n
+      s += '#include <assert.h>'  + n
+      s += '#include <zmq.h>'  + n
+      s += '#else' + n
+      s += '#include "xdcomms.h"' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
       s += '#define INURI "' + inu + e + '"' + n
       s += '#define OUTURI "' + outu + e + '"' + n + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
+      s += '#define MY_IPC_ADDR_DEFAULT_IN  "ipc:///tmp/halpub1"' + n
+      s += '#define MY_IPC_ADDR_DEFAULT_OUT "ipc:///tmp/halsub1"' + n + n
+      s += '#define ADU_SIZE_MAX_C  2000' + n
+      s += '#define MY_DATA_TYP_MAX 200' + n
+      s += '#define RX_FILTER_LEN   12' + n + n
+      s += '/* Closure tag structure */' + n
+      s += 'typedef struct _tag {' + n
+      s += t + 'uint32_t mux;      /* APP ID */' + n
+      s += t + 'uint32_t sec;      /* Security tag */' + n
+      s += t + 'uint32_t typ;      /* data type */' + n
+      s += '} gaps_tag;' + n + n
+      s += '/* CLOSURE packet */' + n
+      s += 'typedef struct _sdh_ha_v1 {' + n
+      s += t + 'gaps_tag tag;' + n
+      s += t + 'uint32_t data_len;' + n
+      s += t + 'uint8_t   data[ADU_SIZE_MAX_C];' + n
+      s += '} sdh_ha_v1;' + n + n
+      s += 'typedef void (*codec_func_ptr)(void *, void *, size_t *);' + n
+      s += 'typedef struct _codec_map {' + n
+      s += t + 'int valid;' + n
+      s += t + 'codec_func_ptr encode;' + n
+      s += t + 'codec_func_ptr decode;' + n
+      s += '} codec_map;' + n 
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
       s += '#define APP_BASE ' + str(self.appbase) + n + n
       if e in self.masters: s += 'extern void _master_rpc_init();' + n + n
       else:                 s += 'extern int _slave_rpc_loop();' + n + n
@@ -114,7 +144,7 @@ class GEDLProcessor:
       l  = self.const(x,y,f,outgoing)
       s  = '#pragma cle def ' + l['clelabl'] + ' {"level": "' + e + '", \\' + n
       s += t + '"cdf": [{"remotelevel": "' + l['to'] + '", "direction": "egress", \\' + n
-      s += t + t + t + '"guardhint": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.appbase),str(l['sec']+self.appbase),str(l['typ'])]) + ']}}]}' + n + n
+      s += t + t + t + '"guarddirective": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.appbase),str(l['sec']+self.appbase),str(l['typ'])]) + ']}}]}' + n + n
       return s
     def specialstags(x,y):
       s  = muxsec(self.const(x,y,'nextrpc',True))
@@ -157,14 +187,106 @@ class GEDLProcessor:
       s += '#define TAG_MATCH(X, Y) (X.mux == Y.mux && X.sec == Y.sec && X.typ == Y.typ)' + n
       s += '#define WRAP(X) void *_wrapper_##X(void *tag) { while(1) { _handle_##X(tag); } }' + n + n
       return s
-    def regdtyp(x,y,f,outgoing=True): 
+    def xdclib():
+      s  = ''
+      s += '#ifndef __LEGACY_XDCOMMS__' + n + n
+      s += 'void my_type_check(uint32_t typ, codec_map *cmap) {' + n
+      s += t + 'if ( (typ >= MY_DATA_TYP_MAX) || (cmap[typ].valid==0) ) {' + n
+      s += t + t + 'exit (1);' + n
+      s += t + '}' + n
+      s += '}' + n + n
+      s += 'void my_xdc_register(codec_func_ptr encode, codec_func_ptr decode, int typ, codec_map *cmap) {' + n
+      s += t + 'cmap[typ].valid=1;' + n
+      s += t + 'cmap[typ].encode=encode;' + n
+      s += t + 'cmap[typ].decode=decode;' + n
+      s += '}' + n + n
+      s += '/* Serialize tag onto wire (TODO, Use DFDL schema) */' + n
+      s += 'void my_tag_encode (gaps_tag *tag_out, gaps_tag *tag_in) {' + n
+      s += t + 'tag_out->mux = htonl(tag_in->mux);' + n
+      s += t + 'tag_out->sec = htonl(tag_in->sec);' + n
+      s += t + 'tag_out->typ = htonl(tag_in->typ);' + n
+      s += '}' + n + n
+      s += '/* Convert tag to local host format (TODO, Use DFDL schema) */' + n
+      s += 'void my_tag_decode (gaps_tag *tag_out, gaps_tag *tag_in) {' + n
+      s += t + 'tag_out->mux = ntohl(tag_in->mux);' + n
+      s += t + 'tag_out->sec = ntohl(tag_in->sec);' + n
+      s += t + 'tag_out->typ = ntohl(tag_in->typ);' + n
+      s += '}' + n + n
+      s += '/* Convert tag to local host format (TODO, Use DFDL schema) */' + n
+      s += 'void my_len_encode (uint32_t *out, size_t len) {' + n
+      s += t + '*out = ntohl((uint32_t) len);' + n
+      s += '}' + n + n
+      s += '/* Convert tag to local host format (TODO, Use DFDL schema) */' + n
+      s += 'void my_len_decode (size_t *out, uint32_t in) {' + n
+      s += t + '*out = (uint32_t) htonl(in);' + n
+      s += '}' + n + n
+      s += 'void my_gaps_data_encode(sdh_ha_v1 *p, size_t *p_len, uint8_t *buff_in, size_t *len_out, gaps_tag *tag, codec_map *cmap) {' + n
+      s += t + 'uint32_t typ = tag->typ;' + n
+      s += t + 'my_type_check(typ, cmap);' + n
+      s += t + 'cmap[typ].encode (p->data, buff_in, len_out);' + n
+      s += t + 'my_tag_encode(&(p->tag), tag);' + n
+      s += t + 'my_len_encode(&(p->data_len), *len_out);' + n
+      s += t + '*p_len = (*len_out) + sizeof(p->tag) + sizeof(p->data_len);' + n
+      s += '}' + n + n
+      s += '/* Decode data from packet */' + n
+      s += 'void my_gaps_data_decode(sdh_ha_v1 *p, size_t p_len, uint8_t *buff_out, size_t *len_out, gaps_tag *tag, codec_map *cmap) {' + n
+      s += t + 'uint32_t typ = tag->typ;' + n
+      s += t + 'my_type_check(typ, cmap);' + n
+      s += t + 'my_tag_decode(tag, &(p->tag));' + n
+      s += t + 'my_len_decode(len_out, p->data_len);' + n
+      s += t + 'cmap[typ].decode (buff_out, p->data, &p_len);' + n
+      s += t + '}' + n + n
+      s += 'void my_xdc_asyn_send(void *socket, void *adu, gaps_tag *tag, codec_map *cmap) {' + n
+      s += t + 'sdh_ha_v1    packet, *p=&packet;' + n
+      s += t + 'size_t       packet_len;' + n
+      s += t + 'size_t adu_len;         /* Size of ADU is calculated by encoder */' + n
+      s += t + 'my_gaps_data_encode(p, &packet_len, adu, &adu_len, tag, cmap);' + n
+      s += t + 'int bytes = zmq_send (socket, (void *) p, packet_len, 0);' + n
+      s += t + 'if (bytes <= 0) fprintf(stderr, "send error %s %d ", zmq_strerror(errno), bytes);' + n
+      s += '}' + n + n
+      s += 'void my_xdc_blocking_recv(void *socket, void *adu, gaps_tag *tag, codec_map *cmap) {' + n
+      s += t + 'sdh_ha_v1 packet;' + n
+      s += t + 'void *p = &packet;' + n
+      s += t + 'int size = zmq_recv(socket, p, sizeof(sdh_ha_v1), 0);' + n
+      s += t + 'size_t adu_len;' + n
+      s += t + 'my_gaps_data_decode(p, size, adu, &adu_len, tag, cmap);' + n
+      s += '}' + n + n
+      s += 'void *my_xdc_pub_socket(void *ctx) {' + n
+      s += t + 'int err;' + n
+      s += t + 'void *socket;' + n
+      s += t + 'socket = zmq_socket(ctx, ZMQ_PUB);' + n
+      s += t + 'err = zmq_connect(socket, OUTURI);' + n
+      s += t + 'return socket;' + n
+      s += '}' + n + n
+      s += 'void *my_xdc_sub_socket(gaps_tag tag, void *ctx) {' + n
+      s += t + 'int err;' + n
+      s += t + 'gaps_tag tag4filter;' + n
+      s += t + 'void *socket;' + n
+      s += t + 'socket = zmq_socket(ctx, ZMQ_SUB);' + n
+      s += t + 'err = zmq_connect(socket, INURI);' + n
+      s += t + 'my_tag_encode(&tag4filter, &tag);' + n
+      s += t + 'err = zmq_setsockopt(socket, ZMQ_SUBSCRIBE, (void *) &tag4filter, RX_FILTER_LEN);' + n
+      s += t + 'assert(err == 0);' + n
+      s += t + 'return socket;' + n
+      s += '}' + n + n
+      s += 'void my_tag_write (gaps_tag *tag, uint32_t mux, uint32_t sec, uint32_t typ) {' + n
+      s += t + 'tag->mux = mux;' + n
+      s += t + 'tag->sec = sec;' + n
+      s += t + 'tag->typ = typ;' + n
+      s += '}' + n + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
+      return s
+    def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''): 
       l  = self.const(x,y,f,outgoing)
       if outgoing:
-        return 'xdc_register(request_' + f + "_data_encode, request_" + f + '_data_decode, ' + l['typdef'] + ');' + n
+        return pfx + 'xdc_register(request_' + f + "_data_encode, request_" + f + '_data_decode, ' + l['typdef'] + sfx + ');' + n
       else:
-        return 'xdc_register(response_' + f + "_data_encode, response_" + f + '_data_decode, ' + l['typdef'] + ');' + n
+        return pfx + 'xdc_register(response_' + f + "_data_encode, response_" + f + '_data_decode, ' + l['typdef'] + sfx + ');' + n
+    def myregdtyp(x,y,f,outgoing=True,pfx='my_',sfx=', mycmap'): 
+      return regdtyp(x,y,f,outgoing,pfx,sfx)
     def halinit(e):    # XXX: hardcoded tags, should use self.const
       s  = 'void _hal_init(char *inuri, char *outuri) {' + n 
+      s += '#ifdef __LEGACY_XDCOMMS__' + n 
       s += t + 'xdc_set_in(inuri);' + n 
       s += t + 'xdc_set_out(outuri);' + n
       s += t + 'xdc_register(nextrpc_data_encode, nextrpc_data_decode, DATA_TYP_NEXTRPC);' + n  
@@ -172,22 +294,44 @@ class GEDLProcessor:
       for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e):
         s += t + regdtyp(x,y,f,True)
         s += t + regdtyp(x,y,f,False)
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n 
       s += '}' + n + n
       return s
     def BLOCK1():
-      s  = t + 'static int inited = 0;' + n
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'void *psocket;' + n
+      s += t + 'void *ssocket;' + n
+      s += t + 'gaps_tag t_tag;' + n
+      s += t + 'gaps_tag o_tag;' + n
+      s += t + 'codec_map  mycmap[MY_DATA_TYP_MAX];' + n
+      s += t + 'for (int i=0; i < MY_DATA_TYP_MAX; i++)  mycmap[i].valid=0;' + n
+      s += t + 'my_xdc_register(nextrpc_data_encode, nextrpc_data_decode, DATA_TYP_NEXTRPC, mycmap);' + n  
+      s += t + 'my_xdc_register(okay_data_encode, okay_data_decode, DATA_TYP_OKAY, mycmap);' + n           
+      for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e):
+        s += t + myregdtyp(x,y,f,True)
+        s += t + myregdtyp(x,y,f,False)
+      s += '#else' + n
+      s += t + 'static int inited = 0;' + n
       s += t + 'static void *psocket;' + n
       s += t + 'static void *ssocket;' + n
       s += t + 'gaps_tag t_tag;' + n
       s += t + 'gaps_tag o_tag;' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
     def BLOCK2(tag):
-      s  = t + 'if (!inited) {' + n
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'void * ctx = zmq_ctx_new();' + n
+      s += t + 'psocket = my_xdc_pub_socket(ctx);' + n
+      s += t + 'ssocket = my_xdc_sub_socket(' + tag + ', ctx);' + n
+      s += t + 'sleep(1); /* zmq socket join delay */' + n
+      s += '#else' + n
+      s += t + 'if (!inited) {' + n
       s += t + t + 'inited = 1;' + n
       s += t + t + 'psocket = xdc_pub_socket();' + n
       s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
       s += t + t + 'sleep(1); /* zmq socket join delay */' + n
       s += t + '}' + n 
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
     def notify_nxtag(): # XXX: hardcoded tags, should use self.const
       s  = 'void _notify_next_tag(gaps_tag* n_tag) {' + n
@@ -195,17 +339,33 @@ class GEDLProcessor:
       s += t + '#pragma cle begin TAG_NEXTRPC' + n                                              
       s += t + 'nextrpc_datatype nxt;' + n
       s += t + '#pragma cle end TAG_NEXTRPC' + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
+      s += '#else' + n
       s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + '#pragma cle begin TAG_OKAY' + n
       s += t + 'okay_datatype okay;' + n
       s += t + '#pragma cle end TAG_OKAY' + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
+      s += '#else' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += BLOCK2('o_tag')
       s += t + 'nxt.mux = n_tag->mux;' + n
       s += t + 'nxt.sec = n_tag->sec;' + n
       s += t + 'nxt.typ = n_tag->typ;' + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_xdc_asyn_send(psocket, &nxt, &t_tag, mycmap);' + n
+      s += t + 'my_xdc_blocking_recv(ssocket, &okay, &o_tag, mycmap);' + n
+      s += t + 'zmq_close(psocket);' + n
+      s += t + 'zmq_close(ssocket);' + n
+      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += '#else' + n
       s += t + 'xdc_asyn_send(psocket, &nxt, &t_tag);' + n
       s += t + 'xdc_blocking_recv(ssocket, &okay, &o_tag);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + '// XXX: check that we got valid OK?' + n
       s += '}' + n + n
       return s
@@ -217,12 +377,20 @@ class GEDLProcessor:
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'request_' + f + '_datatype req_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#else' + n
       s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       l  = self.const(x,y,f,False)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'response_' + f + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#else' + n
       s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       if len(fd['params']) == 0:
         s += t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void 
       else:
@@ -233,8 +401,16 @@ class GEDLProcessor:
             s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
       s += BLOCK2('o_tag')
       if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_xdc_asyn_send(psocket, &req_' + f + ', &t_tag, mycmap);' + n
+      s += t + 'my_xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag, mycmap);' + n
+      s += t + 'zmq_close(psocket);' + n
+      s += t + 'zmq_close(ssocket);' + n
+      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += '#else' + n
       s += t + 'xdc_asyn_send(psocket, &req_' + f + ', &t_tag);' + n
       s += t + 'xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
       s += t + 'return (res_' + f + '.ret);' + n
       s += '}' + n + n
@@ -248,12 +424,26 @@ class GEDLProcessor:
       s += t + '#pragma cle begin TAG_OKAY' + n
       s += t + 'okay_datatype okay;' + n
       s += t + '#pragma cle end TAG_OKAY' + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
+      s += '#else' + n
       s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += BLOCK2('t_tag')
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_xdc_blocking_recv(ssocket, &nxt, &t_tag, mycmap);' + n
+      s += t + 'my_tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
+      s += t + 'okay.x = 0;' + n
+      s += t + 'my_xdc_asyn_send(psocket, &okay, &o_tag, mycmap);' + n
+      s += t + 'zmq_close(psocket);' + n
+      s += t + 'zmq_close(ssocket);' + n
+      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += '#else' + n
       s += t + 'xdc_blocking_recv(ssocket, &nxt, &t_tag);' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
       s += t + 'okay.x = 0;' + n
       s += t + 'xdc_asyn_send(psocket, &okay, &o_tag);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'n_tag->mux = nxt.mux;' + n
       s += t + 'n_tag->sec = nxt.sec;' + n
       s += t + 'n_tag->typ = nxt.typ;' + n
@@ -266,17 +456,36 @@ class GEDLProcessor:
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'request_' + f + '_datatype req_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#else' + n
       s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       l  = self.const(x,y,f,False)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'response_' + f + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#else' + n
       s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += BLOCK2('t_tag')
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag, mycmap);' + n
+      s += '#else' + n
       s += t + 'xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + ('res_' + f + '.ret = ' if fd['return']['type'] != 'void' else '') + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
       # XXX: marshaller needs to copy output arguments (including arrays) to res here !!
+      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += t + 'my_xdc_asyn_send(psocket, &res_' + f + ', &o_tag, mycmap);' + n
+      s += t + 'zmq_close(psocket);' + n
+      s += t + 'zmq_close(ssocket);' + n
+      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += '#else' + n
       s += t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
     def masterdispatch(e,ipc):
@@ -304,17 +513,25 @@ class GEDLProcessor:
         s += '}' + n + n
       else: 
         s += 'int _slave_rpc_loop() {' + n
-        s += t + 'gaps_tag n_tag;' + n
-        s += t + 'gaps_tag t_tag;' + n + n
+        s += t + 'gaps_tag t_tag;' + n
+        s += t + 'gaps_tag o_tag;' + n
         s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n + n
         s += t + 'while (1) {' + n
-        s += t + t + '_handle_nextrpc(&n_tag);' + n
+        s += t + t + '_handle_nextrpc(&o_tag);' + n
+        s += '#ifndef __LEGACY_XDCOMMS__' + n 
+        s += t + t + 'my_tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n    # XXX: hardcoded labels
+        s += '#else' + n
         s += t + t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n    # XXX: hardcoded labels
-        s += t + t + 'if(TAG_MATCH(n_tag, t_tag)) { continue; }' + n
+        s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+        s += t + t + 'if(TAG_MATCH(o_tag, t_tag)) { continue; }' + n
         for (x,y,f,fd) in self.inCalls(e):  
           l  = self.const(x,y,f,False)
+          s += '#ifndef __LEGACY_XDCOMMS__' + n 
+          s += t + t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+          s += '#else' + n
           s += t + t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-          s += t + t + 'if (TAG_MATCH(n_tag, t_tag)) {' + n
+          s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+          s += t + t + 'if (TAG_MATCH(o_tag, t_tag)) {' + n
           s += t + t + t + '_handle_request_'+ f + '(NULL);' + n
           s += t + t + t + '}' + n
           s += t + t + 'continue;' + n
@@ -322,7 +539,7 @@ class GEDLProcessor:
           s += '}' + n + n
       return s
 
-    s = boiler() + halinit(e)
+    s = boiler() + xdclib() + halinit(e)
     s += notify_nxtag() if e in self.masters else handlernextrpc()
     for (x,y,f,fd) in self.inCalls(e):  s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e): s += rpcwrapdef(x,y,f,fd,ipc)
