@@ -1,4 +1,5 @@
 #include "ProgramDependencyGraph.hpp"
+#include <time.h>
 
 using namespace llvm;
 
@@ -53,6 +54,8 @@ bool pdg::ProgramDependencyGraph::runOnModule(Module &M)
       importedFuncList.insert(line);
   }
 
+  
+
   for (std::string line; std::getline(definedFuncs, line);)
     definedFuncList.insert(line);
 
@@ -85,11 +88,14 @@ bool pdg::ProgramDependencyGraph::runOnModule(Module &M)
         continue;
       user_def_func_num++; // count function has definition as user defined
       // errs() << "Building for " << Func->getName() << "\n";
-      buildPDGForFunc(Func);
+
+      //errs() << "FirstBuild" << time(0) << "\n";
+      //buildPDGForFunc(Func);
     }
 
     // start process CallInst
     bool callInstFixPoint = true;
+    time_t start1 = time(0);
     for (Module::iterator FI = M.begin(); FI != M.end(); ++FI)
     {
       Function *Func = dyn_cast<Function>(FI);
@@ -226,8 +232,9 @@ bool pdg::ProgramDependencyGraph::processCallInst(InstructionWrapper *instW)
     {
       if (!callee->arg_empty())
       {
-        if (!pdgUtils.getFuncMap()[callee]->hasTrees())
+        if (!pdgUtils.getFuncMap()[callee]->hasTrees()){
           buildPDGForFunc(callee);
+        }
         buildActualParameterTrees(CI);
       } // end if !callee
       connectCallerAndCallee(instW, callee);

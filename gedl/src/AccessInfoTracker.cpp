@@ -39,9 +39,9 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
   for (Function &function : M) {
     if (function.isDeclaration()) continue;  // skip intrinsic funcs
 
-    if (!pdgUtils.getFuncMap()[&function]->hasTrees()) {
-      PDG->buildPDGForFunc(&function);
-    }
+  //#if (!pdgUtils.getFuncMap()[&function]->hasTrees()) {
+  //    PDG->buildPDGForFunc(&function);
+  //  }
     // Get func Metadata and filepath
     DISubprogram *funcMeta =
         dyn_cast<llvm::DISubprogram>(function.getMetadata(0));
@@ -648,7 +648,6 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
           argW->getAttribute().setOut();
         }
         if (count == 1 && accType == AccessType::READ) {
-          errs() << "     READ\n";
           argW->getAttribute().setIn();
         }
          //errs() << argName << " n" << count << "-"
@@ -666,7 +665,7 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
     }
     for (auto ecallInst :
          pdgUtils.getFuncMap()[func.first]->getCallInstList()) {
-      //errs() << *(ecallInst) << "\n"; 
+      
       Function* calledFunction = ecallInst->getCalledFunction();
       std::string funcName;
       if (calledFunction != NULL){
@@ -678,13 +677,11 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
         funcName = sv->getName();
         
       }
-    
       //if (ecallInst->getCalledFunction() != argW->getFunc()) continue;
       if (funcName != argW->getFunc()->getName().str()) continue;
       if (ecallInst->getNumArgOperands() < argW->getArg()->getArgNo()) continue;
-      
+
       Value *v = ecallInst->getOperand(argW->getArg()->getArgNo());
-      
       if (isa<Instruction>(v) || isa<Argument>(v)) {
         // V is used in inst
         if (dyn_cast<Instruction>(v)) {
@@ -808,10 +805,10 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
   for (auto argW : pdgUtils.getFuncMap()[&F]->getArgWList()) {
     Argument &arg = *argW->getArg();
     Type *argType = arg.getType();
+
     auto &dbgInstList = pdgUtils.getFuncMap()[&F]->getDbgDeclareInstList();
     std::string argName = DIUtils::getArgName(arg, dbgInstList);
     std::string argTypeName = DIUtils::getArgTypeName(arg).substr(0,DIUtils::getArgTypeName(arg).find("*"));
-    
     //Check if the argument is of an IDL supported type. If not, print a warning and set type to [user_check]
     if (std::find(std::begin(acceptedTypes),std::end(acceptedTypes),argTypeName) == std::end(acceptedTypes)){
       errs() << "Invalid type for argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " please change to a supported type and rerun or modify in .gedl file.\n";
@@ -845,7 +842,8 @@ void pdg::AccessInfoTracker::generateRpcForFunc(Function &F, bool root) {
       else if (attributesAll.find("count") != std::string::npos)
         edl_file << "" << argW->getAttribute().getCount()  << "}";
       else if (attributesAll.find("size") != std::string::npos)
-        edl_file << "" << argW->getAttribute().getSize()  << "}";
+        //If size is set from heuristic needs to divide by attribute type size
+        edl_file << "" << std::stoi(argW->getAttribute().getSize())/((DIUtils::getBaseDIType(DIUtils::getArgDIType(arg)))->getSizeInBits()/8)  << "}";
       else{
         errs() << "Size of argument " << argName << " for function " << F.getName().str() << " in file " << funcMap[F.getName().str()] << " could not be conclusively determined. Marking as \"user_check\", please manually specify size or rewrite function code to comply with Capo requirements and run again.\n";
         edl_file << "\"user_check\"}";

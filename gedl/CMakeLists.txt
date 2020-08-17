@@ -1,49 +1,40 @@
-cmake_minimum_required(VERSION 3.4.3)
-project(pdg)
+cmake_minimum_required(VERSION 3.13.4)
+project(gedl)
+
 find_package(LLVM REQUIRED CONFIG)
+
+set (CMAKE_CXX_STANDARD 14)
+add_compile_options("-fno-rtti")
+add_compile_options("-g")
+
+# Set your project compile flags.
+# E.g. if using the C++ header files
+# you will need to enable C++11 support
+# for your compiler.
+
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
-#
-# We will build one library: libtmplugin.so.  It corresponds to a plugin that we
-# run when compiling.
-#
-#option(USE_CXX_EXCEPTIONS "Enable C++ exception support" ON)
-#
-# Files associated with libtmplugin.so
-#
-option(ENABLE_FUNC_LIST "generate result based on func list" ON)
-
 include_directories("include")
 include_directories("src")
+
 
 
 file(GLOB TPPSRC "src/*.tpp")
 file(GLOB SOURCES "src/*.cpp")
 file(GLOB HEADERS "include/*.hpp")
 
-add_library(pdg MODULE
+add_library(gedl MODULE
     include/tree.hh
     ${HEADERS}
     ${TPPSRC}
     ${SOURCES}
 )
 
-if (ENABLE_FUNC_LIST)
-    add_definitions(-DFUNC_LIST)
-endif()
-
-#
-# Turn on C++11, turn off C++ RTTI.
-#
-target_compile_features(pdg PRIVATE cxx_range_for cxx_auto_type)
-set_target_properties(pdg PROPERTIES COMPILE_FLAGS "-fno-rtti")
-
 #
 # OS X-specific configuration
 #
 if(APPLE)
-    set_target_properties(pdg PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+    set_target_properties(gedl PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif(APPLE)
-
