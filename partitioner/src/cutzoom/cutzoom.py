@@ -43,8 +43,8 @@ def main():
   print('Number of edges:', nx.number_of_edges(G))
   
   # Get all nodes on the cut, i.e., nodes whose fillcolor is gray
-  cutset = set([n for n,c in nx.get_node_attributes(G, 'fillcolor').items() if c =='gray'])
-  print('Identified cutset')
+  cutset = set([n for n,c in nx.get_node_attributes(G, 'fillcolor').items() if c =='gray' or c == '"gray"'])
+  print('Identified cutset, %d nodes' % len(cutset))
 
   # Get all nodes that are within k-hops of the selected nodes and add to anodes
   count   = 0
@@ -77,6 +77,8 @@ def main():
   orange_nodes = [n for n,c in nx.get_node_attributes(AG, 'side').items() if c =='"orange/orange"']
   AG.add_node('N', side='green', style='invis', shape='polygon', pos='"0,25!"')
   AG.add_node('S', side='orange', style='invis', shape='polygon', pos='"0,-25!"')
+
+  print("purple side %d nodes, orange side %d nodes" % (len(green_nodes), len(orange_nodes)))
 
   for n in green_nodes:
     if not 'fillcolor' in AG.nodes[n]: nx.set_node_attributes(AG, {n: {'fillcolor': 'purple', 'style': 'filled'}})

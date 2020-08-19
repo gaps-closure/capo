@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import re
+import collections
 
 class DbgInfo():
     LOCAL=0
@@ -89,21 +90,21 @@ class IRReader():
 
     def get_label_irstring(self, ll):
         '''
-        returns map {label : irstring} where label is one of the labels defined by the programmer
-        and irstring is the string name defined in the IR file for that label
+        returns map {label : [irstring]} where label is one of the labels defined by the programmer
+        and [irstring] is a list of the string names defined in the IR file for that label
 
         e.g., if IR file contains:
         "@.str.3 = private unnamed_addr constant [9 x i8] c"ORANGE_1\00", section "llvm.metadata""
-        then this function returns {'ORANGE_1':'.str.3'}
+        then this function returns {'ORANGE_1':['.str.3']} if ORANGE_1 is in ll
         '''
-        ret = {}
+        ret = collections.defaultdict(list)
         globals_1 = self.get_prefix('@')
         for l in ll:
             str1 = r'@(.+) = .+ c"(' + l + r')\\00",'
             for g in globals_1:
                 m = re.match(str1, g)
                 if m is not None:
-                    ret[m.group(2)] = m.group(1)
+                    ret[m.group(2)].append(m.group(1))
         return ret
 
     def get_DbgInfo(self, node, var=None):
@@ -117,7 +118,7 @@ class IRReader():
         #print("label:", label)
         
         #for some reason the dgb label at the end of the line gets mangled
-        if var is None and label.startswith("\"{GLOBAL_VALUE"):
+        if var is None and node.is_global_value():
             m = re.match(r".+GLOBAL_VALUE:@([\.\w]+) .+!dbg !(\d+)", label)
             if m:
                 var = m.group(1)
@@ -138,6 +139,7 @@ class IRReader():
         return ret or DbgInfo(node, var, None, None)
 
     def get_name_line_local(self, num):
+        #this applies only to global vars
         dbg_line = self.get_prefix('!' + num)
         if len(dbg_line) < 1:
             return None, None, None
@@ -146,14 +148,36 @@ class IRReader():
             return self.get_name_line_local(m.group(1))
         else:
             # like this: distinct !DIGlobalVariable(name: "a", scope: !13, file: !3, line: 22, type: !6, isLocal: true, isDefinition: true)
-            m2 = re.match(r".+DIGlobalVariable.+name: \"([^\"]+)\",.+line: (\d+),.+isLocal: (\w+)", dbg_line[0])
+            m2 = re.match(r".+DIGlobalVariable.+name: \"([^\"]+)\",.+scope: !(\d+),.+line: (\d+),.+isLocal: (\w+)", dbg_line[0])
             #print("MATCHING_123", dbg_line[0])
             if m2:
                 #print("MATCHED_123", m2)
-                return m2.group(1), m2.group(2), m2.group(3) == "true"
+                if m2.group(4) == "false":
+                    return m2.group(1), m2.group(3), False
+                else:
+                    #we need to figure the scope
+                    scope = self.get_scope(m2.group(2)) #one of: function, file, other
+                    if scope == "file":
+                        return m2.group(1), m2.group(3), False
+                    elif scope == "function":
+                        return m2.group(1), m2.group(3), True
+                    else:
+                        raise Exception("Cannot determine scope of variable %s (%s)"%(m2.group(1), scope))
         return None, None, None
             
-                
+    def get_scope(self, num):
+        dbg_lines = self.get_prefix('!' + num)
+        dbg_line = dbg_lines[0]
+        #print("DBG_LINE|" + num + "|" + dbg_line +"|")
+        if len(dbg_line) < 1:
+            return "no debug info"
+        if "DILexicalBlock" in dbg_line or "DISubprogram" in dbg_line:
+            return "function"
+        elif "DICompileUnit" in dbg_line or "DIFile" in dbg_line:
+            return "file"
+        else: 
+            return "other"
+        
         
         
     def get_decl_DbgInfo(self, n):
