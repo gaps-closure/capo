@@ -30,7 +30,7 @@ class AnnotationInfo():
             return self.enclave
             
         def __str__(self):
-            return ",".join([self.label, self.ir_str, self.enclave])
+            return ",".join([self.label, str(self.ir_str), self.enclave])
         def __repr__(self):
             return self.__str__()
             
@@ -42,7 +42,8 @@ class AnnotationInfo():
     def add_annotation_info(self, l, s, e):
         al = AnnotationInfo.ALabel(l, s, e)
         self.by_lab[l] = al
-        self.by_str[s] = al
+        for s1 in s:
+            self.by_str[s1] = al
         if e in self.by_enc:
             self.by_enc[e].append(al)
         else:
@@ -162,8 +163,9 @@ class Partitioner():
         labs = self.pol.get_labels()
         print("Annotation labels: ", ",".join(labs))
         lab_str = self.irr.get_label_irstring(labs)
-        for li in [x for x in labs if x not in lab_str]:
-            print("Warning: label defined but never used: ", li)
+        for li_q in labs:
+            if not li_q in lab_str.keys():
+                print("Warning: label defined but never used: ", li_q)
         lab_enc = self.pol.get_label_enclave(labs)
         for l in lab_str:
             self.ann_info.add_annotation_info(l, lab_str[l], lab_enc[l])
@@ -265,10 +267,10 @@ class Partitioner():
                 dinfo = n.get('dbginfo')
                 labels = None
                 if dinfo.get_kind() == dinfo.LOCAL:
-                    if 'GLOBAL_VALUE' not in n.get_label():
-                        labels = ['CONTROL']
-                    else:
+                    if n.is_global_value():
                         labels = ['SCOPE']
+                    else:
+                        labels = ['CONTROL']
                 if labels is not None:
                     for upnode in self.gh.get_neighbors(n, direction='dst', label=labels):
                         c = self.gh.propagate_enclave_oneway(upnode, col, direction='dst', label=labels, stop_at_function=True, from_node=n)
@@ -280,14 +282,31 @@ class Partitioner():
         color instructions in colored functions
         '''
         ret = set()
-        for n in self.dot.get_pdg_nodes():
-            if self.dot.is_entry(n):
-                col = n.get('enclave')
-                if col:
-                    labels = ['CONTROL']
-                    #going down the relation
-                    for downnode in self.gh.get_neighbors(n, direction='src', label=labels):
-                        c = self.gh.propagate_enclave_oneway(downnode, col, direction='src', label=labels, stop_at_function=True, from_node=n)
+        for n in self.dot.get_pdg().get_entry_nodes():
+            col = n.get('enclave')
+            if col:
+                labels = ['CONTROL', 'SCOPE']
+                #going down the relation
+                for downnode in self.gh.get_neighbors(n, direction='src', label=labels):
+                    c = self.gh.propagate_enclave_oneway(downnode, col, direction='src', label=labels, stop_at_function=False, from_node=n)
+                    graph_helper.GraphHelper.ConflictPair.set_merge(ret, c)
+            
+        return ret
+                
+    def color_all(self):
+        '''
+        color everything reachable
+        '''
+        ret = set()
+        for n in self.dot.get_pdg().get_nodes():
+            col = n.get('enclave')
+            if col:
+                labels = ['CONTROL', 'SCOPE', 'DEF_USE', 'RAW', 'PARAMETER', 'GLOBAL_DEP', 'D_general', 'D_ALIAS']
+                for downnode in self.gh.get_neighbors(n, direction=None, label=labels):
+                    dn_col = downnode.get('enclave')
+                    if dn_col is None:
+                        #should not be possible for two colored nodes to be linked at this point
+                        c = self.gh.propagate_enclave_oneway(downnode, col, direction=None, label=labels, stop_at_function=False, from_node=n)
                         graph_helper.GraphHelper.ConflictPair.set_merge(ret, c)
             
         return ret
@@ -344,7 +363,7 @@ class Partitioner():
                 print("  " + str(cinfo))
 
 
-        print("Conflicts (pass 1 of 2):")
+        print("Conflicts (pass 1 of 3):")
         conflicts_body = self.color_body()
         if len(conflicts_body) == 0:
             print("  None")
@@ -370,7 +389,7 @@ class Partitioner():
         
         #finds if data of different markings is used in the same statement
         
-        print("Conflicts (pass 2 of 2):")
+        print("Conflicts (pass 2 of 3):")
         conflicts = self.gh.balanced_coloring(encs, enc)
         if len(conflicts) == 0:
             print("  None")
@@ -387,11 +406,32 @@ class Partitioner():
                     print("  " + str(cinfo))
         self.gh.ConflictPair.set_merge(all_conflict_pairs, conflicts)
 
+        #finds everything else
+        print("Conflicts (pass 3 of 3):")
+        conflicts_all = self.color_all()
+        if len(conflicts_all) == 0:
+            print("  None")
+        else:
+            conflicts_exist = True
+            for c_pair in conflicts_all:
+                if not c_pair.is_in_set(all_conflict_pairs):
+                    #print("C:", c_pair)
+                    c = c_pair.get_dst()
+                    dinfo = self.irr.get_DbgInfo(c)
+                    #print("DINFO:", dinfo)
+                    dinfo_src = self.irr.get_DbgInfo(c_pair.get_src())
+                    cinfo = ConflictInfo(dinfo, dinfo_src, c_pair.get_edge())
+                    print("  " + str(cinfo))
+        self.gh.ConflictPair.set_merge(all_conflict_pairs, conflicts_all)
+
+
+
         #add global variables to topology file
         global_scoped_vars = []
         topology['global_scoped_vars'] = global_scoped_vars
         for n in self.dot.get_pdg_nodes():
-            if n.get_label() and "GLOBAL_VALUE" in n.get_label():
+            if n.is_global_value():
+                #print("GGLLOOBBAALL::", n)
                 n_ann = n.get('enclave')
                 dinfo = n.get('dbginfo')
                 dinfo = self.irr.get_DbgInfo(n)
@@ -401,28 +441,34 @@ class Partitioner():
                         global_scoped_vars.append(json_var)
                     else:
                         print("Global variable is not marked at the end of analysis:", dinfo)
-                        print("  ACTION: Check annotations and policies in the program")
-                        print("  ACTION: This may only happen if security policies are incorrect")
+                        print("  ACTION: This may happen if security policies are incorrect or this item is unused")
+                        print("  ACTION: Check the program structure, and the annotations and policies")
+                        print("  ACTION: Item assigned by default to: %s; check correctness of this assignment"%enc)
+                        json_var = {"name" : dinfo.get_name(), "level" : enc, "default" : "true"}
+                        global_scoped_vars.append(json_var)
 
         #ADD FUNCTIONS TO TOPOLOGY FILE
         function_labels = []
         topology['functions'] = function_labels
-        for n in self.dot.get_pdg_nodes():
-            if self.dot.is_entry(n):
-                fdinfo = self.irr.get_DbgInfo(n)
-                n_ann = n.get('enclave')
-                if n_ann:
-                    func_l = {"name" : fdinfo.get_name(), "level" : n_ann, "line" : fdinfo.get_line()}
-                    function_labels.append(func_l)
-                else:
-                    print("A function is not marked at the end of analysis:", fdinfo)
-                    print("  ACTION: This may only happen if the program or the security policies are incorrect")
-                    print("  ACTION: Check annotations and policies in the program.")
-                    print("  ACTION: Check for unused functions. Check for functions called with wrong number of parameters.")
+        for n in self.dot.get_pdg().get_entry_nodes():
+            fdinfo = self.irr.get_DbgInfo(n)
+            n_ann = n.get('enclave')
+            if n_ann:
+                func_l = {"name" : fdinfo.get_name(), "level" : n_ann, "line" : fdinfo.get_line()}
+                function_labels.append(func_l)
+            else:
+                print("A function is not marked at the end of analysis:", fdinfo)
+                print("  ACTION: This may happen if the program or the security policies are incorrect or this item is unused")
+                print("  ACTION: Check annotations and policies in the program.")
+                print("  ACTION: Check for unused functions. Check for functions called with wrong number of parameters.")
+                print("  ACTION: Item assigned by default to: %s; check correctness of this assignment"%enc)
+                func_l = {"name" : fdinfo.get_name(), "level" : enc, "line" : fdinfo.get_line(), "default" : "true"}
+                function_labels.append(func_l)
+                #print("DEBUG:", str(n))
         
         #write enclaves.dot file, make sure debug info is a string        
-        for n in self.dot.get_pdg_nodes():
-            n.set('dbginfo', "\"" + str(n.get('dbginfo')) + "\"")
+        #for n in self.dot.get_pdg_nodes():
+        #    n.set('dbginfo', "\"" + str(n.get('dbginfo')) + "\"")
         self.dot.get_pdg().write('enclaves.dot')
                 
         if conflicts_exist:
@@ -478,7 +524,7 @@ def main(fullprogname):
             print("  ACTION: Correct these problems before running this program again")
             return
         irr.read_ir(pre + ".ll")
-        dot.read_dot("pdgragh.main.dot", "cdgragh.main.dot", "ddgragh.main.dot")
+        dot.read_dot("pdgragh.main.dot")
         print("Source file to be modified: %s" % source_file_name)
         topology['source_path'] = "./refactored" #source_file_name #os.path.dirname(source_file_name)
         p = Partitioner(pol, irr, dot)

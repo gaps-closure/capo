@@ -49,16 +49,12 @@ class GraphHelper():
      
     def __init__(self, dot_graph):
         self.dot = dot_graph
-        self.dot_nodes = {n.get_name() : n for n in self.dot.get_nodes()}
-        self.dot_edges = self.dot.get_edges()
-        self.dot_edges_by_src_name = {x.get_source() : [z for z in self.dot_edges if z.get_source() == x.get_source()] for x in self.dot_edges}
-        #self.nxg = networkx.drawing.nx_pydot.from_pydot(dot_graph)
 
     def get_dot_node_list(self):
-        return self.dot_nodes.values()
+        return self.dot.get_nodes()
 
     def get_dot_node(self, name):
-        return self.dot_nodes.get(name)
+        return self.dot.get_node(name)
 
     def balanced_coloring(self, encs, enc):
         '''
@@ -118,17 +114,16 @@ class GraphHelper():
                 else:
                     n1 = node
                     n2 = from_node
-                edgs = [e for e in self.dot_edges_by_src_name.get(n1.get_name()) if e.get_destination() == n2.get_name()]
-                #edgs2 = [e for e in self.dot_edges_by_src_name.get(from_node.get_name()) if e.get_destination() == node.get_name()]
+                edgs = [e for e in self.dot.get_edges_by_src(n1.get_name()) if e.get_dst() == n2.get_name()]
                 #print("eee1", edgs, set(edgs))
                 if len(edgs) < 1:
                     print("ERROR in edge analysis: ")
                 return [GraphHelper.ConflictPair(n1, n2, edgs[0])]
             return []
         node.set('enclave', enclave)
-        node.set_fillcolor(enclave)
-        node.set_style('filled')
-        if stop_at_function and node.get_label().startswith('"{\<\<ENTRY\>\>'): return set()
+        node.set('fillcolor', enclave)
+        node.set('style', 'filled')
+        if stop_at_function and node.is_entry(): return set()
         ret = set()
         for n in self.get_neighbors(node, direction=direction, label=label):
             c = self.propagate_enclave_oneway(n, enclave, direction=direction, label=label, from_node=node)
@@ -155,8 +150,8 @@ class GraphHelper():
         edges = self.get_edges(node, direction, label)
         ret = set()
         for e in edges:
-            if e.get_source() == node.get_name(): ret.add(e.get_destination())
-            else: ret.add(e.get_source())
+            if e.get_src() == node.get_name(): ret.add(e.get_dst())
+            else: ret.add(e.get_src())
         return [self.get_dot_node(x) for x in ret]
 
     def get_edges(self, node, direction=None, label=None):
@@ -167,7 +162,15 @@ class GraphHelper():
         Only edges that have labels that contain at least one of the terms in 'label' argument are considered
         '''
         ret = set()
-        for e in self.dot_edges:
+        if direction:
+            if direction == 'src':
+                elist = self.dot.get_edges_by_src(node.get_name())
+            else:
+                elist = self.dot.get_edges_by_dst(node.get_name())
+        else:
+            elist = self.dot.get_edges_by_src(node.get_name())
+            elist.extend(self.dot.get_edges_by_dst(node.get_name()))
+        for e in elist:
             el = e.get_label()
             in_label = False
             if label is None:
@@ -177,12 +180,7 @@ class GraphHelper():
                     in_label = in_label or (el is not None and l in el)
                     #print("l, el, in_label:", l, el, in_label)
             if in_label:
-                if e.get_destination() == node.get_name():
-                    if direction is None or direction == 'dst':
-                        ret.add(e)
-                if e.get_source() == node.get_name():
-                    if direction is None or direction == 'src':
-                        ret.add(e)
+                ret.add(e)
         #print("RET:", ret)
         return list(ret)
 
