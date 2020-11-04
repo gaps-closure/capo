@@ -101,8 +101,8 @@ class GEDLProcessor:
       s  = '#ifndef _' + e.upper() + '_RPC_' + n
       s += '#define _' + e.upper() + '_RPC_' + n + n
       s += '#include "codec.h"' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += '#include <pthread.h>' + n if ipc != 'Singlethreaded' and e not in self.masters else n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += '#include <assert.h>'  + n
       s += '#include <zmq.h>'  + n
       s += '#else' + n
