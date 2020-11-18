@@ -154,22 +154,18 @@ class DotGraph():
     def read_from_file(cls, fname):
         nodes = []
         edges = []
-        #node_re = re.compile(r'(Node0x[0-9a-fA-F]{12}) \[(.+)\];')
         node_re = re.compile(r'(Node0x[0-9a-fA-F]+) \[(.+)\];')
-        #edge_re = re.compile(r'(Node0x[0-9a-fA-F]{12}) -> (Node0x[0-9a-fA-F]{12})(?:\[(.+)\])?;')
         edge_re = re.compile(r'(Node0x[0-9a-fA-F]+) -> (Node0x[0-9a-fA-F]+)(?:\[(.+)\])?;')
         num = 0
         with open(fname) as f:
             for line in f:
                 num += 1
                 line = line.strip()
-                print(line)
                 if line and len(line) > 0:
                     #node?
                     m = node_re.match(line)
                     if m:
                         name = m.group(1)
-                        print(name)
                         argsstr = token_with_escape(m.group(2))
                         argstu = [t.split("=", 1) for t in argsstr]
                         args = {t[0].strip() : t[1].strip() for t in argstu}
@@ -241,7 +237,6 @@ class DotReader():
         ret = []
         for irstr in irstr_l:
             re_str = ".+ @" + irstr + "[, ].+"
-            print ('Nodes in graph:', len(self.pdg.get_nodes()))
             for n in self.pdg.get_nodes():
                 l = n.get_label()
                 if l is not None and (not "llvm.global.annotations" in l) and re.match(re_str, l):
@@ -251,7 +246,6 @@ class DotReader():
             #             (not "llvm.global.annotations" in n.get_label()) and \
             #             re.match(re_str, n.get_label())]
         
-        print ("Found:", irstr_l, ret)
         return ret
 
     def find_global_vars_for_irstring(self, irstr_l):
@@ -325,10 +319,10 @@ if __name__ == "__main__":
                 #print(n1, n2)
 
     tstr = 'Node0x55cb45cfbef0 [shape=record,label="{\<\<ENTRY\>\> stop_database \<\<0x55cb441452d0\> = distinct !DISubprogram(name: \"stop_database\", scope: \<0x55cb4725ca80\>, file: \<0x55cb4725ca80\>, line: 17, type: \<0x55cb472e0c50\>, scopeLine: 17, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: \<0x55cb4725e638\>, retainedNodes: \<0x55cb4725b160\>)\>}"];'
-    m = re.match(r'Node0x[0-9a-fA-F]{12} \[(.+)\];', tstr)
+    m = re.match(r'Node0x[0-9a-fA-F]+ \[(.+)\];', tstr)
     print(m)
     print(token_with_escape(m.group(1)))
-    edge_re = r'(Node0x[0-9a-fA-F]{12}) (Node0x[0-9a-fA-F]{12})(?: \[(.+)\])?;'
+    edge_re = r'(Node0x[0-9a-fA-F]+) (Node0x[0-9a-fA-F]+)(?: \[(.+)\])?;'
     '''
     #aa = DotGraph.read_from_file("~/closure/top-level/apps/eridemo2020/secdesk/.solution/pdgragh.main.dot")
     #aa = DotGraph.read_from_file("/tmp/acpt/pdgragh.main.dot")
