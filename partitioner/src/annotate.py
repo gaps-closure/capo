@@ -277,7 +277,6 @@ class Partitioner():
         smcl = "Items with security markings:"
         print(smcl)
         data_items = []
-        global_scoped_vars = []
         for n in self.dot.get_pdg_nodes():
             n_ann = n.get('annotation')
             if n_ann:
@@ -285,8 +284,6 @@ class Partitioner():
                 dinfo = n.get('dbginfo')
                 smcl = "  Enclave: %s, item: %s" %(n_ann, str(dinfo))
                 json_var = {"name" : dinfo.get_name(), "level" : n_ann}
-                if dinfo.get_kind() == dinfo.GLOBAL:
-                    global_scoped_vars.append(json_var)
                 print(smcl)
                 
         self.dot.get_pdg().write('TFB.dot')

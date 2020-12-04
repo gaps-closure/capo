@@ -340,8 +340,6 @@ class Partitioner():
         self.extract_annotation_info()
 
         data_items = []
-        global_scoped_vars = []
-        topology['global_scoped_vars'] = global_scoped_vars
         #start coloring
         
         print("Definition conflicts (data from different enclaves defined in the same function):")
@@ -377,8 +375,6 @@ class Partitioner():
                 print("  " + str(cinfo))
                 if cinfo.get_kind() == ConflictInfo.FUNCTION_CALL:
                     e=s.get('enclave')
-                    print("type(e):",type(e))
-                    print("type(c):",type(c))
                     resolv, msg = self.pol.resolve_function(c, s.get('enclave'))
                     if not resolv:
                         resolvable_only = False
@@ -434,7 +430,6 @@ class Partitioner():
             if n.is_global_value():
                 #print("GGLLOOBBAALL::", n)
                 n_ann = n.get('enclave')
-                d = n.get('dbginfo')
                 d = self.irr.get_DbgInfo(n)
                 if str(type(d)) == "<class 'str'>":
                     list=d.split()
