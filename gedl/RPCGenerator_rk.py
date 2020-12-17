@@ -19,7 +19,9 @@ def argparser():
   parser.add_argument('-x','--xdconf', required=True, type=str, help='Hal Config Map Filename')
   parser.add_argument('-e','--edir', required=True, type=str, help='Input Directory')
   parser.add_argument('-E','--enclave_list', required=True, type=str, nargs='+', help='List of enclaves')
-  parser.add_argument('-B','--app_base', required=False, type=int, default=0, help='Application base index for tags')
+  parser.add_argument('-M','--mux_base', required=False, type=int, default=0, help='Application mux base index for tags')
+  parser.add_argument('-S','--sec_base', required=False, type=int, default=0, help='Application sec base index for tags')
+  parser.add_argument('-T','--typ_base', required=False, type=int, default=0, help='Application typ base index for tags')
   parser.add_argument('-m','--mainprog', required=True, type=str, help='Application program name, <mainprog>.c must exsit')
   return parser.parse_args()
 
@@ -33,11 +35,13 @@ def gotMain(fn): # XXX: will fail on #ifdef'd out main, consider using clang.cin
   
 #####################################################################################################################################################
 class GEDLProcessor:
-  def __init__(self, gedlfile, enclaveList, appbase):
+  def __init__(self, gedlfile, enclaveList, muxbase, secbase, typbase):
     with open(gedlfile) as edl_file: self.gedl = json.load(edl_file)['gedl']
     self.xdcalls     = [c['func'] for x in self.gedl for c in x['calls']]
     self.specials    = ['nextrpc', 'okay']
-    self.appbase     = appbase
+    self.muxbase     = muxbase
+    self.secbase     = secbase
+    self.typbase     = typbase
     self.enclaveList = enclaveList
     cartesian        = [(i,j) for i in enclaveList for j in enclaveList if i != j]
     self.muxAssign   = {x: i for i,x in enumerate(cartesian)}
@@ -83,7 +87,7 @@ class GEDLProcessor:
   def genXDConf(self, inu, outu):
     def amap(caller,callee,func,o):
       y = self.const(caller,callee,func,o)
-      return {'from':y['from'],'to':y['to'],'mux':y['mux']+self.appbase,'sec':y['sec']+self.appbase,'typ':y['typ'],'name':y['dnm']}
+      return {'from':y['from'],'to':y['to'],'mux':y['mux']+self.muxbase,'sec':y['sec']+self.secbase,'typ':y['typ']+self.typbase,'name':y['dnm']}
     def getmaps(e): 
       m = []
       if e in self.masters: # XXX: revisit for multi-enclave
@@ -135,16 +139,18 @@ class GEDLProcessor:
       s += t + 'codec_func_ptr decode;' + n
       s += '} codec_map;' + n 
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
-      s += '#define APP_BASE ' + str(self.appbase) + n + n
+      s += '#define MUX_BASE ' + str(self.muxbase) + n + n
+      s += '#define SEC_BASE ' + str(self.secbase) + n + n
+      s += '#define TYP_BASE ' + str(self.typbase) + n + n
       if e in self.masters: s += 'extern void _master_rpc_init();' + n + n
       else:                 s += 'extern int _slave_rpc_loop();' + n + n
       return s
-    def muxsec(l): return '#define ' + l['muxdef'] + ' APP_BASE + ' + str(l['mux']) + n + '#define ' + l['secdef'] + ' APP_BASE + ' + str(l['sec']) + n
+    def muxsec(l): return '#define ' + l['muxdef'] + ' MUX_BASE + ' + str(l['mux']) + n + '#define ' + l['secdef'] + ' SEC_BASE + ' + str(l['sec']) + n
     def tagcle(x,y,f,outgoing=True): 
       l  = self.const(x,y,f,outgoing)
       s  = '#pragma cle def ' + l['clelabl'] + ' {"level": "' + e + '", \\' + n
       s += t + '"cdf": [{"remotelevel": "' + l['to'] + '", "direction": "egress", \\' + n
-      s += t + t + t + '"guarddirective": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.appbase),str(l['sec']+self.appbase),str(l['typ'])]) + ']}}]}' + n + n
+      s += t + t + t + '"guarddirective": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.muxbase),str(l['sec']+self.secbase),str(l['typ']+self.typbase)]) + ']}}]}' + n + n
       return s
     def specialstags(x,y):
       s  = muxsec(self.const(x,y,'nextrpc',True))
@@ -279,9 +285,9 @@ class GEDLProcessor:
     def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''): 
       l  = self.const(x,y,f,outgoing)
       if outgoing:
-        return pfx + 'xdc_register(request_' + f + "_data_encode, request_" + f + '_data_decode, ' + l['typdef'] + sfx + ');' + n
+        return pfx + 'xdc_register(request_' + f.lower() + "_data_encode, request_" + f.lower() + '_data_decode, ' + l['typdef'] + sfx + ');' + n
       else:
-        return pfx + 'xdc_register(response_' + f + "_data_encode, response_" + f + '_data_decode, ' + l['typdef'] + sfx + ');' + n
+        return pfx + 'xdc_register(response_' + f .lower()+ "_data_encode, response_" + f.lower() + '_data_decode, ' + l['typdef'] + sfx + ');' + n
     def myregdtyp(x,y,f,outgoing=True,pfx='my_',sfx=', mycmap'): 
       return regdtyp(x,y,f,outgoing,pfx,sfx)
     def halinit(e):    # XXX: hardcoded tags, should use self.const
@@ -375,7 +381,7 @@ class GEDLProcessor:
       s += BLOCK1()
       l  = self.const(x,y,f,True)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'request_' + f + '_datatype req_' + f + ';' + n
+      s += t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n 
       s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
@@ -384,7 +390,7 @@ class GEDLProcessor:
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       l  = self.const(x,y,f,False)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'response_' + f + '_datatype res_' + f + ';' + n
+      s += t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n 
       s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
@@ -454,7 +460,7 @@ class GEDLProcessor:
       s += BLOCK1()
       l  = self.const(x,y,f,True)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'request_' + f + '_datatype req_' + f + ';' + n
+      s += t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n 
       s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
@@ -463,7 +469,7 @@ class GEDLProcessor:
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       l  = self.const(x,y,f,False)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'response_' + f + '_datatype res_' + f + ';' + n
+      s += t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n 
       s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
@@ -599,7 +605,7 @@ class GEDLProcessor:
 #####################################################################################################################################################
 if __name__ == '__main__':
   args = argparser()
-  gp   = GEDLProcessor(args.gedl,args.enclave_list,args.app_base)
+  gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base)
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
   if len(gp.masters) != 1: raise Exception('Need one master, got:' + ' '.join(gp.masters))
