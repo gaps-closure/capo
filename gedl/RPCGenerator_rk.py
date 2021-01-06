@@ -137,7 +137,7 @@ class GEDLProcessor:
       s += t + 'int valid;' + n
       s += t + 'codec_func_ptr encode;' + n
       s += t + 'codec_func_ptr decode;' + n
-      s += '} codec_map;' + n 
+      s += '} codec_map;' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
       s += '#define MUX_BASE ' + str(self.muxbase) + n + n
       s += '#define SEC_BASE ' + str(self.secbase) + n + n
@@ -291,20 +291,20 @@ class GEDLProcessor:
     def myregdtyp(x,y,f,outgoing=True,pfx='my_',sfx=', mycmap'): 
       return regdtyp(x,y,f,outgoing,pfx,sfx)
     def halinit(e):    # XXX: hardcoded tags, should use self.const
-      s  = 'void _hal_init(char *inuri, char *outuri) {' + n 
-      s += '#ifdef __LEGACY_XDCOMMS__' + n 
-      s += t + 'xdc_set_in(inuri);' + n 
+      s  = 'void _hal_init(char *inuri, char *outuri) {' + n
+      s += '#ifdef __LEGACY_XDCOMMS__' + n
+      s += t + 'xdc_set_in(inuri);' + n
       s += t + 'xdc_set_out(outuri);' + n
       s += t + 'xdc_register(nextrpc_data_encode, nextrpc_data_decode, DATA_TYP_NEXTRPC);' + n  
       s += t + 'xdc_register(okay_data_encode, okay_data_decode, DATA_TYP_OKAY);' + n           
       for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e):
         s += t + regdtyp(x,y,f,True)
         s += t + regdtyp(x,y,f,False)
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n 
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
     def BLOCK1():
-      s  = '#ifndef __LEGACY_XDCOMMS__' + n 
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void *psocket;' + n
       s += t + 'void *ssocket;' + n
       s += t + 'gaps_tag t_tag;' + n
@@ -325,7 +325,7 @@ class GEDLProcessor:
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
     def BLOCK2(tag):
-      s  = '#ifndef __LEGACY_XDCOMMS__' + n 
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void * ctx = zmq_ctx_new();' + n
       s += t + 'psocket = my_xdc_pub_socket(ctx);' + n
       s += t + 'ssocket = my_xdc_sub_socket(' + tag + ', ctx);' + n
@@ -336,7 +336,7 @@ class GEDLProcessor:
       s += t + t + 'psocket = xdc_pub_socket();' + n
       s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
       s += t + t + 'sleep(1); /* zmq socket join delay */' + n
-      s += t + '}' + n 
+      s += t + '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
     def notify_nxtag(): # XXX: hardcoded tags, should use self.const
@@ -345,7 +345,7 @@ class GEDLProcessor:
       s += t + '#pragma cle begin TAG_NEXTRPC' + n                                              
       s += t + 'nextrpc_datatype nxt;' + n
       s += t + '#pragma cle end TAG_NEXTRPC' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
       s += '#else' + n
       s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
@@ -353,7 +353,7 @@ class GEDLProcessor:
       s += t + '#pragma cle begin TAG_OKAY' + n
       s += t + 'okay_datatype okay;' + n
       s += t + '#pragma cle end TAG_OKAY' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
       s += '#else' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
@@ -362,7 +362,7 @@ class GEDLProcessor:
       s += t + 'nxt.mux = n_tag->mux;' + n
       s += t + 'nxt.sec = n_tag->sec;' + n
       s += t + 'nxt.typ = n_tag->typ;' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_xdc_asyn_send(psocket, &nxt, &t_tag, mycmap);' + n
       s += t + 'my_xdc_blocking_recv(ssocket, &okay, &o_tag, mycmap);' + n
       s += t + 'zmq_close(psocket);' + n
@@ -383,7 +383,7 @@ class GEDLProcessor:
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#else' + n
       s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
@@ -392,7 +392,7 @@ class GEDLProcessor:
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#else' + n
       s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
@@ -407,18 +407,27 @@ class GEDLProcessor:
             s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
       s += BLOCK2('o_tag')
       if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_xdc_asyn_send(psocket, &req_' + f + ', &t_tag, mycmap);' + n
+      oneway = True # XXX: must pass f to this function and check if it is oneway
+      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
       s += t + 'my_xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag, mycmap);' + n
+      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
       s += t + 'zmq_close(psocket);' + n
       s += t + 'zmq_close(ssocket);' + n
       s += t + 'zmq_ctx_shutdown(ctx);' + n
       s += '#else' + n
       s += t + 'xdc_asyn_send(psocket, &req_' + f + ', &t_tag);' + n
+      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
       s += t + 'xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag);' + n
+      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
+      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
       s += t + 'return (res_' + f + '.ret);' + n
+      if (oneway): s += '#else' + n
+      s += t + 'return 0;' + n
+      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
       s += '}' + n + n
       return s
     def handlernextrpc(): #XXX: hardcoded tags
@@ -430,13 +439,13 @@ class GEDLProcessor:
       s += t + '#pragma cle begin TAG_OKAY' + n
       s += t + 'okay_datatype okay;' + n
       s += t + '#pragma cle end TAG_OKAY' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
       s += '#else' + n
       s += t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += BLOCK2('t_tag')
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_xdc_blocking_recv(ssocket, &nxt, &t_tag, mycmap);' + n
       s += t + 'my_tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
       s += t + 'okay.x = 0;' + n
@@ -462,7 +471,7 @@ class GEDLProcessor:
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#else' + n
       s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
@@ -471,26 +480,31 @@ class GEDLProcessor:
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
       s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#else' + n
       s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += BLOCK2('t_tag')
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag, mycmap);' + n
       s += '#else' + n
       s += t + 'xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag);' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + ('res_' + f + '.ret = ' if fd['return']['type'] != 'void' else '') + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
       # XXX: marshaller needs to copy output arguments (including arrays) to res here !!
-      s += '#ifndef __LEGACY_XDCOMMS__' + n 
+      oneway = True # XXX: must pass f to this function and check if it is oneway
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
+      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
       s += t + 'my_xdc_asyn_send(psocket, &res_' + f + ', &o_tag, mycmap);' + n
+      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
       s += t + 'zmq_close(psocket);' + n
       s += t + 'zmq_close(ssocket);' + n
       s += t + 'zmq_ctx_shutdown(ctx);' + n
       s += '#else' + n
+      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
       s += t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
@@ -524,7 +538,7 @@ class GEDLProcessor:
         s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n + n
         s += t + 'while (1) {' + n
         s += t + t + '_handle_nextrpc(&o_tag);' + n
-        s += '#ifndef __LEGACY_XDCOMMS__' + n 
+        s += '#ifndef __LEGACY_XDCOMMS__' + n
         s += t + t + 'my_tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n    # XXX: hardcoded labels
         s += '#else' + n
         s += t + t + 'tag_write(&t_tag, MUX_NEXTRPC, SEC_NEXTRPC, DATA_TYP_NEXTRPC);' + n    # XXX: hardcoded labels
@@ -532,7 +546,7 @@ class GEDLProcessor:
         s += t + t + 'if(TAG_MATCH(o_tag, t_tag)) { continue; }' + n
         for (x,y,f,fd) in self.inCalls(e):  
           l  = self.const(x,y,f,False)
-          s += '#ifndef __LEGACY_XDCOMMS__' + n 
+          s += '#ifndef __LEGACY_XDCOMMS__' + n
           s += t + t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
           s += '#else' + n
           s += t + t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
