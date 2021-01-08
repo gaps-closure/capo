@@ -254,7 +254,7 @@ class Partitioner():
         #we do not expect to have conflicts here
         return ret
     
-    def partition_to(self, encs, enc):
+    def partition_to(self, encs, enc, outFile):
         '''
         encs - all the enclaves
         enc - the enclave into which the data flows (through guards). If data can flow to all, a random one 
@@ -286,9 +286,9 @@ class Partitioner():
                 json_var = {"name" : dinfo.get_name(), "level" : n_ann}
                 print(smcl)
                 
-        self.dot.get_pdg().write('TFB.dot')
+        self.dot.get_pdg().write(outFile)
 
-    def get_partition_information(self):
+    def get_partition_information(self,dotFile):
         enc = self.pol.get_enclaves()
         if len(enc) == 0:
             print("This program has no security enclaves defined! Use CLE to annotate the source code.")
@@ -307,10 +307,10 @@ class Partitioner():
                 print("Please add the data flow rules for one of the labels.")
             elif len(enc_c) == 1:
                 print("Data can flow only to %s (through guards)" % (enc_c[0]))
-                self.partition_to(enc, enc_c[0])
+                self.partition_to(enc, enc_c[0],dotFile)
             else:
                 print("Data can flow to enclaves: %s (through guards)" % " or ".join(enc_c))
-                self.partition_to(enc, enc_c[0])
+                self.partition_to(enc, enc_c[0],dotFile)
             
 
 def main(fullprogname):
@@ -334,7 +334,7 @@ def main(fullprogname):
         print("Source file to be modified: %s" % source_file_name)
         p = Partitioner(pol, irr, dot)
         p.set_input_names(progname, ext)
-        p.get_partition_information();
+        p.get_partition_information(progname + ext + ".annotated" + ".dot");
             
     except FileNotFoundError as e:
         print("Canot read input files: " + str(e))
