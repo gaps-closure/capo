@@ -1,5 +1,6 @@
 import json
 import sys
+import ir_reader
 
 class PolicyResolver():
     def __init__(self):
@@ -88,7 +89,23 @@ class PolicyResolver():
     def resolve_function(self, funct_node, target_enc):
         ann = funct_node.get('annotation')
         tai = funct_node.get('taint')
-        dbinf = funct_node.get('dbginfo')
+        d = funct_node.get('dbginfo')
+        if str(type(d)) == "<class 'str'>":
+                list=d.split()
+                if list[4] == str("False"):
+                    local=False
+                else:
+                    local=True
+                print("list[5]:",list[5])
+                if int(list[5]) == 3:
+                    print("list[5] is 3");
+                    dbinf=ir_reader.DbgInfo(funct_node,list[0],list[1],list[2],list[3],local,True)
+                else:
+                    print("list[5] is not 3");
+                    dbinf=ir_reader.DbgInfo(funct_node,list[0],list[1],list[2],list[3])
+        else:
+            dbinf=d
+
         f_name = dbinf.get_name()
         if tai is None:
             return False, "Function '%s' needs XD annotation"%(f_name)
