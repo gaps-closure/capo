@@ -3,5 +3,5 @@ for l in $nt
 do
 	n=`echo $l | sed -e "s/,.*$//"`
 	t=`echo $l | sed -e "s/^.*,//"`
-	echo "$n,$t"
+	echo "constraint ENCLAVEREMOTELEVEL[$n,$t]=1;"
 done
