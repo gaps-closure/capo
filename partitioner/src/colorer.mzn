@@ -1,5 +1,15 @@
 enum Vertices;
 enum Enclaves;
+int: CONTROLEntryPath;
+int: SCOPEEntryPath;
+int: CONTROLEntryPathDepthMax;
+int: SCOPEEntryPathDepthMax;
+array[1 .. CONTROLEntryPath] of int: CONTROLEntryPathDepth;
+array[1 .. SCOPEEntryPath] of int: SCOPEEntryPathDepth;
+array[1 .. CONTROLEntryPath,1 .. CONTROLEntryPathDepthMax] of Vertices: entryCONTROLDFS;
+array[1 .. SCOPEEntryPath,1 .. SCOPEEntryPathDepthMax] of Vertices: entrySCOPEDFS;
+array[Vertices] of bool: LLVMGLOBAL;
+array[Vertices] of bool: LLVMVAR;
 array[Vertices] of bool: ENTRY;
 array[Vertices] of bool: STATICVAR;
 array[Vertices] of bool: FUNCTION;
@@ -15,32 +25,44 @@ array[Vertices,Vertices] of bool: SCOPE;
 array[Vertices,Enclaves] of bool: ENCLAVEREMOTELEVEL;
 array[Vertices,Vertices] of var bool: scopeAncestor;
 array[Vertices,Vertices] of var bool: controlAncestor;
-array[Vertices,Enclaves] of var bool: ENCLAVENODES;
+array[Vertices,Vertices] of var bool: d_aliasAncestor;
+array[Vertices,Vertices] of var bool: data_call_paraAncestor;
+array[Vertices,Vertices] of var bool: data_readAncestor;
+array[Vertices,Vertices] of var bool: def_useAncestor;
+array[Vertices,Vertices] of var bool: d_generalAncestor;
+array[Vertices,Vertices] of var bool: global_depAncestor;
+array[Vertices,Vertices] of var bool: parameterAncestor;
+array[Vertices,Vertices] of var bool: rawAncestor;
+array[Vertices] of var Enclaves: nodeEnclave;
+array[Vertices] of var bool: nodeEnclaveAssigned;
+array[Vertices,Vertices] of var bool: conflictPair;
+
+constraint forall (v1 in Vertices)(
+		forall (v2 in Vertices) (conflictPair[v1,v2] = false));
 
 /*immediate parent function of local variables has same enclave as local variable*/
 constraint forall (v in Vertices where LOCALVAR[v] == 1) (
-	forall (i in Vertices where ENTRY[i] == 1) (
-		if (CONTROL[i,v] == 1)
-		then
-			forall (j in Enclaves where ENCLAVENODES[v,j] == 1)(
-				ENCLAVENODES[i,j]=1
-			)
-		endif
-	)
+	if (nodeEnclaveAssigned[v] == true)
+	then
+		forall (i in Vertices where ENTRY[i] == 1) (
+			if (CONTROL[i,v] == 1)
+			then
+				nodeEnclave[i]=nodeEnclave[v]
+			endif
+		)
+	endif
 );
 /*annotated STATICLOCAL variables must have exactly one immediate parent of type ENTRY*/
 constraint forall (v1 in Vertices where STATICVAR[v1] == 1) (
-	forall (e1 in Vertices where ENTRY[e1] == 1) (
-		if (SCOPE[e1,v1] == 1)
-		then
-			forall (e2 in Vertices where ENTRY[e2] == 1) (
-				if (e1 != e2)
-				then
-					SCOPE[e2,v1] = 0
-				endif
-			)
-		endif
-	)
+	if (nodeEnclaveAssigned[v1] == true)
+	then
+		forall (e1 in Vertices where ENTRY[e1] == 1) (
+			if (SCOPE[e1,v1] == 1)
+			then
+				nodeEnclave[e1]=nodeEnclave[v1]
+			endif
+		)
+	endif
 );
 /*annotated LOCAL variables must have exactly one immediate parent of type ENTRY*/
 constraint forall (v1 in Vertices where LOCALVAR[v1] == 1) (
@@ -61,54 +83,171 @@ constraint forall (v1 in Vertices where LOCALVAR[v1] == 1) (
 /*immediate parent function of static variables has same enclave as static variable*/
 constraint forall (v in Vertices where STATICVAR[v] == 1) (
 	forall (i in Vertices where ENTRY[i] == 1) (
-		if (SCOPE[i,v] == 1)
+		if (nodeEnclaveAssigned[i] == true)
 		then
-			forall (j in Enclaves where ENCLAVENODES[v,j] == 1)(
-				ENCLAVENODES[i,j]=1
-			)
-		endif
-	)
-);
-/*control descendents of all entry functions must has same enclave as entry function*/
-constraint forall (n1 in Vertices where ENTRY[n1] == 1) (
-	forall (e in Enclaves where ENCLAVENODES[n1,e] == 1)(
-		forall (n2 in Vertices where controlAncestor[n1,n2] == 1) (
-			ENCLAVENODES[n2,e]=1
-		)
-	)
-);
-/*scope descendents of all entry functions must has same enclave as entry function*/
-constraint forall (n1 in Vertices where ENTRY[n1] == 1) (
-	forall (e in Enclaves where ENCLAVENODES[n1,e] == 1 ) (
-		forall (n2 in Vertices where scopeAncestor[n1,n2] == 1) (
-			ENCLAVENODES[n2,e]=1
-		)
-	)
-);
-
-/*no node may be assigned more than one enclave*/
-constraint forall (v in Vertices) (
-	forall (e1 in Enclaves) (
-		if ENCLAVENODES[v,e1] == 1 
-		then
-			if (FUNCTIONCALL[v] == 1)
+			if (SCOPE[i,v] == 1)
 			then
-				forall (e2 in Enclaves where e2 != e1) (
-					if (ENCLAVEREMOTELEVEL[v,e2] != 1)
-					then
-						ENCLAVENODES[v,e2]=0
-					endif
-				)
-			/*else
-				forall (e2 in Enclaves where e2 != e1) (
-					ENCLAVENODES[v,e2]=0
-				)*/
+				nodeEnclave[i]=nodeEnclave[v]
 			endif
 		endif
 	)
 );
-/*output[show(ENCLAVENODES)];*/
-output["orange " ++ show(o) ++ "\npurple " ++ show(p) ++ "\n" | o in Vertices where fix(ENCLAVENODES[o,orange]) == 1, p in Vertices where fix(ENCLAVENODES[p,purple]) == 1];
+/*control descendents of all entry functions must has same enclave as entry function*/
+
+array[1 .. CONTROLEntryPath] of var bool: CONTROLENTRYPATHSTOP;
+array[Vertices,Vertices] of var bool: controlConflict;
+array[1 .. CONTROLEntryPath,1 .. CONTROLEntryPathDepthMax] of var bool: entryCONTROLDFSSTOP;
+constraint forall (i in 1 .. CONTROLEntryPath)(
+		entryCONTROLDFSSTOP[i,1] = false);
+constraint forall (v in Vertices where nodeEnclave[v] != enclaveNull) (
+	nodeEnclaveAssigned[v] = true
+);
+	
+array[1 .. CONTROLEntryPath] of var bool: CONTROLEntryPathConflict;
+/*constraint forall (i in 1 .. CONTROLEntryPath) (
+	CONTROLEntryPathConflict[i] = false
+);*/
+
+array[1 .. CONTROLEntryPath,1 .. CONTROLEntryPathDepthMax] of var 0 .. CONTROLEntryPathDepthMax: DC;
+function var int: CONTROLEntryConflict(int: i, int: j) = (
+	if (j < CONTROLEntryPathDepth[i]+1)
+	then
+		if (LLVMGLOBAL[entryCONTROLDFS[i,j]]==true)
+		then
+			CONTROLEntryPathDepth[i]
+		else
+			if (LLVMVAR[entryCONTROLDFS[i,j]]==true)
+			then
+				CONTROLEntryPathDepth[i]
+			else
+				if (nodeEnclave[entryCONTROLDFS[i,j]]==nodeEnclave[entryCONTROLDFS[i,1]])
+				then
+					CONTROLEntryPathDepth[i]
+				else
+					if (nodeEnclave[entryCONTROLDFS[i,j]] != enclaveNull)
+					then
+						j-1
+					else
+						CONTROLEntryConflict(i,j+1)
+					endif
+				endif
+			endif
+		endif
+	else
+		j-1
+	endif
+);
+function var int: CONTROLEntryStop(int: i, int: j) = (
+	if (j < CONTROLEntryPathDepth[i]+1)
+	then
+		if (LLVMGLOBAL[entryCONTROLDFS[i,j]]==true)
+		then
+			j-1
+		else
+			if (LLVMVAR[entryCONTROLDFS[i,j]]==true)
+			then
+				j-1
+			else
+				if (nodeEnclave[entryCONTROLDFS[i,j]]==nodeEnclave[entryCONTROLDFS[i,1]])
+				then
+					j-1
+				else
+					if (nodeEnclave[entryCONTROLDFS[i,j]] != enclaveNull)
+					then
+						j-1
+					else
+						CONTROLEntryStop(i,j+1)
+					endif
+				endif
+			endif
+		endif
+	else
+		j-1
+	endif
+);
+constraint forall (i in 1 .. CONTROLEntryPath) (
+	forall (j in 2 .. CONTROLEntryPathDepth[i]) (
+		if (CONTROLEntryStop(i,2) >= j)
+		then
+			nodeEnclave[entryCONTROLDFS[i,j]]=nodeEnclave[entryCONTROLDFS[i,1]]
+		endif
+	)
+);
+array[1 .. CONTROLEntryPath] of var int: PATHCONFLICT;
+constraint forall (i in 1 .. CONTROLEntryPath) (
+	PATHCONFLICT[i]=CONTROLEntryConflict(i,2)
+	/*if (CONTROLEntryStop(i,2) < CONTROLEntryPathDepth[i])
+	then
+		controlConflict[entryCONTROLDFS[i,CONTROLEntryStop(i,2)-1],entryCONTROLDFS[i,CONTROLEntryStop(i,2)-1]] = true
+	endif*/
+);
+/*constraint forall (i in 1 .. CONTROLEntryPath where nodeEnclave[entryCONTROLDFS[i,1]]!=enclaveNull) (
+	forall (j in 2 .. CONTROLEntryPathDepth[i]+1)(
+		if (j > CONTROLEntryPathDepth[i])
+		then
+			CONTROLEntryPathConflict[i]=j
+		else
+			if (CONTROLEntryPathConflict[i] == 0)
+			then
+				if (nodeEnclave[entryCONTROLDFS[i,j]]!=enclaveNull)
+				then
+					if(nodeEnclave[entryCONTROLDFS[i,1]] !=
+						nodeEnclave[entryCONTROLDFS[i,j]])
+					then
+						CONTROLEntryPathConflict[i]=j 
+					else
+						CONTROLEntryPathConflict[i]=j
+					endif
+				else
+					nodeEnclave[entryCONTROLDFS[i,j]]=nodeEnclave[entryCONTROLDFS[i,1]]
+				endif
+			else
+				DC[i,j]=j
+			endif
+		endif
+	)
+);*/
+/*scope descendents of all entry functions must has same enclave as entry function*/
+array[Vertices,Vertices] of var int: scopeConflict;
+array[1 .. SCOPEEntryPath,1 .. SCOPEEntryPathDepthMax] of var bool: entrySCOPEDFSSTOP;
+/*constraint forall (i in 1 .. SCOPEEntryPath where nodeEnclave[entrySCOPEDFS[i,1]]!=enclaveNull) (
+	forall (j in 2 .. SCOPEEntryPathDepth[i])(
+		if (nodeEnclave[entrySCOPEDFS[i,j]]!=enclaveNull)
+		then
+			if(nodeEnclave[entrySCOPEDFS[i,1]] !=
+				nodeEnclave[entrySCOPEDFS[i,j]])
+			then
+				(entrySCOPEDFSSTOP[i,j] = true) /\
+				(scopeConflict[entrySCOPEDFS[i,j-1],entrySCOPEDFS[i,j]]=true)
+			else
+				entrySCOPEDFSSTOP[i,j] = true
+			endif
+		else
+			(nodeEnclave[entrySCOPEDFS[i,j]]=nodeEnclave[entrySCOPEDFS[i,1]]) /\
+			(entrySCOPEDFSSTOP[i,j] = false)
+		endif
+	)
+);*/
+
+/*solve maximize sum(v in Vertices) (nodeEnclave[v] != enclaveNull);*/
+/*solve minimize sum(v1 in Vertices,v2 in Vertices) (controlConflict[v1,v2] == true);*/
+
+output[show(i1) ++ " " ++ show(PATHCONFLICT[i1]) ++ " " ++ show(entryCONTROLDFS[i1,i2]) ++ " " ++ show(nodeEnclave[entryCONTROLDFS[i1,1]]) ++ " " ++ show(nodeEnclave[entryCONTROLDFS[i1,i2]]) ++ "," |i1 in 1 .. CONTROLEntryPath, i2 in 1 .. CONTROLEntryPathDepth[i1] where fix(nodeEnclave[entryCONTROLDFS[i1,1]]) != enclaveNull];
+/*output[show(v1) ++ "," ++ show(v2) ++ " " ++ show(fix(controlConflict[v1,v2])) ++ "\n" | v1 in Vertices, v2 in Vertices];*/
+
+/*output[show(v1) ++ " "   ++ show(nodeEnclaveAssigned[v1]) ++ " " ++show(nodeEnclave[v1]) ++ "\n" | v1 in Vertices];*/
+
+
+
+
+
+
+/*output[show(entryCONTROLDFSSTOP[v1,v2]) | v1 in Vertices, v2 in Vertices where is_fixed(entryCONTROLDFSSTOP[v1,v2])];*/
+/*output[show(v1) ++ " " ++ show(v2) ++ " " ++ show(fix(controlConflict[v1,v2])) ++ "\n" | v1 in Vertices, v2 in Vertices];/* where fix(controlConflict[v1,v2]) != false ];*/
+/*output[show(v1) ++ " " ++ show(e1) ++ "\n" | v1 in Vertices where fix(nodeEnclave[v1])==true, e1 in Enclaves where e1 == fix(nodeEnclaveAssigned[v1])];*/
+
+
+/*output[show(v1) ++ " " ++ show(nodeEnclave[v1]) ++ "\n" | v1 in Vertices where nodeEnclaveAssigned[v1]==true ];*/
 
 
 
@@ -122,9 +261,4 @@ output["orange " ++ show(o) ++ "\npurple " ++ show(p) ++ "\n" | o in Vertices wh
 
 
 
-/*output[show(ENCLAVENODES[Vertices,orange]==1),orange])];*/
-/*output[show(ENCLAVENODES[v,orange]) | v in Vertices];*/
-/*output["orange " ++ show(v) ++ "\n" | v in Vertices where fix(ENCLAVENODES[v,orange]) == 1 ++ "\npurple " ++ show(v) ++ "\n" | v in Vertices where fix(ENCLAVE[v,purple]) == 1];*/
 /*output[show(v) | v in Vertices ];*/
-/*output[show(v) | v in Vertices where ENCLAVENODES[v,orange] ]*/
-/*output [forall (v in Vertices) (forall (e in Enclaves)((show(ENCLAVENODES[v,e]))))];*/
