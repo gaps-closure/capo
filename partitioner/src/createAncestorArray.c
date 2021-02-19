@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -28,7 +29,7 @@ void dumpAncestorsArray(char *name){
 		}
 		fprintf(stdout,"\n");
 	}
-	fprintf(stdout, "|];");
+	fprintf(stdout, "|];\n");
 }
 void dumpAncestors(){
 	for(int i=0;i<nln;++i){
@@ -120,15 +121,25 @@ void addParentChild(char *p, char *c){
 	ancestors[ip][ic]=1;
 }
 int main(int argc,char *argv[]){
-	char l[512];
+	char l[512],tmpFile[128];
+	int rc;
 	FILE *f;
 	initAncestors();
-	sprintf(l,"grep Node %s | grep llvm.var.annotation | sed -e \"s/^  *//\" -e \"s/ .*//\" > /tmp/t",argv[2]);
+	sprintf(tmpFile,"/tmp/t.%s.%ld",getenv("USER"),time(0));
+	sprintf(l,"rm -rf %s",tmpFile);
 	system(l);
-	if ((f=fopen("/tmp/t","r"))==0){
+	//sprintf(l,"grep Node %s | grep llvm.var.annotation | sed -e \"s/^  *//\" -e \"s/ .*//\" > /tmp/t",argv[2]);
+	sprintf(l,"grep Node %s | grep -v \" -> \" | sed -e \"s/^  *//\" -e \"s/ .*//\" > %s",argv[2],tmpFile);
+	 if ((rc=system(l))==-1){
+                fprintf(stderr,"%s.%d system(%s) failed with %s\n"
+                        ,__FUNCTION__,__LINE__,l,
+                        strerror(errno));
+                return(-1);
+        }
+	if ((f=fopen(tmpFile,"r"))==0){
 		fprintf(stderr,"%s.%d fopen(%s): %s\n",
 				__FUNCTION__,__LINE__,strerror(errno),
-				"/tmp/t");
+				tmpFile);
 		exit(-1);
 	}
 	while(fgets(l,512,f)){
@@ -140,12 +151,18 @@ int main(int argc,char *argv[]){
 		}
 		addLlvmVarAnnotationNode(n);
 	}
-	sprintf(l,"grep -v \" -> \" %s | grep Node | sed -e \"s/^  *//\" -e \"s/ .*//\" > /tmp/t",argv[2]);
+	if (llvmNn==0) {
+		fprintf(stderr,"%s.%d NO %s EDGES\n",__FUNCTION__,__LINE__,argv[1]);
+		exit(-1);
+	}
+	sprintf(l,"rm -rf %s",tmpFile);
 	system(l);
-	if ((f=fopen("/tmp/t","r"))==0){
+	sprintf(l,"grep -v \" -> \" %s | grep Node | sed -e \"s/^  *//\" -e \"s/ .*//\" > %s",argv[2],tmpFile);
+	system(l);
+	if ((f=fopen(tmpFile,"r"))==0){
 		fprintf(stderr,"%s.%d fopen(%s): %s\n",
 				__FUNCTION__,__LINE__,strerror(errno),
-				"/tmp/t");
+				tmpFile);
 		exit(-1);
 	}
 	while(fgets(l,512,f)){
@@ -158,12 +175,19 @@ int main(int argc,char *argv[]){
 		addNode(n);
 	}
 	fclose(f);
-	sprintf(l,"grep %s %s | grep \" -> \" |  sed -e \"s/ -> / /\" -e \"s/^  *//\" -e \"s/\\[.*$//\" > /tmp/t",argv[1],argv[2]);
+	if (nln==0) {
+		fprintf(stderr,"%s.%d NO %s EDGES\n",__FUNCTION__,__LINE__,argv[1]);
+		exit(-1);
+	}
+
+	sprintf(l,"rm -rf %s",tmpFile);
 	system(l);
-	if ((f=fopen("/tmp/t","r"))==0){
+	sprintf(l,"grep %s %s | grep \" -> \" |  sed -e \"s/ -> / /\" -e \"s/^  *//\" -e \"s/\\[.*$//\" > %s",argv[1],argv[2],tmpFile);
+	system(l);
+	if ((f=fopen(tmpFile,"r"))==0){
 		fprintf(stderr,"%s.%d fopen(%s): %s\n",
 				__FUNCTION__,__LINE__,strerror(errno),
-				"/tmp/t");
+				tmpFile);
 		exit(-1);
 	}
 	while(fgets(l,512,f)){
@@ -173,7 +197,7 @@ int main(int argc,char *argv[]){
 					__FUNCTION__,__LINE__,l);
 			exit(-1);
 		}
-		if (getLlvmAnnotationNodeIndex(p) == -1){
+		if (getLlvmAnnotationNodeIndex(p) != -1){
 			addParentChild(p,c);
 		} else fprintf(stderr,"%s.%d skipping edge from %s to %s\n",
 				__FUNCTION__,__LINE__,p,c);

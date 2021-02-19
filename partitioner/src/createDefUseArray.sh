@@ -1,9 +1,17 @@
-v=`grep -v " -> " $1 | grep Node | sed -e "s/^  *//" -e "s/ .*//"`
+F=`basename $0`
+LF=`echo $F.out`
+EF=`echo $F.err`
+if test "${1}" == ""
+then
+        echo "usage: $F dotFile" | tee -a $LF $EF
+        exit -1
+fi
+v=`grep -v " -> " $1 2>>$EF | grep Node | sed -e "s/^  *//" -e "s/ .*//"`
 echo -n "DEF_USE = ["
 for v1 in $v
 do
 	echo -n "|"
-	grep "${v1} -> " $1 | grep DEF_USE 1>out 2>err
+	grep "${v1} -> " $1 2>>$EF | grep DEF_USE 1>/dev/null 2>$EF
 	if test "${?}" != "0"
 	then
 		for v2 in $v
@@ -13,7 +21,7 @@ do
 	else
 		for v2 in $v
 		do
-			grep "${v1} -> ${v2}" $1 | grep DEF_USE 1>out 2>err
+			grep "${v1} -> ${v2}" $1 2>>$EF | grep DEF_USE 1>/dev/null 2>$EF
 			if test "${?}" == "0"
 			then
 				echo -n "true,"
@@ -26,3 +34,11 @@ do
 done
 echo "|];"
 
+if test -s $EF
+then
+        echo -e "\033[31;1;4m$0 $1 FAILED:\033[0m" 1>&2
+        cat $EF 1>&2
+        exit -1
+fi
+rm -f $EF $LF
+exit 0
