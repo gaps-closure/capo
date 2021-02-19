@@ -1,13 +1,25 @@
-v=`grep -v " -> " $1 | grep Node | sed -e "s/^  *//" -e "s/ .*//"`
+F=`basename $0`
+NOW=`date +"%s"`
+LF=`echo $F.$NOW.out`
+EF=`echo $F.$NOW.err`
+rm -f $EF $LF
+nodeFile=/tmp/nodes.$NOW
+mergeFile=/tmp/merge.$NOW
+if test "${1}" == ""
+then
+        echo "usage: $F dotFile" | tee -a $LF $EF
+        exit -1
+fi
+grep -v " -> " $1 2>$EF | grep Node | sed -e "s/^  *//" -e "s/ .*//" > $nodeFile
+grep " = call " $1 | grep Node | sed -e "s/^  *//" -e "s/ .*//" > $mergeFile
 echo "FUNCTIONCALL = ["
-for i in $v
-do
-	grep $i $1 | grep " = call "  1>/dev/null 2>/dev/null
-	if test "${?}" == "0"
-	then
-		echo "true,"
-	else
-		echo "false,"
-	fi
-done
+./mergeNodeFiles $nodeFile $mergeFile 2>>$EF
 echo "];"
+if test -s $EF
+then
+        echo -e "\033[31;1;4m$0 $1 FAILED:\033[0m" 1>&2
+        cat $EF 1>&2
+        exit -1
+fi
+rm -f $EF $LF $mergeFile $nodeFile
+exit 0

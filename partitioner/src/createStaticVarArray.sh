@@ -1,18 +1,25 @@
-v=`grep -v " -> " $1 | grep Node | sed -e "s/^  *//" -e "s/ .*//"`
+F=`basename $0`
+NOW=`date +"%s"`
+LF=`echo $F.$NOW.out`
+EF=`echo $F.$NOW.err`
+nodeFile=/tmp/nodes.$NOW
+mergeFile=/tmp/merge.$NOW
+rm -f $LF $EF
+if test "${1}" == ""
+then
+        echo "usage: $F dotFile" | tee -a $LF $EF
+        exit -1
+fi
+grep -v " -> " $1 2>>$EF | grep Node | sed -e "s/^  *//" -e "s/ .*//" > $nodeFile
+grep annotation= $1 |grep "GLOBAL_VALUE:" | grep "dbginfo="| grep "True 0" | sed -e "s/^  *//" -e "s/ .*//" > $mergeFile
 echo "STATICVAR = ["
-for i in $v
-do
-	grep $i $1 | grep annotation= |grep "GLOBAL_VALUE:" | grep "dbginfo="| grep "True 0"  1>out 2>err
-	if test "${?}" == "0"
-	then
-		echo "true,"
-	else
-		echo "false,"
-	fi
-done
+./mergeNodeFiles $nodeFile $mergeFile 2>>$EF
 echo "];"
-
-
-#grep annotation= TFB.dot |grep "GLOBAL_VALUE:" | grep "dbginfo="| sed -e "s/^  *//" -e "s/ .*dbginfo=\"/,/" -e "s/\".*$//" -e "s/ /:/" -e "s/ /:/" -e "s/ /:/" -e "s/ /:/" -e "s/,.*:/,/" -e "s/,/ /" | grep "True 0" | sed -e "s/ .*$//" -e "s/^/STATICVAR\[/" -e "s/$/]=1;/"
-# the last int is 0 for STATICS
-# TRUE FALSE is FALSE for STATICS
+if test -s $EF
+then
+        echo -e "\033[31;1;4m$0 $1 FAILED:\033[0m" 1>&2
+        cat $EF 1>&2
+        exit -1
+fi
+rm -f $EF $LF
+exit 0

@@ -12,14 +12,18 @@ CFLAGS ?= -Wall -g
 LDFLAGS ?=
 OBJDIR ?= .
 
-all: $(OBJDIR)/libxdcomms.a
+createEntryPath:	createEntryPath.o
+	$(CC) -g createEntryPath.o -o createEntryPath
 
-$(OBJDIR)/%.o: %.c
-	$(CC) -c $< -o $@
-	$(CC) -c -o $@ partitioner.c
+createEntryPath.o:	createEntryPath.c
+	$(CC) -g -c createEntryPath.c
 
-$(OBJDIR)/libxdcomms.a: $(OBJDIR)/partitioner.o
-	$(AR) rcs $@ $^
+
+createAncestorArray:	createAncestorArray.o
+	$(CC) -g createAncestorArray.o -o createAncestorArray
+
+createAncestorArray.o:	createAncestorArray.c
+	$(CC) -g -c createAncestorArray.c
 
 clean:
-	rm -rf $(OBJDIR)/*~ $(OBJDIR)/*.o $(OBJDIR)/libxdcomms*.a $(OBJDIR)/__pycache__
+	rm createAncestorArray.o createAncestorArray

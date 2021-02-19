@@ -62,7 +62,8 @@ class DbgInfo():
             gstr = " (global)"
         elif self.kind_str == self.FUNCTION:
             gstr = " (function)"
-        return "Name: %s on line %s column %s%s%s" % (self.name, self.line, self.column, fstr, gstr)
+        return "%s %s %s %s %s %s" % (self.name,self.line,self.column,self.file,self.local,self.kind_str)
+        #return "Name: %s on line %s column %s%s%s" % (self.name, self.line, self.column, fstr, gstr)
 
     def __repr__(self):
         return self.__str__()
@@ -85,6 +86,11 @@ class IRReader():
         possible white space) with the prefix, in order as they occur
         in the IR file
         '''
+        if self.ir_lines == []:
+            self.read_ir("example1.mod.ll")
+            ret = [l for l in self.ir_lines if l.strip().startswith(pref)]
+            self.ir_lines = []
+            return ret
         ret = [l for l in self.ir_lines if l.strip().startswith(pref)]
         return ret
 
