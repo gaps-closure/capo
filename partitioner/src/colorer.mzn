@@ -1,116 +1,92 @@
-/* Variables from annotated LLVM IR instance */
-enum Vertices;
-enum Enclaves;
-enum DEF_USEEdges;
-enum PARAMETEREdges;
-enum GLOBAL_DEPEdges;
-/*enum D_generalEdges;*/
-enum CONTROLEdges;
-enum SCOPEEdges;
-enum RAWEdges;
+/**********************************************************************************************/
+/* Constraint model for cross-domain conflict checking of CLE annotated C programs            */
+/* XXX: Initially only the control flow constraints are encoded, data flow and typing         */
+/*      constraints are to be added.                                                          */
+/**********************************************************************************************/
 
-/* Decision variables, problem will additionally constrain nodeEnclave for annotated nodes */
-/*array[Vertices] of bool: LLVMGLOBAL;
-array[Vertices] of bool: LLVMVAR;*/
+/**********************************************************************************************/
+/* Variables from annotated LLVM IR instance                                                  */
+/* XXX: Need to handle label, level, cdfs from annotation properly                            */
+/**********************************************************************************************/
+enum Enclaves;
+/* array[Vertices,Enclaves] of bool: ENCLAVEREMOTELEVEL; */  /* XXX: Not yet used */
+
+/**********************************************************************************************/
+/* Variables from annotated LLVM IR instance using PDG abstractions                           */
+/* XXX: Consider updating to new PSU PDG which is a cleaner abstraction before encoding       */
+/*      data flow and label/type constraints                                                  */
+/**********************************************************************************************/
+enum Vertices;                                         
 array[Vertices] of bool: ENTRY;
 array[Vertices] of bool: STATICVAR;
-array[Vertices] of bool: FUNCTION;
 array[Vertices] of bool: FUNCTIONCALL;
-array[Vertices] of bool: LOCALVAR;
-/*array[Vertices,Vertices] of bool: DEF_USE;
-array[Vertices,Vertices] of bool: RAW;
-array[Vertices,Vertices] of bool: PARAMETER;
-array[Vertices,Vertices] of bool: CONTROL;
-array[Vertices,Vertices] of bool: GLOBAL_DEP;
-array[Vertices,Vertices] of bool: D_general;
-array[Vertices,Vertices] of bool: SCOPE;*/
-array[Vertices,Enclaves] of bool: ENCLAVEREMOTELEVEL;
-array[RAWEdges] of Vertices: RAWFrom;
-array[RAWEdges] of Vertices: RAWTo;
-array[DEF_USEEdges] of Vertices: DEF_USEFrom;
-array[DEF_USEEdges] of Vertices: DEF_USETo;
-array[PARAMETEREdges] of Vertices: PARAMETERFrom;
-array[PARAMETEREdges] of Vertices: PARAMETERTo;
-array[GLOBAL_DEPEdges] of Vertices: GLOBAL_DEPFrom;
-array[GLOBAL_DEPEdges] of Vertices: GLOBAL_DEPTo;
-/*array[D_generalEdges] of Vertices: D_generalFrom;
-array[D_generalEdges] of Vertices: D_generalTo;*/
+array[Vertices] of bool: LOCALVAR;                      /* XXX: Not yet used */
+array[Vertices] of bool: FUNCTION;                      /* XXX: Not yet used */
+/* array[Vertices] of bool: LLVMGLOBAL; */              /* XXX: Annotations being pre-processed? */
+/* array[Vertices] of bool: LLVMVAR; */                 /* XXX: Annotations being pre-processed? */
+
+enum CONTROLEdges;                                     
 array[CONTROLEdges] of Vertices: CONTROLFrom;
 array[CONTROLEdges] of Vertices: CONTROLTo;
+
+/* XXX: Not yet used, will bring in when we do data flow and typing contraints */
+/* 
+enum DEF_USEEdges; 
+array[DEF_USEEdges] of Vertices: DEF_USEFrom;
+array[DEF_USEEdges] of Vertices: DEF_USETo;
+enum RAWEdges;
+array[RAWEdges] of Vertices: RAWFrom;
+array[RAWEdges] of Vertices: RAWTo;
+enum PARAMETEREdges;
+array[PARAMETEREdges] of Vertices: PARAMETERFrom;
+array[PARAMETEREdges] of Vertices: PARAMETERTo;
+enum GLOBAL_DEPEdges;
+array[GLOBAL_DEPEdges] of Vertices: GLOBAL_DEPFrom;
+array[GLOBAL_DEPEdges] of Vertices: GLOBAL_DEPTo;
+enum SCOPEEdges;
 array[SCOPEEdges] of Vertices: SCOPEFrom;
 array[SCOPEEdges] of Vertices: SCOPETo;
+enum D_generalEdges;
+array[D_generalEdges] of Vertices: D_generalFrom;
+array[D_generalEdges] of Vertices: D_generalTo;
+*/
 
-/* Decision variables, problem will additionally constrain nodeEnclave for annotated nodes */
+/**********************************************************************************************/
+/* Decision variables, problem will additionally constrain nodeEnclave for annotated nodes    */
+/**********************************************************************************************/
 array[Vertices] of var Enclaves: nodeEnclave;
-array[Vertices] of var bool: resolvableConflictFrom;
-array[Vertices] of var bool: resolvableConflictTo;
-
-/* BEGIN unused, baggage from imperative
-int: CONTROLEntryPath;
-int: SCOPEEntryPath;
-int: CONTROLEntryPathDepthMax;
-int: SCOPEEntryPathDepthMax;
-array[1 .. CONTROLEntryPath] of int: CONTROLEntryPathDepth;
-array[1 .. SCOPEEntryPath] of int: SCOPEEntryPathDepth;
-array[1 .. CONTROLEntryPath,1 .. CONTROLEntryPathDepthMax] of Vertices: entryCONTROLDFS;
-array[1 .. SCOPEEntryPath,1 .. SCOPEEntryPathDepthMax] of Vertices: entrySCOPEDFS;
-END unused, baggage from imperative */
+array[CONTROLEdges] of var bool: resolvableControlConflict;
 
 /* We expect that every function and static variable is assigned to a valid enclave */
 constraint forall (x in Vertices where ENTRY[x]==1) ( nodeEnclave[x] != enclaveNull );
 constraint forall (x in Vertices where STATICVAR[x]==1) ( nodeEnclave[x] != enclaveNull );
-function var bool: resolvableConflict(Vertices: x, Vertices: y) = (
-	(resolvableConflictFrom[x] == 1 /\ resolvableConflictTo[y] == 1)
-);
-function int: countControlEdges(Vertices: x, Vertices: y) = (
-	sum(e in CONTROLEdges where CONTROLFrom[e]==x /\ CONTROLTo[e]==y)(1)
-);
-function int: countDefUseEdges(Vertices: x, Vertices: y) = (
-	sum(e in DEF_USEEdges where DEF_USEFrom[e]==x /\ DEF_USETo[e]==y)(1)
-);
-function int: countRawEdges(Vertices: x, Vertices: y) = (
-	sum(e in RAWEdges where RAWFrom[e]==x /\ RAWTo[e]==y)(1)
-);
-/*function int: countD_generalEdges(Vertices: x, Vertices: y) = (
-	sum(e in D_generalEdges where D_generalFrom[e]==x /\ D_generalTo[e]==y)(1)
-);*/
-function int: countParameterEdges(Vertices: x, Vertices: y) = (
-	sum(e in PARAMETEREdges where PARAMETERFrom[e]==x /\ PARAMETERTo[e]==y)(1)
-);
-function int: countScopeEdges(Vertices: x, Vertices: y) = (
-	sum(e in SCOPEEdges where SCOPEFrom[e]==x /\ SCOPETo[e]==y)(1)
-);
-function int: countGlobalDepEdges(Vertices: x, Vertices: y) = (
-	sum(e in GLOBAL_DEPEdges where GLOBAL_DEPFrom[e]==x /\ GLOBAL_DEPTo[e]==y)(1)
-);
-/* Conflict is resolvable vis RPC if endpoints of control edge from functioncall to entry are in different enclaves */
-constraint forall (x in Vertices, y in Vertices) (
-  not (countControlEdges(x,y) > 0 /\ FUNCTIONCALL[x] /\ ENTRY[y] /\ nodeEnclave[x] != nodeEnclave[y]) -> resolvableConflict(x,y)==0
+
+/* Conflict is resolvable via RPC if endpoints of CONTROL edge from functioncall to entry are in different enclaves */
+constraint forall (e in CONTROLEdges) (
+  not (FUNCTIONCALL[CONTROLFrom[e]] /\ ENTRY[CONTROLTo[e]] /\ (nodeEnclave[CONTROLFrom[e]] != nodeEnclave[CONTROLTo[e]]))
+  -> resolvableControlConflict[e]==0
 );
 
-/* The two ends of every CONTROL edge must be assigned to the same enclave unless it is a resolvable conflict */ 
-constraint forall (x in Vertices, y in Vertices) ( countControlEdges(x,y)>0 /\ resolvableConflict(x,y)!=1 -> nodeEnclave[x]==nodeEnclave[y] );
+/* The two ends of every CONTROL edge must be assigned to the same enclave unless it is a resolvable control conflict */ 
+constraint forall (e in CONTROLEdges) ( resolvableControlConflict[e]!=1 -> nodeEnclave[CONTROLFrom[e]]==nodeEnclave[CONTROLTo[e]] );
 
-/* The two edges of every DEF_USE edge must be assigned the same enclave, no exceptions */
- /*constraint forall (x in Vertices, y in Vertices) ( countDefUseEdges(x,y)>0 -> nodeEnclave[x]==nodeEnclave[y] ); */
+/* XXX: Constraints on data flow and typing will touch DEF_USE, RAW, PARAMETER, GLOBAL_DEP, and D_generic edges */
+/* XXX: TODO */
 
-/* The two edges of every RAW edge must be assigned the same enclave, no exceptions */
-constraint forall (x in Vertices, y in Vertices) ( countRawEdges(x,y)>0 -> nodeEnclave[x]==nodeEnclave[y] );
-
-/* The two edges of every PARAMETER edge must be assigned the same enclave, no exceptions */
-constraint forall (x in Vertices, y in Vertices) ( countParameterEdges(x,y)>0 -> nodeEnclave[x]==nodeEnclave[y] );
-
-/* The two edges of every GLOBAL_DEP edge must be assigned the same enclave, no exceptions */
-constraint forall (x in Vertices, y in Vertices) ( countGlobalDepEdges(x,y)>0 -> nodeEnclave[x]==nodeEnclave[y] );
-
-/*var int: obj = sum(x in Vertices, y in Vertices where resolvableConflict(x,y)==1)(1);
-solve minimize obj;*/
+var int: obj = sum( e in CONTROLEdges where resolvableControlConflict[e]==1 )(1);
+solve minimize obj;
 
 /* solve satisfy; */
 /* try to generate all cases */
 
-output["ENTRY: " ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in Vertices where ENTRY[x]==1] ;
-/* XXX: Need to only output those static vars that are global */
-output["STATICVAR: " ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in Vertices where STATICVAR[x]==1] ; 
-output["Resolvable: " ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ " " ++ show(y) ++ " " ++ show(nodeEnclave[y]) ++ "\n" | x in Vertices, y in Vertices where (fix(resolvableConflictFrom[x])==1 /\ fix(resolvableConflictTo[y])==1)];
+/**********************************************************************************************/
+/* Output assignments to relevant decision variables                                          */
+/* XXX: Ought to only output those static vars that are global                                */
+/**********************************************************************************************/
+output["ENTRY: "     ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in Vertices where ENTRY[x]==1] ;
+output["STATICVAR: " ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in Vertices where STATICVAR[x]==1] ;
+output["Resolvable: "
+       ++ show(CONTROLFrom[e]) ++ " " ++ show(nodeEnclave[CONTROLFrom[e]]) ++ " "
+       ++ show(CONTROLTo[e]) ++ " " ++ show(nodeEnclave[CONTROLTo[e]]) ++ "\n"
+       | e in CONTROLEdges where fix(resolvableControlConflict[e])==1];
 output[show(nodeEnclave[v1]) ++ " " ++ show(v1) ++ "\n" | v1 in Vertices where fix(nodeEnclave[v1])!=enclaveNull ];
