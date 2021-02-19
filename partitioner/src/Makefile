@@ -12,6 +12,12 @@ CFLAGS ?= -Wall -g
 LDFLAGS ?=
 OBJDIR ?= .
 
+mergeNodeFiless:	mergeNodeFiless.o
+	$(CC) -g mergeNodeFiless.o -o mergeNodesFiles
+
+mergeNodeFiles.o:	mergeNodeFiles.c
+	$(CC) -g -c mergeNodeFiles.c
+
 createEntryPath:	createEntryPath.o
 	$(CC) -g createEntryPath.o -o createEntryPath
 
