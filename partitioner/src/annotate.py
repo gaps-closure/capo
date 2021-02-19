@@ -322,6 +322,9 @@ def main(fullprogname):
 
     source_file_name = progname + ".mod" + ext
     pre = progname + ".mod"
+    print("pol file: ",progname + ext + ".clemap.json")
+    print("ll file: ",pre + ".ll")
+    print("dot file: ",progname + ext + ".unannotated.dot")
     try:
         ret = pol.read_json(progname + ext + ".clemap.json")
         if ret:
@@ -329,8 +332,18 @@ def main(fullprogname):
             print(ret)
             print("  ACTION: Correct these problems before running this program again")
             return
-        irr.read_ir(pre + ".ll")
-        dot.read_dot("pdgragh.main.dot")
+        ret = irr.read_ir(pre + ".ll")
+        if ret:
+            print("ERROR reading ll file: ")
+            print(ret)
+            print("  ACTION: Correct these problems before running this program again")
+            return
+        ret=dot.read_dot(progname + ext + ".unannotated.dot")
+        if ret:
+            print("ERROR reading dot file: ")
+            print(ret)
+            print("  ACTION: Correct these problems before running this program again")
+            return
         print("Source file to be modified: %s" % source_file_name)
         p = Partitioner(pol, irr, dot)
         p.set_input_names(progname, ext)
