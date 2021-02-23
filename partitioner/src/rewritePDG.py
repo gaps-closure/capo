@@ -8,11 +8,27 @@ import ir_reader
 import json
 import policy_resolver
 topology = {}
-def main(inFile,enclaves,cleFile,outFile):
+def main(inFile,llInFile,enclaves,cleFile,outFile,topologyFile):
     pol = policy_resolver.PolicyResolver()
     try: pol.read_json(cleFile)
     except Exception as e:
         print("Canot read input cle file: " + str(cleFile) + str(e),file=sys.stderr)
+        exit(-1)
+    enc_c = pol.get_common_enclaves()
+    if len(enc_c) == 0:
+        print("No data transfer between the two enclaves is permitted.")
+        print("This program cannot be partitioned.")
+        print("Please add the data flow rules for one of the labels.")
+        exit(-1)
+    elif len(enc_c) == 1:
+        print("Data can flow only to %s (through guards)" % (enc_c[0]))
+    else:
+        print("Data can flow to enclaves: %s (through guards)" % " or ".join(enc_c))
+    enc=enc_c[0]
+    irr = ir_reader.IRReader()
+    try: irr.read_ir(llInFile)
+    except Exception as e:
+        print("Canot read input ll file: " + str(llInFile) + str(e),file=sys.stderr)
         exit(-1)
     dot = dot_reader.DotReader()
     try: dot.read_dot(inFile)
@@ -33,7 +49,7 @@ def main(inFile,enclaves,cleFile,outFile):
             n.set('enclave', t[0])
             n.set('fillcolor', t[0])
             n.set('style', 'filled')
-            d = ir_reader.IRReader().get_DbgInfo(n)
+            d = irr.get_DbgInfo(n)
             if str(type(d)) == "<class 'str'>":
                 list=d.split()
                 if list[4] == str("False"):
@@ -65,7 +81,7 @@ def main(inFile,enclaves,cleFile,outFile):
         if n.is_global_value():
             #print("GGLLOOBBAALL::", n)
             n_ann = n.get('enclave')
-            d = ir_reader.IRReader().get_DbgInfo(n)
+            d = irr.get_DbgInfo(n)
             if str(type(d)) == "<class 'str'>":
                 list=d.split()
                 if list[4] == str("False"):
@@ -86,7 +102,7 @@ def main(inFile,enclaves,cleFile,outFile):
                     print("Global variable is not marked at the end of analysis:", dinfo)
                     print("  ACTION: This may happen if security policies are incorrect or this item is unused")
                     print("  ACTION: Check the program structure, and the annotations and policies")
-                    enc="DEFAULT"
+                    #enc="DEFAULT"
                     print("  ACTION: Item assigned by default to: %s; check correctness of this assignment"%enc)
                     json_var = {"name" : dinfo.get_name(), "level" : enc, "default" : "true"}
                     global_scoped_vars.append(json_var)
@@ -95,7 +111,7 @@ def main(inFile,enclaves,cleFile,outFile):
     function_labels = []
     topology['functions'] = function_labels
     for n in dot.get_pdg().get_entry_nodes():
-        f = ir_reader.IRReader().get_DbgInfo(n)
+        f = irr.get_DbgInfo(n)
         if str(type(f)) == "<class 'str'>":
             list=f.split()
             if list[4] == str("False"):
@@ -117,20 +133,22 @@ def main(inFile,enclaves,cleFile,outFile):
             print("  ACTION: This may happen if the program or the security policies are incorrect or this item is unused")
             print("  ACTION: Check annotations and policies in the program.")
             print("  ACTION: Check for unused functions. Check for functions called with wrong number of parameters.")
-            enc="DEFAULT"
+            #enc="DEFAULT"
             print("  ACTION: Item assigned by default to: %s; check correctness of this assignment"%enc)
             func_l = {"name" : fdinfo.get_name(), "level" : enc, "line" : fdinfo.get_line(), "default" : "true"}
             function_labels.append(func_l)
             #print("DEBUG:", str(n))
     
-    with open("topology.json", "w") as f:
+    with open(topologyFile, "w") as f:
         json.dump(topology, f, indent=4)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="add enclaves to dot file")
     parser.add_argument('dotInFile', help="in.dot")
+    parser.add_argument('llInFile', help="*.mod.ll")
     parser.add_argument('enclaves', help="enclaves")
     parser.add_argument('clefile', help="clefile")
     parser.add_argument('dotOutFile', help="out.dot")
+    parser.add_argument('topologyFile', help="topology output file")
     args = parser.parse_args()
-    main(args.dotInFile,args.enclaves,args.clefile,args.dotOutFile)
+    main(args.dotInFile,args.llInFile,args.enclaves,args.clefile,args.dotOutFile,args.topologyFile)
