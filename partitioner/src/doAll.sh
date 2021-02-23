@@ -10,6 +10,7 @@ myDir=`dirname $0`
 echo "annotating dot file"
 python3 $myDir/annotate.py $1
 df=`basename $1`
+bf=`dirname $1`
 annFile=/tmp/$df.annotated.dot
 rm -rf /tmp/n $annFile
 echo "NodeNULL" >  /tmp/n
@@ -55,5 +56,5 @@ checkRc $?
 #$myDir/createEnclaveRemoteLevel.sh $annFile $1.clemap.json >> $1.dzn
 #checkRc $? 
 /snap/bin/minizinc $1.dzn  $1.mzn $myDir/colorer.mzn | grep Node | sort -u > /tmp/e
-python3 $myDir/rewritePDG.py $annFile /tmp/e $1.clemap.json $1.colored.dot
+python3 $myDir/rewritePDG.py $annFile $1.mod.ll /tmp/e $1.clemap.json $1.colored.dot $bf/topology.json.minizinc
 exit -1
