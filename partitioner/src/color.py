@@ -137,18 +137,19 @@ class ConflictInfo():
     def get_conflict_info(cls, ir_reader, c_pair):
         node_d = c_pair.get_dst()
         dinfo_d = ir_reader.get_DbgInfo(node_d)
+        print("TFB dinfo_d get_conflict_info:",dinfo_d)
         node_d.set('dbginfo', dinfo_d)
         dinfo_s = None
         node_s = c_pair.get_src()
         if node_s is not None:
             dinfo_s = ir_reader.get_DbgInfo(node_s)
+            print("TFB dinfo_s get_conflict_info:",dinfo_s)
             node_s.set('dbginfo', dinfo_s)        
         return ConflictInfo(dinfo_d, dinfo_s, c_pair.get_edge())
         
-class Partitioner():
-    def __init__(self, pol_, irr_, dot_):
+class Colorer():
+    def __init__(self, pol_,dot_):
         self.pol = pol_
-        self.irr = irr_
         self.dot = dot_
         self.gh = graph_helper.GraphHelper(self.dot.get_pdg())
         self.ann_info = AnnotationInfo()
@@ -159,103 +160,6 @@ class Partitioner():
         self.progname = _progname
         self.ext = _ext
         
-    def extract_annotation_info(self):
-        labs = self.pol.get_labels()
-        print("Annotation labels: ", ",".join(labs))
-        lab_str = self.irr.get_label_irstring(labs)
-        for li_q in labs:
-            if not li_q in lab_str.keys():
-                print("Warning: label defined but never used: ", li_q)
-        lab_enc = self.pol.get_label_enclave(labs)
-        for l in lab_str:
-            self.ann_info.add_annotation_info(l, lab_str[l], lab_enc[l])
-            #print("EAI", l, lab_str[l], lab_enc[l])
-
-    def annotate_nodes(self):
-        '''
-        to nodes in dot graph add attribute 'annotation' with value of the enclave
-        '''
-        unused_labels = set(self.ann_info.get_labels())
-        unused_enclaves = set(self.ann_info.get_enclaves())
-        for l in self.ann_info.get_labels():
-            enc = self.ann_info.get_by_label(l).get_enclave()
-            l_str = self.ann_info.get_by_label(l).get_irstring()
-            
-            #local vars
-            di = self.dot.find_nodes_for_irstring(l_str)
-            for n in di:
-                unused_labels.discard(l)
-                unused_enclaves.discard(enc)
-                #print("LENC", l, enc)
-                tmp_n = self.gh.find_root_declaration(n)
-                dbg_dec_node = self.gh.find_dbg_declare(tmp_n)
-                old_ann = n.get('annotation')
-                tmp_n.set('annotation', enc)
-                tmp_n.set('taint', l)
-                tmp_name = self.irr.get_variable_name(tmp_n.get_label())
-                if dbg_dec_node:
-                    dinfo = self.irr.get_decl_DbgInfo(dbg_dec_node)
-                else:
-                    dinfo = self.irr.get_DbgInfo(n, var=tmp_name)
-                tmp_n.set('dbginfo', dinfo)
-                if old_ann:
-                    print("Item has more than one annotations:", dinfo)
-                    print("  ACTION: refactoring needed, make sure there is no incompatible annotations on this item.")
-                    exit()
-                #print("LOCAL DINFO:", n, "<<>>", tmp_n, "<<>>", dinfo)
-                
-            #global vars
-            di = self.dot.find_global_vars_for_irstring(l_str)
-            for n in di:
-                unused_labels.discard(l)
-                unused_enclaves.discard(enc)
-                #print("LENC2", l, enc)
-                old_ann = n.get('annotation')
-                n.set('annotation', enc)
-                dinfo = self.irr.get_DbgInfo(n)
-                n.set('taint', l)
-                n.set('dbginfo', dinfo)
-                if old_ann:
-                    print("Item has more than one annotations:", dinfo)
-                    print("  ACTION: refactoring needed, make sure there is no incompatible annotations on this item.")
-                    exit()
-                #print("GLOBAL DINFO:", n, "<<>>", dinfo)
-                #print(n.get('dbginfo'))
-                
-            #functions annotation
-            di = self.dot.find_functions_for_irstring(l_str)
-            for n in di:
-                unused_labels.discard(l)
-                unused_enclaves.discard(enc)
-                #print("LENC3", l, enc)
-                old_ann = n.get('annotation')
-                n.set('annotation', enc)
-                n.set('taint', l)
-                dinfo = self.irr.get_DbgInfo(n)
-                n.set('dbginfo', dinfo)
-                if old_ann:
-                    print("Item has more than one annotations:", dinfo)
-                    print("  ACTION: refactoring needed, make sure there is no incompatible annotations on this item.")
-                    exit()
-                #print("FUNCTION DINFO:", n, "<<>>", dinfo)
-                #print(n.get('dbginfo'))
-                
-        #now, follow up 'DEF_USE' to color definition from annotations
-        ret = set()
-        for n in [x for x in self.gh.get_dot_node_list() if x.get('annotation')]:
-            c = self.gh.propagate_enclave_oneway(n, n.get('annotation'), direction='dst', label=['DEF_USE'])
-            graph_helper.GraphHelper.ConflictPair.set_merge(ret, c)
-        
-        
-        #see if there are any unused annotation elements
-        if len(unused_labels) > 0:
-            print("Warning: There are labels defined but not used to annotate program: ", ", ".join(list(unused_labels)))
-        if len(unused_enclaves) > 0:
-            print("Warning: There are enclaves defined but not used to annotate program: ", ", ".join(list(unused_enclaves)))
-            
-        #we do not expect to have conflicts here
-        return ret
-    
     def color_scope(self):
         '''
         color only the ENTRY nodes for functions in which annotated nodes are defined
@@ -282,8 +186,8 @@ class Partitioner():
                         dinfo=ir_reader.DbgInfo(n,list[0],list[1],list[2],list[3])
                 else:
                     dinfo=d
-                print("TFBDBUG n=",str(n))
-                print("TFBDBUG dinfo=",str(dinfo))
+                print("TFBDBUG color_scope n=",str(n))
+                print("TFBDBUG color_scope dinfo=",str(dinfo))
                 if dinfo.get_kind() == dinfo.LOCAL:
                     if n.is_global_value():
                         labels = ['SCOPE']
@@ -337,13 +241,14 @@ class Partitioner():
         all_conflict_pairs = set()
         conflicts_exist = False
         resolvable_only = True
-        self.extract_annotation_info()
 
         data_items = []
         #start coloring
         
+        self.dot.get_pdg().write('C.prepass.dot')
         print("Definition conflicts (data from different enclaves defined in the same function):")
         conflicts_def = self.color_scope()
+        self.dot.get_pdg().write('C.pass0.dot')
         if len(conflicts_def) == 0:
             print("  None")
         else:
@@ -352,13 +257,13 @@ class Partitioner():
             self.gh.ConflictPair.set_merge(all_conflict_pairs, conflicts_def)
             for c_pair in conflicts_def:
                 c = c_pair.get_dst()
-                cinfo = ConflictInfo( self.irr.get_DbgInfo(c_pair.get_src()), c_pair.get_edge())
+                cinfo = ConflictInfo( self.ir_reader.get_DbgInfo(c_pair.get_src()), c_pair.get_edge())
                 print("  " + str(cinfo))
 
 
         print("Conflicts (pass 1 of 3):")
         conflicts_body = self.color_body()
-        self.dot.get_pdg().write('TFB1.dot')
+        self.dot.get_pdg().write('C.pass1.dot')
         if len(conflicts_body) == 0:
             print("  None")
         for c_pair in conflicts_body:
@@ -367,11 +272,13 @@ class Partitioner():
                 #print("C:", c_pair)
                 c = c_pair.get_dst()
                 s = c_pair.get_src()
-                dbgis = self.irr.get_DbgInfo(s)
-                dbgid = self.irr.get_DbgInfo(c)
-                c.set('dbginfo', dbgid)
+                dbgis = ir_reader.IRReader().get_DbgInfo(s)
+                dbgic = ir_reader.IRReader().get_DbgInfo(c)
+                print("TFBdbgis:",dbgis);
+                print("TFBdbgic:",dbgic);
+                c.set('dbginfo', dbgic)
                 s.set('dbginfo', dbgis)
-                cinfo = ConflictInfo(dbgis, dbgid, c_pair.get_edge())
+                cinfo = ConflictInfo(dbgis, dbgic, c_pair.get_edge())
                 print("  " + str(cinfo))
                 if cinfo.get_kind() == ConflictInfo.FUNCTION_CALL:
                     e=s.get('enclave')
@@ -386,7 +293,7 @@ class Partitioner():
         
         print("Conflicts (pass 2 of 3):")
         conflicts = self.gh.balanced_coloring(encs, enc)
-        self.dot.get_pdg().write('TFB2.dot')
+        self.dot.get_pdg().write('C.pass2.dot')
         if len(conflicts) == 0:
             print("  None")
         else:
@@ -395,9 +302,9 @@ class Partitioner():
                 if not c_pair.is_in_set(all_conflict_pairs):
                     #print("C:", c_pair)
                     c = c_pair.get_dst()
-                    dinfo = self.irr.get_DbgInfo(c)
+                    dinfo = ir_reader.IRReader().get_DbgInfo(c)
                     #print("DINFO:", dinfo)
-                    dinfo_src = self.irr.get_DbgInfo(c_pair.get_src())
+                    dinfo_src = ir_reader.IRReader().get_DbgInfo(c_pair.get_src())
                     cinfo = ConflictInfo(dinfo, dinfo_src, c_pair.get_edge())
                     print("  " + str(cinfo))
         self.gh.ConflictPair.set_merge(all_conflict_pairs, conflicts)
@@ -405,7 +312,7 @@ class Partitioner():
         #finds everything else
         print("Conflicts (pass 3 of 3):")
         conflicts_all = self.color_all()
-        self.dot.get_pdg().write('TFB3.dot')
+        self.dot.get_pdg().write('C.pass3.dot')
         if len(conflicts_all) == 0:
             print("  None")
         else:
@@ -430,22 +337,27 @@ class Partitioner():
             if n.is_global_value():
                 #print("GGLLOOBBAALL::", n)
                 n_ann = n.get('enclave')
-                d = self.irr.get_DbgInfo(n)
+                print("TFBn:",n);
+                d = ir_reader.IRReader().get_DbgInfo(n)
+                print("d:",d);
                 if str(type(d)) == "<class 'str'>":
                     list=d.split()
                     if list[4] == str("False"):
                         local=False
                     else:
                         local=True
+                    print("TFBlocal:",local)
                     print("list[5]:",list[5])
                     if int(list[5]) == 3:
                         print("list[5] is 3");
                         dinfo=ir_reader.DbgInfo(n,list[0],list[1],list[2],list[3],local,True)
                     else:
                         print("list[5] is not 3");
-                        dinfo=ir_reader.DbgInfo(n,list[0],list[1],list[2],list[3])
+                        dinfo=ir_reader.DbgInfo(n,list[0],list[1],list[2],list[3],local)
                 else:
                     dinfo=d
+                print("TFBDBUG n=",str(n))
+                print("TFBDBUG dinfo=",str(dinfo))
                 if dinfo.get_kind() == dinfo.GLOBAL:
                     if n_ann:
                         json_var = {"name" : dinfo.get_name(), "level" : n_ann}
@@ -462,7 +374,7 @@ class Partitioner():
         function_labels = []
         topology['functions'] = function_labels
         for n in self.dot.get_pdg().get_entry_nodes():
-            f = self.irr.get_DbgInfo(n)
+            f = ir_reader.IRReader().get_DbgInfo(n)
             if str(type(f)) == "<class 'str'>":
                 list=f.split()
                 if list[4] == str("False"):
@@ -478,6 +390,8 @@ class Partitioner():
                     fdinfo=ir_reader.DbgInfo(n,list[0],list[1],list[2],list[3])
             else:
                 fdinfo=f
+            print("TFBDBUG f=",str(n))
+            print("TFBDBUG fdinfo=",str(fdinfo))
             n_ann = n.get('enclave')
             if n_ann:
                 func_l = {"name" : fdinfo.get_name(), "level" : n_ann, "line" : fdinfo.get_line()}
@@ -508,6 +422,7 @@ class Partitioner():
                 
 
     def get_partition_information(self):
+        self.dot.get_pdg().write('C.input.dot')
         enc = self.pol.get_enclaves()
         topology['levels'] = enc
         if len(enc) == 0:
@@ -535,7 +450,6 @@ class Partitioner():
 
 def main(fullprogname):
     pol = policy_resolver.PolicyResolver()
-    irr = ir_reader.IRReader()
     dot = dot_reader.DotReader()
 
     progname, ext = os.path.splitext(fullprogname)
@@ -549,12 +463,14 @@ def main(fullprogname):
             print(ret)
             print("  ACTION: Correct these problems before running this program again")
             return
-        irr.read_ir(pre + ".ll")
         dot.read_dot("TFB.dot")
+        dot.get_pdg().write('C.input0.dot')
         print("Source file to be modified: %s" % source_file_name)
         topology['source_path'] = "./refactored" #source_file_name #os.path.dirname(source_file_name)
-        p = Partitioner(pol, irr, dot)
+        p = Colorer(pol, dot)
+        dot.get_pdg().write('C.input1.dot')
         p.set_input_names(progname, ext)
+        dot.get_pdg().write('C.input2.dot')
         p.get_partition_information()
         with open("topology.json", "w") as f:
             json.dump(topology, f, indent=4)
@@ -564,7 +480,7 @@ def main(fullprogname):
         print("Make sure to run 'make PROG=%s' before this program is called" % (progname))
         
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Partitioner program (CAPO)")
+    parser = argparse.ArgumentParser(description="Colorer program (CAPO)")
     parser.add_argument('program', help="Base name (with extension) of the program to process (e.g., 'ex1.c'")
     #parser.add_argument('program2', help="Base name (with extension) of the second program to process (e.g., 'ex1.c'")
     args = parser.parse_args()
