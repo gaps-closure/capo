@@ -1,4 +1,5 @@
 F=`basename $0`
+myDir=`dirname $0`
 NOW=`date +"%s"`
 LF=`echo $F.$NOW.out`
 EF=`echo $F.$NOW.err`
@@ -13,7 +14,7 @@ fi
 grep -v " -> " $1 2>>$EF | grep Node | sed -e "s/^  *//" -e "s/ .*//" > $nodeFile
 grep -v " -> " $1 2>>$EF | grep Node | grep $2 | sed -e "s/^  *//" -e "s/ .*//" > $mergeFile
 echo "$2 = ["
-./mergeNodeFiles $nodeFile $mergeFile 2>>$EF
+$myDir/mergeNodeFiles $nodeFile $mergeFile 2>>$EF
 echo "];"
 
 

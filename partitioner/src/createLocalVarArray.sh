@@ -1,4 +1,5 @@
 F=`basename $0`
+myDir=`dirname $0`
 NOW=`date +"%s"`
 LF=`echo $F.$NOW.out`
 EF=`echo $F.$NOW.err`
@@ -13,7 +14,7 @@ fi
 grep -v " -> " $1 | grep Node | sed -e "s/^  *//" -e "s/ .*//" > $nodeFile
 grep annotation= $1 |grep -v "GLOBAL_VALUE:" | grep "dbginfo="| grep "True 0" | sed -e "s/^  *//" -e "s/ .*//" > $mergeFile
 echo "LOCALVAR = ["
-./mergeNodeFiles $nodeFile $mergeFile 2>>$EF
+$myDir/mergeNodeFiles $nodeFile $mergeFile 2>>$EF
 echo "];"
 if test -s $EF
 then
