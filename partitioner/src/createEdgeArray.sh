@@ -21,15 +21,22 @@ then
         exit -1
 fi
 
-et=`grep " -> " $1 | grep $2 |  sed -e "s/\[.*$//" -e "s/ -> /$3/"`
+et=`grep " -> " $1 | grep "{$2}" |  sed -e "s/\[.*$//" -e "s/ -> /$3/"`
+if test "${et}" == ""
+then
+	echo  "$2Edges = { NodeNULL$2NodeNULL};"
+	echo "$2To = [NodeNULL];"
+	echo "$2From = [NodeNULL];"
+        exit 0
+fi
 echo  $2Edges = {
 for e in $et
 do
 	echo "$e,"
 done
 echo "};"
-s=`grep " -> " $1 | grep $2 |  sed -e "s/\[.*$//" -e "s/ -> Node.*$//"`
-d=`grep " -> " $1 | grep $2 |  sed -e "s/\[.*$//" -e "s/ Node.* -> //"`
+s=`grep " -> " $1 | grep "{$2}" |  sed -e "s/\[.*$//" -e "s/ -> Node.*$//"`
+d=`grep " -> " $1 | grep "{$2}" |  sed -e "s/\[.*$//" -e "s/ Node.* -> //"`
 echo $2From = [
 for e in $s
 do
