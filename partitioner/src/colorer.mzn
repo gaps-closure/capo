@@ -28,6 +28,9 @@ array[Vertices] of bool: FUNCTION;                      /* XXX: Not yet used */
 enum CONTROLEdges;                                     
 array[CONTROLEdges] of Vertices: CONTROLFrom;
 array[CONTROLEdges] of Vertices: CONTROLTo;
+enum CALLEdges;                                     
+array[CALLEdges] of Vertices: CALLFrom;
+array[CALLEdges] of Vertices: CALLTo;
 
 /* XXX: Not yet used, will bring in when we do data flow and typing contraints */
 /* 
@@ -89,4 +92,4 @@ output["Resolvable: "
        ++ show(CONTROLFrom[e]) ++ " " ++ show(nodeEnclave[CONTROLFrom[e]]) ++ " "
        ++ show(CONTROLTo[e]) ++ " " ++ show(nodeEnclave[CONTROLTo[e]]) ++ "\n"
        | e in CONTROLEdges where fix(resolvableControlConflict[e])==1];
-output[show(nodeEnclave[v1]) ++ " " ++ show(v1) ++ "\n" | v1 in Vertices where fix(nodeEnclave[v1])!=enclaveNull ];
+output["ASSIGN: " ++ show(nodeEnclave[v1]) ++ " " ++ show(v1) ++ "\n" | v1 in Vertices where fix(nodeEnclave[v1])!=enclaveNull ];
