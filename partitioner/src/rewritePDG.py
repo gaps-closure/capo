@@ -41,13 +41,14 @@ def main(inFile,llInFile,enclaves,cleFile,outFile,topologyFile):
         exit(-1)
     for l in encs:
         t=l.split()
-        if t is None or len(t) != 2:
-                print("cannot parse enclave line: " + str(l),file=sys.stderr)
+        if t is None or len(t) != 3:
                 continue 
-        n=dot.get_pdg().get_node(t[1])
+        if t[0] != str("ASSIGN:"):
+                continue 
+        n=dot.get_pdg().get_node(t[2])
         if n:
-            n.set('enclave', t[0])
-            n.set('fillcolor', t[0])
+            n.set('enclave', t[1])
+            n.set('fillcolor', t[1])
             n.set('style', 'filled')
             d = irr.get_DbgInfo(n)
             if str(type(d)) == "<class 'str'>":
