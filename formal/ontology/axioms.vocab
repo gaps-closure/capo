@@ -1,0 +1,457 @@
+ 
+
+# ===============  general classes decelerations  =============== 
+
+Symbol          : Thing 
+
+ 
+
+Level           : Symbol 
+
+ 
+
+Enclave         : Symbol 
+
+ 
+
+Label           : Symbol 
+
+ 
+
+# ===============  general properties  =============== 
+
+hasStringValue  : Symbol >> str 
+
+hasLevel        : Enclave >> Level 
+
+ 
+
+# ===============  general classes restrictions  =============== 
+
+Symbol          : Thing 
+
+.equivalent_to	= [Symbol & hasStringValue.exactly(1, str)] 
+
+ 
+
+Enclave         : Symbol 
+
+.equivalent_to	= [Enclave & hasLevel.exactly(1, Level)] 
+
+ 
+
+ 
+
+# ===============  pdg class decelerations  =============== 
+
+ 
+
+# ===============  pdg nodes  =============== 
+
+ 
+
+IRNode          : Thing 
+
+ 
+
+FunctionEntry   : IRNode 
+
+ 
+
+Retval          : IRNode 
+
+ 
+
+Funcall         : IRNode 
+
+ 
+
+Parameter      : IRNode 
+
+ 
+
+VarNode	: IRNode 
+
+ 
+
+RetInst	: IRNode 
+
+ 
+
+Inst	: IRNode	 
+
+ 
+
+Annotation     : IRNode 
+
+ 
+
+FormalIn	: Parameter 
+
+ 
+
+FormalOut	: Parameter 
+
+ 
+
+ActualIn	: Parameter 
+
+ 
+
+ActualOut	: Parameter 
+
+ 
+
+GloablVar	: VarNode 
+
+ 
+
+StackVar	: VarNode 
+
+ 
+
+HeapVar	: VarNode 
+
+ 
+
+# ===============  pdg edges  =============== 
+
+IREdge	: Thing 
+
+ 
+
+ControlDepEdge	: IREdge 
+
+ 
+
+DataDepEdge	    : IREdge 
+
+ 
+
+Parameter_IN	: IREdge 
+
+ 
+
+Parameter_OUT	: IREdge 
+
+ 
+
+Parameter_FIELD	: IREdge 
+
+ 
+
+CallEntry  : ControlDepEdge 
+
+ 
+
+CallRet  : ControlDepEdge 
+
+ 
+
+Entry  : ControlDepEdge 
+
+ 
+
+DBranch  : ControlDepEdge 
+
+ 
+
+IBranch  : ControlDepEdge 
+
+ 
+
+Switch  : ControlDepEdge 
+
+ 
+
+Def_Use	: DataDepEdge 
+
+ 
+
+Raw	: DataDepEdge 
+
+ 
+
+Read	: DataDepEdge 
+
+ 
+
+Alias	: DataDepEdge 
+
+ 
+
+ 
+
+# ===============  pdg properties  =============== 
+
+ 
+
+hasIncomingEdges	: IRNode >> IREdge 
+
+hasOutgoingEdges	: IRNode >> IREdge 
+
+hasControlDep	: IRNode >> IRNode 
+
+hasDataDep	: IRNode >> IRNode 
+
+hasDep	: IRNode >> IRNode 
+
+ 
+
+ 
+
+hasParamIdx	: Parameter     >> int 
+
+hasParam    : FunctionEntry >> ActualIn 
+
+hasReturn       : FunctionEntry >> RetInst 
+
+hasArgument  : CallEntry >> FormalIn 
+
+hasReturn      : CallEntry >> Retval 
+
+hasLabel       : Annotation >> Label 
+
+hasFrom	: IREdge >> IRNode 
+
+hasTo	: IREdge >> IRNode 
+
+ 
+
+ 
+
+# ===============  pdg class restrictions  =============== 
+
+# ===============  pdg nodes  =============== 
+
+ 
+
+ 
+
+FunctionEntry   : IRNode 
+
+.equivalent_to	= [FunctionEntry & hasReturn.min(1, RetInst)] 
+
+ 
+
+Funcall         : IRNode 
+
+.equivalent_to	= [Funcall & hasReturn.exactly(1, Retval)] 
+
+ 
+
+Parameter      : IRNode 
+
+.equivalent_to	= [Parameter & hasParamIdx.exactly(1, int)] 
+
+ 
+
+Annotation     : IRNode 
+
+.equivalent_to	= [Annotation & hasLabel.exactly(1, Label)] 
+
+ 
+
+AllDisjoint([FunctionEntry, Retval, Funcall, Parameter, VarNode, RetInst, Annotation, Inst])  
+
+ 
+
+# ===============  pdg edges  =============== 
+
+IREdge	: Thing 
+
+.equivalent_to	= [IREdge & hasFrom.exactly(1, IRNode) & hasTo.exactly(1, IRNode)] 
+
+ 
+
+CallEntry  : ControlDepEdge 
+
+.equivalent_to	= [CallEntry & hasFrom.exactly(1, Funcall) & hasTo.exactly(1, FunctionEntry)] 
+
+ 
+
+AllDisjoint([Call, Entry, DBranch, IBranch, Select])  
+
+ 
+
+ 
+
+# ===============  cle class decelerations  =============== 
+
+ 
+
+CLE_entry	: Thing 
+
+ 
+
+CrossDomainFlow : Thing  
+
+ 
+
+GuardDirective	: Thing 
+
+ 
+
+FuncTaints	: Thing 
+
+ 
+
+RetTaint        : Label 
+
+ 
+
+BodyTaint       : Label 
+
+ 
+
+ArgTaint        : Label 
+
+ 
+
+GapsTag	: Thing 
+
+ 
+
+GuardOperation  : Symbol 
+
+ 
+
+Allow           : GuardOperation 
+
+ 
+
+Deny            : GuardOperation 
+
+ 
+
+Redact          : GuardOperation 
+
+ 
+
+ 
+
+# ===============  cle properties  =============== 
+
+ 
+
+hasLevel        : CLE_entry >> Level 
+
+hasCDF          : CLE_entry >> CrossDomainFlow  
+
+hasRemoteLevel  : CrossDomainFlow >> Level 
+
+hasDirective    : CrossDomainFlow >> GuardDirective 
+
+hasFunctTaints  : CrossDomainFlow >> FuncTaints	 
+
+hasTaints	: RetTaint >> CLE_entry 
+
+hasTaints	: BodyTaint >> CLE_entry 
+
+hasTaints	: ArgTaint >> CLE_entry 
+
+hasArgTaintIdx	: ArgTaint >> int 
+
+hasRetTaint     : FuncTaints >> RetTaint 
+
+hasBodyTaint    : FuncTaints >> BodyTaint 
+
+hasArgTaint    : FuncTaints >> ArgTaint 
+
+hasOperation	: GuardDirective >> GuardOperation 
+
+hasOneway	: GuardDirective >> bool 
+
+hasGapsTag	: GuardDirective >> GapsTag 
+
+hasOpArgs       : Redact >> Symbol 
+
+ 
+
+ 
+
+# ===============  cle class restrictions  =============== 
+
+ 
+
+CLE_entry	: Thing 
+
+.equivalent_to	= [CLE_entry & hasLevel.exactly(1, Level)] 
+
+ 
+
+CrossDomainFlow : Thing 
+
+.equivalent_to	= [CrossDomainFlow & hasRemoteLevel.exactly(1, Level) & hasDirective.exactly(1, GuardDirective) & (hasFunctTaints.exactly(0, FuncTaints) | hasFunctTaints.exactly(1, FuncTaints))] 
+
+ 
+
+GuardDirective	: Thing 
+
+.equivalent_to	= [GuardDirective & hasOperation.exactly(1, GuardOperation) & hasOneway.exactly(1, bool) & hasGapsTag.exactly(3, GapsTag)] 
+
+ 
+
+FuncTaints	: Thing 
+
+.equivalent_to	= [FuncTaints & hasRetTaint.exactly(1, RetTaint) & hasBodyTaint.exactly(1, BodyTaint) & hasArgTaint.min(1, ArgTaint)] 
+
+ 
+
+ArgTaint        : Label 
+
+.equivalent_to	= [ArgTaint & hasArgTaintIdx.exactly(1, int)] 
+
+ 
+
+Redact          : GuardOperation 
+
+.equivalent_to	= [Redact & hasOpArgs.min(1, Symbol)] 
+
+ 
+
+ 
+
+# ===============  link CLE to pdg  =============== 
+
+ 
+
+# ===============  class decelerations  =============== 
+
+ 
+
+CLEAnnotation   : Annotation 
+
+ 
+
+VarAnnotation   : CLEAnnotation 
+
+ 
+
+FuncAnnotation  : CLEAnnotation 
+
+ 
+
+# ===============  properties  =============== 
+
+ 
+
+hasCLEJSON      : Annotation >> bool 
+
+hasLevel        : CLEAnnotation >> Level 
+
+hasCDF          : CLEAnnotation >> CrossDomainFlow   
+
+ 
+
+# ===============  class restrictions  =============== 
+
+CLEAnnotation   : Annotation 
+
+.equivalent_to   = [ VarNode | FunctionEntry & hasCLEJSON.exactly(1, bool)  &  hasLevel.exactly(1, bool)] 
+
+ 
+
+# constraints 
+
+# hasEnclave	: IRNode >>(1) Enclave # Each IRNode will eventually reside in one of the enclaves 
