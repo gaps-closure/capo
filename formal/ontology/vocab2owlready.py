@@ -20,6 +20,7 @@ def vocab_to_owlready(vfname,orfname,ontns,ontdir):
       ])
     
   pddlset = {}
+  tail = ''
   maypass = False
   inpddl  = None
   with open(vfname,'r') as vocab:
@@ -42,6 +43,9 @@ def vocab_to_owlready(vfname,orfname,ontns,ontdir):
         inpddl = m.group(1).strip()
         pddlset[inpddl] = "'''"
         continue
+      # Process Disjoint
+      if line.startswith('AllDisjoint'):
+        tail += ''.join([i,line])
       # Process classes, properties, restrictions, instances, and attribute setting
       if line.startswith('!'):
         m = re.match(r'!(.*):(.*)', line)
@@ -66,6 +70,7 @@ def vocab_to_owlready(vfname,orfname,ontns,ontdir):
       else:
         continue
 
+  o += tail
   o += ''.join([i, 'return ', ontns, n, n])
   o += ''.join([
          "if __name__ == '__main__':", n,
