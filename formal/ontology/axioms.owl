@@ -15,46 +15,54 @@
   <rdfs:range rdf:resource="#Level"/>
 </owl:ObjectProperty>
 
+<owl:ObjectProperty rdf:about="#hasPDGEdges">
+  <rdfs:domain rdf:resource="#PDG"/>
+  <rdfs:range rdf:resource="#PDGEdge"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasPDGNodes">
+  <rdfs:domain rdf:resource="#PDG"/>
+  <rdfs:range rdf:resource="#PDGNode"/>
+</owl:ObjectProperty>
+
 <owl:ObjectProperty rdf:about="#hasIncomingEdges">
-  <rdfs:domain rdf:resource="#IRNode"/>
-  <rdfs:range rdf:resource="#IREdge"/>
+  <rdfs:domain rdf:resource="#PDGNode"/>
+  <rdfs:range rdf:resource="#PDGEdge"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasOutgoingEdges">
-  <rdfs:domain rdf:resource="#IRNode"/>
-  <rdfs:range rdf:resource="#IREdge"/>
+  <rdfs:domain rdf:resource="#PDGNode"/>
+  <rdfs:range rdf:resource="#PDGEdge"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasControlDep">
-  <rdfs:domain rdf:resource="#IRNode"/>
-  <rdfs:range rdf:resource="#IRNode"/>
+  <rdfs:domain rdf:resource="#PDGNode"/>
+  <rdfs:range rdf:resource="#PDGNode"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasDataDep">
-  <rdfs:domain rdf:resource="#IRNode"/>
-  <rdfs:range rdf:resource="#IRNode"/>
+  <rdfs:domain rdf:resource="#PDGNode"/>
+  <rdfs:range rdf:resource="#PDGNode"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasDep">
-  <rdfs:domain rdf:resource="#IRNode"/>
-  <rdfs:range rdf:resource="#IRNode"/>
+  <rdfs:domain rdf:resource="#PDGNode"/>
+  <rdfs:range rdf:resource="#PDGNode"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasParam">
   <rdfs:domain rdf:resource="#FunctionEntry"/>
-  <rdfs:range rdf:resource="#ActualIn"/>
+  <rdfs:range rdf:resource="#Param_FormalIn"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasReturn">
   <rdfs:domain rdf:resource="#FunctionEntry"/>
-  <rdfs:domain rdf:resource="#CallEntry"/>
-  <rdfs:range rdf:resource="#RetInst"/>
-  <rdfs:range rdf:resource="#Retval"/>
+  <rdfs:range rdf:resource="#Inst_Ret"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasArgument">
-  <rdfs:domain rdf:resource="#CallEntry"/>
-  <rdfs:range rdf:resource="#FormalIn"/>
+  <rdfs:domain rdf:resource="#Inst_FunCall"/>
+  <rdfs:range rdf:resource="#Param_ActualIn"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasLabel">
@@ -63,13 +71,13 @@
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasFrom">
-  <rdfs:domain rdf:resource="#IREdge"/>
-  <rdfs:range rdf:resource="#IRNode"/>
+  <rdfs:domain rdf:resource="#PDGNode"/>
+  <rdfs:range rdf:resource="#PDGNode"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasTo">
-  <rdfs:domain rdf:resource="#IREdge"/>
-  <rdfs:range rdf:resource="#IRNode"/>
+  <rdfs:domain rdf:resource="#PDGNode"/>
+  <rdfs:range rdf:resource="#PDGNode"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#hasCDF">
@@ -195,19 +203,20 @@
   <rdfs:subClassOf rdf:resource="#Symbol"/>
 </owl:Class>
 
-<owl:Class rdf:about="#IRNode">
+<owl:Class rdf:about="#PDG">
   <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-</owl:Class>
-
-<owl:Class rdf:about="#FunctionEntry">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
   <owl:equivalentClass>
     <owl:Class>
       <owl:intersectionOf rdf:parseType="Collection">
-        <rdf:Description rdf:about="#FunctionEntry"/>
+        <rdf:Description rdf:about="#PDG"/>
         <owl:Restriction>
-          <owl:onProperty rdf:resource="#hasReturn"/>
-          <owl:onClass rdf:resource="#RetInst"/>
+          <owl:onProperty rdf:resource="#hasPDGEdges"/>
+          <owl:onClass rdf:resource="#PDGEdge"/>
+          <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">0</owl:minQualifiedCardinality>
+        </owl:Restriction>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="#hasPDGNodes"/>
+          <owl:onClass rdf:resource="#PDGNode"/>
           <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
         </owl:Restriction>
       </owl:intersectionOf>
@@ -215,56 +224,88 @@
   </owl:equivalentClass>
 </owl:Class>
 
-<owl:Class rdf:about="#Retval">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
-</owl:Class>
-
-<owl:Class rdf:about="#Funcall">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
-  <owl:equivalentClass>
-    <owl:Class>
-      <owl:intersectionOf rdf:parseType="Collection">
-        <rdf:Description rdf:about="#Funcall"/>
-        <owl:Restriction>
-          <owl:onProperty rdf:resource="#hasReturn"/>
-          <owl:onClass rdf:resource="#Retval"/>
-          <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
-        </owl:Restriction>
-      </owl:intersectionOf>
-    </owl:Class>
-  </owl:equivalentClass>
-</owl:Class>
-
-<owl:Class rdf:about="#Parameter">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
-  <owl:equivalentClass>
-    <owl:Class>
-      <owl:intersectionOf rdf:parseType="Collection">
-        <rdf:Description rdf:about="#Parameter"/>
-        <owl:Restriction>
-          <owl:onProperty rdf:resource="#hasParamIdx"/>
-          <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
-          <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
-        </owl:Restriction>
-      </owl:intersectionOf>
-    </owl:Class>
-  </owl:equivalentClass>
-</owl:Class>
-
-<owl:Class rdf:about="#VarNode">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
-</owl:Class>
-
-<owl:Class rdf:about="#RetInst">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
+<owl:Class rdf:about="#PDGNode">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
 </owl:Class>
 
 <owl:Class rdf:about="#Inst">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
+  <rdfs:subClassOf rdf:resource="#PDGNode"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Inst_FunCall">
+  <rdfs:subClassOf rdf:resource="#Inst"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Inst_Ret">
+  <rdfs:subClassOf rdf:resource="#Inst"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Inst_Br">
+  <rdfs:subClassOf rdf:resource="#Inst"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Inst_Other">
+  <rdfs:subClassOf rdf:resource="#Inst"/>
+</owl:Class>
+
+<owl:Class rdf:about="#VarNode">
+  <rdfs:subClassOf rdf:resource="#PDGNode"/>
+</owl:Class>
+
+<owl:Class rdf:about="#VarNode_StaticGlobal">
+  <rdfs:subClassOf rdf:resource="#VarNode"/>
+</owl:Class>
+
+<owl:Class rdf:about="#VarNode_StaticModule">
+  <rdfs:subClassOf rdf:resource="#VarNode"/>
+</owl:Class>
+
+<owl:Class rdf:about="#VarNode_StaticFunction">
+  <rdfs:subClassOf rdf:resource="#VarNode"/>
+</owl:Class>
+
+<owl:Class rdf:about="#VarNode_StaticOther">
+  <rdfs:subClassOf rdf:resource="#VarNode"/>
+</owl:Class>
+
+<owl:Class rdf:about="#FunctionEntry">
+  <rdfs:subClassOf rdf:resource="#PDGNode"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="#FunctionEntry"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="#hasReturn"/>
+          <owl:onClass rdf:resource="#Inst_Ret"/>
+          <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+</owl:Class>
+
+<owl:Class rdf:about="#Param">
+  <rdfs:subClassOf rdf:resource="#PDGNode"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Param_FormalIn">
+  <rdfs:subClassOf rdf:resource="#Param"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Param_FormalOut">
+  <rdfs:subClassOf rdf:resource="#Param"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Param_ActualIn">
+  <rdfs:subClassOf rdf:resource="#Param"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Param_ActualOut">
+  <rdfs:subClassOf rdf:resource="#Param"/>
 </owl:Class>
 
 <owl:Class rdf:about="#Annotation">
-  <rdfs:subClassOf rdf:resource="#IRNode"/>
+  <rdfs:subClassOf rdf:resource="#PDGNode"/>
   <owl:equivalentClass>
     <owl:Class>
       <owl:intersectionOf rdf:parseType="Collection">
@@ -279,48 +320,32 @@
   </owl:equivalentClass>
 </owl:Class>
 
-<owl:Class rdf:about="#FormalIn">
-  <rdfs:subClassOf rdf:resource="#Parameter"/>
+<owl:Class rdf:about="#Annotation_Var">
+  <rdfs:subClassOf rdf:resource="#Annotation"/>
 </owl:Class>
 
-<owl:Class rdf:about="#FormalOut">
-  <rdfs:subClassOf rdf:resource="#Parameter"/>
+<owl:Class rdf:about="#Annotation_Global">
+  <rdfs:subClassOf rdf:resource="#Annotation"/>
 </owl:Class>
 
-<owl:Class rdf:about="#ActualIn">
-  <rdfs:subClassOf rdf:resource="#Parameter"/>
+<owl:Class rdf:about="#Annotation_Other">
+  <rdfs:subClassOf rdf:resource="#Annotation"/>
 </owl:Class>
 
-<owl:Class rdf:about="#ActualOut">
-  <rdfs:subClassOf rdf:resource="#Parameter"/>
-</owl:Class>
-
-<owl:Class rdf:about="#GloablVar">
-  <rdfs:subClassOf rdf:resource="#VarNode"/>
-</owl:Class>
-
-<owl:Class rdf:about="#StackVar">
-  <rdfs:subClassOf rdf:resource="#VarNode"/>
-</owl:Class>
-
-<owl:Class rdf:about="#HeapVar">
-  <rdfs:subClassOf rdf:resource="#VarNode"/>
-</owl:Class>
-
-<owl:Class rdf:about="#IREdge">
+<owl:Class rdf:about="#PDGEdge">
   <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <owl:equivalentClass>
     <owl:Class>
       <owl:intersectionOf rdf:parseType="Collection">
-        <rdf:Description rdf:about="#IREdge"/>
+        <rdf:Description rdf:about="#PDGEdge"/>
         <owl:Restriction>
           <owl:onProperty rdf:resource="#hasFrom"/>
-          <owl:onClass rdf:resource="#IRNode"/>
+          <owl:onClass rdf:resource="#PDGNode"/>
           <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
         </owl:Restriction>
         <owl:Restriction>
           <owl:onProperty rdf:resource="#hasTo"/>
-          <owl:onClass rdf:resource="#IRNode"/>
+          <owl:onClass rdf:resource="#PDGNode"/>
           <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
         </owl:Restriction>
       </owl:intersectionOf>
@@ -328,35 +353,19 @@
   </owl:equivalentClass>
 </owl:Class>
 
-<owl:Class rdf:about="#ControlDepEdge">
-  <rdfs:subClassOf rdf:resource="#IREdge"/>
+<owl:Class rdf:about="#ControlDep">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
 </owl:Class>
 
-<owl:Class rdf:about="#DataDepEdge">
-  <rdfs:subClassOf rdf:resource="#IREdge"/>
-</owl:Class>
-
-<owl:Class rdf:about="#Parameter_IN">
-  <rdfs:subClassOf rdf:resource="#IREdge"/>
-</owl:Class>
-
-<owl:Class rdf:about="#Parameter_OUT">
-  <rdfs:subClassOf rdf:resource="#IREdge"/>
-</owl:Class>
-
-<owl:Class rdf:about="#Parameter_FIELD">
-  <rdfs:subClassOf rdf:resource="#IREdge"/>
-</owl:Class>
-
-<owl:Class rdf:about="#CallEntry">
-  <rdfs:subClassOf rdf:resource="#ControlDepEdge"/>
+<owl:Class rdf:about="#ControlDep_CallInv">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
   <owl:equivalentClass>
     <owl:Class>
       <owl:intersectionOf rdf:parseType="Collection">
-        <rdf:Description rdf:about="#CallEntry"/>
+        <rdf:Description rdf:about="#Inst_FunCall"/>
         <owl:Restriction>
           <owl:onProperty rdf:resource="#hasFrom"/>
-          <owl:onClass rdf:resource="#Funcall"/>
+          <owl:onClass rdf:resource="#Inst_FunCall"/>
           <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
         </owl:Restriction>
         <owl:Restriction>
@@ -369,40 +378,85 @@
   </owl:equivalentClass>
 </owl:Class>
 
-<owl:Class rdf:about="#CallRet">
-  <rdfs:subClassOf rdf:resource="#ControlDepEdge"/>
+<owl:Class rdf:about="#ControlDep_CallRet">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
 </owl:Class>
 
-<owl:Class rdf:about="#Entry">
-  <rdfs:subClassOf rdf:resource="#ControlDepEdge"/>
+<owl:Class rdf:about="#ControlDep_Entry">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
 </owl:Class>
 
-<owl:Class rdf:about="#DBranch">
-  <rdfs:subClassOf rdf:resource="#ControlDepEdge"/>
+<owl:Class rdf:about="#ControlDep_Br">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
 </owl:Class>
 
-<owl:Class rdf:about="#IBranch">
-  <rdfs:subClassOf rdf:resource="#ControlDepEdge"/>
+<owl:Class rdf:about="#ControlDep_Other">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
 </owl:Class>
 
-<owl:Class rdf:about="#Switch">
-  <rdfs:subClassOf rdf:resource="#ControlDepEdge"/>
+<owl:Class rdf:about="#DataDepEdge">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
 </owl:Class>
 
-<owl:Class rdf:about="#Def_Use">
+<owl:Class rdf:about="#DataDepEdge_DefUse">
   <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
 </owl:Class>
 
-<owl:Class rdf:about="#Raw">
+<owl:Class rdf:about="#DataDepEdge_RAW">
   <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
 </owl:Class>
 
-<owl:Class rdf:about="#Read">
+<owl:Class rdf:about="#DataDepEdge_Ret">
   <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
 </owl:Class>
 
-<owl:Class rdf:about="#Alias">
+<owl:Class rdf:about="#DataDepEdge_Alias">
   <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
+  <rdfs:subClassOf rdf:resource="#PDGNode"/>
+  <owl:equivalentClass>
+    <owl:Class>
+      <owl:intersectionOf rdf:parseType="Collection">
+        <rdf:Description rdf:about="#Parameter"/>
+        <owl:Restriction>
+          <owl:onProperty rdf:resource="#hasParamIdx"/>
+          <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+          <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+        </owl:Restriction>
+      </owl:intersectionOf>
+    </owl:Class>
+  </owl:equivalentClass>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter_In">
+  <rdfs:subClassOf rdf:resource="#Parameter"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter_Out">
+  <rdfs:subClassOf rdf:resource="#Parameter"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter_Field">
+  <rdfs:subClassOf rdf:resource="#Parameter"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno_Global">
+  <rdfs:subClassOf rdf:resource="#Anno"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno_Var">
+  <rdfs:subClassOf rdf:resource="#Anno"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno_Other">
+  <rdfs:subClassOf rdf:resource="#Anno"/>
 </owl:Class>
 
 <owl:Class rdf:about="#CLE_entry">
@@ -597,6 +651,94 @@
 <owl:Class rdf:about="#FuncAnnotation">
   <rdfs:subClassOf rdf:resource="#CLEAnnotation"/>
 </owl:Class>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#ControlDep"/>
+    <rdf:Description rdf:about="#DataDepEdge"/>
+    <rdf:Description rdf:about="#Parameter"/>
+    <rdf:Description rdf:about="#Anno"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#Anno_Global"/>
+    <rdf:Description rdf:about="#Anno_Var"/>
+    <rdf:Description rdf:about="#Anno_Other"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#Parameter_In"/>
+    <rdf:Description rdf:about="#Parameter_Out"/>
+    <rdf:Description rdf:about="#Parameter_Field"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#DataDepEdge_DefUse"/>
+    <rdf:Description rdf:about="#DataDepEdge_RAW"/>
+    <rdf:Description rdf:about="#DataDepEdge_Ret"/>
+    <rdf:Description rdf:about="#DataDepEdge_Alias"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#ControlDep_CallInv"/>
+    <rdf:Description rdf:about="#ControlDep_CallRet"/>
+    <rdf:Description rdf:about="#ControlDep_Entry"/>
+    <rdf:Description rdf:about="#ControlDep_Br"/>
+    <rdf:Description rdf:about="#ControlDep_Other"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#Inst"/>
+    <rdf:Description rdf:about="#VarNode"/>
+    <rdf:Description rdf:about="#Param"/>
+    <rdf:Description rdf:about="#Annotation"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#Annotation_Var"/>
+    <rdf:Description rdf:about="#Annotation_Global"/>
+    <rdf:Description rdf:about="#Annotation_Other"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#Param_FormalIn"/>
+    <rdf:Description rdf:about="#Param_FormalOut"/>
+    <rdf:Description rdf:about="#Param_ActualIn"/>
+    <rdf:Description rdf:about="#Param_ActualOut"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#VarNode_StaticGlobal"/>
+    <rdf:Description rdf:about="#VarNode_StaticModule"/>
+    <rdf:Description rdf:about="#VarNode_StaticFunction"/>
+    <rdf:Description rdf:about="#VarNode_StaticOther"/>
+  </owl:members>
+</owl:AllDisjointClasses>
+
+<owl:AllDisjointClasses>
+  <owl:members rdf:parseType="Collection">
+    <rdf:Description rdf:about="#Inst_FunCall"/>
+    <rdf:Description rdf:about="#Inst_Ret"/>
+    <rdf:Description rdf:about="#Inst_Br"/>
+    <rdf:Description rdf:about="#Inst_Other"/>
+  </owl:members>
+</owl:AllDisjointClasses>
 
 
 </rdf:RDF>

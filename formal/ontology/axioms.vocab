@@ -3,20 +3,9 @@
 # ===============  general classes decelerations  =============== 
 
 Symbol          : Thing 
-
- 
-
 Level           : Symbol 
-
- 
-
 Enclave         : Symbol 
-
- 
-
 Label           : Symbol 
-
- 
 
 # ===============  general properties  =============== 
 
@@ -24,7 +13,6 @@ hasStringValue  : Symbol >> str
 
 hasLevel        : Enclave >> Level 
 
- 
 
 # ===============  general classes restrictions  =============== 
 
@@ -32,246 +20,160 @@ Symbol          : Thing
 
 .equivalent_to	= [Symbol & hasStringValue.exactly(1, str)] 
 
- 
 
 Enclave         : Symbol 
 
 .equivalent_to	= [Enclave & hasLevel.exactly(1, Level)] 
 
- 
-
- 
-
 # ===============  pdg class decelerations  =============== 
 
- 
+PDG                 : Thing
 
 # ===============  pdg nodes  =============== 
 
  
+PDGNode                 : Thing
 
-IRNode          : Thing 
+Inst                    : PDGNode
+Inst_FunCall            : Inst
+Inst_Ret                : Inst
+Inst_Br                 : Inst
+Inst_Other              : Inst
 
- 
+VarNode	                : PDGNode
+VarNode_StaticGlobal	: VarNode 
+VarNode_StaticModule    : VarNode 
+VarNode_StaticFunction	: VarNode 
+VarNode_StaticOther     : VarNode 
 
-FunctionEntry   : IRNode 
+FunctionEntry           : PDGNode 
 
- 
+Param                   : PDGNode 
+Param_FormalIn	        : Param 
+Param_FormalOut	        : Param 
+Param_ActualIn	        : Param 
+Param_ActualOut	        : Param
 
-Retval          : IRNode 
-
- 
-
-Funcall         : IRNode 
-
- 
-
-Parameter      : IRNode 
-
- 
-
-VarNode	: IRNode 
-
- 
-
-RetInst	: IRNode 
-
- 
-
-Inst	: IRNode	 
-
- 
-
-Annotation     : IRNode 
-
- 
-
-FormalIn	: Parameter 
-
- 
-
-FormalOut	: Parameter 
-
- 
-
-ActualIn	: Parameter 
-
- 
-
-ActualOut	: Parameter 
-
- 
-
-GloablVar	: VarNode 
-
- 
-
-StackVar	: VarNode 
-
- 
-
-HeapVar	: VarNode 
-
- 
+Annotation              : PDGNode  
+Annotation_Var          : Annotation
+Annotation_Global       : Annotation
+Annotation_Other        : Annotation 
 
 # ===============  pdg edges  =============== 
 
-IREdge	: Thing 
+PDGEdge	                : Thing 
 
+ControlDep	            : PDGEdge 
+ControlDep_CallInv      : ControlDep 
+ControlDep_CallRet      : ControlDep 
+ControlDep_Entry        : ControlDep 
+ControlDep_Br           : ControlDep 
+ControlDep_Other        : ControlDep
  
 
-ControlDepEdge	: IREdge 
+DataDepEdge	            : PDGEdge 
+DataDepEdge_DefUse	    : DataDepEdge 
+DataDepEdge_RAW	        : DataDepEdge 
+DataDepEdge_Ret	        : DataDepEdge 
+DataDepEdge_Alias	    : DataDepEdge 
 
- 
 
-DataDepEdge	    : IREdge 
+Parameter               : PDGEdge
+Parameter_In	        : Parameter 
+Parameter_Out	        : Parameter 
+Parameter_Field	        : Parameter 
 
- 
-
-Parameter_IN	: IREdge 
-
- 
-
-Parameter_OUT	: IREdge 
-
- 
-
-Parameter_FIELD	: IREdge 
-
- 
-
-CallEntry  : ControlDepEdge 
-
- 
-
-CallRet  : ControlDepEdge 
-
- 
-
-Entry  : ControlDepEdge 
-
- 
-
-DBranch  : ControlDepEdge 
-
- 
-
-IBranch  : ControlDepEdge 
-
- 
-
-Switch  : ControlDepEdge 
-
- 
-
-Def_Use	: DataDepEdge 
-
- 
-
-Raw	: DataDepEdge 
-
- 
-
-Read	: DataDepEdge 
-
- 
-
-Alias	: DataDepEdge 
-
- 
-
- 
+Anno                    : PDGEdge
+Anno_Global             : Anno
+Anno_Var                : Anno
+Anno_Other              : Anno
 
 # ===============  pdg properties  =============== 
 
  
+hasPDGEdges         : PDG           >> PDGEdge
 
-hasIncomingEdges	: IRNode >> IREdge 
+hasPDGNodes         : PDG           >> PDGNode
 
-hasOutgoingEdges	: IRNode >> IREdge 
+hasIncomingEdges	: PDGNode       >> PDGEdge 
 
-hasControlDep	: IRNode >> IRNode 
+hasOutgoingEdges	: PDGNode       >> PDGEdge 
 
-hasDataDep	: IRNode >> IRNode 
+hasControlDep	    : PDGNode       >> PDGNode 
 
-hasDep	: IRNode >> IRNode 
+hasDataDep	        : PDGNode       >> PDGNode 
 
- 
+hasDep	            : PDGNode       >> PDGNode 
 
- 
+hasParamIdx	        : Parameter     >> int 
 
-hasParamIdx	: Parameter     >> int 
+hasParam            : FunctionEntry >> Param_FormalIn 
 
-hasParam    : FunctionEntry >> ActualIn 
+hasReturn           : FunctionEntry >> Inst_Ret 
 
-hasReturn       : FunctionEntry >> RetInst 
+hasArgument         : Inst_FunCall  >> Param_ActualIn 
 
-hasArgument  : CallEntry >> FormalIn 
+hasLabel            : Annotation    >> Label 
 
-hasReturn      : CallEntry >> Retval 
+hasFrom	            : PDGNode       >> PDGNode 
 
-hasLabel       : Annotation >> Label 
-
-hasFrom	: IREdge >> IRNode 
-
-hasTo	: IREdge >> IRNode 
+hasTo	            : PDGNode       >> PDGNode 
 
  
 
- 
 
 # ===============  pdg class restrictions  =============== 
 
+PDG             : Thing 
+
+.equivalent_to	= [PDG & hasPDGEdges.min(0, PDGEdge) & hasPDGNodes.min(1, PDGNode)] 
+
 # ===============  pdg nodes  =============== 
 
+FunctionEntry   : PDGNode 
+
+.equivalent_to	= [FunctionEntry & hasReturn.min(1, Inst_Ret)] 
  
 
- 
-
-FunctionEntry   : IRNode 
-
-.equivalent_to	= [FunctionEntry & hasReturn.min(1, RetInst)] 
-
- 
-
-Funcall         : IRNode 
-
-.equivalent_to	= [Funcall & hasReturn.exactly(1, Retval)] 
-
- 
-
-Parameter      : IRNode 
+Parameter      : PDGNode 
 
 .equivalent_to	= [Parameter & hasParamIdx.exactly(1, int)] 
 
  
 
-Annotation     : IRNode 
+Annotation     : PDGNode 
 
 .equivalent_to	= [Annotation & hasLabel.exactly(1, Label)] 
 
- 
 
-AllDisjoint([FunctionEntry, Retval, Funcall, Parameter, VarNode, RetInst, Annotation, Inst])  
+
+AllDisjoint([Inst_FunCall, Inst_Ret, Inst_Br, Inst_Other])
+AllDisjoint([VarNode_StaticGlobal, VarNode_StaticModule, VarNode_StaticFunction, VarNode_StaticOther])  
+AllDisjoint([Param_FormalIn, Param_FormalOut, Param_ActualIn, Param_ActualOut])  
+AllDisjoint([Annotation_Var, Annotation_Global, Annotation_Other])
+AllDisjoint([Inst, VarNode, Param, Annotation])      
 
  
 
 # ===============  pdg edges  =============== 
 
-IREdge	: Thing 
+PDGEdge	: Thing 
 
-.equivalent_to	= [IREdge & hasFrom.exactly(1, IRNode) & hasTo.exactly(1, IRNode)] 
-
- 
-
-CallEntry  : ControlDepEdge 
-
-.equivalent_to	= [CallEntry & hasFrom.exactly(1, Funcall) & hasTo.exactly(1, FunctionEntry)] 
+.equivalent_to	= [PDGEdge & hasFrom.exactly(1, PDGNode) & hasTo.exactly(1, PDGNode)] 
 
  
 
-AllDisjoint([Call, Entry, DBranch, IBranch, Select])  
+ControlDep_CallInv  : ControlDep 
 
+.equivalent_to	= [Inst_FunCall & hasFrom.exactly(1, Inst_FunCall) & hasTo.exactly(1, FunctionEntry)] 
+
+
+
+AllDisjoint([ControlDep_CallInv, ControlDep_CallRet, ControlDep_Entry, ControlDep_Br,ControlDep_Other ])  
+AllDisjoint([DataDepEdge_DefUse, DataDepEdge_RAW, DataDepEdge_Ret, DataDepEdge_Alias])
+AllDisjoint([Parameter_In, Parameter_Out, Parameter_Field])  
+AllDisjoint([Anno_Global, Anno_Var, Anno_Other])  
+AllDisjoint([ControlDep, DataDepEdge, Parameter, Anno]) 
  
 
  
@@ -280,53 +182,18 @@ AllDisjoint([Call, Entry, DBranch, IBranch, Select])
 
  
 
-CLE_entry	: Thing 
-
- 
-
+CLE_entry	    : Thing 
 CrossDomainFlow : Thing  
-
- 
-
 GuardDirective	: Thing 
-
- 
-
-FuncTaints	: Thing 
-
- 
-
+FuncTaints	    : Thing 
 RetTaint        : Label 
-
- 
-
 BodyTaint       : Label 
-
- 
-
 ArgTaint        : Label 
-
- 
-
-GapsTag	: Thing 
-
- 
-
+GapsTag	        : Thing 
 GuardOperation  : Symbol 
-
- 
-
 Allow           : GuardOperation 
-
- 
-
 Deny            : GuardOperation 
-
- 
-
 Redact          : GuardOperation 
-
- 
 
  
 
@@ -334,37 +201,37 @@ Redact          : GuardOperation
 
  
 
-hasLevel        : CLE_entry >> Level 
+hasLevel        : CLE_entry         >> Level 
 
-hasCDF          : CLE_entry >> CrossDomainFlow  
+hasCDF          : CLE_entry         >> CrossDomainFlow  
 
-hasRemoteLevel  : CrossDomainFlow >> Level 
+hasRemoteLevel  : CrossDomainFlow   >> Level 
 
-hasDirective    : CrossDomainFlow >> GuardDirective 
+hasDirective    : CrossDomainFlow   >> GuardDirective 
 
-hasFunctTaints  : CrossDomainFlow >> FuncTaints	 
+hasFunctTaints  : CrossDomainFlow   >> FuncTaints	 
 
-hasTaints	: RetTaint >> CLE_entry 
+hasTaints	    : RetTaint          >> CLE_entry 
 
-hasTaints	: BodyTaint >> CLE_entry 
+hasTaints	    : BodyTaint         >> CLE_entry 
 
-hasTaints	: ArgTaint >> CLE_entry 
+hasTaints	    : ArgTaint          >> CLE_entry 
 
-hasArgTaintIdx	: ArgTaint >> int 
+hasArgTaintIdx	: ArgTaint          >> int 
 
-hasRetTaint     : FuncTaints >> RetTaint 
+hasRetTaint     : FuncTaints        >> RetTaint 
 
-hasBodyTaint    : FuncTaints >> BodyTaint 
+hasBodyTaint    : FuncTaints        >> BodyTaint 
 
-hasArgTaint    : FuncTaints >> ArgTaint 
+hasArgTaint     : FuncTaints        >> ArgTaint 
 
-hasOperation	: GuardDirective >> GuardOperation 
+hasOperation	: GuardDirective    >> GuardOperation 
 
-hasOneway	: GuardDirective >> bool 
+hasOneway	    : GuardDirective    >> bool 
 
-hasGapsTag	: GuardDirective >> GapsTag 
+hasGapsTag	    : GuardDirective    >> GapsTag 
 
-hasOpArgs       : Redact >> Symbol 
+hasOpArgs       : Redact            >> Symbol 
 
  
 
@@ -421,13 +288,7 @@ Redact          : GuardOperation
  
 
 CLEAnnotation   : Annotation 
-
- 
-
 VarAnnotation   : CLEAnnotation 
-
- 
-
 FuncAnnotation  : CLEAnnotation 
 
  
@@ -454,4 +315,4 @@ CLEAnnotation   : Annotation
 
 # constraints 
 
-# hasEnclave	: IRNode >>(1) Enclave # Each IRNode will eventually reside in one of the enclaves 
+# hasEnclave	: PDGNode >>(1) Enclave # Each PDGNode will eventually reside in one of the enclaves 
