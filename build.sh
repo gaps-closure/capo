@@ -92,7 +92,7 @@ install_llvm () {
           mkdir -p $PACKAGE_DIR
           mv $LLVM_DEB $PACKAGE_DIR
       fi
-      install_deb "Qualatype LLVM" "$PACKAGE_DIR/$LLVM_DEB"
+      #install_deb "Qualatype LLVM" "$PACKAGE_DIR/$LLVM_DEB"
   fi
 }
 
@@ -115,36 +115,8 @@ clean_pdg () {
   cd $TMP_DIR
 }
 
-build_quala () {
-  echo "Bulding Quala"
 
-  LLVM_CONFIG=$(llvm-config --version)
-  if [ $? -ne 0 ]; then
-      echo "LLVM_CONFIGn not installed"
-      INSTALL_LLVM=1
-      install_llvm
-  fi
-  
-  TMP_DIR=$(pwd)
-  cd quala/examples/tainting
-  make
 
-  cd ../nullness
-  make
-  cd $TMP_DIR
-}
-
-clean_quala () {
-  echo "Cleaning Quala"
-
-  TMP_DIR=$(pwd)
-  cd quala/examples/tainting
-  make clean
-
-  cd ../nullness
-  make clean
-  cd $TMP_DIR
-}
 
 build_partitioner () {
   echo "Bulding partitioner"
@@ -226,7 +198,6 @@ rm -rf $BUILD cle $PACKAGE_DIR
 
 if [[ $CLEAN ]]; then
     clean_pdg
-    clean_quala
     clean_partitioner
 else
     install_cmake
@@ -237,7 +208,6 @@ else
     check_py_module
     check_packages
 
-    build_quala
     build_pdg
     build_partitioner
 fi
