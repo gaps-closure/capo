@@ -194,9 +194,10 @@ handle_opts "$@"
 
 echo "BUILD=${BUILD}"
 
-rm -rf $BUILD cle $PACKAGE_DIR
+rm -rf $BUILD cle 
 
 if [[ $CLEAN ]]; then
+    rm -rf $BUILD cle $PACKAGE_DIR
     clean_pdg
     clean_partitioner
 else
