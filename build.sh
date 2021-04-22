@@ -87,7 +87,7 @@ install_llvm () {
       LLVM_DEB="${LLVM_URL##*/}"
       # if build llvm is specified, the package should be in the $PACKAGE_DIR
       if [ ! -f $PACKAGE_DIR/$LLVM_DEB ]; then
-          wget $LLVM_URL
+          wget -nv $LLVM_URL
           LLVM_DEB="${LLVM_URL##*/}"
           mkdir -p $PACKAGE_DIR
           mv $LLVM_DEB $PACKAGE_DIR
