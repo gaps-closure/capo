@@ -106,9 +106,9 @@ function which we consider next.
 
 * To be a resolvable data flow edge conflict
   - The endpoints must be assigned to different enclaves
-  - The edge must be be passing an argument to or a return value from the
+  - The edge must be be passing an argument to or be a return value from the
     function associated with a resolvable-control-flow-edge-conflict
-  - For each argument and return the taint of the variable involved must be
+  - For each argument and return, the taint of the variable involved must be
     compatible with at least one that is allowed by the corresponding argtaint
     or rettaint 
   - we say 'compatible' in order to account for auto-generated code that
@@ -116,9 +116,23 @@ function which we consider next.
 
 * To be compatible, the arg/ret taints and the taint on the variable affected
   - match their respective level -- remotelevel settings e.g., variable
-    annotation ssays okay to send from orange to green, and argtaint says okay
+    annotation says okay to send from orange to green, and argtaint says okay
     to receive from orange into green
   - operation must be allow or redact in both cases
+  - 
+***
+* Compatibility:
+   * **paramCompatibility(CONTROLDEP_CALLINV f)**: 
+   * **retCompatibility(CONTROLDEP_CALLINV f)**: 
+   * **checkCompatibility(CONTROLDEP_CALLINV f)**:
+* Resolvable Conflict:
+   * **checkEndpointsDif(Edge e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
+   * **checkPramOrRet(Edge e)**: e ∈ PARAMETER \\/ e ∈ DATADEP_RET
+   * **resolvableConflict(Edge e)**: checkEndpointsDif(e) /\ checkPramOrRet(e) /\ checkCompatibility(e)
+* Valid Data Flow Partition
+   * **checkEndpointsEq(EDGE e)**: e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave
+   * **checkControlFlowPart(EDGE e)**: checkEndpointsEq(e) \\/ resolvableConflict(e) 
+***
 
 ### Taint propagation
 
