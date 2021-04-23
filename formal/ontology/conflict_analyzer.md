@@ -51,8 +51,8 @@ performance may require re-engineering. The goal here is clarity.
   (initially the unlabeled ones will be null)
 ***
 * Let Fun denote the set of all FUNCTIONENTRY nodes in a PDG, Global denote the union of all VAR_STATICALLOCGLOBALSCOPE and VAR_STATICALLOCMODULESCOPE nodes in a PDG, and E<sub>i</sub> denote an arbitrary enclave in E (specified in the CLEJson annotation). Then we get the following requirements:
-   * **CheckAssignmentFunc**:   ∀ fun ∈ Fun, ∃E<sub>i</sub> ∈ E, assignFunctionEnclave[fun] == E<sub>i</sub>
-   * **CheckAssignmentGlobal**: ∀ global ∈ Global, ∃E<sub>i</sub> ∈ E, assignGlobalEnclave[global] == E<sub>i</sub>
+   * **CONSTRAINT CheckAssignmentFunc**:   ∀ fun ∈ Fun, ∃E<sub>i</sub> ∈ E, assignFunctionEnclave[fun] == E<sub>i</sub>
+   * **CONSTRAINT CheckAssignmentGlobal**: ∀ global ∈ Global, ∃E<sub>i</sub> ∈ E, assignGlobalEnclave[global] == E<sub>i</sub>
 ***
 
 ### Control Flow Partitioning
