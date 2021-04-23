@@ -88,11 +88,11 @@ performance may require re-engineering. The goal here is clarity.
    * **validFunction(CONTROLDEP_CALLINV f)**: hasFunAnnotation(f) /\ checkSink(f) /\ checkSource(f) 
 * Resolvable Conflict:
    * **checkEndpointsDif(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
-   * **checkCallorRet(CONTROLDEP e)**: e ∈ CONTROLDEP_CALLINV \/ e ∈ CONTROLDEP_CALLRET
+   * **checkCallorRet(CONTROLDEP e)**: e ∈ CONTROLDEP_CALLINV \\/ e ∈ CONTROLDEP_CALLRET
    * **resolvableConflict(CONTROLDEP e)**: checkEndpointsDif(e) /\ checkCallorRet(e) /\ validFunction(e)
 * Valid Control Flow Partition
    * **checkEndpointsEq(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave
-   * **checkControlFlowPart(CONTROLDEP e)**: checkEndpointsEq(e) \/ resolvableConflict(e) 
+   * **checkControlFlowPart(CONTROLDEP e)**: checkEndpointsEq(e) \\/ resolvableConflict(e) 
 ***
 
 
