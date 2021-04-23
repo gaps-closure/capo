@@ -17,7 +17,7 @@ Initial objective for developing this model is:
 
 In the future we may have other objectives such as fraction of or number of functions in one of the enclaves.
 
-## Addition Input Output Validations
+## Additional Input Output Validations
 These need to be done by the conflict analyzer, but may not be prudent to overload the constraint solver with these.
 
 * The disposition of every line in the source (C) must be clear: either it goes
@@ -28,8 +28,8 @@ These need to be done by the conflict analyzer, but may not be prudent to overlo
   - Every edge in the PDG must be accounted for, it is either in the cut or in
     one of the enclaves
 * If multiple (semicolon-separated) C lines cause multiple PDG nodes that must
-  go to different enclaves, either the conflict analyzer must keep extent
-  information that allows the line to be broken up and disptacher, or provide
+  go to different enclaves, either the conflict analyzer must keep
+  information that allows the line to be broken up and disptached, or provide
   diagnostics to request the developer to break the lines
 * Must check for language features not yet supported by CLOSURE
   - functions with variadic arguments or arguments that are not primitives or
@@ -49,10 +49,14 @@ performance may require re-engineering. The goal here is clarity.
 
 * Each function and global variable must be assigned to a single valid enclave, 
   (initially the unlabeled ones will be null)
+***
+* Let Fun denote the set of all FUNCTIONENTRY nodes in a PDG, G denote the union of all VAR_STATICALLOCGLOBALSCOPE, VAR_STATICALLOCMODULESCOPE, and VAR_STATICALLOCFUNCTIONSCOPE nodes in a PDG, Inst denote an INST* node in the PDG,  Param denote an INST* node in the PDG, and E<sub>i</sub> denote an arbitrary enclave E which contains FUNCTIONENTRY and VAR_STATICALLOC* nodes. Then we get the following requirement:
+   * **CheckAssingments**: ∀ fun ∈ Fun, fun ∈ E<sub>i</sub> /\ ∀ global ∈ Global, global ∈ E<sub>i</sub> /\ ∀ inst ∈ Inst, inst ∈ E<sub>i</sub> /\ ∀ param ∈ Param, param ∈ E<sub>i</sub>
+***
 
 ### Control Flow Partitioning
 
-* Endpoints of a control edge must be assigned to the same enclave, unless if
+* Endpoints of a control edge must be assigned to the same enclave, unless
   it is a resolvable-control-edge-conflict (in other words, only control edges
   allowed in the cut are resolvable-control-edge-conflicts)
 
@@ -75,6 +79,22 @@ performance may require re-engineering. The goal here is clarity.
 
 * How to determine corresponding call return edge(s) for the call edge
   * this is determined from PDG axiomatization
+
+***
+* Valid Function:
+   * **hasFunAnnotation(CONTROLDEP_CALLINV f)**: f.hasDestinationNode ∈ {source ∈ PDGNODE | (∀edge ∈ ANNO_GLOBAL) source  = edge.hasSourceNode}
+   * **checkSink(CONTROLDEP_CALLINV f)**: f.hasDestinationNode.hasEnclave == f.hasDestinationNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasLevel
+   * **checkSource(CONTROLDEP_CALLINV f)**: ∃i. f.hasSourceNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasLevel == f.hasDestinationNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasCDF[i].hasRemoveLevel
+   * **validFunction(CONTROLDEP_CALLINV f)**: hasFunAnnotation(f) /\ checkSink(f) /\ checkSource(f) 
+* Resolvable Conflict:
+   * **checkEndpointsDif(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
+   * **checkCallorRet(CONTROLDEP e)**: e ∈ CONTROLDEP_CALLINV \\/ e ∈ CONTROLDEP_CALLRET
+   * **resolvableConflict(CONTROLDEP e)**: checkEndpointsDif(e) /\ checkCallorRet(e) /\ validFunction(e)
+* Valid Control Flow Partition
+   * **checkEndpointsEq(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave
+   * **checkControlFlowPart(CONTROLDEP e)**: checkEndpointsEq(e) \\/ resolvableConflict(e) 
+***
+
 
 There are additional data flow constraints on parameters on the associated
 function which we consider next.
@@ -106,7 +126,7 @@ Whereas the previous constraints dealt with the cut, now we ensure that
 information that transitively reaches the cut only share information as
 authorized.
 
-* The endpoins of every data flow edge must have the same label taint, unless 
+* The endpoints of every data flow edge must have the same label taint, unless 
   a taint coercion is performed using a blessed function
   * (this constraint causes taint propagation)
 
