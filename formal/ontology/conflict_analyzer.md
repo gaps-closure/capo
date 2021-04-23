@@ -122,9 +122,9 @@ function which we consider next.
   - 
 ***
 * Compatibility:
-   * **paramCompatibility(CONTROLDEP_CALLINV f)**: 
-   * **retCompatibility(CONTROLDEP_CALLINV f)**: 
-   * **checkCompatibility(CONTROLDEP_CALLINV f)**:
+   * **paramCompatibility(Edge e)**: 
+   * **retCompatibility(Edge e)**: 
+   * **checkCompatibility(Edge e)**: (e ∈ DATADEP_RET /\ retCompatibility(e)) \\/ (e ∈ PARAMETER /\  paramCompatibility(e))
 * Resolvable Conflict:
    * **checkEndpointsDif(Edge e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
    * **checkPramOrRet(Edge e)**: e ∈ PARAMETER \\/ e ∈ DATADEP_RET
@@ -154,3 +154,11 @@ authorized.
 * In taint propagation, resolution of a conflict (i.e., taint coercion) can
   only happen within an annotated function
 
+***
+* Propogation:
+   * **checkEndpoints(DATADEP e)**: 
+   * **checkUnAnnoFunc(DATADEP e)**:
+   * **CanCoerce(EDGE e)**: 
+   * **checkPropogation(EDGE e)**: (e ∈ DATADEP /\ e.hasDestinationNode.hasTaint \\/ e.hasSourceNode.hasTaint) \\/ (e ∈ PARAMETER /\ e.hasDestinationNode.hasTaint \\/ e.hasSourceNode.hasTaint) \\/ CanCoerce(e)
+
+***
