@@ -102,7 +102,6 @@ $(call check_defined, OUTURI, zmq outuri for hal configuration)
 plugin:
 	@cd $(ODIR) && cmake ..
 	@make -C $(ODIR)
-	@cd $(ODIR) && mv libpdg.so libgedl.so
 
 ############################################################################
 # GEDL generation

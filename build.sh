@@ -118,26 +118,35 @@ clean_pdg () {
 
 
 
-build_partitioner () {
-  echo "Bulding partitioner"
+build_partitioner_verifier_gedl () {
+  echo "Bulding others"
 
   TMP_DIR=$(pwd)
   cd partitioner/src
   make
-
+  cd $TMP_DIR
+  cd compliance
+  make
+  cd $TMP_DIR
+  cd gedl
+  make
   cd $TMP_DIR
 }
 
-clean_partitioner () {
-  echo "Cleaning Partitioner"
+
+clean_partitioner_verifier_gedl () {
+  echo "Cleaning others"
 
   TMP_DIR=$(pwd)
   cd partitioner/src
   make clean
-
-  cd ../example
+  cd $TMP_DIR
+  cd compliance
   make clean
   cd $TMP_DIR
+  cd gedl
+  make clean
+
 }
 
 check_py_module () {
@@ -199,7 +208,7 @@ rm -rf $BUILD cle
 if [[ $CLEAN ]]; then
     rm -rf $BUILD cle $PACKAGE_DIR
     clean_pdg
-    clean_partitioner
+    clean_partitioner_verifier_gedl
 else
     install_cmake
     
@@ -210,5 +219,5 @@ else
     check_packages
 
     build_pdg
-    build_partitioner
+    build_partitioner_verifier_gedl
 fi
