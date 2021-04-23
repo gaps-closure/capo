@@ -50,8 +50,9 @@ performance may require re-engineering. The goal here is clarity.
 * Each function and global variable must be assigned to a single valid enclave, 
   (initially the unlabeled ones will be null)
 ***
-* Let Fun denote the set of all FUNCTIONENTRY nodes in a PDG, G denote the union of all VAR_STATICALLOCGLOBALSCOPE, VAR_STATICALLOCMODULESCOPE, and VAR_STATICALLOCFUNCTIONSCOPE nodes in a PDG, Inst denote an INST* node in the PDG,  Param denote an INST* node in the PDG, and E<sub>i</sub> denote an arbitrary enclave E which contains FUNCTIONENTRY and VAR_STATICALLOC* nodes. Then we get the following requirement:
-   * **CheckAssingments**: ∀ fun ∈ Fun, fun ∈ E<sub>i</sub> /\ ∀ global ∈ Global, global ∈ E<sub>i</sub> /\ ∀ inst ∈ Inst, inst ∈ E<sub>i</sub> /\ ∀ param ∈ Param, param ∈ E<sub>i</sub>
+* Let Fun denote the set of all FUNCTIONENTRY nodes in a PDG, Global denote the union of all VAR_STATICALLOCGLOBALSCOPE and VAR_STATICALLOCMODULESCOPE nodes in a PDG, and E<sub>i</sub> denote an arbitrary enclave in E (specified in the CLEJson annotation). Then we get the following requirements:
+   * **CheckAssignmentFunc**:   ∀ fun ∈ Fun, ∃E<sub>i</sub> ∈ E, assignFunctionEnclave[fun] == E<sub>i</sub>
+   * **CheckAssignmentGlobal**: ∀ global ∈ Global, ∃E<sub>i</sub> ∈ E, assignGlobalEnclave[global] == E<sub>i</sub>
 ***
 
 ### Control Flow Partitioning
@@ -90,9 +91,8 @@ performance may require re-engineering. The goal here is clarity.
    * **checkEndpointsDif(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
    * **checkCallorRet(CONTROLDEP e)**: e ∈ CONTROLDEP_CALLINV \\/ e ∈ CONTROLDEP_CALLRET
    * **resolvableConflict(CONTROLDEP e)**: checkEndpointsDif(e) /\ checkCallorRet(e) /\ validFunction(e)
-* Valid Control Flow Partition
-   * **checkEndpointsEq(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave
-   * **checkControlFlowPart(CONTROLDEP e)**: checkEndpointsEq(e) \\/ resolvableConflict(e) 
+* Valid Control Flow Partition 
+   * **checkControlFlowPart**:∀ e ∈ CONTROLDEP, e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave \\/ resolvableConflict(e) 
 ***
 
 
