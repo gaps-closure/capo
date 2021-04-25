@@ -83,16 +83,17 @@ performance may require re-engineering. The goal here is clarity.
 
 ***
 * Valid Function:
-   * **hasFunAnnotation(CONTROLDEP_CALLINV f)**: f.hasDestinationNode ∈ {source ∈ PDGNODE | (∀edge ∈ ANNO_GLOBAL) source  = edge.hasSourceNode}
-   * **checkSink(CONTROLDEP_CALLINV f)**: f.hasDestinationNode.hasEnclave == f.hasDestinationNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasLevel
-   * **checkSource(CONTROLDEP_CALLINV f)**: ∃i. f.hasSourceNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasLevel == f.hasDestinationNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasCDF[i].hasRemoveLevel
-   * **validFunction(CONTROLDEP_CALLINV f)**: hasFunAnnotation(f) /\ checkSink(f) /\ checkSource(f) 
+   * **PREDICATE hasFunAnnotation(CONTROLDEP_CALLINV f)**: f.hasDestinationNode ∈ {source ∈ PDGNODE | (∀edge ∈ ANNO_GLOBAL) source  = edge.hasSourceNode}
+   * **PREDICATE checkSink(CONTROLDEP_CALLINV f)**: f.hasDestinationNode.hasEnclave == f.hasDestinationNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasLevel
+   * **PREDICATE checkSource(CONTROLDEP_CALLINV f)**: ∃i. f.hasSourceNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasLevel == f.hasDestinationNode.hasOutgoingEdges[Anno_Global].hasDestinationNode.hasCLEAnnotation.hasCDF[i].hasRemoveLevel
+   * **PREDICATE validFunction(CONTROLDEP_CALLINV f)**: hasFunAnnotation(f) /\ checkSink(f) /\ checkSource(f) 
 * Resolvable Conflict:
-   * **checkEndpointsDif(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
-   * **checkCallorRet(CONTROLDEP e)**: e ∈ CONTROLDEP_CALLINV \\/ e ∈ CONTROLDEP_CALLRET
-   * **resolvableConflict(CONTROLDEP e)**: checkEndpointsDif(e) /\ checkCallorRet(e) /\ validFunction(e)
-* Valid Control Flow Partition 
-   * **checkControlFlowPart**:∀ e ∈ CONTROLDEP, e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave \\/ resolvableConflict(e) 
+   * **PREDICATE checkEndpointsDif(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
+   * **PREDICATE checkCallorRet(CONTROLDEP e)**: e ∈ CONTROLDEP_CALLINV \\/ e ∈ CONTROLDEP_CALLRET
+   * **PREDICATE resolvableConflict(CONTROLDEP e)**: checkEndpointsDif(e) /\ checkCallorRet(e) /\ validFunction(e)
+* Valid Control Flow Partition
+   * **PREDICATE checkEndpointsEq(CONTROLDEP e)**: e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave 
+   * **CONSTRAINT checkControlFlowPart**: ∀ e ∈ CONTROLDEP, checkEndpointsEq(e) \\/ resolvableConflict(e) 
 ***
 
 
