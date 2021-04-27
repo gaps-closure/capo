@@ -45,14 +45,20 @@ Note that these constraints are not meant to prescribe the implementation of the
 constraints in a particular language (SMT-LIB2, MiniZinc, etc.); engineering for 
 performance may require re-engineering. The goal here is clarity.
 
+***
+In the following constraints, we consider the PDG nodes, PDG edges, and CLE entries/annotations defined in this [axiomatization](https://github.com/gaps-closure/capo/blob/develop/formal/ontology/axioms.vocab)  as inputs
+
+Enclave<sub>i</sub> denote an arbitrary enclave (specified in the CLEJson annotation). 
+We use assignFunctionEnclave[FUNCTIONENTRY] and assignGlobalEnclave[GLOBAL] as output variables
+***
+
 ### Assignment 
 
 * Each function and global variable must be assigned to a single valid enclave, 
   (initially the unlabeled ones will be null)
 ***
-* Let Fun denote the set of all FUNCTIONENTRY nodes in a PDG, Global denote the union of all VAR_STATICALLOCGLOBALSCOPE and VAR_STATICALLOCMODULESCOPE nodes in a PDG, and E<sub>i</sub> denote an arbitrary enclave in E (specified in the CLEJson annotation). Then we get the following requirements:
-   * **CONSTRAINT CheckAssignmentFunc**:   ∀ fun ∈ Fun, ∃E<sub>i</sub> ∈ E, assignFunctionEnclave[fun] == E<sub>i</sub>
-   * **CONSTRAINT CheckAssignmentGlobal**: ∀ global ∈ Global, ∃E<sub>i</sub> ∈ E, assignGlobalEnclave[global] == E<sub>i</sub>
+* **CONSTRAINT CheckAssignmentFunc**:   ∀ fun ∈ FUNCTIONENTRY, ∃ Enclave<sub>i</sub> ∈ Enclave, assignFunctionEnclave[fun] == Enclave<sub>i</sub>
+* **CONSTRAINT CheckAssignmentGlobal**: ∀ global ∈ {VAR_STATICALLOCGLOBALSCOPE ∪ VAR_STATICALLOCMODULESCOPE}, ∃Enclave<sub>i</sub> ∈ Enclave, assignGlobalEnclave[global] == Enclave<sub>i</sub>
 ***
 
 ### Control Flow Partitioning
@@ -123,16 +129,16 @@ function which we consider next.
   - 
 ***
 * Compatibility:
-   * **paramCompatibility(Edge e)**: 
-   * **retCompatibility(Edge e)**: 
-   * **checkCompatibility(Edge e)**: (e ∈ DATADEP_RET /\ retCompatibility(e)) \\/ (e ∈ PARAMETER /\  paramCompatibility(e))
+   * **PREDICATE paramCompatibility(PARAMETER e)**: (e ∈ PARAMETER_IN /\ e.hasDestNode ∈ FUNCTIONENTRY /\ ∃i, e.hasDestNode.hasOutgoingEdges[i] ∈ Anno_Global /\  e.hasDestNode.hasOutgoingEdges[i].hasDestNode.hasCLEJSON /\ e.hasSourceNode.hasTaint ⊆ e.hasDestNode.hasOutgoingEdges[i].hasDestNode.hasCDF.hasFunctTaints.hasArgTaint[e.hasSourceNode.hasParamIdx]) \\/  ( e ∈ PARAMETER_OUT /\ e.hasSourceNode ∈ FUNCTIONENTRY /\ e.hasDestinationNode.hasTaint  /\ ∃i, e.hasSourceNode.hasOutgoingEdges[i] ∈ Anno_Global /\  e.hasSourceNode.hasOutgoingEdges[i].hasDestNode.hasCLEJSON /\ e.hasDestNode.hasTaint ⊆ e.hasSourceNode.hasOutgoingEdges[i].hasDestNode.hasCDF.hasFunctTaints.hasArgTaint[e.hasDestNode.hasParamIdx]) /\  \\/ e ∈ PARAMETER_FIELD
+   * **PREDICATE retCompatibility(DATADEP_RET e)**: ∃i, e.hasSourceNode.hasOutgoingEdges[i] ∈ Anno_Global /\  e.hasSourceNode.hasOutgoingEdges[i].hasDestNode.hasCLEJSON /\ e.hasDestNode.hasTaint ⊆ e.hasSourceNode.hasOutgoingEdges[i].hasDestNode.hasCDF.hasFunctTaints.hasRetTaint)
+   * **PREDICATE checkCompatibility(Edge e)**: (e ∈ DATADEP_RET /\ retCompatibility(e)) \\/ (e ∈ PARAMETER /\  paramCompatibility(e))
 * Resolvable Conflict:
-   * **checkEndpointsDif(Edge e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
-   * **checkPramOrRet(Edge e)**: e ∈ PARAMETER \\/ e ∈ DATADEP_RET
-   * **resolvableConflict(Edge e)**: checkEndpointsDif(e) /\ checkPramOrRet(e) /\ checkCompatibility(e)
+   * **PREDICATE checkEndpointsDif(Edge e)**: e.hasDestinationNode.hasEnclave != e.hasSourceNode.hasEnclave
+   * **PREDICATE checkPramOrRet(Edge e)**: e ∈ PARAMETER \\/ e ∈ DATADEP_RET
+   * **PREDICATE resolvableConflict(Edge e)**: checkEndpointsDif(e) /\ checkPramOrRet(e) /\ checkCompatibility(e)
 * Valid Data Flow Partition
-   * **checkEndpointsEq(EDGE e)**: e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave
-   * **checkControlFlowPart(EDGE e)**: checkEndpointsEq(e) \\/ resolvableConflict(e) 
+   * **PREDICATE checkEndpointsEq(EDGE e)**: e.hasDestinationNode.hasEnclave == e.hasSourceNode.hasEnclave
+   * **CONSTRAINT checkControlFlowPart**: ∀ e ∈ EDGE, checkEndpointsEq(e) \\/ resolvableConflict(e) 
 ***
 
 ### Taint propagation
@@ -157,9 +163,13 @@ authorized.
 
 ***
 * Propogation:
-   * **checkEndpoints(DATADEP e)**: 
-   * **checkUnAnnoFunc(DATADEP e)**:
-   * **CanCoerce(EDGE e)**: 
-   * **checkPropogation(EDGE e)**: (e ∈ DATADEP /\ e.hasDestinationNode.hasTaint \\/ e.hasSourceNode.hasTaint) \\/ (e ∈ PARAMETER /\ e.hasDestinationNode.hasTaint \\/ e.hasSourceNode.hasTaint) \\/ CanCoerce(e)
+   * **PREDICATE checkEndpoints(EDGE e)**:  e ∈ DATADEP /\ e.hasDestinationNode.hasTaint == e.hasSourceNode.hasTaint) \\/ (e ∈ PARAMETER /\ e.hasDestinationNode.hasTaint == e.hasSourceNode.hasTaint
+   * **CONSTRAINT checkUnAnnoFunc**: ∀ f ∈ FUNCTIONENTRY, |{ c ∈ f.hasChildren |  c.hasTaint  }| <= 1
+   * **PREDICATE CanCoerce(EDGE e)**: e.hasSourceNode.hasTaint ⊆ e.hasFunction.hasCDF.hasFunctTaints.hasBodyTaint /\ e.hasSourceNode.hasTaint ⊆ e.hasFunction.hasCDF.hasFunctTaints.hasBodyTaint
+   * **CONSTRAINT checkPropogation**: ∀ e ∈ EDGE, checkEndpoints(e) \\/ CanCoerce(e)
+***
 
+### Putting it all Together
+***
+* **CONSTRAINT checkProgram**:  checkControlFlowPart /\ checkPropogation /\ checkUnAnnoFunc /\ CheckAssignmentFunc /\ CheckAssignmentGlobal
 ***
