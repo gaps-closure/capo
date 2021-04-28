@@ -95,6 +95,8 @@ hasPDGEdges         : PDG           >> PDGEdge
 
 hasPDGNodes         : PDG           >> PDGNode
 
+hasFunction         : Inst       >> FunctionEntry
+
 hasIncomingEdges	: PDGNode       >> PDGEdge 
 
 hasOutgoingEdges	: PDGNode       >> PDGEdge 
@@ -109,7 +111,9 @@ hasParamIdx	        : Parameter     >> int
 
 hasParam            : FunctionEntry >> Param_FormalIn 
 
-hasReturn           : FunctionEntry >> Inst_Ret 
+hasReturn           : FunctionEntry >> Inst_Ret
+
+hasChildren         : FunctionEntry >> PDGNode
 
 hasArgument         : Inst_FunCall  >> Param_ActualIn 
 
@@ -315,4 +319,4 @@ CLEAnnotation   : Annotation
 
 # constraints 
 
-# hasEnclave	: PDGNode >>(1) Enclave # Each PDGNode will eventually reside in one of the enclaves 
+# hasEnclave	: PDGNode >>(1) Enclave
