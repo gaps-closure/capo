@@ -95,6 +95,10 @@ hasPDGEdges         : PDG           >> PDGEdge
 
 hasPDGNodes         : PDG           >> PDGNode
 
+hasSourceNode	    : PDGEdge       >> PDGNode 
+
+hasDestinationNode	: PDGEdge       >> PDGNode 
+
 hasFunction         : Inst       >> FunctionEntry
 
 hasIncomingEdges	: PDGNode       >> PDGEdge 
@@ -118,10 +122,7 @@ hasChildren         : FunctionEntry >> PDGNode
 hasArgument         : Inst_FunCall  >> Param_ActualIn 
 
 hasLabel            : Annotation    >> Label 
-
-hasFrom	            : PDGNode       >> PDGNode 
-
-hasTo	            : PDGNode       >> PDGNode 
+ 
 
  
 
@@ -163,13 +164,13 @@ AllDisjoint([Inst, VarNode, Param, Annotation])
 
 PDGEdge	: Thing 
 
-.equivalent_to	= [PDGEdge & hasFrom.exactly(1, PDGNode) & hasTo.exactly(1, PDGNode)] 
+.equivalent_to	= [PDGEdge & hasSourceNode.exactly(1, PDGNode) & hasDestinationNode.exactly(1, PDGNode)] 
 
  
 
 ControlDep_CallInv  : ControlDep 
 
-.equivalent_to	= [Inst_FunCall & hasFrom.exactly(1, Inst_FunCall) & hasTo.exactly(1, FunctionEntry)] 
+.equivalent_to	= [Inst_FunCall & hasSourceNode.exactly(1, Inst_FunCall) & hasDestinationNode.exactly(1, FunctionEntry)] 
 
 
 
