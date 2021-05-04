@@ -47,7 +47,7 @@ performance may require re-engineering. The goal here is clarity.
 
 ***
 In the following constraints, we consider the PDG nodes, PDG edges, and CLE entries/annotations defined in this [axiomatization](https://github.com/gaps-closure/capo/blob/develop/formal/ontology/axioms.vocab)  as inputs.
-For example, we use FUNCTIONENTRY to denote a type. The notation fun ∈ FUNCTIONENTRY denotes fun has type FUNCTIONENTRY and ∀ fun ∈ FUNCTIONENTRY denotes for all things that have type fun.
+For example, we use FUNCTIONENTRY to denote a type. The notation fun ∈ FUNCTIONENTRY denotes fun has type FUNCTIONENTRY and ∀ fun ∈ FUNCTIONENTRY denotes for all things that have type FUNCTIONENTRY.
 
 For clarity, when defining a predicate or constraint, an incoming term value is given a type for clarity. For example, the predicate checkEndpointsEq(CONTROLDEP e) takes 1 value as input with name e and type CONTROLDEP.
 Each new definition is preceeded by either PREDICATE or CONSTRAINT. A PREDICATE will be evaluated to true or false but may not hold for all valid programs. For a valid program, an expression marked as CONSTRAINT will be true for a valid program.
