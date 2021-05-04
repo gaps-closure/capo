@@ -50,7 +50,7 @@ In the following constraints, we consider the PDG nodes, PDG edges, and CLE entr
 For example, we use FUNCTIONENTRY to denote a type. The notation fun ∈ FUNCTIONENTRY denotes fun has type FUNCTIONENTRY and ∀ fun ∈ FUNCTIONENTRY denotes for all things that have type fun.
 
 For clarity, when defining a predicate or constraint, an incoming term value is given a type for clarity. For example, the predicate checkEndpointsEq(CONTROLDEP e) takes 1 value as input with name e and type CONTROLDEP.
-Each new definition is preceeded by either PREDICATE or CONSTRAINT. A PREDICATE will be evaluated to true or false but may not hold for a valid. For a valid program, an expression marked as CONSTRAINT will be true for a valid program.
+Each new definition is preceeded by either PREDICATE or CONSTRAINT. A PREDICATE will be evaluated to true or false but may not hold for all valid programs. For a valid program, an expression marked as CONSTRAINT will be true for a valid program.
 Enclave<sub>i</sub> denotes an arbitrary enclave (specified in the CLEJson annotation). 
 
 Let GLOBAL indicate the union of VAR_STATICALLOCGLOBALSCOPE and VAR_STATICALLOCMODULESCOPE
