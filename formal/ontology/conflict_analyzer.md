@@ -53,9 +53,9 @@ For clarity, when defining a predicate or constraint, an incoming term value is 
 Each new definition is preceeded by either PREDICATE or CONSTRAINT. A PREDICATE will be evaluated to true or false but may not hold for all valid programs. For a valid program, an expression marked as CONSTRAINT will be true for a valid program.
 Enclave<sub>i</sub> denotes an arbitrary enclave (specified in the CLEJson annotation). 
 
-Let GLOBAL indicate the union of VAR_STATICALLOCGLOBALSCOPE and VAR_STATICALLOCMODULESCOPE
-assignFunctionEnclave[FUNCTIONENTRY] and assignGlobalEnclave[GLOBAL] are used as output variables and represent maps from function entries to enclaves and global variables to encalve respectively.
-Additionally, we use resolvableConflicts[CONTROLDEP] as an output variable indicating a map from each CONTROLDEP edge and to a boolean indicating whether or not the CONTROLDEP is a resolvable conflict.
+* Let GLOBAL indicate the union of VAR_STATICALLOCGLOBALSCOPE and VAR_STATICALLOCMODULESCOPE.
+* Let assignFunctionEnclave[FUNCTIONENTRY] and assignGlobalEnclave[GLOBAL] be as output variables and represent maps from function entries to enclaves and global variables to encalve respectively.
+* Let resolvableConflicts[CONTROLDEP] be an output variable indicating a map from each CONTROLDEP edge and to a boolean indicating whether or not the CONTROLDEP is a resolvable conflict.
 ***
 
 ### Assignment 
@@ -84,8 +84,8 @@ Additionally, we use resolvableConflicts[CONTROLDEP] as an output variable indic
 * For a function to be validly wrapped in XD RPC from the control perspective
   - the function has a function annotation
   - the level in the function annotation must be identical to the level of the 
-    enclave assigned to the sink endpoint (entry) of the edge
-  - the level of the source endpoint of the edge (functioncall) must match one
+    enclave assigned to the sink endpoint (CONTROLDEP_CALLINV.hasDestinationNode) of the edge
+  - the level of the source endpoint of the edge (CONTROLDEP_CALLINV.hasSourceNode) must match one
     the remotelevel of one of the cdfs for the function annotation
   - the corresponding cdf operation must be allow or redact
     (ignore CLE direction field for now)
