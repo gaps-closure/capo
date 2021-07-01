@@ -13,16 +13,31 @@ if __name__ == "__main__":
         """
     )
 
+    parser.add_argument('--files','-f', type=str, 
+                    help='files to process')
+
     parser.add_argument('--zmq','-z', type=str, 
-                    help='ZMQ IP Address (tcp://XXX.XXX.XXX.XXX:XXXXX)')
+                    help='ZMQ IP Address (tcp://XXX.XXX.XXX.XXX:PORT)')
 
     args = parser.parse_args()
 
 
-    os.system("./conflictAnalyzer.sh")
+    os.system(f"./conflictAnalyzer.sh {args.files} >  result.txt")
     if args.zmq:
         context = zmq.Context()
         socket = context.socket(zmq.REQ)
         socket.connect(args.zmq)
-        message = json.dumps({"Result" : "Succss"})
+        with open('result.txt') as f:
+            if '=====UNSATISFIABLE=====' in f.read():
+                message = json.dumps({"Result" : "Conflict"})
+            else:
+                message = json.dumps({"Result" : "Succss"})
         socket.send_string(message)
+
+    with open('result.txt') as f:
+        if '=====UNSATISFIABLE=====' in f.read():
+            print("Conflict")
+        else:
+            print("Succss")
+        
+        
