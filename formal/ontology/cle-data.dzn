@@ -1,0 +1,9 @@
+cleEntry = {None, PURPLE , ORANGE , XDLINKAGE_GET_A }; 
+cdf = {None_cdf_0, None_cdf_1 , ORANGE_cdf_0  , XDLINKAGE_GET_A_cdf_0 }; 
+remotelevel = {None_remotelevel_0, None_remotelevel_1 , ORANGE_remotelevel_0 , None_remotelevel_2 , XDLINKAGE_GET_A_remotelevel_0 }; 
+direction = {None_direction_0, None_direction_1 , ORANGE_direction_0 , None_direction_2 , XDLINKAGE_GET_A_direction_0 }; 
+operation = {None_operation_0, None_operation_1 , ORANGE_guarddirective__operation_0 , None_operation_2 , XDLINKAGE_GET_A_guarddirective__operation_0 }; 
+haslevel = [none, purple , orange , orange ]; 
+hasremotelevel = [none, none , purple , purple ]; 
+hasdirection = [noDir, noDir , egress  , bidirectional ]; 
+hasoperation = [noOp, noOp , allow  , allow ]; 

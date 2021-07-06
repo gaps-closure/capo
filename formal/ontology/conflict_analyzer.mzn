@@ -2,7 +2,7 @@
 % ------------------ Initialize Assingments -------------------------
 
 % constraint forall (n in PDGNode) (if haslevel[hasCle[n]] != None then nodeEnclave[n] == haslevel[hasCle[n]] endif );
-constraint forall (n in PDGNode) (if hasCle[n]!= None then nodeEnclave[n] == hasCle[n] endif );
+constraint forall (n in PDGNode) (if hasCle[n]!= None then haslevel[nodeEnclave[n]] == haslevel[hasCle[n]] endif );
 % ------------------ Control Dep Constraints ------------------------
 
 % Every function entry node must be assigned a valid enclave
@@ -13,14 +13,21 @@ constraint forall (n in PDGNode) (n in C_FunctionEntry(FunctionEntry) -> nodeEnc
 % constraint forall (n in PDGNode) (n in Global -> nodeEnclave[n] != nullEnclave);
 constraint forall (n in PDGNode) (n in Global -> nodeEnclave[n] != None);
 
-% control flow partitioning: only resolvable control conflicts can be in cut
-constraint forall (e in ControlDep) (resolvableControlConflict[C_ControlDep(e)]==true \/ nodeEnclave[to_enum(PDGNode,hasSource[C_ControlDep(e)])] == nodeEnclave[to_enum(PDGNode,hasDest[C_ControlDep(e)])]); 
+/* Conflict is resolvable via RPC if endpoints of CONTROL edge from functioncall to entry are in different enclaves */
+constraint forall (e in ControlDep) (
+  not (e in C_ControlDep_CallInv(ControlDep_CallInv) /\ (nodeEnclave[to_enum(PDGNode,hasSource[C_ControlDep(e)])] != nodeEnclave[to_enum(PDGNode,hasDest[C_ControlDep(e)])]))
+  -> resolvableConflict[C_ControlDep(e)]==false
+);
 
-% to be a resolvable conflict, must be a conflict i.e., endpoint share in different enclaves, and must be a CALLINV or CALLRET edge
-constraint forall (e in ControlDep)
-  (( e in C_ControlDep_CallInv(ControlDep_CallInv) /\ nodeEnclave[to_enum(PDGNode,hasSource[C_ControlDep(e)])] == nodeEnclave[to_enum(PDGNode,hasDest[C_ControlDep(e)])]) -> resolvableControlConflict[C_ControlDep(e)]==false);
-     
-constraint forall (e in PDGEdge) (e in ControlDep_NonCall -> resolvableControlConflict[e] == false);
+/* The two ends of every CONTROL edge must be assigned to the same enclave unless it is a resolvable control conflict */ 
+constraint forall (e in ControlDep) ( resolvableConflict[C_ControlDep(e)]==false -> nodeEnclave[to_enum(PDGNode,hasSource[C_ControlDep(e)])]==nodeEnclave[to_enum(PDGNode,hasDest[C_ControlDep(e)])] );
+
+% Check wrapper
+constraint forall (e in ControlDep) ( (e in C_ControlDep_CallInv(ControlDep_CallInv) /\ resolvableConflict[C_ControlDep(e)]==true)  ->  (haslevel[nodeEnclave[to_enum(PDGNode,hasSource[C_ControlDep(e)])]] == hasremotelevel[hasCle[to_enum(PDGNode,hasDest[C_ControlDep(e)])]]));
+
+
+% This constraint seems to be problematic      
+% constraint forall (e in PDGEdge) ( if e in ControlDep_NonCall then resolvableConflict[e] == false endif);
 
 % conflict resolvability of return must match that of corresponding invocation
 % constraint forall (e in ControlDep_CallRet) (resolvableControlConflict[C_ControlDep(C_ControlDep_CallRet(e))] == resolvableControlConflict[C_ControlDep(C_ControlDep_CallInv(invForRet[e]))]);
@@ -29,23 +36,23 @@ constraint forall (e in PDGEdge) (e in ControlDep_NonCall -> resolvableControlCo
 
 % to be a resolvable conflict, must be a conflict i.e., endpoint share in different enclaves, and must be a Parameter
 % May want to include returns
-constraint forall (e in Parameter) (( nodeEnclave[to_enum(PDGNode,hasSource[C_DataEdge(C_Parameter(e))])] == nodeEnclave[to_enum(PDGNode,hasDest[C_DataEdge(C_Parameter(e))])]) -> resolvableDataConflict[C_DataEdge(C_Parameter(e))]==false);
+constraint forall (e in Parameter) (( nodeEnclave[to_enum(PDGNode,hasSource[C_DataEdge(C_Parameter(e))])] == nodeEnclave[to_enum(PDGNode,hasDest[C_DataEdge(C_Parameter(e))])]) -> resolvableConflict[C_DataEdge(C_Parameter(e))]==false);
 
-
-% control flow partitioning: only resolvable control conflicts can be in cut
-constraint forall (e in DataEdge) (  resolvableDataConflict[C_DataEdge(e)]==true \/ nodeEnclave[to_enum(PDGNode,hasSource[C_DataEdge(e)])] == nodeEnclave[to_enum(PDGNode,hasDest[C_DataEdge(e)])]); 
+% data flow partitioning: only resolvable control conflicts can be in cut
+constraint forall (e in DataEdge) (  resolvableConflict[C_DataEdge(e)]==true \/ nodeEnclave[to_enum(PDGNode,hasSource[C_DataEdge(e)])] == nodeEnclave[to_enum(PDGNode,hasDest[C_DataEdge(e)])]); 
 
 % ------------------ Taint Propagation Constraints ------------------------
 
 % Check if edge can be coerced
-% predicate CanCoerce(DataDep:e) = (hasBodyTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasDest[e]]]]]]] ==  hasTaint[hasDest[e]] /\ hasBodyTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasSource[e]]]]]]] ==  hasTaint[hasSource[e]] );
+% predicate CanCoerce(DataDep:e) = (hasBodyTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasDest[e]]]]]]] ==  cleEntry[hasCle[hasDest[e]]] /\ hasBodyTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasSource[e]]]]]]] ==  cleEntry[hasCle[hasSource[e]]] );
 
 % predicate CanCoerce(DataDep:e) = (hasCle[hasSource[C_DataEdge(C_DataDep(e))]] == None \/ hasCle[hasSource[C_DataEdge(C_DataDep(e))]] == None);
-predicate CanCoerce(DataDep:e) = if e in C_DataDepEdge_Ret(DataDepEdge_Ret) then true else false endif ;
 
 
+% This needs to be updated once function taints are added
 % Make sure all data dependencies have the same level or can be coerced
-constraint forall (e in DataDep) (hasCle[hasSource[C_DataEdge(C_DataDep(e))]] == hasCle[hasDest[C_DataEdge(C_DataDep(e))]] \/ CanCoerce(e));
+constraint forall (e in DataDep) (if e in C_DataDepEdge_Ret(DataDepEdge_Ret) then true else false endif \/ haslevel[hasCle[hasSource[C_DataEdge(C_DataDep(e))]]] == haslevel[hasCle[hasDest[C_DataEdge(C_DataDep(e))]]]);
+% constraint forall (e in Anno_Global) (haslevel[hasCle[hasSource[C_Anno(C_Anno_Global(e))]]] == haslevel[hasCle[hasDest[C_Anno(C_Anno_Global(e))]]]);
 % constraint forall (e in DataDep) (hasCle[hasSource[C_DataEdge(C_DataDep(e))]] == hasCle[hasDest[C_DataEdge(C_DataDep(e))]]);
 
 % Check function propagation taints
@@ -57,9 +64,12 @@ constraint forall (e in DataDep) (hasCle[hasSource[C_DataEdge(C_DataDep(e))]] ==
 % constraint forall(f in FunctionEntry) (forall (c in hasChildren[f]) (cleEntry[hasCle[c] == hasChildren[f][0] \/ cleEntry[hasCle[c] == None))
 
 % var int: objective = sum( e in PDGEdge where resolvableControlConflict[e] == 1 \/ resolvableDataConflict[e] == 1)(1);
-var int: objective = sum( e in PDGEdge where resolvableControlConflict[e] == 1)(1) + sum(e in PDGEdge where resolvableDataConflict[e] == 1)(1);
+
+var int: objective = sum( e in PDGEdge where resolvableConflict[e] == 1)(1);
 
 solve minimize objective;
+
+% solve satisfy;
 
   output ["Enclave Assingment: \(nodeEnclave) \n"];
   output ["CLE Assingment: \(hasCle) \n"];
@@ -69,8 +79,10 @@ solve minimize objective;
 
 
   % output ["Edge: "++ show(x) ++ " src: "  ++ show_int(0, to_enum(PDGNode,hasSource[to_enum(PDGEdge,x)])) ++ " | " ++ show(hasCle[to_enum(PDGNode,hasSource[to_enum(PDGEdge,x)])]) ++ "\n" | x in 1..max(PDGEdge) ] ;
-  % output ["dest: " ++ show_int(0, hasDest[to_enum(PDGEdge,x)]) ++ " | " ++ show(hasCle[hasDest[to_enum(PDGEdge,to_enum(PDGEdge,x))]]) ++ "\n" | x in 1..max(PDGEdge) ] ;
-
-  % output ["Node: " ++ show_int(0, x) ++ " | " ++ show(hasCle[to_enum(PDGNode,x) ]) ++ "\n" | x in 1..max(PDGNode) ] ;
+  output ["EdgeIDs: " ++ show_int(0, x)  ++ show(hasCle[hasDest[x]]) ++ " | " ++ show(hasCle[hasSource[x]]) ++ "\n" | x in DataDep ] ;
+output ["EdgeRetIDs: " ++ show_int(0, x) ++  "\n" | x in (C_DataDepEdge_Ret(DataDepEdge_Ret)) ] ;
+  % output ["Edge: " ++ show_int(0, x) ++ "\n" | x in 1..max(PDGEdge) ] ;
+  % output ["Edge2: " ++ show_int(0, x) ++  "\n" | x in C_DataEdge(C_DataDep(DataDep)) ] ;
+  % output ["Edge3: " ++ show_int(0, x) ++  "\n" | x in C_DataEdge(C_DataDep(C_DataDepEdge_Ret(DataDepEdge_Ret))) ] ;
   % output["\(show_int(0,to_enum(PDGNode,C_VarNode(C_VarNode_StaticFunction(ID2))))) \n"];
   % output["\(show_int(0,to_enum(PDGEdge,C_DataEdge(C_DataDep(C_DataDepEdge_DefUse(ID4294967228)))))) \n"];

@@ -27,27 +27,44 @@ def compute_zinc(infile,ttree, schema):
   enums = defaultdict(lambda: [])
   arrays = defaultdict(lambda: [])
   enums['cleEntry'].append("None")
+  arrays['haslevel'].append("none") 
+  noneCount = 0
   for x in ttree:
     if x[0] == 'cledef':
       enums['cleEntry'].append(x[3])
       arrays['haslevel'].append(x[4]['level']) 
+      flag = False
       for k1 in x[4].keys():
         print(f"key: {k1} value: {x[4][k1]}")
         if k1 == 'cdf':
-          for i in range(len(x[4][k1])):
-            enums['cdf'].append(x[3] + "_cdf_" + str(i))
-            for k2 in x[4][k1][i].keys():
-              if k2 == 'guarddirective':
-                for k3 in x[4][k1][i][k2].keys():
-                  enums[k3].append(x[3] + "_" + k2 + "_" + "_" + k3 + "_" + str(i))
-                  arrays["has" + k3].append(x[4][k1][i][k2][k3])
-              else:
-                enums[k2].append(x[3] + "_" + k2 + "_" + str(i))
-                arrays["has" + k2].append(x[4][k1][i][k2])
+          if flag == False:
+            flag = True
+            for i in range(len(x[4][k1])):
+              enums['cdf'].append(x[3] + "_cdf_" + str(i))
+              for k2 in x[4][k1][i].keys():
+                if k2 == 'guarddirective':
+                  for k3 in x[4][k1][i][k2].keys():
+                    enums[k3].append(x[3] + "_" + k2 + "_" + "_" + k3 + "_" + str(i))
+                    arrays["has" + k3].append(x[4][k1][i][k2][k3])
+                else:
+                  enums[k2].append(x[3] + "_" + k2 + "_" + str(i))
+                  arrays["has" + k2].append(x[4][k1][i][k2])
+        else:
+            enums['cdf'].append("None" + "_cdf_" + str(noneCount))
+            enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
+            enums['direction'].append("None" + "_direction_" + str(noneCount))
+            enums['operation'].append("None" + "_operation_" + str(noneCount))
+            arrays["has" + 'remotelevel'].append("none")
+            arrays["has" + 'direction'].append("noDir")
+            arrays["has" + 'operation'].append("noOp")
+            noneCount += 1
+
   
   with open("cle-data.dzn", 'w') as zincOF:
     for i in enums:
       first = True
+      if "taint" in i:
+        continue
       zincOF.write(f"{i} = {{")
       for j in enums[i]:
         if first:
@@ -59,7 +76,10 @@ def compute_zinc(infile,ttree, schema):
 
     for i in arrays:
       first = True
+      if "taint" in i:
+        continue
       zincOF.write(f"{i} = [")
+      
       for j in arrays[i]:
         if first:
           first = False
@@ -114,12 +134,12 @@ def get_cle_schema(schema_location):
   with open(path,"r",encoding="UTF-8") as schemafile:
     return(json.loads(schemafile.read()))
 
-def check_jsonschema_version():
-  """validate the json schema version is new enogh to process
-     Draft 7 schemas"""
-  if(jsonschema.__version__ < "3.2.0"):
-    raise(ModuleNotFoundError("Newer version of jsonschema module required"
-      " (>= 3.2.0)"))
+# def check_jsonschema_version():
+#   """validate the json schema version is new enogh to process
+#      Draft 7 schemas"""
+#   if(jsonschema.__version__ < "3.2.0"):
+#     raise(ModuleNotFoundError("Newer version of jsonschema module required"
+      # " (>= 3.2.0)"))
 
 # Create and invoke tokenizer, parser, tree transformer, and source transformer
 def main():
@@ -146,11 +166,9 @@ def main():
   ttree  = CLETransformer().transform(tree)
   # for x in ttree: print(x)
 
-  try:
-    compute_zinc(args.file, ttree, schema)
-  except jsonschema.exceptions.ValidationError as schemaerr:
-    print(schemaerr)
-    sys.exit(-1)
+  
+  compute_zinc(args.file, ttree, schema)
+ 
   print('Writing cle mappings file')
 
 if __name__ == '__main__':

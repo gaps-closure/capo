@@ -15,6 +15,10 @@ output["\(hasDest[C_ControlDep(to_enum(ControlDep,13))]) \n"];
 predicate CanCoerce(DataDep:e) = if e in C_DataDepEdge_Ret(DataDepEdge_Ret) then true else false endif ;
 
 constraint forall (e in DataDep) (hasCle[hasSource[C_DataEdge(C_DataDep(e))]] == hasCle[hasDest[C_DataEdge(C_DataDep(e))]] \/ CanCoerce(e));
-output ["src: "++ show(hasSource[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]) ++ " " ++ show(hasCle[hasSource[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]]) ++ " dest: " ++ show(hasDest[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]) ++ " | " ++ show(hasCle[hasDest[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]]) ++ "\n" | x in 1..max(DataDep) ] ;
+solve satisfy;
 
-output ["src: " ++ show(to_enum(PDGNode,29)) ++ "dest: " ++ show(to_enum(PDGNode,10))]
+output ["src: "++ show(hasSource[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]) ++ " " ++ show(hasCle[hasSource[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]]) ++ " dest: " ++ show(hasDest[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]) ++ " | " ++ show(hasCle[hasDest[C_DataEdge(C_DataDep(to_enum(DataDep,x)))]]) ++ "\n" | x in 1..max(DataDep) ] ;
+% output ["dest: " ++ show(to_enum(PDGEdge,x) in C_DataDepEdge_Ret(DataDepEdge_Ret) ) ++ "\n" | x in 1..max(PDGEdge) ] ;
+% output ["src: " ++ show(to_enum(PDGNode,29)) ++ "dest: " ++ show(to_enum(PDGNode,10))]
+
+

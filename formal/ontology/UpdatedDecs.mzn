@@ -1,5 +1,3 @@
-enum Enclaves = {nullEnclave, E_orange, E_purple};              % { nullEnclave } + all possible enclaves from CLE, seems this should not be from CLE since it is essentially asking how many hardware isolation units are there?
-
 % Node definitions
 
 % define instruction nodes
@@ -9,12 +7,13 @@ enum Inst_Br;
 enum Inst_Other;
 enum Inst = C_Inst_FunCall(Inst_FunCall) ++ C_Inst_Ret(Inst_Ret) ++ C_Inst_Br(Inst_Br) ++ C_Inst_Other(Inst_Other);
 
+array[Inst_FunCall] of int : funcall2ID;
+
 % define var nodes
-% enum VarNode_StaticGlobal = {};
 enum VarNode_StaticGlobal;
-enum VarNode_StaticModule = {};
+enum VarNode_StaticModule;
 enum VarNode_StaticFunction;
-enum VarNode_StaticOther = {};
+enum VarNode_StaticOther;
 enum VarNode = C_VarNode_StaticGlobal(VarNode_StaticGlobal) ++ C_VarNode_StaticModule(VarNode_StaticModule) ++ C_VarNode_StaticFunction(VarNode_StaticFunction) ++ C_VarNode_StaticOther(VarNode_StaticOther);
 
 
@@ -32,11 +31,10 @@ enum Param = C_Param_FormalIn(Param_FormalIn) ++ C_Param_FormalOut(Param_FormalO
 
 enum Annotation_Var;
 enum Annotation_Global;
-enum Annotation_Other = {};
+enum Annotation_Other;
 enum Annotation = C_Annotation_Var(Annotation_Var) ++ C_Annotation_Global(Annotation_Global) ++ C_Annotation_Other(Annotation_Other);
 
 enum PDGNode =    C_Inst(Inst)  ++ C_VarNode(VarNode) ++  C_FunctionEntry(FunctionEntry) ++ C_Param(Param)  ++  C_Annotation(Annotation);
-% enum PDGNode;
 
 % edge definitions
 
@@ -47,7 +45,7 @@ enum ControlDep_CallInv;
 enum ControlDep_CallRet;
 enum ControlDep_Entry;
 enum ControlDep_Br;
-enum ControlDep_Other = {};
+enum ControlDep_Other;
 enum ControlDep = C_ControlDep_CallInv(ControlDep_CallInv) ++ C_ControlDep_CallRet(ControlDep_CallRet) ++ C_ControlDep_Entry(ControlDep_Entry) ++ C_ControlDep_Br(ControlDep_Br) ++ C_ControlDep_Other(ControlDep_Other);
 
 % define data dependency edges
@@ -69,12 +67,14 @@ enum Parameter = C_Parameter_In(Parameter_In) ++ C_Parameter_Out(Parameter_Out) 
 
 enum Anno_Global;
 enum Anno_Var;
-enum Anno_Other = {};
+enum Anno_Other;
 enum Anno = C_Anno_Global(Anno_Global) ++ C_Anno_Var(Anno_Var) ++ C_Anno_Other(Anno_Other);
 
-enum DataEdge = C_DataDep(DataDep) ++ C_Parameter(Parameter);
+% break constraint into 2 Constraints
+% remove artificial ordering dependency
+% enum DataEdge = C_DataDep(DataDep) ++ C_Parameter(Parameter);
 
-enum PDGEdge = C_ControlDep(ControlDep) ++ C_DataEdge(DataEdge) ++ C_Anno(Anno);
+enum PDGEdge = C_ControlDep(ControlDep) ++ C_DataDep(DataDep) ++ C_Parameter(Parameter) ++ C_Anno(Anno);
 
 
 % convenience aggregations
@@ -89,44 +89,31 @@ enum ControlDep_NonCall = C_ControlDep_Entry2(ControlDep_Entry) ++ C_ControlDep_
 
 
 % node properties
-array[int] of int: hasFunction;
-
-% edge properties
-
-% hasSourceNode
-% array[PDGEdge] of PDGNode: hasPDGEdgeSource;
-% array[ControlDep] of PDGNode: hasControlDepSource;
-% array[DataDepEdge] of PDGNode: hasDataDepEdgeSource;
-% array[Parameter] of PDGNode: hasParameterSource;
-% array[Anno] of PDGNode: hasAnnoSource;
-
-% hasDestNode
-% array[PDGEdge] of PDGNode: hasPDGEdgeDest;
-% array[ControlDep] of PDGNode: hasControlDepDest;
-% array[DataDepEdge] of PDGNode: hasDataDepEdgeDest;
-% array[Parameter] of PDGNode: hasParameterDest;
-% array[Anno] of PDGNode: hasAnnoDest;
+array[PDGNode] of Function: hasFunction;
+% array[Inst] of Function: hasFunction;
+% enum PDGNode =    C_Inst(Inst)  ++ C_VarNode(VarNode) ++  C_FunctionEntry(FunctionEntry) ++ C_Param(Param)  ++  C_Annotation(Annotation);
 
 
 
 % =================== CLE definitions ========================
-% enum Label = {ORANGE, PURPLE};
-enum Level = {none,orange,purple};
-enum GuardOperation = {allow,deny,redact, noOp};
-enum Direction = {bidirectional,egress, ingress, noDir};
+% ===== CLE Constants =======
+enum GuardOperation = {noOp,allow,deny,redact};
+enum Direction = {noDir,bidirectional,egress, ingress};
+
+enum Level; = {none,orange,purple};
 enum cleEntry;
 enum cdf;
 
 enum remotelevel;
 enum direction;
 enum operation;
-enum argtaints = {};
-enum codtaints = {};
-enum rettaints = {};
+enum argtaints;
+enum codtaints;
+enum rettaints;
 
-array[int,int] of cleEntry : hasargtaints = [];
-array[int] of cleEntry : hascodtaints = [];
-array[int] of cleEntry : hasrettaints = [];
+array[int,int] of cleEntry : hasargtaints;
+array[int] of cleEntry : hascodtaints;
+array[int] of cleEntry : hasrettaints;
 
 enum hasParamIdx = {};
 enum hasTaint = {};
@@ -155,3 +142,8 @@ array[int] of int: invForRet; % preprocess to match return for call invocation
 % array[PDGNode] of var Enclaves: nodeEnclave; % MiniZinc initializes these to first value in Enclaves
 array[PDGNode] of var cleEntry: nodeEnclave; % MiniZinc initializes these to first value in Enclaves
 array[PDGEdge] of var bool: resolvableConflict;
+
+
+%Enclaves
+enum Enclaves;              % { nullEnclave } + all possible enclaves
+array[Enclaves] of Level:  enclaveLevel;
