@@ -24,39 +24,50 @@ def compute_zinc(infile,ttree, schema):
   with open("clemap.json", 'w') as mapf:
     json.dump(defs,mapf,indent=2)
 
+  noneCount = 0
   enums = defaultdict(lambda: [])
   arrays = defaultdict(lambda: [])
   enums['cleEntry'].append("None")
   arrays['haslevel'].append("none") 
-  noneCount = 0
+  enums['cdf'].append("None" + "_cdf_" + str(noneCount))
+  enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
+  enums['direction'].append("None" + "_direction_" + str(noneCount))
+  enums['operation'].append("None" + "_operation_" + str(noneCount))
+  arrays["has" + 'remotelevel'].append("none")
+  arrays["has" + 'direction'].append("noDir")
+  arrays["has" + 'operation'].append("noOp")
+  noneCount +=1
+  
   for x in ttree:
     if x[0] == 'cledef':
+      print("Here")
       enums['cleEntry'].append(x[3])
       arrays['haslevel'].append(x[4]['level']) 
-      flag = False
+
+      
+      if "cdf" not in x[4].keys():
+        print("None" + "_cdf_" + str(noneCount))
+        enums['cdf'].append("None" + "_cdf_" + str(noneCount))
+        enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
+        enums['direction'].append("None" + "_direction_" + str(noneCount))
+        enums['operation'].append("None" + "_operation_" + str(noneCount))
+        arrays["has" + 'remotelevel'].append("none")
+        arrays["has" + 'direction'].append("noDir")
+        arrays["has" + 'operation'].append("noOp")
+
       for k1 in x[4].keys():
-        print(f"key: {k1} value: {x[4][k1]}")
         if k1 == 'cdf':
-          if flag == False:
-            flag = True
-            for i in range(len(x[4][k1])):
-              enums['cdf'].append(x[3] + "_cdf_" + str(i))
-              for k2 in x[4][k1][i].keys():
-                if k2 == 'guarddirective':
-                  for k3 in x[4][k1][i][k2].keys():
-                    enums[k3].append(x[3] + "_" + k2 + "_" + "_" + k3 + "_" + str(i))
-                    arrays["has" + k3].append(x[4][k1][i][k2][k3])
-                else:
-                  enums[k2].append(x[3] + "_" + k2 + "_" + str(i))
-                  arrays["has" + k2].append(x[4][k1][i][k2])
-        else:
-            enums['cdf'].append("None" + "_cdf_" + str(noneCount))
-            enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
-            enums['direction'].append("None" + "_direction_" + str(noneCount))
-            enums['operation'].append("None" + "_operation_" + str(noneCount))
-            arrays["has" + 'remotelevel'].append("none")
-            arrays["has" + 'direction'].append("noDir")
-            arrays["has" + 'operation'].append("noOp")
+          for i in range(len(x[4][k1])):
+            enums['cdf'].append(x[3] + "_cdf_" + str(i))
+            for k2 in x[4][k1][i].keys():
+              if k2 == 'guarddirective':
+                for k3 in x[4][k1][i][k2].keys():
+                  enums[k3].append(x[3] + "_" + k2 + "_" + "_" + k3 + "_" + str(i))
+                  arrays["has" + k3].append(x[4][k1][i][k2][k3])
+              else:
+                enums[k2].append(x[3] + "_" + k2 + "_" + str(i))
+                arrays["has" + k2].append(x[4][k1][i][k2])
+            
             noneCount += 1
 
   

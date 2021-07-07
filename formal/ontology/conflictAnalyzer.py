@@ -22,13 +22,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    # os.system(f"./conflictAnalyzer.sh {args.files} ")
+    os.system(f"./conflictAnalyzer.sh {args.files} ")
     if args.zmq:
         context = zmq.Context()
         socket = context.socket(zmq.REQ)
         socket.connect(args.zmq)
         with open('result.txt') as f:
-            if '=====UNSATISFIABLE=====' in f.read():
+            if '=====UNSATISFIABLE=====' in f.readlines():
                 message = json.dumps({"Result" : "Conflict"})
             else:
                 message = json.dumps({"Result" : "Succss"})
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     with open('result.txt') as rf:
         data = rf.readlines()
-        if '=====UNSATISFIABLE=====' in data:
+        if 'UNSATISFIABLE' in data[0]:
             print("Conflict")
         else:
             print("Succss")

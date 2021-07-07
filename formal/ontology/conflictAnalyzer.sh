@@ -4,7 +4,7 @@ count=0
 for var in "$@"
 do
 count=$((count+1))
-# python3.7 cle2zinc.py  -L -f $var
+python3.7 cle2zinc.py  -L -f $var
 python3.7 qd_cle_preprocessor.py  -L -f $var
 clang -c -emit-llvm -g "out.c" -o "./temp_"$count".bc"
 done
