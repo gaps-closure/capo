@@ -24,22 +24,17 @@ if __name__ == "__main__":
 
 
     os.system(f"./conflictAnalyzer.sh {args.files} ")
-    if args.zmq:
-        context = zmq.Context()
-        socket = context.socket(zmq.REQ)
-        socket.connect(args.zmq)
-        with open('result.txt') as f:
-            if '=====UNSATISFIABLE=====' in f.readlines():
-                message = json.dumps({"Result" : "Conflict"})
-            else:
-                message = json.dumps({"Result" : "Succss"})
-        socket.send_string(message)
-
+    result = {}
     with open('result.txt') as rf:
         data = rf.readlines()
         if 'UNSATISFIABLE' in data[0]:
+            result = {"result" : "Conflict", "conflicts": "TODO"}
             print("Conflict")
         else:
+            
+            topology = {}
+            enclave_assingments = []
+            fileName = ""
             print("Succss")
             with open('node2lineNumber.txt') as nf:
                 nodes = nf.readlines()
@@ -53,8 +48,20 @@ if __name__ == "__main__":
                         for row in nodes:
                             # print(row.split(",")[0].strip())
                             if row.split(",")[0].strip() == index:
+                                fileName = row.split(",")[-2]
                                 resStr = row.split(",")[-2] + ":" +  row.split(",")[-1].strip()
-                                print(f"Function on line: {resStr}      Has enclave:  {enclave}") 
+                                funName = row.split(",")[-3];
+                                enclave_assingments.append({"name" : funName, "level" : enclave,  "line" : row.split(",")[-1].strip() })
+                                print(f"Function {funName } on line: {resStr}      Has enclave:  {enclave}") 
                                 break
+            topology = {"source_path" : fileName, "levels" : ["ORANGE,PURPLE"], "global_scoped_vars" : [] , "functions" : enclave_assingments}
+            result = {"result" : "Succss", "topology" : topology}
+    print(result)
+    if args.zmq:
+        context = zmq.Context()
+        socket = context.socket(zmq.REQ)
+        socket.connect(args.zmq)
+        socket.send_string(json.dumps(result))
+        print("Message sent")
         
         
