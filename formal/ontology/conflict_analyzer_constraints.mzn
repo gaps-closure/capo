@@ -1,17 +1,14 @@
 
 % ------------------ Initialize Assingments -------------------------
 
-% constraint forall (n in PDGNode) (if haslevel[hasCle[n]] != None then nodeEnclave[n] == haslevel[hasCle[n]] endif );
 constraint forall (n in PDGNodeIdx) (if hasCle[n]!= None then hasEnclaveLevel[nodeEnclave[n]] == haslevel[hasCle[n]] endif );
 % ------------------ Control Dep Constraints ------------------------
 
 % Every function entry node must be assigned a valid enclave
-constraint forall (n in PDGNodeIdx) (n in FunctionEntry -> nodeEnclave[n] != nullEnclave);
-% constraint forall (n in PDGNodeIdx) (n in FunctionEntry -> nodeEnclave[n] != None);
+constraint forall (n in FunctionEntry) ( nodeEnclave[n] != nullEnclave);
 
 % Every global variable must be assigned to a valid enclave 
-constraint forall (n in PDGNodeIdx) (n in Global -> nodeEnclave[n] != nullEnclave );
-% constraint forall (n in PDGNodeIdx) (n in Global -> nodeEnclave[n] != None);
+constraint forall (n in Global) ( nodeEnclave[n] != nullEnclave );
 
 /* Conflict is resolvable via RPC if endpoints of CONTROL edge from functioncall to entry are in different enclaves */
 % constraint forall (e in ControlDep_CallInv) 
@@ -20,8 +17,6 @@ constraint forall (n in PDGNodeIdx) (n in Global -> nodeEnclave[n] != nullEnclav
 /* The two ends of every CONTROL edge must be assigned to the same enclave unless it is a resolvable control conflict */ 
 constraint forall (e in ControlDep) ( resolvableConflict[e]==false -> nodeEnclave[hasSource[e]]==nodeEnclave[hasDest[e]]  \/ ( resolvableConflict[e]==true /\ (e in ControlDep_CallInv /\ nodeEnclave[hasSource[e]]!=nodeEnclave[hasDest[e]]) ));
 
-% constraint forall (e in Anno) ( hasEnclaveLevel[nodeEnclave[hasSource[e]]] == haslevel[hasCle[hasDest[e]]]);
-% Need to propagate annotation taint
 
 % Check wrapper
 % constraint forall (e in ControlDep) ( (e in C_ControlDep_CallInv(ControlDep_CallInv) /\ resolvableConflict[C_ControlDep(e)]==true)  ->  (haslevel[nodeEnclave[to_enum(PDGNode,hasSource[C_ControlDep(e)])]] == hasremotelevel[hasCle[to_enum(PDGNode,hasDest[C_ControlDep(e)])]]));
@@ -55,6 +50,7 @@ constraint forall (e in DataEdge) (  resolvableConflict[e]==true \/ nodeEnclave[
 % constraint forall (e in DataDep) (if e in C_DataDepEdge_Ret(DataDepEdge_Ret) then true else false endif \/ haslevel[hasCle[hasSource[C_DataEdge(C_DataDep(e))]]] == haslevel[hasCle[hasDest[C_DataEdge(C_DataDep(e))]]]);
 % constraint forall (e in Anno_Global) (haslevel[hasCle[hasSource[C_Anno(C_Anno_Global(e))]]] == haslevel[hasCle[hasDest[C_Anno(C_Anno_Global(e))]]]);
 constraint forall (e in DataEdgeNoRet) (nodeEnclave[hasSource[e]] == nodeEnclave[hasDest[e]]);
+constraint forall (e in ControlDep_Entry) (nodeEnclave[hasSource[e]] == nodeEnclave[hasDest[e]]);
 
 % Check function propagation taints
 % constraint forall (e in Parameter) (cleEntry[hasCle[hasDest[e]]] in hasArgTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasDest[e]]]]]]][hasParamIdx[e]]);
@@ -74,17 +70,8 @@ solve minimize objective;
 
   output ["Enclave Assingment: \(nodeEnclave) \n"];
   output ["CLE Assingment: \(hasCle) \n"];
+  output ["Edge: " ++ show(x) ++ " " ++ show(nodeEnclave[hasSource[x]]) ++ " " ++ show(nodeEnclave[hasDest[x]]) ++ " " ++ show(nodeEnclave[hasSource[x]]==nodeEnclave[hasDest[x]]) ++ "\n" | x in ControlDep ] ;
   output ["resolvableConflict Assingment: \(resolvableConflict) \n"];
   output["ENTRY: "     ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in FunctionEntry ] ;
   output["GLOBAL: " ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in PDGNodeIdx where x in Global] ;
-   output ["Edge: " ++ show(x) ++ " " ++ show(nodeEnclave[hasSource[x]]) ++ " " ++ show(nodeEnclave[hasDest[x]]) ++ " " ++ show(nodeEnclave[hasSource[x]]==nodeEnclave[hasDest[x]]) ++ "\n" | x in ControlDep ] ;
-
-
-  % output ["Edge: "++ show(x) ++ " src: "  ++ show_int(0, to_enum(PDGNode,hasSource[to_enum(PDGEdge,x)])) ++ " | " ++ show(hasCle[to_enum(PDGNode,hasSource[to_enum(PDGEdge,x)])]) ++ "\n" | x in 1..max(PDGEdge) ] ;
-  % output ["EdgeIDs: " ++ show_int(0, x)  ++ show(hasCle[hasDest[x]]) ++ " | " ++ show(hasCle[hasSource[x]]) ++ "\n" | x in DataDep ] ;
-% output ["EdgeRetIDs: " ++ show_int(0, x) ++  "\n" | x in (DataDepEdge_Ret) ] ;
-  % output ["Edge: " ++ show_int(0, x) ++ "\n" | x in 1..max(PDGEdge) ] ;
-  % output ["Edge2: " ++ show_int(0, x) ++  "\n" | x in C_DataEdge(C_DataDep(DataDep)) ] ;
-  % output ["Edge3: " ++ show_int(0, x) ++  "\n" | x in C_DataEdge(C_DataDep(C_DataDepEdge_Ret(DataDepEdge_Ret))) ] ;
-  % output["\(show_int(0,to_enum(PDGNode,C_VarNode(C_VarNode_StaticFunction(ID2))))) \n"];
-  % output["\(show_int(0,to_enum(PDGEdge,C_DataEdge(C_DataDep(C_DataDepEdge_DefUse(ID4294967228)))))) \n"];
+ 
