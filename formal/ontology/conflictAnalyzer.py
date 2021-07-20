@@ -5,6 +5,7 @@ import sys
 import zmq
 import argparse
 import json
+import pandas as pd
 
 if __name__ == "__main__":
 
@@ -40,23 +41,20 @@ if __name__ == "__main__":
             print("Conflict")
         else:
             print("Succss")
-            with open('nodes2linenumbers.txt') as nf:
+            with open('node2lineNumber.txt') as nf:
                 nodes = nf.readlines()
                 for line in data:
-                    index = line.find('ENTRY: C_FunctionEntry(')
+                    index = line.find('ENTRY:')
                     if index != -1:
-                        count = 0
-                        while index + count < len(line):
-                            if line[index + 26 + count] == ")":
+                        sp = line.split(" ")
+                        index = sp[1]
+                        enclave = sp[2]
+                        resStr = ""
+                        for row in nodes:
+                            # print(row.split(",")[0].strip())
+                            if row.split(",")[0].strip() == index:
+                                resStr = row.split(",")[-2] + ":" +  row.split(",")[-1].strip()
+                                print(f"Function on line: {resStr}      Has enclave:  {enclave}") 
                                 break
-                            count +=1
-                        nodeID = line[index + 26: index + 26 + count]
-                        lineNum = ""
-                        for line2 in nodes:
-                            if nodeID in line2:
-                                lineNum = line2.split(":")[1]
-                                break
-                        enclave = line.split(" ")[2]
-                        print(f"Function on line: {lineNum} has enclave:  {enclave}") 
         
         

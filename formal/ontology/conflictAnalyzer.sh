@@ -11,9 +11,10 @@ done
 
 llvm-link temp_*.bc -o temp.bc
 
+# opt -load ~/program-dependence-graph/build/libpdg.so -minizinc  < temp.bc
 opt -load ~/program-dependence-graph/build/libpdg.so -minizinc -zinc-debug  < temp.bc
 
-minizinc conflict_analyzer.mzn init_cle.mzn pdg_data.dzn conflict_analyzer_decs.mzn cle-data.dzn > result.txt
+minizinc conflict_analyzer_constraints.mzn conflict_variable_declerations.mzn pdg_instance.mzn cle_instance.mzn enclave_instance.mzn > result.txt
 cat result.txt
 
 # rm *.bc 

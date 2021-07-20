@@ -10,10 +10,32 @@ import os.path
 from collections import defaultdict
 
 
+output_order_enums = [
+  "cleEntry",
+  "cdf",
+  "remotelevel",
+  # "direction",
+  # "operation",
+  # "argtaints",
+  # "codtaints",
+  # "rettaints",
+  # "hasParamIdx",
+  # "hasTaint"
+]
 
+output_order_arrys = [
+  "haslevel",
+  "hasremotelevel",
+  "hasdirection",
+  "hasoperation",
+  # "hasargtaints",
+  # "hascodtaints",
+  # "hasrettaints",
+]
 
 
 def compute_zinc(infile,ttree, schema):
+  hasCDF = []
   # Collect cledefs and dump
   if(schema is None):
     #schema check is disabled
@@ -30,6 +52,8 @@ def compute_zinc(infile,ttree, schema):
   enums['cleEntry'].append("None")
   arrays['haslevel'].append("none") 
   enums['cdf'].append("None" + "_cdf_" + str(noneCount))
+  hasCDF.append([])
+  hasCDF[-1].append("None" + "_cdf_" + str(noneCount))
   enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
   enums['direction'].append("None" + "_direction_" + str(noneCount))
   enums['operation'].append("None" + "_operation_" + str(noneCount))
@@ -37,28 +61,42 @@ def compute_zinc(infile,ttree, schema):
   arrays["has" + 'direction'].append("noDir")
   arrays["has" + 'operation'].append("noOp")
   noneCount +=1
-  
+ 
+  maxCDFIdx = 0
   for x in ttree:
     if x[0] == 'cledef':
+      CDF_flag = False
       print("Here")
       enums['cleEntry'].append(x[3])
       arrays['haslevel'].append(x[4]['level']) 
 
       
       if "cdf" not in x[4].keys():
-        print("None" + "_cdf_" + str(noneCount))
-        enums['cdf'].append("None" + "_cdf_" + str(noneCount))
+        cdfStr = "None" + "_cdf_" + str(noneCount)
+        print(cdfStr)
+        enums['cdf'].append(cdfStr)
+        hasCDF.append([])
+        hasCDF[-1].append(cdfStr)
         enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
         enums['direction'].append("None" + "_direction_" + str(noneCount))
         enums['operation'].append("None" + "_operation_" + str(noneCount))
         arrays["has" + 'remotelevel'].append("none")
         arrays["has" + 'direction'].append("noDir")
         arrays["has" + 'operation'].append("noOp")
-
+        noneCount += 1
+      CDFidx = 0
       for k1 in x[4].keys():
         if k1 == 'cdf':
+          if CDF_flag == False:
+            CDF_flag = True
+            hasCDF.append([])
+          if CDFidx > maxCDFIdx:
+            maxCDFIdx = CDFidx
+          CDFidx += 1
           for i in range(len(x[4][k1])):
-            enums['cdf'].append(x[3] + "_cdf_" + str(i))
+            cdfStr = x[3] + "_cdf_" + str(i)
+            enums['cdf'].append(cdfStr)
+            hasCDF[-1].append(cdfStr)
             for k2 in x[4][k1][i].keys():
               if k2 == 'guarddirective':
                 for k3 in x[4][k1][i][k2].keys():
@@ -66,16 +104,22 @@ def compute_zinc(infile,ttree, schema):
                   arrays["has" + k3].append(x[4][k1][i][k2][k3])
               else:
                 enums[k2].append(x[3] + "_" + k2 + "_" + str(i))
-                arrays["has" + k2].append(x[4][k1][i][k2])
+                keyVal = x[4][k1][i][k2]
+                if type(keyVal) ==list:
+                  # Need to update this for multiple arg taints and ret taints
+                  if len(keyVal) > 0 and k2 != "rettaints":
+                    arrays["has" + k2].append(keyVal[0])
+                else:
+                  arrays["has" + k2].append(keyVal)
             
             noneCount += 1
 
   
-  with open("cle-data.dzn", 'w') as zincOF:
-    for i in enums:
+  with open("cle_instance.mzn", 'w') as zincOF:
+    for i in output_order_enums:
       first = True
-      if "taint" in i:
-        continue
+      # if "taint" in i:
+      #   continue
       zincOF.write(f"{i} = {{")
       for j in enums[i]:
         if first:
@@ -85,20 +129,33 @@ def compute_zinc(infile,ttree, schema):
           zincOF.write(f", {j} ")
       zincOF.write("}; \n")
 
-    for i in arrays:
+    for i in output_order_arrys:
       first = True
-      if "taint" in i:
-        continue
+      # if "taint" in i:
+      #   continue
       zincOF.write(f"{i} = [")
-      
       for j in arrays[i]:
         if first:
           first = False
           zincOF.write(f"{j}")
         else:
           zincOF.write(f", {j} ")
-        
-      zincOF.write(f"]; \n")
+      zincOF.write("]; \n")
+
+    zincOF.write("hasCDF = [")
+    for row in hasCDF:
+      first = True
+      zincOF.write("|")
+      for i in row:
+        if first:
+          first = False
+          zincOF.write(f"{i}")
+        else:
+          zincOF.write(f", {i} ")
+    zincOF.write("|")
+    zincOF.write("]; \n")
+
+
 
     
 
