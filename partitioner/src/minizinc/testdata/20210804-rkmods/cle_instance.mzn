@@ -1,6 +1,4 @@
 MaxFuncParms =  0;
-% preparer pulls all taints into cleLabel regardless of wheteer there is a JSON
-% preparer creates a special default label for each enclave, and this is not a function blessing annotation
 cleLabel = {nullCleLabel, PURPLE, ORANGE, XDLINKAGE_GET_A, TAG_REQUEST_GET_A, TAG_RESPONSE_GET_A, PURPLE_DFLTLBL, ORANGE_DFLTLBL};
 hasLabelLevel = [nullLevel, purple, orange, orange, nullLevel, nullLevel, purple, orange]; 
 isFunctionAnnotation = [false, false, false, true, false, false, false, false]; 
