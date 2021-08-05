@@ -201,12 +201,7 @@ set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel
 array[functionCdf, cleLabel]          of bool:           hasRettaints;
 array[functionCdf, cleLabel]          of bool:           hasCodtaints;
 array[functionCdf, parmIdx, cleLabel] of bool:           hasArgtaints;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Nodes in PDG annotated with CLE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-array[PDGNodeIdx]                     of var cleLabel:   taint;
+array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Decision variables to be output by the solver and debug flag
@@ -215,6 +210,13 @@ array[PDGNodeIdx]                     of var cleLabel:   taint;
 array[ControlDep_CallInv]             of var bool:       xdcall;
 array[VarNode]                        of var Enclave:    varnodeEnclave;
 array[FunctionEntry]                  of var Enclave:    functionEnclave;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Auxiliary decision variables used by the solver and debug flag
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+array[PDGNodeIdx]                     of var cleLabel:   taint;
+bool:                                                    debug;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
