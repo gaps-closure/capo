@@ -120,11 +120,13 @@ constraint :: "BlestFunctionHonorsTaints"
 
 debug = true;
 
+/*
 constraint :: "CallSiteWithinFunctionAndCallsFunctionEntry"
  forall (e in ControlDep_CallInv) (debug==true -> hasFunction[hasSource[e]]!=0 /\ isFunctionEntry(hasDest[e]));
 
 constraint :: "ControlEdgeNonCallMustBeIntraFunction"
  forall (e in ControlDep_NonCall) (debug==true -> hasFunction[hasSource[e]]==hasFunction[hasDest[e]]);
+*/
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
@@ -150,7 +152,7 @@ output [" XDCALL   : " ++ "(" ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSour
                        ++ "\n"
         | e in ControlDep_CallInv where fix(xdcall[e]==true)] ;
 
-% debug output, printed if debug is true 
+/*
 output [if debug then "Label and Enclave assignments to non-annotation nodes:\n" else "" endif];
 output [" ASSIGN   : " ++ 
  show(n) ++ " " ++
@@ -170,5 +172,6 @@ output [" ASSIGN   : " ++
   endif)
  ++ "]::" ++ show(taint[n]) ++ "\n" 
  | n in PDGNodeIdx where debug];
+*/
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
