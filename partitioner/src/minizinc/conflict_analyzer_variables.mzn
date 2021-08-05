@@ -154,7 +154,7 @@ set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 array[int]            of int: hasFunction;
 array[int]            of int: hasSource;
 array[int]            of int: hasDest;
-array[Param_FormalIn] of int: hasParamIdx;
+array[Param]          of int: hasParamIdx;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convenience Aggregations of PDG Nodes and Edges
