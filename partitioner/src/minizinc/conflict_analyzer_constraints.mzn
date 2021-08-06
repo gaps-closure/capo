@@ -91,28 +91,9 @@ constraint :: "XDCParmAllowed"
 % Labels can only be cooerced inside enclave via parameters or return by noblest functions that are so blest
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "NonRetDataTaintSafeRCoerced"   forall (e in DataEdgeNoRet)   (eSafe(e) -> tSafe(e) \/ coercible(e));
+constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (eSafe(e) -> tSafe(e) \/ coercible(e));
 constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (eSafe(e) -> tSafe(e) \/ rettaintSafe(e));
 constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (eSafe(e) -> tSafe(e) \/ argtaintSafe(e));
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Blest function only touches allowed taints across argtaints, rettaints, and codtaints
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% coercible requires that
-
-% XXX: across all edges from all contained nodes, the taints on the endpoints must be covered by argtaints, codtaints, or rettaints
-constraint :: "BlestFunctionHonorsTaints"
- forall (e in PDGEdgeIdx)
-  (tCut(e) -> true
-    %isFunctionAnnotation[taint[hasSource[e]]]
-    %isFunctionAnnotation[taint[hasDest[e]]]
-  );
-
-%isFunctionEntry(n)
-%isInst(n)
-%isParam(n)
-%isVarNode(n)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sanity checks, may add more here
