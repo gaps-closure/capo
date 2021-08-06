@@ -115,6 +115,9 @@ hasParamIdx = array1d(Param, [
 1, 2,
 1, 2
 ]);
+userAnnotatedFunction = array1d(FunctionEntry, [
+true, false, false, false, false
+]);
 constraint :: "AnnotationOn43" taint[43]=PURPLE;
 constraint :: "AnnotationOn62" taint[62]=PURPLE;
 constraint :: "AnnotationOn63" taint[63]=ORANGE;

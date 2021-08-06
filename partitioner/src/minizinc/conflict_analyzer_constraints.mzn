@@ -67,7 +67,7 @@ constraint :: "FunctionHasEnclave"             forall (n in FunctionEntry)      
 constraint :: "CallInvInCut"                   forall (e in ControlDep_CallInv) (xdcall[e] <-> eCut(e));
 constraint :: "NodeEnclaveAtTaintLevel"        forall (n in NonAnnotation)      (eLevel(n)==tLevel(n));
 constraint :: "FnAnnotationForFnOnly"          forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
-% Also need to restrict user blessed function annotations from being assigned to other functions by solver
+constraint :: "FnAnnotationByUserOnly"         forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Control never leaves enclave except via valid XDC

@@ -151,10 +151,11 @@ set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 % Containing Function for PDG Nodes, Endpoints for PDG Edges, Indices of Fucntion Formal Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-array[int]            of int: hasFunction;
-array[int]            of int: hasSource;
-array[int]            of int: hasDest;
-array[Param]          of int: hasParamIdx;
+array[int]            of int:  hasFunction;
+array[int]            of int:  hasSource;
+array[int]            of int:  hasDest;
+array[Param]          of int:  hasParamIdx;
+array[FunctionEntry]  of bool: userAnnotatedFunction;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Convenience Aggregations of PDG Nodes and Edges
