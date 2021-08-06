@@ -66,6 +66,8 @@ constraint :: "VarNodeHasEnclave"              forall (n in VarNode)            
 constraint :: "FunctionHasEnclave"             forall (n in FunctionEntry)      (functionEnclave[n]!=nullEnclave);
 constraint :: "CallInvInCut"                   forall (e in ControlDep_CallInv) (xdcall[e] <-> eCut(e));
 constraint :: "NodeEnclaveAtTaintLevel"        forall (n in NonAnnotation)      (eLevel(n)==tLevel(n));
+constraint :: "FnAnnotationForFnOnly"          forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
+% Also need to restrict user blessed function annotations from being assigned to other functions by solver
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Control never leaves enclave except via valid XDC
@@ -101,13 +103,11 @@ constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (eSa
 
 debug = true;
 
-/*
 constraint :: "CallSiteWithinFunctionAndCallsFunctionEntry"
  forall (e in ControlDep_CallInv) (debug==true -> hasFunction[hasSource[e]]!=0 /\ isFunctionEntry(hasDest[e]));
 
 constraint :: "ControlEdgeNonCallMustBeIntraFunction"
  forall (e in ControlDep_NonCall) (debug==true -> hasFunction[hasSource[e]]==hasFunction[hasDest[e]]);
-*/
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
@@ -133,7 +133,6 @@ output [" XDCALL   : " ++ "(" ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSour
                        ++ "\n"
         | e in ControlDep_CallInv where fix(xdcall[e]==true)] ;
 
-/*
 output [if debug then "Label and Enclave assignments to non-annotation nodes:\n" else "" endif];
 output [" ASSIGN   : " ++ 
  show(n) ++ " " ++
@@ -153,6 +152,5 @@ output [" ASSIGN   : " ++
   endif)
  ++ "]::" ++ show(taint[n]) ++ "\n" 
  | n in PDGNodeIdx where debug];
-*/
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
