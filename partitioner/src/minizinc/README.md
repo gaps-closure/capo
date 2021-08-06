@@ -3,10 +3,10 @@
 Currently a basic sketch in minizinc for testing, analysis, and refinement.
 
 Solver usage example:
-  `time minizinc --solver Gecode *.mzn ./testdata/20210804-rkmods/*.mzn`
+  `time minizinc --solver Gecode *.mzn ./testdata/example1-20210804-handcrafted/*.mzn`
 
 Finding minimum unsatisfiable subset of constraints:
-  `minizinc --solver findmus --verbose --subsolver Gecode --output-json *mzn testdata/20210804-rkmods/*mzn`
+  `minizinc --solver findmus --verbose --subsolver Gecode --output-json *.mzn ./testdata/example1-20210804-handcrafted/*.mzn`
 
 Ideally each future testdata sub-directory should contain:
  1. The generated enclave_instance.mzn, cle_instance.mzn, and pdg_instance.mzn files
