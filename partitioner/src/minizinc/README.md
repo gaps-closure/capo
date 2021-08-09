@@ -6,7 +6,7 @@ Solver usage example:
   `time minizinc --solver Gecode *.mzn ./testdata/example1-20210804-handcrafted/*.mzn`
 
 Finding minimum unsatisfiable subset of constraints:
-  `minizinc --solver findmus --subsolver Gecode --depth 2 --output-human *.mzn ./testdata/example2-20210804-handcrafted/*.mzn`
+  `minizinc --solver findmus --subsolver Gecode --depth 3 --output-human *.mzn ./testdata/example2-20210804-handcrafted/*.mzn`
 
 Ideally each future testdata sub-directory should contain:
  1. The generated enclave_instance.mzn, cle_instance.mzn, and pdg_instance.mzn files
