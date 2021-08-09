@@ -184,7 +184,7 @@ enum cdf;
 enum GuardOperation = {nullGuardOperation, allow, deny, redact};
 enum Direction      = {nullDirection, bidirectional, egress, ingress};
 
-int: MaxFuncParms;  % Max number of function parameters in argtaints in CLE instance (C<128, C++<256) 
+int: MaxFuncParms;  % Max number of function parameters in the program (C<128, C++<256) 
 set of int: parmIdx = 1..MaxFuncParms;
 
 array[cleLabel]                       of Level:          hasLabelLevel;
@@ -194,7 +194,7 @@ array[cdf]                            of cleLabel:       fromCleLabel;
 array[cdf]                            of Level:          hasRemotelevel;
 array[cdf]                            of GuardOperation: hasGuardOperation;
 array[cdf]                            of Direction:      hasDirection;
-array[cdf]                            of bool:           isOneway;
+array[cdf]                            of bool:           isOneway; % XXX - check in CDF or in label
 array[cleLabel, Level]                of cdf:            cdfForRemoteLevel;
 
 set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel[x]]==true };

@@ -27,6 +27,7 @@ cut. A sketch of the arguments for correctness of the constraint model is below
  * All varnode and function node must be assigned an enclave
  * To be in the cut, endpoints of a call edge must be in different enclaves (control return can be safely ignored)
  * All non-annotation nodes must have their (derived) enclave level match their taint level
+ * Only user can apply a function annotation to bless a function
 
 ### ENCLAVE-LEVEL-CONSTRAINTS
  * No non-call edge can leave the enclave
