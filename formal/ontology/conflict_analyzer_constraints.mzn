@@ -1,77 +1,156 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Utility functions and predicates 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+predicate isVarNode(var PDGNodeIdx: n)         = (n>=VarNode_start /\ n<=VarNode_end);
+predicate isFunctionEntry(var PDGNodeIdx: n)   = (n>=FunctionEntry_start /\ n<=FunctionEntry_end);
+predicate isInst(var PDGNodeIdx: n)            = (n>=Inst_start /\ n<=Inst_end);
+predicate isParam(var PDGNodeIdx: n)           = (n>=Param_start /\ n<=Param_end);
+predicate isAnnotation(var PDGNodeIdx: n)      = (n>=Annotation_start /\ n<=Annotation_end);
+predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end);
+predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
 
-% ------------------ Initialize Assingments -------------------------
+function var Enclave: myEnclave(var PDGNodeIdx: n) =
+ (if     isVarNode(n)                          then varnodeEnclave[n]
+  elseif isFunctionEntry(n)                    then functionEnclave[n]
+  elseif isInst(n)                             then functionEnclave[hasFunction[n]]
+  elseif isParam(n)                            then functionEnclave[hasFunction[n]] 
+  else   nullEnclave                           % cannot assign valid enclave to Annotations, expects nullEnclave defined 
+  endif);
 
-constraint forall (n in PDGNodeIdx) (if hasCle[n]!= None then hasEnclaveLevel[nodeEnclave[n]] == haslevel[hasCle[n]] endif );
-% ------------------ Control Dep Constraints ------------------------
+function var Level: tLevel(var PDGNodeIdx: n)  = (hasLabelLevel[taint[n]]);
+function var Level: eLevel(var PDGNodeIdx: n)  = (hasEnclaveLevel[myEnclave(n)]);
 
-% Every function entry node must be assigned a valid enclave
-constraint forall (n in FunctionEntry) ( nodeEnclave[n] != nullEnclave);
+predicate lCut(var PDGEdgeIdx: e)              = (hasLabelLevel[taint[hasSource[e]]]!=hasLabelLevel[taint[hasDest[e]]]);
+predicate tCut(var PDGEdgeIdx: e)              = (taint[hasSource[e]]!=taint[hasDest[e]]);
+predicate tSafe(var PDGEdgeIdx: e)             = (taint[hasSource[e]]==taint[hasDest[e]]);
+predicate eCut(var PDGEdgeIdx: e)              = (myEnclave(hasSource[e])!=myEnclave(hasDest[e]));
+predicate eSafe(var PDGEdgeIdx: e)             = (myEnclave(hasSource[e])==myEnclave(hasDest[e]));
+predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
 
-% Every global variable must be assigned to a valid enclave 
-constraint forall (n in Global) ( nodeEnclave[n] != nullEnclave );
+predicate xdcBlest(var ControlDep_CallInv: e)  =
+ (if isFunctionAnnotation[taint[hasDest[e]]] then allowOrRedact(cdfForRemoteLevel[taint[hasDest[e]], eLevel(hasSource[e])]) else false endif);
 
-/* Conflict is resolvable via RPC if endpoints of CONTROL edge from functioncall to entry are in different enclaves */
-% constraint forall (e in ControlDep_CallInv) 
-%  ( nodeEnclave[hasSource[e]]!=nodeEnclave[hasDest[e]] -> resolvableConflict[e]==true );
+predicate rettaintSafe(var DataDepEdge_Ret: e) =
+ (if isFunctionAnnotation[taint[hasFunction[hasSource[e]]]] 
+  then hasRettaints[cdfForRemoteLevel[taint[hasFunction[hasSource[e]]], tLevel(hasDest[e])], taint[hasDest[e]]]
+  else false
+  endif);
 
-/* The two ends of every CONTROL edge must be assigned to the same enclave unless it is a resolvable control conflict */ 
-constraint forall (e in ControlDep) ( resolvableConflict[e]==false -> nodeEnclave[hasSource[e]]==nodeEnclave[hasDest[e]]  \/ ( resolvableConflict[e]==true /\ (e in ControlDep_CallInv /\ nodeEnclave[hasSource[e]]!=nodeEnclave[hasDest[e]]) ));
+predicate argtaintSafe(var Parameter: e)       =
+ (if isFunctionAnnotation[taint[hasFunction[hasDest[e]]]] /\ isParam_ActualIn(hasDest[e])
+  then hasArgtaints[cdfForRemoteLevel[taint[hasFunction[hasDest[e]]], tLevel(hasSource[e])], hasParamIdx[hasDest[e]], taint[hasSource[e]]]
+  elseif isFunctionAnnotation[taint[hasFunction[hasSource[e]]]] /\  isParam_ActualOut(hasSource[e])
+  then hasArgtaints[cdfForRemoteLevel[taint[hasFunction[hasSource[e]]], tLevel(hasDest[e])], hasParamIdx[hasSource[e]], taint[hasDest[e]]]
+  else false
+  endif);
 
+predicate isInArctaint(var cleLabel: fan, var cleLabel: tnt, var Level: lvl) =
+ (if isFunctionAnnotation[fan] then hasARCtaints[cdfForRemoteLevel[fan, lvl], tnt] else false endif);
 
-% Check wrapper
-% constraint forall (e in ControlDep) ( (e in C_ControlDep_CallInv(ControlDep_CallInv) /\ resolvableConflict[C_ControlDep(e)]==true)  ->  (haslevel[nodeEnclave[to_enum(PDGNode,hasSource[C_ControlDep(e)])]] == hasremotelevel[hasCle[to_enum(PDGNode,hasDest[C_ControlDep(e)])]]));
+predicate coercible(var DataEdgeNoRet: e)      =
+ (if (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
+  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]], tLevel(hasDest[e])) /\
+       isInArctaint(taint[hasFunction[hasDest[e]]], taint[hasSource[e]], tLevel(hasSource[e]))
+  elseif (isVarNode(hasDest[e]) /\ hasFunction[hasSource[e]]!=0)
+  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]], tLevel(hasDest[e]))
+  elseif (isVarNode(hasSource[e]) /\ hasFunction[hasDest[e]]!=0)
+  then isInArctaint(taint[hasFunction[hasDest[e]]], taint[hasSource[e]], tLevel(hasSource[e]))
+  else false
+  endif);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Basic constraints on output decision variables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% This constraint seems to be problematic      
-% constraint forall (e in PDGEdge) ( if e in ControlDep_NonCall then resolvableConflict[e] == false endif);
+constraint :: "VarNodeHasEnclave"              forall (n in VarNode)            (varnodeEnclave[n]!=nullEnclave);
+constraint :: "FunctionHasEnclave"             forall (n in FunctionEntry)      (functionEnclave[n]!=nullEnclave);
+constraint :: "CallInvInCut"                   forall (e in ControlDep_CallInv) (xdcall[e] <-> eCut(e));
+constraint :: "NodeEnclaveAtTaintLevel"        forall (n in NonAnnotation)      (eLevel(n)==tLevel(n));
+constraint :: "FnAnnotationForFnOnly"          forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
+constraint :: "FnAnnotationByUserOnly"         forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
 
-% conflict resolvability of return must match that of corresponding invocation
-% constraint forall (e in ControlDep_CallRet) (resolvableControlConflict[C_ControlDep(C_ControlDep_CallRet(e))] == resolvableControlConflict[C_ControlDep(C_ControlDep_CallInv(invForRet[e]))]);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Control never leaves enclave except via valid XDC
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% ------------------ Data Dep Constraints ------------------------
+% XXX: broken input, annotations in controldep entry edge
+constraint :: "NonCallControlEnclaveSafe"     forall (e in ControlDep_NonCall where isAnnotation(hasDest[e])==false) (eSafe(e));
+constraint :: "XDCallBlest"                   forall (e in ControlDep_CallInv) (eCut(e) -> xdcBlest(e)); % XXX: relax for optimization
 
-% to be a resolvable conflict, must be a conflict i.e., endpoint share in different enclaves, and must be a Parameter
-% May want to include returns
-constraint forall (e in Parameter) (( nodeEnclave[hasSource[e]] == nodeEnclave[nodeEnclave[hasDest[e]]]) -> resolvableConflict[e]==false);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Data never leaves enclave except via parameters or return for valid XDC
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% data flow partitioning: only resolvable control conflicts can be in cut
-constraint forall (e in DataEdge) (  resolvableConflict[e]==true \/ nodeEnclave[hasSource[e]] == nodeEnclave[hasDest[e]]); 
+constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeNoRet where isAnnotation(hasDest[e])==false) (eSafe(e));
 
-% ------------------ Taint Propagation Constraints ------------------------
+constraint :: "XDCDataReturnAllowed"
+ forall (e in DataDepEdge_Ret) (eSafe(e) \/ allowOrRedact(cdfForRemoteLevel[taint[hasSource[e]], tLevel(hasDest[e])]));
 
-% Check if edge can be coerced
-% predicate CanCoerce(DataDep:e) = (hasBodyTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasDest[e]]]]]]] ==  cleEntry[hasCle[hasDest[e]]] /\ hasBodyTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasSource[e]]]]]]] ==  cleEntry[hasCle[hasSource[e]]] );
+constraint :: "XDCParmAllowed"
+ forall (e in Parameter)       (eSafe(e) \/ allowOrRedact(cdfForRemoteLevel[taint[hasSource[e]], tLevel(hasDest[e])]));
 
-% predicate CanCoerce(DataDep:e) = (hasCle[hasSource[C_DataEdge(C_DataDep(e))]] == None \/ hasCle[hasSource[C_DataEdge(C_DataDep(e))]] == None);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Labels can only be cooerced inside enclave via parameters or return by noblest functions that are so blest
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (eSafe(e) -> tSafe(e) \/ coercible(e));
+constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (eSafe(e) -> tSafe(e) \/ rettaintSafe(e));
+constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (eSafe(e) -> tSafe(e) \/ argtaintSafe(e));
 
-% This needs to be updated once function taints are added
-% Make sure all data dependencies have the same level or can be coerced
-% constraint forall (e in DataDep) (if e in C_DataDepEdge_Ret(DataDepEdge_Ret) then true else false endif \/ haslevel[hasCle[hasSource[C_DataEdge(C_DataDep(e))]]] == haslevel[hasCle[hasDest[C_DataEdge(C_DataDep(e))]]]);
-% constraint forall (e in Anno_Global) (haslevel[hasCle[hasSource[C_Anno(C_Anno_Global(e))]]] == haslevel[hasCle[hasDest[C_Anno(C_Anno_Global(e))]]]);
-constraint forall (e in DataEdgeNoRet) (nodeEnclave[hasSource[e]] == nodeEnclave[hasDest[e]]);
-constraint forall (e in ControlDep_Entry) (nodeEnclave[hasSource[e]] == nodeEnclave[hasDest[e]]);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sanity checks, may add more here
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Check function propagation taints
-% constraint forall (e in Parameter) (cleEntry[hasCle[hasDest[e]]] in hasArgTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[hasDest[e]]]]]]][hasParamIdx[e]]);
-% constraint forall (e in ControlDep_CallRet) (cleEntry[hasCle[hasDest[e]]] in hasRetTaint[hasFuncTaints[hasCDF[cleEntry[hasCle[hasFunction[e]]]]]]);
+debug = true;
 
-% Check Unannotated functions have exactly one taint
-% Check that all the children of the function have the same taint, if they are all equal, there is only one taint
-% constraint forall(f in FunctionEntry) (forall (c in hasChildren[f]) (cleEntry[hasCle[c] == hasChildren[f][0] \/ cleEntry[hasCle[c] == None))
+constraint :: "CallSiteWithinFunctionAndCallsFunctionEntry"
+ forall (e in ControlDep_CallInv) (debug==true -> hasFunction[hasSource[e]]!=0 /\ isFunctionEntry(hasDest[e]));
 
-% var int: objective = sum( e in PDGEdge where resolvableControlConflict[e] == 1 \/ resolvableDataConflict[e] == 1)(1);
+constraint :: "ControlEdgeNonCallMustBeIntraFunction"
+ forall (e in ControlDep_NonCall) (debug==true -> hasFunction[hasSource[e]]==hasFunction[hasDest[e]]);
 
-var int: objective = sum( e in PDGEdgeIdx where resolvableConflict[e] == true)(1);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Solver objective
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+var int: objective = sum(e in ControlDep_CallInv where xdcall[e])(1);
 solve minimize objective;
 
-% solve satisfy;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Solver output
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  output ["Enclave Assingment: \(nodeEnclave) \n"];
-  output ["CLE Assingment: \(hasCle) \n"];
-  output ["Edge: " ++ show(x) ++ " " ++ show(nodeEnclave[hasSource[x]]) ++ " " ++ show(nodeEnclave[hasDest[x]]) ++ " " ++ show(nodeEnclave[hasSource[x]]==nodeEnclave[hasDest[x]]) ++ "\n" | x in ControlDep ] ;
-  output ["resolvableConflict Assingment: \(resolvableConflict) \n"];
-  output["ENTRY: "     ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in FunctionEntry ] ;
-  output["GLOBAL: " ++ show(x) ++ " " ++ show(nodeEnclave[x]) ++ "\n" | x in PDGNodeIdx where x in Global] ;
- 
+output ["Domain assignments for globals:" ++ "\n"];
+output [" GLOBAL   : " ++ show(x) ++ " -> " ++ show(varnodeEnclave[x])   ++ "::" ++ show(taint[x]) ++ "\n" | x in Global] ;
+output ["Domain assignments for functions:" ++ "\n"];
+output [" FUNCTION : " ++ show(x) ++ " -> " ++ show(functionEnclave[x]) ++ "::" ++ show(taint[x]) ++ "\n" | x in FunctionEntry ] ;
+output ["Cross-domain cut:" ++ "\n"];
+output [" XDCALL   : " ++ "(" ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSource[e]]) ++ ")"
+                       ++ "--[" ++ show(functionEnclave[hasFunction[hasSource[e]]]) ++ "]"
+                       ++ "--||-->"
+                       ++ "[" ++ show(functionEnclave[hasDest[e]]) ++ "]--"
+                       ++ "(" ++ show(hasDest[e]) ++ ":" ++ show(taint[hasDest[e]]) ++ ")"
+                       ++ "\n"
+        | e in ControlDep_CallInv where fix(xdcall[e]==true)] ;
+
+output [if debug then "Label and Enclave assignments to non-annotation nodes:\n" else "" endif];
+output [" ASSIGN   : " ++ 
+ show(n) ++ " " ++
+ (if     (n>=VarNode_start /\ n<=VarNode_end)              then "VarNode       "
+  elseif (n>=FunctionEntry_start /\ n<=FunctionEntry_end)  then "FunctionEntry "
+  elseif (n>=Inst_start /\ n<=Inst_end)                    then "Inst          "
+  elseif (n>=Param_start /\ n<=Param_end)                  then "Param         "
+  else                                                          "Annotation    "
+  endif)
+ ++ "[" ++
+ show(
+  if     (n>=VarNode_start /\ n<=VarNode_end)              then varnodeEnclave[n]
+  elseif (n>=FunctionEntry_start /\ n<=FunctionEntry_end)  then functionEnclave[n]
+  elseif (n>=Inst_start /\ n<=Inst_end)                    then functionEnclave[hasFunction[n]]
+  elseif (n>=Param_start /\ n<=Param_end)                  then functionEnclave[hasFunction[n]] 
+  else   nullEnclave
+  endif)
+ ++ "]::" ++ show(taint[n]) ++ "\n" 
+ | n in PDGNodeIdx where debug];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

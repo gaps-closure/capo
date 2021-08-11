@@ -28,14 +28,15 @@ output_order_arrys = [
   "hasremotelevel",
   "hasdirection",
   "hasoperation",
-  # "hasargtaints",
-  # "hascodtaints",
-  # "hasrettaints",
+  "hasargtaints",
+  "hascodtaints",
+  "hasrettaints",
 ]
 
 
 def compute_zinc(infile,ttree, schema):
   hasCDF = []
+  hasArgTaints = []
   # Collect cledefs and dump
   if(schema is None):
     #schema check is disabled
@@ -54,18 +55,25 @@ def compute_zinc(infile,ttree, schema):
   enums['cdf'].append("None" + "_cdf_" + str(noneCount))
   hasCDF.append([])
   hasCDF[-1].append("None" + "_cdf_" + str(noneCount))
+  
   enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
   enums['direction'].append("None" + "_direction_" + str(noneCount))
   enums['operation'].append("None" + "_operation_" + str(noneCount))
   arrays["has" + 'remotelevel'].append("none")
   arrays["has" + 'direction'].append("noDir")
   arrays["has" + 'operation'].append("noOp")
+  arrays["has" + 'functaints'].append("false")
+  arrays["has" + 'argtaints'].append([["None"]])
+  arrays["has" + 'codtaints'].append(["None"])
+  arrays["has" + 'rettaints'].append(["None"])
   noneCount +=1
  
   maxCDFIdx = 0
+  maxArgIdx = 1
   for x in ttree:
     if x[0] == 'cledef':
       CDF_flag = False
+      funcTaint_flag = False
       print("Here")
       enums['cleEntry'].append(x[3])
       arrays['haslevel'].append(x[4]['level']) 
@@ -83,20 +91,30 @@ def compute_zinc(infile,ttree, schema):
         arrays["has" + 'remotelevel'].append("none")
         arrays["has" + 'direction'].append("noDir")
         arrays["has" + 'operation'].append("noOp")
+        arrays["has" + 'argtaints'].append([["None"]])
+        arrays["has" + 'codtaints'].append(["None"])
+        arrays["has" + 'rettaints'].append(["None"])
         noneCount += 1
-      CDFidx = 0
+      # Check for function taints, if one is there all must be there, therefore checking for 1 should be sufficient
+      
+
       for k1 in x[4].keys():
         if k1 == 'cdf':
           if CDF_flag == False:
             CDF_flag = True
             hasCDF.append([])
-          if CDFidx > maxCDFIdx:
-            maxCDFIdx = CDFidx
-          CDFidx += 1
           for i in range(len(x[4][k1])):
             cdfStr = x[3] + "_cdf_" + str(i)
             enums['cdf'].append(cdfStr)
             hasCDF[-1].append(cdfStr)
+            if i + 1 > maxCDFIdx:
+              maxCDFIdx = i + 1
+            if "codtaints" not in x[4][k1][i].keys():
+              arrays["has" + 'codtaints'].append(["None"])
+            if "rettaints" not in x[4][k1][i].keys():
+              arrays["has" + 'rettaints'].append(["None"])
+            if "argtaints" not in x[4][k1][i].keys():
+              arrays["has" + 'argtaints'].append([["None"]])
             for k2 in x[4][k1][i].keys():
               if k2 == 'guarddirective':
                 for k3 in x[4][k1][i][k2].keys():
@@ -105,16 +123,22 @@ def compute_zinc(infile,ttree, schema):
               else:
                 enums[k2].append(x[3] + "_" + k2 + "_" + str(i))
                 keyVal = x[4][k1][i][k2]
-                if type(keyVal) ==list:
-                  # Need to update this for multiple arg taints and ret taints
-                  if len(keyVal) > 0 and k2 != "rettaints":
-                    arrays["has" + k2].append(keyVal[0])
-                else:
-                  arrays["has" + k2].append(keyVal)
-            
+                # if type(keyVal) == list:
+                #   for label in keyVal:
+                #     # if there is another list it should be an argtaint or the label is not formed correctly
+                #     if type(label) == list:
+                #       if len(label) > maxArgIdx:
+                #         maxArgIdx = len(label)
+
+                arrays["has" + k2].append(keyVal)
             noneCount += 1
 
-  
+      if arrays["has" + 'argtaints'][-1] == [["None"]] and arrays["has" + 'codtaints'][-1] == ["None"] and arrays["has" + 'rettaints'][-1] == ["None"]:
+        arrays["has" + 'functaints'].append("false")
+      else:
+        arrays["has" + 'functaints'].append("true")
+
+  print(f"Max CDF: {maxCDFIdx}")
   with open("cle_instance.mzn", 'w') as zincOF:
     for i in output_order_enums:
       first = True
@@ -129,32 +153,195 @@ def compute_zinc(infile,ttree, schema):
           zincOF.write(f", {j} ")
       zincOF.write("}; \n")
 
+    maxCodTaint = 0
+    maxArgIdx = 0
+    maxNumArgsTaints = 0
+    maxRetTaint = 0
+
+    for taints in arrays["hasargtaints"]: 
+      if len(taints) > maxArgIdx:
+        maxArgIdx = len(taints)
+
+    for taints in arrays["hasargtaints"]: 
+      for args in taints:
+        if len(args) > maxNumArgsTaints:
+          maxNumArgsTaints = len(args)
+
+    for taints in arrays["hasrettaints"]: 
+      if len(taints) > maxRetTaint:
+        maxRetTaint = len(taints)
+
+    for taints in arrays["hascodtaints"]: 
+      if len(taints) > maxCodTaint:
+        maxCodTaint = len(taints)
+
+    
+    print(f"MaxArg: {maxNumArgsTaints}, maxArgIdx: {maxArgIdx}, MaxRet: {maxRetTaint}, MaxCod: {maxCodTaint} ")
     for i in output_order_arrys:
+      if "taint" in i:
+          continue
       first = True
-      # if "taint" in i:
-      #   continue
+      
       zincOF.write(f"{i} = [")
       for j in arrays[i]:
+        output = j
         if first:
           first = False
-          zincOF.write(f"{j}")
+          zincOF.write(f"{output}")
         else:
-          zincOF.write(f", {j} ")
+          zincOF.write(f", {output} ")
       zincOF.write("]; \n")
+
+    i = "hasfunctaints"
+    first = True
+    zincOF.write(f"{i} = [")
+    for j in arrays[i]:
+      output = j
+      if first:
+        first = False
+        zincOF.write(f"{output}")
+      else:
+        zincOF.write(f", {output} ")
+    zincOF.write("]; \n")
+
+    print(f"MaxArg: {maxNumArgsTaints}, maxArgIdx: {maxArgIdx}, MaxRet: {maxRetTaint}, MaxCod: {maxCodTaint} ")
+    
+    zincOF.write(f"maxNumArgs = {maxArgIdx};\n")
+    zincOF.write(f"maxNumArgTaints = {maxNumArgsTaints};\n")
+    zincOF.write(f"maxCodTaints = {maxCodTaint};\n")
+    zincOF.write(f"maxRetTaints = {maxRetTaint};\n")
+    
+     
+
+    id = "hasargtaints"
+    zincOF.write(f"hasargtaints = array3d(1..{len(arrays[id])}, ArgIdxs, ArgTaints ,[")
+    print(arrays[id])
+    first = True
+    for row in arrays[id]:
+      print(row)
+      for i in range(maxArgIdx):
+        if i >= len(row):
+          for j in range(maxNumArgsTaints):
+            if first:
+              first = False
+              zincOF.write("None")
+            else:
+              zincOF.write(",None")
+        else:
+          nested = row[i]
+          print(nested)
+          for j in range(maxNumArgsTaints):
+            if j >= len(nested):
+              if first:
+                first = False
+                zincOF.write("None")
+              else:
+                zincOF.write(",None")
+            else:
+              output = nested[j]
+              print(output)
+              if output not in enums["cleEntry"]:
+                output = "None"
+              if first:
+                first = False
+                zincOF.write(f"{output}")
+              else:
+                zincOF.write(f", {output} ")
+    zincOF.write("]); \n")
+
+    
+    id = "hascodtaints"
+    zincOF.write(f"hascodtaints = array2d(1..{len(arrays[id])}, CodTaints, [")
+    print(arrays[id])
+    first = True
+    for row in arrays[id]:
+      for i in range(maxCodTaint):
+        if i >= len(row):
+          if first:
+            first = False
+            zincOF.write("None")
+          else:
+            zincOF.write(",None")
+        else:
+          output = row[i]
+          if row[i] not in enums["cleEntry"]:
+            output = "None"
+          if first:
+            first = False
+            zincOF.write(f"{output}")
+          else:
+            zincOF.write(f", {output} ")
+    zincOF.write("]); \n")
+
+    
+    id = "hasrettaints"
+    zincOF.write(f"hasrettaints = array2d(1..{len(arrays[id])}, RetTaints, [")
+    print(arrays[id])
+    first = True
+    for row in arrays[id]:
+      for i in range(maxRetTaint):
+        if i >= len(row):
+          if first:
+            first = False
+            zincOF.write("None")
+          else:
+            zincOF.write(",None")
+        else:
+          output = row[i]
+          if row[i] not in enums["cleEntry"]:
+            output = "None"
+          if first:
+            first = False
+            zincOF.write(f"{output}")
+          else:
+            zincOF.write(f", {output} ")
+    zincOF.write("]); \n")
+
+    # zincOF.write("hasargtaints = [")
+    # for row in hasArgTaints:
+    #   first = True
+    #   zincOF.write("|")
+    #   for i in range(maxArgIdx):
+    #     if i >= len(row):
+    #       if first:
+    #         first = False
+    #         zincOF.write("None")
+    #       else:
+    #         zincOF.write(",None ")
+    #     else:
+    #       output = row[i]
+    #       if row[i] not in enums["cleEntry"]:
+    #         output = "None"
+    #       if first:
+    #         first = False
+    #         zincOF.write(f"{output}")
+    #       else:
+    #         zincOF.write(f", {output} ")
+    # zincOF.write("|")
+    # zincOF.write("]; \n")
 
     zincOF.write("hasCDF = [")
     for row in hasCDF:
       first = True
       zincOF.write("|")
-      for i in row:
-        if first:
-          first = False
-          zincOF.write(f"{i}")
+      for i in range(maxCDFIdx):
+        if i >= len(row):
+          if first:
+            first = False
+            zincOF.write("None_cdf_0")
+          else:
+            zincOF.write(",None_cdf_0 ")
         else:
-          zincOF.write(f", {i} ")
+          if first:
+            first = False
+            zincOF.write(f"{row[i]}")
+          else:
+            zincOF.write(f", {row[i]} ")
     zincOF.write("|")
     zincOF.write("]; \n")
 
+    zincOF.write(f"maxCDFIdx = {maxCDFIdx}")
+  
 
 
     
