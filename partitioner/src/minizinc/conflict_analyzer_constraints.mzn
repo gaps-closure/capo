@@ -41,20 +41,21 @@ predicate argtaintSafe(var Parameter: e)       =
   then hasArgtaints[cdfForRemoteLevel[taint[hasFunction[hasDest[e]]], tLevel(hasSource[e])], hasParamIdx[hasDest[e]], taint[hasSource[e]]]
   elseif isFunctionAnnotation[taint[hasFunction[hasSource[e]]]] /\  isParam_ActualOut(hasSource[e])
   then hasArgtaints[cdfForRemoteLevel[taint[hasFunction[hasSource[e]]], tLevel(hasDest[e])], hasParamIdx[hasSource[e]], taint[hasDest[e]]]
-  else false
+  else coercible(e)
+  %else false
   endif);
 
 predicate isInArctaint(var cleLabel: fan, var cleLabel: tnt, var Level: lvl) =
  (if isFunctionAnnotation[fan] then hasARCtaints[cdfForRemoteLevel[fan, lvl], tnt] else false endif);
 
-predicate coercible(var DataEdgeNoRet: e)      =
+predicate coercible(var DataEdgeNoRetParam: e) =
  (if (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
-  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]], tLevel(hasDest[e])) /\
-       isInArctaint(taint[hasFunction[hasDest[e]]], taint[hasSource[e]], tLevel(hasSource[e]))
+  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]],   tLevel(hasDest[e])) /\
+       isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasSource[e]], tLevel(hasSource[e]))  % source and dest taints okay
   elseif (isVarNode(hasDest[e]) /\ hasFunction[hasSource[e]]!=0)
-  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]], tLevel(hasDest[e]))
+  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]],   tLevel(hasDest[e]))
   elseif (isVarNode(hasSource[e]) /\ hasFunction[hasDest[e]]!=0)
-  then isInArctaint(taint[hasFunction[hasDest[e]]], taint[hasSource[e]], tLevel(hasSource[e]))
+  then isInArctaint(taint[hasFunction[hasDest[e]]],   taint[hasSource[e]], tLevel(hasSource[e]))
   else false
   endif);
 
