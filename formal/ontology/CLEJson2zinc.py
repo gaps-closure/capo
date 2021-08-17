@@ -84,6 +84,8 @@ def compute_zinc(cleJson):
     listOfLevels = set(listOfLevels)
     listOfLevels = list(listOfLevels)
     listOfLevels.sort()
+    listOfLevels.remove("nullLevel")
+    listOfLevels.insert(0,"nullLevel")
     nullLevel = ["nullCdf" for x in range(len(listOfLevels))]
     arrays["cdfForRemoteLevel"].append(nullLevel)
     print(listOfLevels)
@@ -193,8 +195,9 @@ def compute_zinc(cleJson):
         
         #if codtaints is defined, all taints need to be defined
         if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]:
-            ARCTaint = ["false" for label in enums["cleLabel"] ]
+            ARCTaint = ["false" if label != entry["cle-label"] else "true" for label in enums["cleLabel"] ]
             for cdf in entry["cle-json"]["cdf"]:
+                # code taints
                 taintEntry = []  
                 for label in enums["cleLabel"]:
                     found = 0
@@ -206,7 +209,8 @@ def compute_zinc(cleJson):
                         taintEntry.append("false")
                 arrays["hasCodtaints"].append(taintEntry)
                 ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, taintEntry)]
-            for cdf in entry["cle-json"]["cdf"]:
+                
+                # ret Taints
                 taintEntry = []  
                 for label in enums["cleLabel"]:
                     found = 0
@@ -218,8 +222,8 @@ def compute_zinc(cleJson):
                         taintEntry.append("false")
                 arrays["hasRettaints"].append(taintEntry)
                 ARCTaint = [str(a=='true' or b=='true').lower() for a, b in zip(ARCTaint, taintEntry)]
-            
-            for cdf in entry["cle-json"]["cdf"]:
+
+                # Arg Taints
                 taintEntry = []
                 print(cdf["argtaints"])
                 paramCount = 0
@@ -244,9 +248,9 @@ def compute_zinc(cleJson):
                     ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
                     taintEntry.append(paramEntry)
                     paramCount +=1
-
-            arrays["hasArgtaints"].append(taintEntry)
-            arrays["hasARCtaints"].append(ARCTaint)
+                
+                arrays["hasArgtaints"].append(taintEntry)
+                arrays["hasARCtaints"].append(ARCTaint)
 
     maxCodTaint = 0
     # maxArgIdx = 0
@@ -400,54 +404,104 @@ def compute_zinc(cleJson):
             zincOF.write("\n|")
         zincOF.write("]; \n")
 
+        numFunctionCDFS = len(arrays["hasRettaints"])
+        print(f"Num Function CDFs: {numFunctionCDFS}")
+        numCleLabels = len(enums["cleLabel"])
+        print(f"Num CLE Labels: {numCleLabels}")
+
+
         zincOF.write(f"hasRettaints = array2d(functionCdf, cleLabel, [\n ")
         first = True
         for row in arrays["hasRettaints"]:
             print(row)
             for j in row:
+                if j == "true":
+                    j = "true "
                 if first:
                     first = False
-                    zincOF.write(f"{j}")
+                    zincOF.write(f" {j} ")
                 else:
                     zincOF.write(f", {j} ")
-        zincOF.write("\n ]); \n")
+            zincOF.write("\n")
+        zincOF.write(" ]); \n")
+        numElts = 0
+        for i in arrays["hasRettaints"]:
+            for j in i:
+                numElts+=1
+        if numFunctionCDFS * numCleLabels != numElts:
+            print("hasRettaints has incorrect dimensions")
+
 
         zincOF.write(f"hasCodtaints = array2d(functionCdf, cleLabel, [\n ")
         first = True
         for row in arrays["hasCodtaints"]:
             print(row)
             for j in row:
+                if j == "true":
+                    j = "true "
                 if first:
                     first = False
-                    zincOF.write(f"{j}")
+                    zincOF.write(f" {j} ")
                 else:
                     zincOF.write(f", {j} ")
-        zincOF.write("\n ]); \n")
+            zincOF.write("\n")
+        zincOF.write(" ]); \n")
+        numElts = 0
+        for i in arrays["hasCodtaints"]:
+            for j in i:
+                numElts+=1
+        if numFunctionCDFS * numCleLabels != numElts:
+            print("hasCodtaints has incorrect dimensions")
 
         zincOF.write(f"hasArgtaints = array3d(functionCdf, parmIdx, cleLabel, [\n ")
         first = True
         for row in arrays["hasArgtaints"]:
             print(row)
+            argCount = 0
             for nested in row:
                 for j in nested:
+                    if j == "true":
+                        j = "true "
                     if first:
                         first = False
-                        zincOF.write(f"{j}")
+                        zincOF.write(f" {j} ")
                     else:
                         zincOF.write(f", {j} ")
-        zincOF.write("\n ]); \n")
+
+                    if argCount % maxArgIdx == maxArgIdx -1:
+                        zincOF.write("\t\t")
+                    argCount+=1
+            zincOF.write("\n")
+        zincOF.write(" ]); \n")
+        numElts = 0
+        for i in arrays["hasArgtaints"]:
+            for j in i:
+                for k in j:
+                    numElts+=1
+        if numFunctionCDFS * maxArgIdx * numCleLabels != numElts:
+            print("hasArgtaints has incorrect dimensions")
 
         zincOF.write(f"hasARCtaints = array2d(functionCdf, cleLabel, [\n ")
         first = True
         for row in arrays["hasARCtaints"]:
             print(row)
             for j in row:
+                if j == "true":
+                    j = "true "
                 if first:
                     first = False
-                    zincOF.write(f"{j}")
+                    zincOF.write(f" {j} ")
                 else:
                     zincOF.write(f", {j} ")
-        zincOF.write("\n ]); \n")
+            zincOF.write("\n")
+        zincOF.write(" ]); \n")
+
+        numElts = 0
+        for i in arrays["hasARCtaints"]:
+            for j in i:
+                numElts+=1
+        if numFunctionCDFS * numCleLabels != numElts:
+            print("hasARCtaints has incorrect dimensions")
 
     print(enums)
     print(arrays)

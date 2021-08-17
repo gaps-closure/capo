@@ -18,14 +18,18 @@ cdfForRemoteLevel = [|
 |nullCdf, nullCdf , nullCdf 
 |]; 
 hasRettaints = array2d(functionCdf, cleLabel, [
- false, false , false , true , false , false , false , false , false , false , false , false , false , true , false , false 
+  false , false , false , true  , false , false , false , false 
+, false , false , false , false , false , true  , false , false 
  ]); 
 hasCodtaints = array2d(functionCdf, cleLabel, [
- false, false , false , false , false , false , false , false , false , false , true , true , false , false , false , false 
+  false , false , false , false , false , false , false , false 
+, false , false , true  , true  , false , false , false , false 
  ]); 
 hasArgtaints = array3d(functionCdf, parmIdx, cleLabel, [
- false, false , true , false , false , false , false , false , false , false , true , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false , false 
+  false , false , true  		, false , false , false 		, false , false , false 		, false , true  , false 		, false , false , false 		, false , false , false 		, false , false , false 		, false , false , false 		
+, false , false , false 		, false , false , false 		, false , false , false 		, false , false , false 		, false , false , false 		, false , false , false 		, false , false , false 		, false , false , false 		
  ]); 
 hasARCtaints = array2d(functionCdf, cleLabel, [
- false, false , true , true , false , false , false , false , false , false , true , true , false , true , false , false 
+  false , false , true  , true  , false , false , false , false 
+, false , false , true  , true  , true  , true  , false , false 
  ]); 
