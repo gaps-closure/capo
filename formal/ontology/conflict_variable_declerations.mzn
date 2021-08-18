@@ -151,9 +151,9 @@ set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 % Containing Function for PDG Nodes, Endpoints for PDG Edges, Indices of Fucntion Formal Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-array[int]            of int:  hasFunction;
-array[int]            of int:  hasSource;
-array[int]            of int:  hasDest;
+array[PDGNodeIdx]     of int:  hasFunction;
+array[PDGEdgeIdx]     of int:  hasSource;
+array[PDGEdgeIdx]     of int:  hasDest;
 array[Param]          of int:  hasParamIdx;
 array[FunctionEntry]  of bool: userAnnotatedFunction;
 
