@@ -74,7 +74,7 @@ set of int: Annotation  = Annotation_start .. Annotation_end;
 set of int: PDGNodeIdx  = PDGNode_start .. PDGNode_end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PDG Edges 
+% PDG Edges
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 int: ControlDep_CallInv_start;
@@ -166,9 +166,10 @@ set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union P
 set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_CallRet;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
 set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
+set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Security Levels and Enclaves 
+% Security Levels and Enclaves
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 enum Level;
@@ -184,11 +185,11 @@ enum cdf;
 enum GuardOperation = {nullGuardOperation, allow, deny, redact};
 enum Direction      = {nullDirection, bidirectional, egress, ingress};
 
-int: MaxFuncParms;  % Max number of function parameters in the program (C<128, C++<256) 
+int: MaxFuncParms;  % Max number of function parameters in the program (C<128, C++<256)
 set of int: parmIdx = 1..MaxFuncParms;
 
 array[cleLabel]                       of Level:          hasLabelLevel;
-array[cleLabel]                       of bool:           isFunctionAnnotation; 
+array[cleLabel]                       of bool:           isFunctionAnnotation;
 
 array[cdf]                            of cleLabel:       fromCleLabel;
 array[cdf]                            of Level:          hasRemotelevel;
@@ -220,3 +221,4 @@ array[PDGNodeIdx]                     of var cleLabel:   taint;
 bool:                                                    debug;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

@@ -135,12 +135,12 @@ def source_transform(infile,ttree,astyle, schema):
           if astyle == 'naive' or astyle == 'both':
             ouf.write('#pragma clang attribute push (__attribute__((annotate("')
             ouf.write(x[3])
-            ouf.write('"))), apply_to = any(function,type_alias,record,enum,variable,field))')
+            ouf.write('"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))')
             ouf.write('\n')
           if astyle == 'type' or astyle == 'both':
             ouf.write('#pragma clang attribute push (__attribute__((type_annotate("')
             ouf.write(x[3])
-            ouf.write('"))), apply_to = any(function,type_alias,record,enum,variable,field))')
+            ouf.write('"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))')
             ouf.write('\n')
           ouf.write(inf.readline())
           curline += 1
