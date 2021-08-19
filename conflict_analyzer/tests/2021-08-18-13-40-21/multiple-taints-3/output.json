@@ -1,0 +1,25 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Unresolved Data Conflict",
+            "description": "Function 'foo' has multiple label taints 'ORANGE' and 'ORANGE_SHAREABLE' without an annotation. Functions with multiple taints must be annotated.",
+            "sources": [{
+                "file": "annotated/multiple-taints-3.c",
+                "range": {
+                    "start": {
+                        "line": 31,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 33,
+                        "character": 1
+                    }
+                }
+            }],
+            "remedies": [
+                "Add function annotation to 'foo'"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+Options selected:
+  file: missing-cdf.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 4, [], 'ORANGE', {'level': 'orange'}]
+['clebegin', 6, [], 'ORANGE']
+['cleend', 8, [], 'ORANGE']
+['clebegin', 13, [], 'PURPLE']
+['cleend', 15, [], 'PURPLE']
+Writing transformed file and cle mappings file
+
+real	0m0.229s
+user	0m0.218s
+sys	0m0.012s

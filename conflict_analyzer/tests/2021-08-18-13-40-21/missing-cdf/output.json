@@ -1,0 +1,25 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Wrong Label Type",
+            "description": "Label 'ORANGE' cannot be used as a function annotation. It is missing 'cdf' field with taints. (Maybe you mistakenly used a global variable annotation instead).",
+            "sources": [{
+                "file": "annotated/missing-cdf.c",
+                "range": {
+                    "start": {
+                        "line": 6,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 8,
+                        "character": 22
+                    }
+                }
+            }],
+            "remedies": [
+                "Add cdf definition to orange 'ORANGE'"
+            ]
+        }
+    ]
+}

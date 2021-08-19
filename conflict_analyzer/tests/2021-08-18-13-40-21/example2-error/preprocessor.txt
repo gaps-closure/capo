@@ -1,0 +1,25 @@
+Options selected:
+  file: example2.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 5, [], 'XDLINKAGE_GET_EWMA', {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}]
+['cledef', 15, [], 'ORANGE', {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}]
+['clebegin', 30, [], 'ORANGE']
+['cleend', 32, [], 'ORANGE']
+['clebegin', 38, [], 'PURPLE']
+['cleend', 40, [], 'PURPLE']
+['clebegin', 45, [], 'XDLINKAGE_GET_EWMA']
+['cleend', 47, [], 'XDLINKAGE_GET_EWMA']
+['clebegin', 55, [], 'ORANGE']
+['cleend', 57, [], 'ORANGE']
+Writing transformed file and cle mappings file
+
+real	0m0.237s
+user	0m0.182s
+sys	0m0.056s

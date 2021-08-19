@@ -1,0 +1,23 @@
+3
+['nullLevel', 'orange', 'purple']
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange'}}
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange'}}
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+Num Function CDFs: 0
+Num CLE Labels: 5
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f1797ee9280>, {'cleLabel': ['nullCleLabel', 'ORANGE', 'PURPLE', 'orangeDFLT', 'purpleDFLT'], 'cdf': ['nullCdf'], 'remotelevel': ['None_remotelevel_0'], 'direction': ['None_direction_0'], 'operation': ['None_operation_0']})
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f1797dfc5e0>, {'hasLabelLevel': ['nullLevel', 'orange', 'purple', 'orange', 'purple'], 'isFunctionAnnotation': ['false', 'false', 'false', 'false', 'false'], 'fromCleLabel': ['nullCleLabel'], 'hasRemotelevel': ['nullLevel'], 'hasDirection': ['nullDirection'], 'hasGuardOperation': ['nullGuardOperation'], 'isOneway': ['false'], 'hasfunctaints': ['false'], 'hasargtaints': [[['None']]], 'hascodtaints': [['None']], 'hasrettaints': [['None']], 'hasARCtaints': [], 'cdfForRemoteLevel': [['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf']], 'hasRettaints': [], 'hasCodtaints': [], 'hasArgtaints': []})
+
+real	0m0.052s
+user	0m0.048s
+sys	0m0.004s

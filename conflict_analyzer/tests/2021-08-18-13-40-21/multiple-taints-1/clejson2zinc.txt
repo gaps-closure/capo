@@ -1,0 +1,41 @@
+3
+['nullLevel', 'orange', 'purple']
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange'}}
+ENTRY
+{'cle-label': 'ORANGE_SHAREABLE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+Found remote level: purple
+ENTRY
+{'cle-label': 'XD_ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'argtaints': [], 'codtaints': ['ORANGE', 'ORANGE_SHAREABLE'], 'rettaints': ['ORANGE', 'ORANGE_SHAREABLE', 'TAG_RESPONSE_GET_FOO']}]}}
+Found remote level: purple
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange'}}
+ENTRY
+{'cle-label': 'ORANGE_SHAREABLE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+ENTRY
+{'cle-label': 'XD_ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'argtaints': [], 'codtaints': ['ORANGE', 'ORANGE_SHAREABLE'], 'rettaints': ['ORANGE', 'ORANGE_SHAREABLE', 'TAG_RESPONSE_GET_FOO']}]}}
+[]
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'ORANGE_SHAREABLE_cdf_0']
+['nullCdf', 'nullCdf', 'XD_ORANGE_cdf_0']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+Num Function CDFs: 1
+Num CLE Labels: 8
+['false', 'false', 'true', 'true', 'false', 'true', 'false', 'false']
+['false', 'false', 'true', 'true', 'false', 'false', 'false', 'false']
+[['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]
+['false', 'false', 'true', 'true', 'true', 'true', 'false', 'false']
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f7ffd910280>, {'cleLabel': ['nullCleLabel', 'PURPLE', 'ORANGE', 'ORANGE_SHAREABLE', 'XD_ORANGE', 'TAG_RESPONSE_GET_FOO', 'orangeDFLT', 'purpleDFLT'], 'cdf': ['nullCdf', 'ORANGE_SHAREABLE_cdf_0', 'XD_ORANGE_cdf_0'], 'remotelevel': ['None_remotelevel_0'], 'direction': ['None_direction_0'], 'operation': ['None_operation_0']})
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f7ffd8225e0>, {'hasLabelLevel': ['nullLevel', 'purple', 'orange', 'orange', 'orange', 'nullLevel', 'orange', 'purple'], 'isFunctionAnnotation': ['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], 'fromCleLabel': ['nullCleLabel', 'ORANGE_SHAREABLE', 'XD_ORANGE'], 'hasRemotelevel': ['nullLevel', 'purple', 'purple'], 'hasDirection': ['nullDirection', 'egress', 'egress'], 'hasGuardOperation': ['nullGuardOperation', 'allow', 'allow'], 'isOneway': ['false', 'false', 'false'], 'hasfunctaints': ['false'], 'hasargtaints': [[['None']]], 'hascodtaints': [['None']], 'hasrettaints': [['None']], 'hasARCtaints': [['false', 'false', 'true', 'true', 'true', 'true', 'false', 'false']], 'cdfForRemoteLevel': [['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'ORANGE_SHAREABLE_cdf_0'], ['nullCdf', 'nullCdf', 'XD_ORANGE_cdf_0'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf']], 'hasCodtaints': [['false', 'false', 'true', 'true', 'false', 'false', 'false', 'false']], 'hasRettaints': [['false', 'false', 'true', 'true', 'false', 'true', 'false', 'false']], 'hasArgtaints': [[['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]]})
+
+real	0m0.050s
+user	0m0.042s
+sys	0m0.008s

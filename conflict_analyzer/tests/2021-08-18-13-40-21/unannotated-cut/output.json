@@ -1,0 +1,25 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Unresolved Control Conflict",
+            "description": "Possible assignment requires function 'bar' to be in the cut but 'bar' unannotated",
+            "sources": [{
+                "file": "annotated/unannotated-cut.c",
+                "range": {
+                    "start": {
+                        "line": 6,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 11,
+                        "character": 1
+                    }
+                }
+            }],
+            "remedies": [
+                "Add label to 'bar'"
+            ]
+        }
+    ]
+}

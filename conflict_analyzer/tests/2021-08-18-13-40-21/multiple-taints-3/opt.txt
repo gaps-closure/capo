@@ -1,0 +1,230 @@
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @baz() #0 !dbg !2 {
+  %1 = load i32, i32* @baz.z, align 4, !dbg !20
+  %2 = add nsw i32 %1, 1, !dbg !20
+  store i32 %2, i32* @baz.z, align 4, !dbg !20
+  %3 = load i32, i32* @baz.z, align 4, !dbg !21
+  ret i32 %3, !dbg !22
+}
+
+debug: 0x561f4a2d9558
+line number: 29
+Added: 0x561f4a2d96d8
+debug: 0x561f4a2d9558
+line number: 29
+Added: 0x561f4a2cf710
+debug: 0x561f4a2d9558
+line number: 29
+Added: 0x561f4a2d9f60
+debug: 0x561f4a2da018
+line number: 30
+Added: 0x561f4a2d9fc8
+debug: 0x561f4a2da0a8
+line number: 30
+Added: 0x561f4a2da058
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @foo(i32 %0, i32 %1) #0 !dbg !23 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  store i32 %0, i32* %3, align 4
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !26, metadata !DIExpression()), !dbg !27
+  store i32 %1, i32* %4, align 4
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !28, metadata !DIExpression()), !dbg !29
+  %5 = load i32, i32* %3, align 4, !dbg !30
+  %6 = load i32, i32* %4, align 4, !dbg !31
+  %7 = add nsw i32 %5, %6, !dbg !32
+  ret i32 %7, !dbg !33
+}
+
+debug: 0x0
+Added: 0x561f4a2da8d8
+debug: 0x0
+Added: 0x561f4a2da938
+debug: 0x0
+Added: 0x561f4a2da9b0
+debug: 0x561f4a2daae8
+line number: 33
+Added: 0x561f4a2daa90
+debug: 0x0
+Added: 0x561f4a2dab40
+debug: 0x561f4a2daca8
+line number: 33
+Added: 0x561f4a2dac50
+debug: 0x561f4a2dad38
+line number: 34
+Added: 0x561f4a2dace8
+debug: 0x561f4a2dadc8
+line number: 34
+Added: 0x561f4a2dad78
+debug: 0x561f4a2dadf8
+line number: 34
+Added: 0x561f4a2cf6a0
+debug: 0x561f4a2dae88
+line number: 34
+Added: 0x561f4a2dae38
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @get_foo() #0 !dbg !12 {
+  %1 = alloca i32, align 4
+  %2 = load i32, i32* @get_foo.y, align 4, !dbg !34
+  %3 = add nsw i32 %2, 1, !dbg !34
+  store i32 %3, i32* @get_foo.y, align 4, !dbg !34
+  call void @llvm.dbg.declare(metadata i32* %1, metadata !35, metadata !DIExpression()), !dbg !36
+  %4 = call i32 @baz(), !dbg !37
+  store i32 %4, i32* %1, align 4, !dbg !36
+  %5 = load i32, i32* @get_foo.y, align 4, !dbg !38
+  %6 = load i32, i32* %1, align 4, !dbg !39
+  %7 = call i32 @foo(i32 %5, i32 %6), !dbg !40
+  ret i32 %7, !dbg !41
+}
+
+debug: 0x0
+Added: 0x561f4a2db028
+debug: 0x561f4a2daf58
+line number: 48
+Added: 0x561f4a2db088
+debug: 0x561f4a2daf58
+line number: 48
+Added: 0x561f4a2cf630
+debug: 0x561f4a2daf58
+line number: 48
+Added: 0x561f4a2db100
+debug: 0x561f4a2db268
+line number: 49
+Added: 0x561f4a2db210
+debug: 0x561f4a2db308
+line number: 49
+Added: 0x561f4a2db2a8
+debug: 0x561f4a2db268
+line number: 49
+Added: 0x561f4a2db360
+debug: 0x561f4a2db418
+line number: 50
+Added: 0x561f4a2db3c8
+debug: 0x561f4a2db4a8
+line number: 50
+Added: 0x561f4a2db458
+debug: 0x561f4a2db4d8
+line number: 50
+Added: 0x561f4a2d0558
+debug: 0x561f4a2db568
+line number: 50
+Added: 0x561f4a2db518
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @bar() #0 !dbg !15 {
+  %1 = load i32, i32* @bar.x, align 4, !dbg !42
+  %2 = call i32 @get_foo(), !dbg !43
+  %3 = add nsw i32 %1, %2, !dbg !44
+  %4 = load i32, i32* @bar.x, align 4, !dbg !45
+  %5 = add nsw i32 %4, %3, !dbg !45
+  store i32 %5, i32* @bar.x, align 4, !dbg !45
+  %6 = load i32, i32* @bar.x, align 4, !dbg !46
+  ret i32 %6, !dbg !47
+}
+
+debug: 0x561f4a2db5f8
+line number: 59
+Added: 0x561f4a2db5a8
+debug: 0x561f4a2db698
+line number: 59
+Added: 0x561f4a2db638
+debug: 0x561f4a2db738
+line number: 59
+Added: 0x561f4a2db6f0
+debug: 0x561f4a2db7c8
+line number: 59
+Added: 0x561f4a2db778
+debug: 0x561f4a2db7c8
+line number: 59
+Added: 0x561f4a2db820
+debug: 0x561f4a2db7c8
+line number: 59
+Added: 0x561f4a2db890
+debug: 0x561f4a2db948
+line number: 60
+Added: 0x561f4a2db8f8
+debug: 0x561f4a2db9d8
+line number: 60
+Added: 0x561f4a2db988
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main(i32 %0, i8** %1) #0 !dbg !48 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i8**, align 8
+  store i32 0, i32* %3, align 4
+  store i32 %0, i32* %4, align 4
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !54, metadata !DIExpression()), !dbg !55
+  store i8** %1, i8*** %5, align 8
+  call void @llvm.dbg.declare(metadata i8*** %5, metadata !56, metadata !DIExpression()), !dbg !57
+  %6 = call i32 @bar(), !dbg !58
+  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), i32 %6), !dbg !59
+  ret i32 0, !dbg !60
+}
+
+debug: 0x0
+Added: 0x561f4a2dc298
+debug: 0x0
+Added: 0x561f4a2dc2f8
+debug: 0x0
+Added: 0x561f4a2dc358
+debug: 0x0
+Added: 0x561f4a2dc3d0
+debug: 0x0
+Added: 0x561f4a2dc450
+debug: 0x561f4a2dc558
+line number: 63
+Added: 0x561f4a2dc500
+debug: 0x0
+Added: 0x561f4a2dc5b0
+debug: 0x561f4a2dc718
+line number: 63
+Added: 0x561f4a2dc6c0
+debug: 0x561f4a2dc7b8
+line number: 64
+Added: 0x561f4a2dc758
+debug: 0x561f4a2dc888
+line number: 64
+Added: 0x561f4a2dc828
+debug: 0x561f4a2dc918
+line number: 65
+Added: 0x561f4a2dc8c8
+i32 %0
+i32 %1
+Checking for Global: @baz.z = internal global i32 1, align 4, !dbg !0
+Checking for Global: @get_foo.y = internal global i32 1, align 4, !dbg !10
+Checking for Global: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @get_foo() #0 !dbg !12 {
+  %1 = alloca i32, align 4
+  %2 = load i32, i32* @get_foo.y, align 4, !dbg !34
+  %3 = add nsw i32 %2, 1, !dbg !34
+  store i32 %3, i32* @get_foo.y, align 4, !dbg !34
+  call void @llvm.dbg.declare(metadata i32* %1, metadata !35, metadata !DIExpression()), !dbg !36
+  %4 = call i32 @baz(), !dbg !37
+  store i32 %4, i32* %1, align 4, !dbg !36
+  %5 = load i32, i32* @get_foo.y, align 4, !dbg !38
+  %6 = load i32, i32* %1, align 4, !dbg !39
+  %7 = call i32 @foo(i32 %5, i32 %6), !dbg !40
+  ret i32 %7, !dbg !41
+}
+
+Checking for Global: @bar.x = internal global i32 1, align 4, !dbg !13
+func size: 5
+Finsh adding dependencies
+building PDG takes: 0
+PDG Node size: 54
+BCÀŞ5b0$JY¾fMû´_Q€L!2!#‘AÈI29’„%‹b€EB’BÄ28K
+2bˆHpÄ!#D‡ŒA’dÈ± CFˆ É2b„*(*1|°\‘ ÆÈ‰ 2"ˆ	 d…#¤„#ã„¡LŒŒ„ÄL€Á0G€d„@CTä@G*”$@	†hšH‡•šF
+QY–E5e€Œ´*q”Í€QÄ&øÿÿÿÿp	( ˆqxy‡rz`‡|hyx‡zpr(rhrH{Hr(‡6˜‡xzhs€‡6h‡p tÌ!ØaÊ È!æ!ÄÊ¡è!ÒÚ`ÂØasv˜‡rs‡ph‡rhxx‡tpz(yÂØ Ø¡æaÚä¡Æ!æ¡ÚÀà¡Âsv˜‡rˆvHwhv(‡svh{(‡q ‡w‡6¸‡t z@ÂŞ¡ÒÁÌaÚÀà¡Ú!èsv˜‡rwx‡6P‡zhxhzq`‡r˜ÀÂæ¡ÂŞ¡Ü!ÜaÚÀà¡Ú!èsv˜‡rwx‡6˜‡t8w(rh}(yx‡yhs€‡6h‡p tÌ!ØaÊ ÜáÚ€ä!àÒÁÎ¡Ú!èsv˜‡rˆy ‡p‡uhx‡w ‡rzxyhq¨s0‡r‡6˜‡tĞ‡rğ è!äáÊÚ`à¡|À;h; € ‡p‡s(zhs(‡p ‡z‡r˜`Æğ€ÖÀğaäÖ ÚØ`æaÊÖ`æ¡ä€Öğà¢ÜaÂÁÊ¡ÌÚ ÂĞ0‡p`‡y(€¨‡y(‡6˜‡w0zhs`‡wzÌ!ØaÊØ ÿÿÿÿ?@uôÁuşÿÿÿ ÆáäAÊaèò¡äáêÁÈ¡È¡È!ì!È¡Ú`âAè¡ÌÚ ÂĞ0‡p`‡y(€ ‡t˜‡pv(‡6 ‡pHvhƒqv`‡yÌ!ØaÊ ÌAÂ¡Ê¡àáÒÁè¡äv`€`‡r˜‡yhx‡r‡t˜‡rhs€‡vrÌ!ØaÊ ÜáÚ ÜÁæ¡ÌÚ ÂĞ0‡p`‡y(€p‡whww˜‡60xhƒvz@ÀÂæ¡ÂŞ¡æ!ÎÁÊÚ@ÊAŞaÚÀà¡Ú!èsv˜‡rwx‡6 yx€‡tp‡shƒvz@ÀÂæ¡bè!ÆaÚäáè¡ÆŞAÚ@êÁÌ¡ä¡æ!ô¡<zy8‡r ‡6x¨ğÀÚÀè è!äáÊÚÀÊ!è¡ä¡æXƒqÀ<`ƒ50|˜y`ƒ5h‡vÀ6Xƒy˜‡r`ƒ5˜‡y(9`ƒ5À<¸€¨w˜‡p0‡rhs€‡6h‡p tÌ!ØaÊ êaÊ¡æáÌÚÀØáÂsv˜‡rI‚`B L0|À;ø; ƒ6¨wXwx‡{p‡6`‡tp‡zÀ‡68w¨‡¦PmĞzPmrpp s z0rĞğ wz0r s mrpr v@z`tĞé`t v@m`xzr€màx q`z0r v@m0q x°¢av°‡vpƒv(zrz¥„	!CFŠ	![8Ôä;$ i‚Ø!Ä0L	@À)1ŠJ€€ vHOÒ0°CÂŒc¨ € (€’g$ƒ•AìÈ i‚Ø!¥qW°Czc°$ 
+€5/¬àŠ†€ †T¯0L0¤’è@(€!•8@©Òaˆ 
+`HÅ„@PC*x08 €Ø Px† +2˜LŒ	&GÆCJ€†…ĞU;AïgCmõ´­ô¨ØÂ¡&_ ctÕNĞ£d“¸ûÑU;A5RwMKJd5¶#ÔuDd@6ÔQEC˜¶qÔØCBPZä á}H­Ô0Ô‘(åDâ¸‘ÔØCrPpä aJ]X¦”C!A±“3€Äáf=ˆC8„ÃŒB€yxs˜qæíô€3BÂÁÎ¡f0=ˆC8„ƒÌ=ÈC=Œ=ÌxŒtp{yH‡ppzpvx‡p ‡Ììá0n0ãğğP3ÄŞ!Ø!Âaf0‰;¼ƒ;ĞC9´<¼ƒ<„;Ìğv`{h7h‡rh7€‡p‡p`v(vøvx‡w€‡_‡q‡r˜‡y˜,îğîàõÀì0bÈ¡ä¡Ì¡ä¡ÜaÊ!ÄÊaÖC9ÈC9˜C9ÈC9¸Ã8”C8ˆ;”Ã/¼ƒ<ü‚;Ô;°ÃÇi‡pX‡rpƒthx`‡t‡t ‡ÎSîòPäã@á ìP3 (ÜÁÂAÒ!ÜÜàäáêfQ8°C:œƒ;ÌP$v`{h7`‡wxx˜QLôğP3jÊaè!ŞÁ~ä¡Ì!ğaT…ƒ8ÌÃ;°C=ĞC9üÂ<äC;ˆÃ;°ÃŒÅ
+‡y˜‡w‡tz(r˜\ãìÀåPó0#ÁÒAäáØáŞfH;°ƒ=´ƒ„Ã8ŒC9ÌÃ<¸Á9ÈÃ;Ô<ÌH´qv`q‡qX‡ÛÆì`íàğ å0å öPnã0å0óàéàäPø0CáÚ!æ¡ğÊaèaFÔÙÃ8„;°Ã/ØC:ÌC:ˆC:°C:ĞC>y œrH Cˆ	r2H #Œ‘‘ÑD (d<12B!£Ø02E-ÀÃ0G0¤out.c/home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/multiple-taints-3clang version 10.0.1 (https://github.com/gaps-closure/llvm-project.git 4954dd8b02af91d5e8d4815824208b6004f667a8)barintxget_fooybazzDwarf VersionDebug Info Versionwchar_size¦^0‚¬ÁÀ#@Œ n0‚DSI‡FZŒAd°ÀlL1€†aL%Úhg0g À³1E…Z„A0•th	 ]cpd°ÀlLq)€¦…A0Ô0Úl€0PÌLS€qS`qS@q3÷ÍsdP€P3a0!bÌ08Ë3Ã1ÑƒÔ<3Ãi€ˆˆçäàä ¾€nYh€h ¦À¹ˆÈH`‚rac³ks!;s«%À2bc³ksi{#«c+s1c;›e2(ƒTØØìÚ\ÒÈÊÜèF	Ì`È`nÈ`€nÈ`0©
+r(‡w€zXp˜C=¸Ã8°C9ĞÃ‚æÆ¡èAÂÁæ!è!ŞÁ4ã`çPá ä@á çPôÑÌ<¤ƒ;œ;”= ƒ<”C8Ãa ½0fŠÎ¸ƒ&€a"‚˜0(€1cPxÌÌ^q@@[Àa 6A<"GÈQÄfoo«¤CC@ƒ5@$€6aa°‰5Æ%B Z„Aã!-Â@€	B„@3ÂLD£0l@ÄŒ‚Áu‚ÍaĞ¤Á0#‚`pAq`3EPi$cÆ &€`Ìb¥ €ÀŒA!NÀ3…i1[a +A<ã¡R´8&Á3µ0f
+80*À@`Â6 Ş €	`Äà@.3P–kÆ ˆƒ¤€A0ˆĞ`Æ ˆƒ¦€a‚`Æ ˆƒ¤‚`ÌrU@0f
+9˜*10ƒI„`Æ ¦€f
+9(*ˆ[€a ¥0fŠ=P&1 ƒhfŠ=p&@!ƒb˜	ˆ€1cPìÁ1LÃ„0acÆ àf€f
+>(&ˆ[@a PA,ôP3Ô±0È_ñ0 "GÈQAmaincharargcargv«¤CC@ûƒ8ø@$€ö¤À¢xÚ€Eğ¸(†0ƒ7ØDãÔ@ûƒ0`\"°ÁhğL:˜ xu3ÂLD£0‘)C7Ã„pÀˆÁ€ \j0ÛŒAñÀ°0bp —Ä6cPüÁÆ0b@ Ì  ±Œ‚wE0cP€ÂÀ°ßŒA
+@@[`!1 
+â@Å"q 2"„
+Ğ¸n€™è`|€áe£” v/LXXğ¥½€LLÿÿÿÿ$OOÿÿÿÿ$RRÿÿÿÿ,bbÿÿÿÿ$iiÿÿÿÿ$llÿÿÿÿ$ppÿÿÿÿ$ÿÿÿÿÂÿÿÿÿÕ	ÿÿÿÿ		ÿÿÿÿİÿÿÿÿåÿÿÿÿ$$ÿÿÿÿí)ÿÿÿÿõ/ÿÿÿÿ55ÿÿÿÿÈÈÈÈÈÈ]C”ıbaz.z.str.str.1get_foo.y.str.2.str.3bar.x.str.4.str.5llvm.global.annotationsbazfoollvm.dbg.declareget_foobarmainprintf10.0.1 4954dd8b02af91d5e8d4815824208b6004f667a8x86_64-unknown-linux-gnuout.c.L.strllvm.metadata.L.str.1.L.str.2.L.str.3.L.str.4.L.str.5
+real	0m0.021s
+user	0m0.009s
+sys	0m0.013s

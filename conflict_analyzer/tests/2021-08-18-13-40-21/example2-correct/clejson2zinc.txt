@@ -1,0 +1,49 @@
+3
+['nullLevel', 'orange', 'purple']
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'PURPLE_SHAREABLE', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}}]}}
+Found remote level: orange
+ENTRY
+{'cle-label': 'XDLINKAGE_GET_EWMA', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE', 'PURPLE_SHAREABLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}, {'remotelevel': 'purple', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE', 'PURPLE_SHAREABLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}}
+Found remote level: orange
+Found remote level: purple
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+Found remote level: purple
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'PURPLE_SHAREABLE', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}}]}}
+ENTRY
+{'cle-label': 'XDLINKAGE_GET_EWMA', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE', 'PURPLE_SHAREABLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}, {'remotelevel': 'purple', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE', 'PURPLE_SHAREABLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}}
+[['TAG_REQUEST_GET_EWMA']]
+[['TAG_REQUEST_GET_EWMA']]
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'PURPLE_SHAREABLE_cdf_0', 'nullCdf']
+['nullCdf', 'XDLINKAGE_GET_EWMA_cdf_0', 'XDLINKAGE_GET_EWMA_cdf_1']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'ORANGE_cdf_0']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+Num Function CDFs: 2
+Num CLE Labels: 9
+['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false', 'false']
+['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false', 'false']
+['false', 'true', 'true', 'false', 'false', 'false', 'false', 'false', 'false']
+['false', 'true', 'true', 'false', 'false', 'false', 'false', 'false', 'false']
+[['false', 'false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]
+[['false', 'false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]
+['false', 'true', 'true', 'true', 'true', 'true', 'false', 'false', 'false']
+['false', 'true', 'true', 'true', 'true', 'true', 'false', 'false', 'false']
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7fb1024c0280>, {'cleLabel': ['nullCleLabel', 'PURPLE', 'PURPLE_SHAREABLE', 'XDLINKAGE_GET_EWMA', 'TAG_RESPONSE_GET_EWMA', 'TAG_REQUEST_GET_EWMA', 'ORANGE', 'orangeDFLT', 'purpleDFLT'], 'cdf': ['nullCdf', 'PURPLE_SHAREABLE_cdf_0', 'XDLINKAGE_GET_EWMA_cdf_0', 'XDLINKAGE_GET_EWMA_cdf_1', 'ORANGE_cdf_0'], 'remotelevel': ['None_remotelevel_0'], 'direction': ['None_direction_0'], 'operation': ['None_operation_0']})
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7fb1023d25e0>, {'hasLabelLevel': ['nullLevel', 'purple', 'purple', 'purple', 'nullLevel', 'nullLevel', 'orange', 'orange', 'purple'], 'isFunctionAnnotation': ['false', 'false', 'false', 'true', 'false', 'false', 'false', 'false', 'false'], 'fromCleLabel': ['nullCleLabel', 'PURPLE_SHAREABLE', 'XDLINKAGE_GET_EWMA', 'XDLINKAGE_GET_EWMA', 'ORANGE'], 'hasRemotelevel': ['nullLevel', 'orange', 'orange', 'purple', 'purple'], 'hasDirection': ['nullDirection', 'bidirectional', 'bidirectional', 'bidirectional', 'egress'], 'hasGuardOperation': ['nullGuardOperation', 'allow', 'allow', 'allow', 'allow'], 'isOneway': ['false', 'false', 'false', 'false', 'false'], 'hasfunctaints': ['false'], 'hasargtaints': [[['None']]], 'hascodtaints': [['None']], 'hasrettaints': [['None']], 'hasARCtaints': [['false', 'true', 'true', 'true', 'true', 'true', 'false', 'false', 'false'], ['false', 'true', 'true', 'true', 'true', 'true', 'false', 'false', 'false']], 'cdfForRemoteLevel': [['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'PURPLE_SHAREABLE_cdf_0', 'nullCdf'], ['nullCdf', 'XDLINKAGE_GET_EWMA_cdf_0', 'XDLINKAGE_GET_EWMA_cdf_1'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'ORANGE_cdf_0'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf']], 'hasCodtaints': [['false', 'true', 'true', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'true', 'true', 'false', 'false', 'false', 'false', 'false', 'false']], 'hasRettaints': [['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false', 'false']], 'hasArgtaints': [[['false', 'false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']], [['false', 'false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]]})
+
+real	0m0.049s
+user	0m0.029s
+sys	0m0.020s

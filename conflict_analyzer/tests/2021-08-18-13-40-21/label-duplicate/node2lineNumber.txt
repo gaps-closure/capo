@@ -1,0 +1,29 @@
+1, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 30
+2, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 35
+3, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 35
+4, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 21
+5, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 31
+6, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 36
+7, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 30
+8, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 30
+9, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 30
+10, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 30
+11, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 30
+12, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 31
+13, , , 0
+14, , , 0
+15, , , 0
+16, , , 0
+17, , , 0
+18, , , 0
+19, bar.x, Not Found, -1
+20, foo, /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 18
+21, bar, /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 24
+22, main, /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/out.c, 34
+23, None, Not Found, -1
+24, None, Not Found, -1
+25, None, Not Found, -1
+26, None, Not Found, -1
+27, None, Not Found, -1
+28, None, Not Found, -1
+29, llvm.global.annotations, Not Found, -1

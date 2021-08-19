@@ -1,0 +1,31 @@
+1, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 36
+2, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 41
+3, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 41
+4, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 27
+5, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 37
+6, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 42
+7, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 27
+8, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 36
+9, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 36
+10, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 36
+11, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 36
+12, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 36
+13, , /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 37
+14, , , 0
+15, , , 0
+16, , , 0
+17, , , 0
+18, , , 0
+19, , , 0
+20, foo.x, Not Found, -1
+21, bar.x, Not Found, -1
+22, foo, /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 18
+23, bar, /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 30
+24, main, /home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignment/out.c, 40
+25, None, Not Found, -1
+26, None, Not Found, -1
+27, None, Not Found, -1
+28, None, Not Found, -1
+29, None, Not Found, -1
+30, None, Not Found, -1
+31, llvm.global.annotations, Not Found, -1

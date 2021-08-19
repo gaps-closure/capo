@@ -1,0 +1,27 @@
+[
+  {
+    "cle-label": "PURPLE",
+    "cle-json": {
+      "level": "purple"
+    }
+  },
+  {
+    "cle-label": "ORANGE",
+    "cle-json": {
+      "level": "orange",
+      "cdf": [
+        {
+          "remotelevel": "purple",
+          "direction": "egress",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "rettaints": [
+            "ORANGE",
+            "TAG_RESPONSE_FOO"
+          ]
+        }
+      ]
+    }
+  }
+]

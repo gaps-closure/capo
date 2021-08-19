@@ -1,0 +1,42 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Invalid JSON",
+            "description": "Label 'ORANGE' has incorrect JSON. rettaints is provided but argtaints and codtaints are missing.",
+            "sources": [{
+                "file": "annotated/missing-taints-def.c",
+                "range": {
+                    "start": {
+                        "line": 4,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 11,
+                        "character": 4
+                    }
+                }
+            }],
+            "remedies": [
+                "Add argtaints and codtaints to 'ORANGE'"
+            ]
+        },
+        {
+            "name": "Undefined label",
+            "description": "Label 'ORANGE' has incorrect JSON. rettaints is provided but argtaints and codtaints are missing.",
+            "sources": [{
+                "file": "annotated/invalid-json.c",
+                "range": {
+                    "start": {
+                        "line": 13,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 15,
+                        "character": 22
+                    }
+                }
+            }]
+        }
+    ]
+}

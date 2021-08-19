@@ -1,0 +1,24 @@
+
+MiniZinc: type error: 
+  /home/bflin/gaps/build/apps/conflicts/closure/conflict-analyzer-20210817/conflict_analyzer_constraints.mzn:99:
+  in call 'forall'
+  in array comprehension expression
+    with e = 23
+  in binary '->' operator expression
+  in binary '\/' operator expression
+  in call 'coercible'
+  /home/bflin/gaps/build/apps/conflicts/closure/conflict-analyzer-20210817/conflict_analyzer_constraints.mzn:52:
+  in if-then-else expression
+  /home/bflin/gaps/build/apps/conflicts/closure/conflict-analyzer-20210817/conflict_analyzer_constraints.mzn:59:
+  in binary '/\' operator expression
+  in call 'isInArctaint'
+  /home/bflin/gaps/build/apps/conflicts/closure/conflict-analyzer-20210817/conflict_analyzer_constraints.mzn:49:
+  in if-then-else expression
+  in array access
+  ambiguous overloading on return type of function
+
+
+
+real	0m0.128s
+user	0m0.094s
+sys	0m0.040s

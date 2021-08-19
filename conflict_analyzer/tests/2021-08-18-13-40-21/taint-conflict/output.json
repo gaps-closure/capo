@@ -1,0 +1,25 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Unresolved Data Conflict",
+            "description": "Function 'get_foo' has multiple body taints 'ORANGE' and 'ORANGE_SHAREABLE' but only 'ORANGE' is allowed.",
+            "sources": [{
+                "file": "annotated/taint-conflict.c",
+                "range": {
+                    "start": {
+                        "line": 31,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 33,
+                        "character": 1
+                    }
+                }
+            }],
+            "remedies": [
+                "Add label 'ORANGE_SHAREABLE' to codtaints in 'XD_ORANGE'"
+            ]
+        }
+    ]
+}

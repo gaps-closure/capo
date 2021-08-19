@@ -1,0 +1,55 @@
+FznSubProblem:	hard cons: 315	soft cons: 177	leaves: 177	branches: 201	Built tree in 0.05134 seconds.
+%%%mzn-progress 0.0
+The following constraints are incompatible:
+ NonRetDataTaintSafeOrCoerced:
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=36 ( e=36 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=37 ( e=37 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=38 ( e=38 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=39 ( e=39 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=40 ( e=40 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=41 ( e=41 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=42 ( e=42 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=43 ( e=43 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=44 ( e=44 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=45 ( e=45 )
+ Uncategorised:
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=36 ( e=36 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=37 ( e=37 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=38 ( e=38 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=39 ( e=39 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=40 ( e=40 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=41 ( e=41 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=42 ( e=42 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=43 ( e=43 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=44 ( e=44 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=45 ( e=45 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=46 ( e=46 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=47 ( e=47 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=48 ( e=48 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=49 ( e=49 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=50 ( e=50 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=51 ( e=51 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=52 ( e=52 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=53 ( e=53 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=54 ( e=54 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=55 ( e=55 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=56 ( e=56 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=57 ( e=57 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=58 ( e=58 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=59 ( e=59 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=60 ( e=60 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=61 ( e=61 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=62 ( e=62 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=63 ( e=63 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=64 ( e=64 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=65 ( e=65 )
+  • conflict_analyzer_constraints.mzn|99|55|99|55|e=66 ( e=66 )
+
+%%%mzn-progress 100.00000
+%%%mzn-progress 100.0
+Total Time: 0.16907	nmuses: 1	map:      6	sat:      5	total:     11
+
+
+real	0m0.730s
+user	0m0.556s
+sys	0m0.181s

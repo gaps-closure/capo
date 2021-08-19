@@ -1,0 +1,6 @@
+/home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/label-duplicate/cle_instance.mzn:1.45-50:
+MiniZinc: type error: identifier `ORANGE' already defined
+
+real	0m0.113s
+user	0m0.077s
+sys	0m0.041s
