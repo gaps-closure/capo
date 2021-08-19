@@ -1,8 +1,6 @@
 #!/usr/bin/python3
-# A quick and dirty cle-preprocessor implementation for GAPS-CLOSURE
-#
+
 from   argparse      import ArgumentParser
-from qd_cle_preprocessor import TypeLexer, cle_parser, CLETransformer, validate_cle, cindex_tokenizer
 import json
 import sys
 import os
@@ -57,10 +55,6 @@ def compute_zinc(cleJson):
     arrays["hasDirection"].append("nullDirection")
     arrays["hasGuardOperation"].append("nullGuardOperation")
     arrays["isOneway"].append("false")
-    arrays["has" + 'functaints'].append("false")
-    arrays["has" + 'argtaints'].append([["None"]])
-    arrays["has" + 'codtaints'].append(["None"])
-    arrays["has" + 'rettaints'].append(["None"])
     arrays["hasARCtaints"] = []
     noneCount +=1
     
@@ -187,6 +181,42 @@ def compute_zinc(cleJson):
         arrays['hasLabelLevel'].append(level) 
         arrays['isFunctionAnnotation'].append("false")
         arrays["cdfForRemoteLevel"].append(nullLevel)
+
+    anyFunctionCdfs = False
+    for i in arrays['isFunctionAnnotation']:
+        if i == "true":
+            anyFunctionCdfs = True
+            break
+    
+    if not anyFunctionCdfs:
+        enums["cleLabel"].append("EmptyFunction")
+        arrays['hasLabelLevel'].append("nullLevel") 
+        arrays['isFunctionAnnotation'].append("true")
+        cdfStr = "EmptyFunction_cdf_0"
+        enums["cdf"].append(cdfStr)
+        arrays['fromCleLabel'].append("EmptyFunction")
+        arrays['hasRemotelevel'].append("nullLevel")
+        arrays['hasDirection'].append("nullDirection")
+        arrays['hasGuardOperation'].append("nullGuardOperation")
+        arrays['isOneway'].append("false")
+
+        emptyFunLevel = ["nullCdf" for x in range(len(listOfLevels))]
+        emptyFunLevel[0] = "EmptyFunction_cdf_0"
+        arrays["cdfForRemoteLevel"].append(emptyFunLevel)
+
+        entry = {}
+        entry["cle-label"] = "EmptyFunction"
+        entry["cle-json"] = {}
+        entry["cle-json"]["level"] = "nullLevel"
+        entry["cle-json"]["cdf"] = []
+        cdf = {}
+        cdf["remotelevel"] = "nullLevel"
+        cdf["argtaints"] = []
+        cdf["codtaints"] = []
+        cdf["rettaints"] = []
+        entry["cle-json"]["cdf"].append(cdf)
+        cleJson.append(entry)
+
 
     
     for entry in cleJson:
