@@ -1,8 +1,12 @@
 #!/bin/bash
 
+filename=$1
+extension="${filename##*.}"
+filename="${filename%.*}"
+
 python3.7 ./scripts/qd_cle_preprocessor.py  -L -f $1
 
-clang -c -emit-llvm -g "out.c" -o "./temp.bc"
+clang -c -emit-llvm -g $filename.mod.$extension -o "./temp.bc"
 
 
 
@@ -20,5 +24,5 @@ minizinc --solver findmus --subsolver Gecode --depth 3 --output-json --no-stats 
 
 mv *.txt ./output/
 
-rm out.c
-rm *.bc
+# rm out.c
+# rm *.bc

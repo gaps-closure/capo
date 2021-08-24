@@ -6,7 +6,7 @@ import csv
 
 def main():
     output = []
-    csvfile = open('pdg_data.csv')
+    csvfile = open('./instance/pdg_data.csv')
     pdg_data = csv.reader(csvfile)
     edges = []
     for row in pdg_data:
@@ -14,8 +14,8 @@ def main():
             if row[0] == 'Edge':
                 edges.append((row[6],row[7]))
     print(edges)
-    with open("findmus.txt","r") as fileMus:
-        node2LineNumFile = open("node2lineNumber.txt")
+    with open("./output/findmus.txt","r") as fileMus:
+        node2LineNumFile = open("./output/node2lineNumber.txt")
         nodeIdx2LineNum = node2LineNumFile.readlines()
         data = json.loads("".join(fileMus.readlines()[1:-2]))
         # print (data)

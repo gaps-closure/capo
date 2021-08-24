@@ -126,7 +126,7 @@ def source_transform(infile,ttree,astyle, schema):
   curline = 0
   with open(infile) as inf:
     fn,fe = os.path.splitext(infile)
-    with open("out.c" ,'w') as ouf:
+    with open(fn + '.mod' + fe,'w') as ouf:
       for x in sorted(ttree, key=lambda x: x[1]):
         if x[0] == 'clebegin':
           while curline < x[1] - 1: 
