@@ -4,7 +4,7 @@ import json
 import csv
 
 
-def main():
+def parseFindMUS():
     output = []
     csvfile = open('./instance/pdg_data.csv')
     pdg_data = csv.reader(csvfile)
@@ -40,6 +40,7 @@ def main():
     for error in output:
         print(f"In file {error[0]} on line {error[1]}: {error[2]} conflict found ")
     
+    return output
 
 
 
@@ -48,4 +49,4 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  parseFindMUS()
