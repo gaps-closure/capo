@@ -68,6 +68,12 @@ def compute_zinc(cleJson):
                 break
     print(maxArgIdx)
 
+    fun2ArgCount = {}
+    with open("./functionArgs.txt","r") as funFile:
+        data = funFile.readlines()
+        for d in data:
+            fun2ArgCount[d.split()[0]] = int(d.split()[1])
+
     listOfLevels.append("nullLevel")
     for entry in cleJson:
         if "cle-json" in entry.keys() and "level" in entry["cle-json"].keys():
@@ -224,6 +230,21 @@ def compute_zinc(cleJson):
         print(entry)
         
         #if codtaints is defined, all taints need to be defined
+        if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
+            if "codtaints" in entry["cle-json"]["cdf"][0] or "rettaints" in entry["cle-json"]["cdf"][0] or "argtaints" in entry["cle-json"]["cdf"][0]:
+                if not("codtaints" in entry["cle-json"]["cdf"][0] and "rettaints" in entry["cle-json"]["cdf"][0] and "argtaints" in entry["cle-json"]["cdf"][0]):
+                    print("ERROR! Missing 1 or more function taints!")
+                    return
+
+        if entry["cle-label"] != "EmptyFunction" and entry["cle-label"] in fun2ArgCount.keys():
+            if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
+                if not("codtaints" in entry["cle-json"]["cdf"][0] and "rettaints" in entry["cle-json"]["cdf"][0] and "argtaints" in entry["cle-json"]["cdf"][0]):
+                    print("ERROR! Function Annotation missing function taints!")
+                    return
+            else:
+                print("ERROR! Function Annotation missing CDF!")
+                return
+
         if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]:
             ARCTaint = ["false" if label != entry["cle-label"] else "true" for label in enums["cleLabel"] ]
             for cdf in entry["cle-json"]["cdf"]:
@@ -271,6 +292,10 @@ def compute_zinc(cleJson):
                     taintEntry.append(paramEntry)
                     paramCount +=1
                 
+                if entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < paramCount:
+                    print("ERROR! Function annotation argument mismatch!")
+                    return
+
                 while paramCount < maxArgIdx:
                     paramEntry = []  
                     for label in enums["cleLabel"]:
@@ -281,6 +306,10 @@ def compute_zinc(cleJson):
                 
                 arrays["hasArgtaints"].append(taintEntry)
                 arrays["hasARCtaints"].append(ARCTaint)
+
+    if len(enums["cleLabel"]) > len(set(enums["cleLabel"])):
+        print("Error! Duplicate CLE Lables detected.")
+        return
 
     maxCodTaint = 0
     # maxArgIdx = 0

@@ -3,7 +3,17 @@
 
 opt -load ~/program-dependence-graph/build/libpdg.so -minizinc  < $1
 
+if [[ ! -e "./pdg_instance.mzn" ]]; then
+    echo "Pdg Model Construction Failed!"
+    exit 1
+fi
+
 python3.7 ./scripts/CLEJson2zinc.py -f $2
+
+if [[ ! -e "./cle_instance.mzn" ]]; then
+    echo "CLE Model Construction Failed!"
+    exit 1
+fi
 
 mv *.mzn ./instance/
 mv *.csv ./instance/
