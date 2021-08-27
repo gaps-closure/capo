@@ -1,6 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Utility functions and predicates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+array[PDGNodeIdx] of var Enclave : nodeEnclave;                                  % XXX: move to declarations
+array[PDGNodeIdx] of var Level:    nodeLevel;
+
 predicate isVarNode(var PDGNodeIdx: n)         = (n>=VarNode_start /\ n<=VarNode_end);
 predicate isFunctionEntry(var PDGNodeIdx: n)   = (n>=FunctionEntry_start /\ n<=FunctionEntry_end);
 predicate isInst(var PDGNodeIdx: n)            = (n>=Inst_start /\ n<=Inst_end);
@@ -9,13 +12,13 @@ predicate isAnnotation(var PDGNodeIdx: n)      = (n>=Annotation_start /\ n<=Anno
 predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end);
 predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
 
-function var Enclave: myEnclave(var PDGNodeIdx: n) =
- (if     isVarNode(n)                          then varnodeEnclave[n]
-  elseif isFunctionEntry(n)                    then functionEnclave[n]
-  elseif isInst(n)                             then functionEnclave[hasFunction[n]]
-  elseif isParam(n)                            then functionEnclave[hasFunction[n]]
-  else   nullEnclave                           % cannot assign valid enclave to Annotations, expects nullEnclave defined
-  endif);
+constraint forall (n in FunctionEntry)         (nodeEnclave[n] == functionEnclave[n]);
+constraint forall (n in VarNode)               (nodeEnclave[n] == varnodeEnclave[n]);
+constraint forall (n in Inst)                  (nodeEnclave[n] == nodeEnclave[hasFunction[n]]);
+constraint forall (n in Param)                 (nodeEnclave[n] == nodeEnclave[hasFunction[n]]);
+constraint forall (n in Annotation)            (nodeEnclave[n] == nullEnclave);
+
+function var Enclave: myEnclave(var PDGNodeIdx: n) = nodeEnclave[n];
 
 function var Level: tLevel(var PDGNodeIdx: n)  = (hasLabelLevel[taint[n]]);
 function var Level: eLevel(var PDGNodeIdx: n)  = (hasEnclaveLevel[myEnclave(n)]);
@@ -42,7 +45,6 @@ predicate argtaintSafe(var Parameter: e)       =
   elseif isFunctionAnnotation[taint[hasFunction[hasSource[e]]]] /\  isParam_ActualOut(hasSource[e])
   then hasArgtaints[cdfForRemoteLevel[taint[hasFunction[hasSource[e]]], tLevel(hasDest[e])], hasParamIdx[hasSource[e]], taint[hasDest[e]]]
   else coercible(e)
-  %else false
   endif);
 
 predicate isInArctaint(var cleLabel: fan, var cleLabel: tnt, var Level: lvl) =
@@ -68,7 +70,8 @@ predicate coercible(var DataEdgeNoRetParam: e) =
 constraint :: "VarNodeHasEnclave"              forall (n in VarNode)            (varnodeEnclave[n]!=nullEnclave);
 constraint :: "FunctionHasEnclave"             forall (n in FunctionEntry)      (functionEnclave[n]!=nullEnclave);
 constraint :: "CallInvInCut"                   forall (e in ControlDep_CallInv) (xdcall[e] <-> eCut(e));
-constraint :: "NodeEnclaveAtTaintLevel"        forall (n in NonAnnotation)      (eLevel(n)==tLevel(n));
+constraint :: "NodeLevelAtTaintLevel"          forall (n in NonAnnotation)      (nodeLevel[n] = tLevel(n));
+constraint :: "NodeLevelAtEnclaveLevel"        forall (n in NonAnnotation)      (nodeLevel[n] = eLevel(n));
 constraint :: "FnAnnotationForFnOnly"          forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
 constraint :: "FnAnnotationByUserOnly"         forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
 
@@ -137,6 +140,7 @@ output [" XDCALL   : " ++ "(" ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSour
         | e in ControlDep_CallInv where fix(xdcall[e]==true)] ;
 
 output [if debug then "Label and Enclave assignments to non-annotation nodes:\n" else "" endif];
+
 output [" ASSIGN   : " ++
  show(n) ++ " " ++
  (if     (n>=VarNode_start /\ n<=VarNode_end)              then "VarNode       "
