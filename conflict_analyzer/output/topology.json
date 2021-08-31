@@ -1,0 +1,50 @@
+{
+    "source_path": " Not Found",
+    "levels": [
+        "ORANGE,PURPLE"
+    ],
+    "global_scoped_vars": [
+        {
+            "name": "calc_ewma.c",
+            "level": "purple_E",
+            "line": "-1"
+        },
+        {
+            "name": "get_a.a",
+            "level": "orange_E",
+            "line": "-1"
+        },
+        {
+            "name": "get_b.b",
+            "level": "purple_E",
+            "line": "-1"
+        }
+    ],
+    "functions": [
+        {
+            "name": "calc_ewma",
+            "level": "purple_E",
+            "line": "23"
+        },
+        {
+            "name": "get_a",
+            "level": "orange_E",
+            "line": "32"
+        },
+        {
+            "name": "get_b",
+            "level": "purple_E",
+            "line": "44"
+        },
+        {
+            "name": "ewma_main",
+            "level": "purple_E",
+            "line": "54"
+        },
+        {
+            "name": "main",
+            "level": "purple_E",
+            "line": "71"
+        }
+    ]
+}
