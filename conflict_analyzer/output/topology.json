@@ -1,7 +1,8 @@
 {
-    "source_path": " Not Found",
+    "source_path": "/home/bflin/gaps/capo/conflict_analyzer",
     "levels": [
-        "ORANGE,PURPLE"
+        "purple_E",
+        "orange_E"
     ],
     "global_scoped_vars": [
         {
