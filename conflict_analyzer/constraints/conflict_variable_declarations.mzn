@@ -210,9 +210,15 @@ array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 bool:                                                    debug;
+
 array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
 array[PDGNodeIdx]                     of var Level:      nodeLevel;
 array[PDGNodeIdx]                     of var cleLabel:   taint;
+
+array[PDGEdgeIdx]                     of var Enclave:    esEnclave;
+array[PDGEdgeIdx]                     of var Enclave:    edEnclave;
+array[PDGEdgeIdx]                     of var cleLabel:   esTaint;
+array[PDGEdgeIdx]                     of var cleLabel:   edTaint;
 array[PDGEdgeIdx]                     of var bool:       xdedge;
 array[PDGEdgeIdx]                     of var bool:       tcedge;
 array[PDGEdgeIdx]                     of var bool:       mustCoerce;
