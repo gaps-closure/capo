@@ -63,18 +63,18 @@ predicate coercible(var DataEdgeNoRetParam: e) =
 % Basic constraints on output decision variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "VarNodeHasEnclave"              forall (n in VarNode)            (nodeEnclave[n]!=nullEnclave);
-constraint :: "FunctionHasEnclave"             forall (n in FunctionEntry)      (nodeEnclave[n]!=nullEnclave);
-constraint :: "InstHasEnclave"                 forall (n in Inst)               (nodeEnclave[n]==nodeEnclave[hasFunction[n]]);
-constraint :: "ParamHasEnclave"                forall (n in Param)              (nodeEnclave[n]==nodeEnclave[hasFunction[n]]);
-constraint :: "AnnotationHasNoEnclave"         forall (n in Annotation)         (nodeEnclave[n]==nullEnclave);
+constraint :: "VarNodeHasEnclave"             forall (n in VarNode)            (nodeEnclave[n]!=nullEnclave);
+constraint :: "FunctionHasEnclave"            forall (n in FunctionEntry)      (nodeEnclave[n]!=nullEnclave);
+constraint :: "InstHasEnclave"                forall (n in Inst)               (nodeEnclave[n]==nodeEnclave[hasFunction[n]]);
+constraint :: "ParamHasEnclave"               forall (n in Param)              (nodeEnclave[n]==nodeEnclave[hasFunction[n]]);
+constraint :: "AnnotationHasNoEnclave"        forall (n in Annotation)         (nodeEnclave[n]==nullEnclave);
 
-constraint :: "CallInvInCut"                   forall (e in ControlDep_CallInv) (xdcall[e] <-> eCut(e));
+constraint :: "CallInvInCut"                  forall (e in ControlDep_CallInv) (xdcall[e] <-> eCut(e));
 
-constraint :: "NodeLevelAtTaintLevel"          forall (n in NonAnnotation)      (nodeLevel[n]==tLevel(n));
-constraint :: "NodeLevelAtEnclaveLevel"        forall (n in NonAnnotation)      (nodeLevel[n]==eLevel(n));
-constraint :: "FnAnnotationForFnOnly"          forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
-constraint :: "FnAnnotationByUserOnly"         forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
+constraint :: "NodeLevelAtTaintLevel"         forall (n in NonAnnotation)      (nodeLevel[n]==tLevel(n));
+constraint :: "NodeLevelAtEnclaveLevel"       forall (n in NonAnnotation)      (nodeLevel[n]==eLevel(n));
+constraint :: "FnAnnotationForFnOnly"         forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
+constraint :: "FnAnnotationByUserOnly"        forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Control never leaves enclave except via valid XDC
@@ -88,7 +88,7 @@ constraint :: "XDCallBlest"                   forall (e in ControlDep_CallInv) (
 % Data never leaves enclave except via parameters or return for valid XDC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeNoRet where isAnnotation(hasDest[e])==false) (eSafe(e));
+constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeNoRet) (eSafe(e));
 
 constraint :: "XDCDataReturnAllowed"
  forall (e in DataDepEdge_Ret) (eSafe(e) \/ allowOrRedact(cdfForRemoteLevel[taint[hasSource[e]], tLevel(hasDest[e])]));
