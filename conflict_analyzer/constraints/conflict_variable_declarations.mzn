@@ -195,7 +195,7 @@ array[cdf]                            of cleLabel:       fromCleLabel;
 array[cdf]                            of Level:          hasRemotelevel;
 array[cdf]                            of GuardOperation: hasGuardOperation;
 array[cdf]                            of Direction:      hasDirection;
-array[cdf]                            of bool:           isOneway; % XXX - check in CDF or in label
+array[cdf]                            of bool:           isOneway;
 array[cleLabel, Level]                of cdf:            cdfForRemoteLevel;
 
 set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel[x]]==true };
@@ -206,19 +206,16 @@ array[functionCdf, parmIdx, cleLabel] of bool:           hasArgtaints;
 array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Decision variables to be output by the solver and debug flag
+% Debug flag and decision variables for the solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-array[ControlDep_CallInv]             of var bool:       xdcall;
+bool:                                                    debug;
 array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
 array[PDGNodeIdx]                     of var Level:      nodeLevel;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Auxiliary decision variables used by the solver and debug flag
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 array[PDGNodeIdx]                     of var cleLabel:   taint;
-bool:                                                    debug;
+array[PDGEdgeIdx]                     of var bool:       xdedge;
+array[PDGEdgeIdx]                     of var bool:       tcedge;
+array[PDGEdgeIdx]                     of var bool:       mustCoerce;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
