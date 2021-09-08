@@ -210,8 +210,8 @@ array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 array[ControlDep_CallInv]             of var bool:       xdcall;
-array[VarNode]                        of var Enclave:    varnodeEnclave;
-array[FunctionEntry]                  of var Enclave:    functionEnclave;
+array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
+array[PDGNodeIdx]                     of var Level:      nodeLevel;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Auxiliary decision variables used by the solver and debug flag
