@@ -23,9 +23,6 @@ predicate tCut(var PDGEdgeIdx: e)              = (taint[hasSource[e]]!=taint[has
 predicate eCut(var PDGEdgeIdx: e)              = (nodeEnclave[hasSource[e]]!=nodeEnclave[hasDest[e]]);
 predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
 
-predicate xdcBlest(var ControlDep_CallInv: e)  =
- (if userAnnotatedFunction[hasDest[e]] then allowOrRedact(cdfForRemoteLevel[taint[hasDest[e]], eLevel(hasSource[e])]) else false endif);
-
 predicate rettaintSafe(var DataDepEdge_Ret: e) =
  (if userAnnotatedFunction[hasFunction[hasSource[e]]]
   then hasRettaints[cdfForRemoteLevel[taint[hasFunction[hasSource[e]]], tLevel(hasDest[e])], taint[hasDest[e]]]
@@ -71,8 +68,8 @@ constraint :: "NodeLevelAtEnclaveLevel"       forall (n in NonAnnotation)      (
 constraint :: "FnAnnotationForFnOnly"         forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
 constraint :: "FnAnnotationByUserOnly"        forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
 
-constraint :: "EdgeInEnclaveCut"              forall (e in PDGEdgeIdx)         (xdedge[e] <-> eCut(e));
-constraint :: "EdgeTaintMismatch"             forall (e in PDGEdgeIdx)         (tcedge[e] <-> tCut(e));
+constraint :: "EdgeInEnclaveCut"              forall (e in PDGEdgeIdx)         (xdedge[e]==eCut(e));
+constraint :: "EdgeTaintMismatch"             forall (e in PDGEdgeIdx)         (tcedge[e]==tCut(e));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Control never leaves enclave except via valid XDC
@@ -80,7 +77,11 @@ constraint :: "EdgeTaintMismatch"             forall (e in PDGEdgeIdx)         (
 
 % XXX: broken input, annotations in controldep entry edge
 constraint :: "NonCallControlEnclaveSafe"     forall (e in ControlDep_NonCall where isAnnotation(hasDest[e])==false) (xdedge[e]==false);
-constraint :: "XDCallBlest"                   forall (e in ControlDep_CallInv) (xdedge[e] -> xdcBlest(e)); % XXX: relax for optimization
+
+constraint :: "XDCallBlest"                   forall (e in ControlDep_CallInv) (xdedge[e] -> userAnnotatedFunction[hasDest[e]]);
+
+constraint :: "XDCallAllowed"
+ forall (e in ControlDep_CallInv) (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[taint[hasDest[e]], eLevel(hasSource[e])]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Data never leaves enclave except via parameters or return for valid XDC
@@ -100,9 +101,9 @@ constraint :: "XDCParmAllowed"
 
 constraint :: "MustTaintCoerceEdge"           forall (e in PDGEdgeIdx)      (mustCoerce[e]==(tcedge[e] /\ (xdedge[e]==false)));
 
-constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (mustCoerce[e] -> coercible(e));
-constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (mustCoerce[e] -> rettaintSafe(e));
-constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (mustCoerce[e] -> argtaintSafe(e));
+%constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (mustCoerce[e] -> coercible(e));
+%constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (mustCoerce[e] -> rettaintSafe(e));
+%constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (mustCoerce[e] -> argtaintSafe(e));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
