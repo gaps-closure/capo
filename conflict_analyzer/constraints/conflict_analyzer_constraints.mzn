@@ -1,4 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Flag to include/exclude debug output
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+debug = true;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Utility functions and predicates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -97,18 +103,6 @@ constraint :: "XDCParmAllowed"
 constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (eSafe(e) -> tSafe(e) \/ coercible(e));
 constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (eSafe(e) -> tSafe(e) \/ rettaintSafe(e));
 constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (eSafe(e) -> tSafe(e) \/ argtaintSafe(e));
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Sanity checks, may add more here
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-debug = true;
-
-constraint :: "CallSiteWithinFunctionAndCallsFunctionEntry"
- forall (e in ControlDep_CallInv) (debug==true -> hasFunction[hasSource[e]]!=0 /\ isFunctionEntry(hasDest[e]));
-
-constraint :: "ControlEdgeNonCallMustBeIntraFunction"
- forall (e in ControlDep_NonCall) (debug==true -> hasFunction[hasSource[e]]==hasFunction[hasDest[e]]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
