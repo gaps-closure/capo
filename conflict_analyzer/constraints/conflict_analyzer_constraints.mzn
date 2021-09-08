@@ -15,13 +15,10 @@ predicate isParam(var PDGNodeIdx: n)           = (n>=Param_start /\ n<=Param_end
 predicate isAnnotation(var PDGNodeIdx: n)      = (n>=Annotation_start /\ n<=Annotation_end);
 predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end);
 predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
+predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
 
 function var Level: tLevel(var PDGNodeIdx: n)  = (hasLabelLevel[taint[n]]);
 function var Level: eLevel(var PDGNodeIdx: n)  = (hasEnclaveLevel[nodeEnclave[n]]);
-
-predicate tCut(var PDGEdgeIdx: e)              = (taint[hasSource[e]]!=taint[hasDest[e]]);
-predicate eCut(var PDGEdgeIdx: e)              = (nodeEnclave[hasSource[e]]!=nodeEnclave[hasDest[e]]);
-predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
 
 predicate rettaintSafe(var DataDepEdge_Ret: e) =
  (if userAnnotatedFunction[hasFunction[hasSource[e]]]
