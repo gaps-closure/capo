@@ -101,9 +101,9 @@ constraint :: "XDCParmAllowed"
 
 constraint :: "MustTaintCoerceEdge"           forall (e in PDGEdgeIdx)      (mustCoerce[e]==(tcedge[e] /\ (xdedge[e]==false)));
 
-%constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (mustCoerce[e] -> coercible(e));
-%constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (mustCoerce[e] -> rettaintSafe(e));
-%constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (mustCoerce[e] -> argtaintSafe(e));
+constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (mustCoerce[e] -> coercible(e));
+constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (mustCoerce[e] -> rettaintSafe(e));
+constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (mustCoerce[e] -> argtaintSafe(e));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
