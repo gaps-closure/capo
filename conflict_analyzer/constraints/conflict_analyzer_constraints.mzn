@@ -116,7 +116,7 @@ solve minimize objective;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 output ["Domain assignments for globals:" ++ "\n"];
-output [" GLOBAL   : " ++ show(x) ++ " -> " ++ show(nodeEnclave[x])   ++ "::" ++ show(taint[x]) ++ "\n" | x in Global] ;
+output [" GLOBAL   : " ++ show(x) ++ " -> " ++ show(nodeEnclave[x]) ++ "::" ++ show(taint[x]) ++ "\n" | x in Global] ;
 output ["Domain assignments for functions:" ++ "\n"];
 output [" FUNCTION : " ++ show(x) ++ " -> " ++ show(nodeEnclave[x]) ++ "::" ++ show(taint[x]) ++ "\n" | x in FunctionEntry ] ;
 output ["Cross-domain cut:" ++ "\n"];
@@ -129,7 +129,6 @@ output [" XDCALL   : " ++ "(" ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSour
         | e in ControlDep_CallInv where fix(xdcall[e]==true)] ;
 
 output [if debug then "Label and Enclave assignments to non-annotation nodes:\n" else "" endif];
-
 output [" ASSIGN   : " ++
  show(n) ++ " " ++
  (if     (n>=VarNode_start       /\ n<=VarNode_end)       then "VarNode       "
