@@ -214,6 +214,7 @@ bool:                                                    debug;
 array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
 array[PDGNodeIdx]                     of var Level:      nodeLevel;
 array[PDGNodeIdx]                     of var cleLabel:   taint;
+array[PDGNodeIdx]                     of var cleLabel:   ftaint;
 
 array[PDGEdgeIdx]                     of var Enclave:    esEnclave;
 array[PDGEdgeIdx]                     of var Enclave:    edEnclave;
