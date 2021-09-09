@@ -63,6 +63,9 @@ constraint :: "NodeLevelAtEnclaveLevel"       forall (n in NonAnnotation)      (
 constraint :: "FnAnnotationForFnOnly"         forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
 constraint :: "FnAnnotationByUserOnly"        forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
 
+constraint :: "UnannotatedFunContentTaintMatch"
+ forall (n in NonAnnotation where hasFunction[n]!=0) (userAnnotatedFunction[hasFunction[n]]==false -> taint[n]==taint[hasFunction[n]]);
+
 constraint :: "EdgeSourceEnclave"             forall (e in PDGEdgeIdx)         (esEnclave[e]==nodeEnclave[hasSource[e]]);
 constraint :: "EdgeDestEnclave"               forall (e in PDGEdgeIdx)         (edEnclave[e]==nodeEnclave[hasDest[e]]);
 constraint :: "EdgeInEnclaveCut"              forall (e in PDGEdgeIdx)         (xdedge[e]==(esEnclave[e]!=edEnclave[e]));
@@ -93,7 +96,7 @@ constraint :: "NonCallControlEnclaveSafe"     forall (e in ControlDep_NonCall wh
 constraint :: "XDCallBlest"                   forall (e in ControlDep_CallInv) (xdedge[e] -> userAnnotatedFunction[hasDest[e]]);
 
 constraint :: "XDCallAllowed"
- forall (e in ControlDep_CallInv) (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[taint[hasDest[e]], eLevel(hasSource[e])]));
+ forall (e in ControlDep_CallInv) (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[edTaint[e], hasLabelLevel[esTaint[e]]]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Data never leaves enclave except via parameters or return for valid XDC
@@ -102,10 +105,10 @@ constraint :: "XDCallAllowed"
 constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeNoRet) (xdedge[e]==false);
 
 constraint :: "XDCDataReturnAllowed"
- forall (e in DataDepEdge_Ret) (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[taint[hasSource[e]], tLevel(hasDest[e])]));
+ forall (e in DataDepEdge_Ret) (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[esTaint[e], hasLabelLevel[edTaint[e]]]));
 
 constraint :: "XDCParmAllowed"
- forall (e in Parameter)       (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[taint[hasSource[e]], tLevel(hasDest[e])]));
+ forall (e in Parameter)       (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[esTaint[e], hasLabelLevel[edTaint[e]]]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Labels can only be cooerced inside enclave via parameters or return by noblest functions that are so blest
