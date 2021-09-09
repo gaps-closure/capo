@@ -15,38 +15,14 @@ predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=
 predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
 predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
 
-function var Level: tLevel(var PDGNodeIdx: n)  = (hasLabelLevel[taint[n]]);
-function var Level: eLevel(var PDGNodeIdx: n)  = (hasEnclaveLevel[nodeEnclave[n]]);
-
 predicate sourceAnnotFun(var PDGEdgeIdx: e) =
  (if hasFunction[hasSource[e]]!=0 then userAnnotatedFunction[hasFunction[hasSource[e]]] else false endif);
 
 predicate destAnnotFun(var PDGEdgeIdx: e) =
  (if hasFunction[hasDest[e]]!=0 then userAnnotatedFunction[hasFunction[hasDest[e]]] else false endif);
 
-predicate argtaintSafe(var Parameter: e)       =
- (if userAnnotatedFunction[hasFunction[hasDest[e]]] /\ isParam_ActualIn(hasDest[e])
-  then hasArgtaints[cdfForRemoteLevel[taint[hasFunction[hasDest[e]]], tLevel(hasSource[e])], hasParamIdx[hasDest[e]], taint[hasSource[e]]]
-  elseif userAnnotatedFunction[hasFunction[hasSource[e]]] /\  isParam_ActualOut(hasSource[e])
-  then hasArgtaints[cdfForRemoteLevel[taint[hasFunction[hasSource[e]]], tLevel(hasDest[e])], hasParamIdx[hasSource[e]], taint[hasDest[e]]]
-  else coercible(e)
-  endif);
-
 predicate isInArctaint(var cleLabel: fan, var cleLabel: tnt, var Level: lvl) =
  (if isFunctionAnnotation[fan] then hasARCtaints[cdfForRemoteLevel[fan, lvl], tnt] else false endif);
-
-predicate coercible(var DataEdgeNoRetParam: e) =
- (if (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
-  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]],   tLevel(hasDest[e])) /\
-       isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasSource[e]], tLevel(hasSource[e]))  % source and dest taints okay
-  elseif (isVarNode(hasDest[e]) /\ hasFunction[hasSource[e]]!=0)
-  then isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasDest[e]],   tLevel(hasDest[e])) /\
-       isInArctaint(taint[hasFunction[hasSource[e]]], taint[hasSource[e]], tLevel(hasSource[e]))
-  elseif (isVarNode(hasSource[e]) /\ hasFunction[hasDest[e]]!=0)
-  then isInArctaint(taint[hasFunction[hasDest[e]]],   taint[hasSource[e]], tLevel(hasSource[e])) /\
-       isInArctaint(taint[hasFunction[hasDest[e]]],   taint[hasDest[e]],   tLevel(hasDest[e]))
-  else false
-  endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Basic constraints on output decision variables
@@ -58,8 +34,8 @@ constraint :: "InstHasEnclave"                forall (n in Inst)               (
 constraint :: "ParamHasEnclave"               forall (n in Param)              (nodeEnclave[n]==nodeEnclave[hasFunction[n]]);
 constraint :: "AnnotationHasNoEnclave"        forall (n in Annotation)         (nodeEnclave[n]==nullEnclave);
 
-constraint :: "NodeLevelAtTaintLevel"         forall (n in NonAnnotation)      (nodeLevel[n]==tLevel(n));
-constraint :: "NodeLevelAtEnclaveLevel"       forall (n in NonAnnotation)      (nodeLevel[n]==eLevel(n));
+constraint :: "NodeLevelAtTaintLevel"         forall (n in NonAnnotation)      (nodeLevel[n]==hasLabelLevel[taint[n]]);
+constraint :: "NodeLevelAtEnclaveLevel"       forall (n in NonAnnotation)      (nodeLevel[n]==hasEnclaveLevel[nodeEnclave[n]]);
 constraint :: "FnAnnotationForFnOnly"         forall (n in NonAnnotation)      (isFunctionAnnotation[taint[n]] -> isFunctionEntry(n));
 constraint :: "FnAnnotationByUserOnly"        forall (n in FunctionEntry)      (isFunctionAnnotation[taint[n]] -> userAnnotatedFunction[n]);
 
@@ -95,7 +71,6 @@ constraint :: "DestCdfForSourceLevel"
 
 % XXX: broken input, annotations in controldep entry edge
 constraint :: "NonCallControlEnclaveSafe"     forall (e in ControlDep_NonCall where isAnnotation(hasDest[e])==false) (xdedge[e]==false);
-
 constraint :: "XDCallBlest"                   forall (e in ControlDep_CallInv) (xdedge[e] -> userAnnotatedFunction[hasDest[e]]);
 
 constraint :: "XDCallAllowed"
@@ -105,7 +80,7 @@ constraint :: "XDCallAllowed"
 % Data never leaves enclave except via parameters or return for valid XDC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeNoRet) (xdedge[e]==false);
+constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeNoRet)      (xdedge[e]==false);
 
 constraint :: "XDCDataReturnAllowed"
  forall (e in DataDepEdge_Ret) (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[esTaint[e], hasLabelLevel[edTaint[e]]]));
@@ -117,15 +92,33 @@ constraint :: "XDCParmAllowed"
 % Labels can only be cooerced inside enclave via parameters or return by noblest functions that are so blest
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "MustTaintCoerceEdge"           forall (e in PDGEdgeIdx)      (mustCoerce[e]==(tcedge[e] /\ (xdedge[e]==false)));
+constraint :: "TaintsSafeOrCoerced"           forall (e in DataEdgeParam)      ((tcedge[e] /\ (xdedge[e]==false)) -> coerced[e]);
 
-constraint :: "ReturnTaintSafeOrCoerced"      forall (e in DataDepEdge_Ret) (mustCoerce[e] -> rettaintCoerced[e]);
+constraint :: "ArgumentTaintCoerced"
+ forall (e in Parameter)
+  (if hasFunction[hasDest[e]]!=0 /\ userAnnotatedFunction[hasFunction[hasDest[e]]] /\ isParam_ActualIn(hasDest[e]) /\ hasParamIdx[hasDest[e]]>0
+   then coerced[e] == hasArgtaints[edFunCdf[e], hasParamIdx[hasDest[e]], esTaint[e]]
+   elseif hasFunction[hasSource[e]]!=0 /\ userAnnotatedFunction[hasFunction[hasSource[e]]] /\  isParam_ActualOut(hasSource[e]) /\ hasParamIdx[hasSource[e]]>0
+   then coerced[e] == hasArgtaints[esFunCdf[e], hasParamIdx[hasSource[e]], edTaint[e]]
+   else true 
+   endif);
 
 constraint :: "ReturnTaintCoerced"
- forall (e in DataDepEdge_Ret) (rettaintCoerced[e] == (if sourceAnnotFun(e) then hasRettaints[esFunCdf[e], edTaint[e]] else false endif));
+ forall (e in DataDepEdge_Ret) (coerced[e] == (if sourceAnnotFun(e) then hasRettaints[esFunCdf[e], edTaint[e]] else false endif));
 
-constraint :: "NonRetDataTaintSafeOrCoerced"  forall (e in DataEdgeNoRet)   (mustCoerce[e] -> coercible(e));
-constraint :: "ArgumentTaintSafeOrCoerced"    forall (e in Parameter)       (mustCoerce[e] -> argtaintSafe(e));
+constraint :: "DataTaintCoerced"
+ forall (e in DataEdgeNoRetParam)
+  (if (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
+   then coerced[e] == (isInArctaint(esFunTaint[e], edTaint[e], hasLabelLevel[edTaint[e]]) /\
+                       isInArctaint(esFunTaint[e], esTaint[e], hasLabelLevel[esTaint[e]]))     % source and dest taints okay
+   elseif (isVarNode(hasDest[e]) /\ hasFunction[hasSource[e]]!=0)
+   then coerced[e] == (isInArctaint(esFunTaint[e], edTaint[e], hasLabelLevel[edTaint[e]]) /\
+                       isInArctaint(esFunTaint[e], esTaint[e], hasLabelLevel[esTaint[e]]))
+   elseif (isVarNode(hasSource[e]) /\ hasFunction[hasDest[e]]!=0)
+   then coerced[e] == (isInArctaint(edFunTaint[e], esTaint[e], hasLabelLevel[esTaint[e]]) /\
+                       isInArctaint(edFunTaint[e], edTaint[e], hasLabelLevel[edTaint[e]]))
+   else coerced[e] == false
+   endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective

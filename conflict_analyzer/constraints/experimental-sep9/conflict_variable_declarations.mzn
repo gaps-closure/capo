@@ -167,6 +167,7 @@ set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_CallRet;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
 set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
 set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
+set of int: DataEdgeParam       = DataDepEdge union Parameter;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves
@@ -231,8 +232,7 @@ array[PDGEdgeIdx]                     of var cdf:        edFunCdf;
 array[PDGEdgeIdx]                     of var bool:       xdedge;
 array[PDGEdgeIdx]                     of var bool:       tcedge;
 
-array[PDGEdgeIdx]                     of var bool:       mustCoerce;
-array[DataDepEdge_Ret]                of var bool:       rettaintCoerced;
+array[PDGEdgeIdx]                     of var bool:       coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
