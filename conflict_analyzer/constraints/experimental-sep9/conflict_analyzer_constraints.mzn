@@ -94,8 +94,9 @@ constraint :: "XDCParmAllowed"
 
 constraint :: "TaintsSafeOrCoerced"           forall (e in DataEdgeParam)      ((tcedge[e] /\ (xdedge[e]==false)) -> coerced[e]);
 
+% XXX: do we need something special for Parameter_Field?
 constraint :: "ArgumentTaintCoerced"
- forall (e in Parameter)
+ forall (e in Parameter_In union Parameter_Out)
   (if     destAnnotFun(e)   /\ isParam_ActualIn(hasDest[e])    /\ (hasParamIdx[hasDest[e]]>0)
    then coerced[e] == hasArgtaints[edFunCdf[e], hasParamIdx[hasDest[e]], esTaint[e]]
    elseif sourceAnnotFun(e) /\ isParam_ActualOut(hasSource[e]) /\ (hasParamIdx[hasSource[e]]>0)
