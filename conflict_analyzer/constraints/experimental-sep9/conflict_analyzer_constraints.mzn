@@ -96,9 +96,9 @@ constraint :: "TaintsSafeOrCoerced"           forall (e in DataEdgeParam)      (
 
 constraint :: "ArgumentTaintCoerced"
  forall (e in Parameter)
-  (if hasFunction[hasDest[e]]!=0 /\ userAnnotatedFunction[hasFunction[hasDest[e]]] /\ isParam_ActualIn(hasDest[e]) /\ hasParamIdx[hasDest[e]]>0
+  (if     destAnnotFun(e)   /\ isParam_ActualIn(hasDest[e])    /\ (hasParamIdx[hasDest[e]]>0)
    then coerced[e] == hasArgtaints[edFunCdf[e], hasParamIdx[hasDest[e]], esTaint[e]]
-   elseif hasFunction[hasSource[e]]!=0 /\ userAnnotatedFunction[hasFunction[hasSource[e]]] /\  isParam_ActualOut(hasSource[e]) /\ hasParamIdx[hasSource[e]]>0
+   elseif sourceAnnotFun(e) /\ isParam_ActualOut(hasSource[e]) /\ (hasParamIdx[hasSource[e]]>0)
    then coerced[e] == hasArgtaints[esFunCdf[e], hasParamIdx[hasSource[e]], edTaint[e]]
    else true 
    endif);
