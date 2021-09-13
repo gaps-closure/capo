@@ -133,34 +133,52 @@ def parseFindMUS(mzn_output: str, pdg_csv: Iterable) -> Dict[str, Any]:
     conflicts : List[Dict[str, Any]] = []
     for item in json_out['constraints']:
         if item['assigns'] and item['assigns'] != '':
-            match = re.search(r'e=(\d+)', item['assigns'])
-            assert match is not None
-            edge_num = int(match.group(1))
-            if edge_num >= len(edges) - 1:
-                continue
-            _, source, dest = edges[edge_num - 1]
-            (_, source_src, _, source_line), (_, dest_src, _, dest_line) = nodes[source - 1], nodes[dest - 1]
-            conflicts.append({
-                "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
-                "description": "TODO",
-                "sources": [
-                    { 
-                        "file": source_src, 
-                        "range": { 
-                            "start": { "line": source_line, "character": -1 }, 
-                            "end": { "line": source_line, "character": -1 }, 
-                        },
-                    },                 
-                    {
-                        "file": dest_src,
-                        "range": { 
-                            "start": { "line": dest_line, "character": -1 }, 
-                            "end": { "line": dest_line, "character": -1 }, 
-                        },
-                    }
-                ],
-                "remedies": [],
-            })
+            match = re.search(r'n=(\d+)', item['assigns'])
+            if match is not None:
+                node_num = int(match.group(1))
+                (_, src, _, line) = nodes[node_num - 1] 
+                conflicts.append({
+                    "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
+                    "description": "TODO",
+                    "sources": [
+                        {
+                            "file": src,
+                            "range": {
+                                "start": { "line": line, "character": -1, },
+                                "end": { "line": line, "character": -1, }
+                            }
+                        }
+                    ]
+                })
+            else:
+                match = re.search(r'e=(\d+)', item['assigns'])
+                assert match is not None
+                edge_num = int(match.group(1))
+                if edge_num >= len(edges) - 1:
+                    continue
+                _, source, dest = edges[edge_num - 1]
+                (_, source_src, _, source_line), (_, dest_src, _, dest_line) = nodes[source - 1], nodes[dest - 1]
+                conflicts.append({
+                    "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
+                    "description": "TODO",
+                    "sources": [
+                        { 
+                            "file": source_src, 
+                            "range": { 
+                                "start": { "line": source_line, "character": -1 }, 
+                                "end": { "line": source_line, "character": -1 }, 
+                            },
+                        },                 
+                        {
+                            "file": dest_src,
+                            "range": { 
+                                "start": { "line": dest_line, "character": -1 }, 
+                                "end": { "line": dest_line, "character": -1 }, 
+                            },
+                        }
+                    ],
+                    "remedies": [],
+                })
     return { "result": "Conflict", "conflicts": conflicts }
 
 
