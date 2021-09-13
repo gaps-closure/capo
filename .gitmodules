@@ -1,6 +1,3 @@
 [submodule "llvm-project"]
 	path = llvm-project
 	url = https://github.com/gaps-closure/llvm-project.git
-[submodule "pdg"]
-	path = pdg
-	url = https://github.com/gaps-closure/pdg

@@ -7,3 +7,4 @@ packages
 *.a
 build/scratch/
 scratch
+pdg2/
