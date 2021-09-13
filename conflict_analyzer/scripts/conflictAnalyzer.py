@@ -59,6 +59,8 @@ def main() -> None:
                 'findmus',
                 '--subsolver',
                 'Gecode',
+                '--depth',
+                '3',
                 '--output-json',
                 cle_instance,
                 enclave_instance,

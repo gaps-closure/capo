@@ -4,12 +4,14 @@ import zmq
 import argparse
 import json
 import csv
+import sys
 import re
 from typing import Any, Dict, Iterable, List, Optional, Set
 from pathlib import Path
 
 
 def main() -> None:
+    csv.field_size_limit(sys.maxsize)
     parser = argparse.ArgumentParser(
         description="""
         Parses minizinc output from conflict analyzer
