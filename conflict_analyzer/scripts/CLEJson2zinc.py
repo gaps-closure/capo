@@ -273,12 +273,15 @@ def compute_zinc(cleJson):
                         taintEntry.append("false")
                 arrays["hasRettaints"].append(taintEntry)
                 ARCTaint = [str(a=='true' or b=='true').lower() for a, b in zip(ARCTaint, taintEntry)]
-
+                hasArgFlag = 1
                 # Arg Taints
                 taintEntry = []
                 print(cdf["argtaints"])
                 paramCount = 0
                 for param in cdf["argtaints"]:
+                    if len(param) == 0:
+                        hasArgFlag = 0
+                        break
                     paramEntry = []  
                     for label in enums["cleLabel"]:
                         found = 0
@@ -292,7 +295,7 @@ def compute_zinc(cleJson):
                     taintEntry.append(paramEntry)
                     paramCount +=1
                 
-                if entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < paramCount:
+                if entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < paramCount and hasArgFlag:
                     print("ERROR! Function annotation argument mismatch!")
                     return
 
