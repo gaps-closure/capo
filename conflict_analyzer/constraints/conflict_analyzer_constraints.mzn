@@ -45,6 +45,10 @@ constraint :: "MyFunctionTaint"
 constraint :: "UnannotatedFunContentTaintMatch"
  forall (n in NonAnnotation where hasFunction[n]!=0) (userAnnotatedFunction[hasFunction[n]]==false -> taint[n]==ftaint[n]);
 
+constraint :: "AnnotatedFunContentCoercible"
+ forall (n in NonAnnotation where hasFunction[n]!=0 /\ isFunctionEntry(n)==false) 
+  (userAnnotatedFunction[hasFunction[n]] -> isInArctaint(ftaint[n], taint[n], hasLabelLevel[taint[n]]));
+
 constraint :: "EdgeSourceEnclave"             forall (e in PDGEdgeIdx)         (esEnclave[e]==nodeEnclave[hasSource[e]]);
 constraint :: "EdgeDestEnclave"               forall (e in PDGEdgeIdx)         (edEnclave[e]==nodeEnclave[hasDest[e]]);
 constraint :: "EdgeInEnclaveCut"              forall (e in PDGEdgeIdx)         (xdedge[e]==(esEnclave[e]!=edEnclave[e]));
