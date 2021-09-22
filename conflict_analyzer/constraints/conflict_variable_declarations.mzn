@@ -167,6 +167,7 @@ set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_CallRet;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
 set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
 set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
+set of int: DataEdgeParam       = DataDepEdge union Parameter;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves
@@ -195,7 +196,7 @@ array[cdf]                            of cleLabel:       fromCleLabel;
 array[cdf]                            of Level:          hasRemotelevel;
 array[cdf]                            of GuardOperation: hasGuardOperation;
 array[cdf]                            of Direction:      hasDirection;
-array[cdf]                            of bool:           isOneway; % XXX - check in CDF or in label
+array[cdf]                            of bool:           isOneway;
 array[cleLabel, Level]                of cdf:            cdfForRemoteLevel;
 
 set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel[x]]==true };
@@ -206,19 +207,32 @@ array[functionCdf, parmIdx, cleLabel] of bool:           hasArgtaints;
 array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Decision variables to be output by the solver and debug flag
+% Debug flag and decision variables for the solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-array[ControlDep_CallInv]             of var bool:       xdcall;
-array[VarNode]                        of var Enclave:    varnodeEnclave;
-array[FunctionEntry]                  of var Enclave:    functionEnclave;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Auxiliary decision variables used by the solver and debug flag
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-array[PDGNodeIdx]                     of var cleLabel:   taint;
 bool:                                                    debug;
+
+array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
+array[PDGNodeIdx]                     of var Level:      nodeLevel;
+array[PDGNodeIdx]                     of var cleLabel:   taint;
+array[PDGNodeIdx]                     of var cleLabel:   ftaint;
+
+array[PDGEdgeIdx]                     of var Enclave:    esEnclave;
+array[PDGEdgeIdx]                     of var Enclave:    edEnclave;
+
+array[PDGEdgeIdx]                     of var cleLabel:   esTaint;
+array[PDGEdgeIdx]                     of var cleLabel:   edTaint;
+
+array[PDGEdgeIdx]                     of var cleLabel:   esFunTaint;
+array[PDGEdgeIdx]                     of var cleLabel:   edFunTaint;
+
+array[PDGEdgeIdx]                     of var cdf:        esFunCdf;
+array[PDGEdgeIdx]                     of var cdf:        edFunCdf;
+
+array[PDGEdgeIdx]                     of var bool:       xdedge;
+array[PDGEdgeIdx]                     of var bool:       tcedge;
+
+array[PDGEdgeIdx]                     of var bool:       coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
