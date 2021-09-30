@@ -6,8 +6,9 @@ import json
 import csv
 import sys
 import re
-from typing import Any, Dict, Iterable, List, Optional, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 from pathlib import Path
+import pickle
 
 
 def main() -> None:
@@ -25,6 +26,8 @@ def main() -> None:
                         required=True, help='pdg_data csv')
     parser.add_argument('--zmq', '-z', type=str, nargs='?',
                         help='ZMQ IP Address (tcp://XXX.XXX.XXX.XXX:PORT)')
+    parser.add_argument('--pickle', '-P', type=Path, required=True,
+                        help='Pickle file for source maps')
     parser.add_argument('--output', '-o', type=Path, help='Output file')
 
     args = parser.parse_args()
@@ -33,12 +36,14 @@ def main() -> None:
     pdg_path: Path = args.pdg_data
     zmq_addr: Optional[str] = args.zmq
     output: Optional[Path] = args.output
-
+    pickle_path: Path = args.pickle
+    with open(pickle_path, 'rb') as pickle_f:
+        source_map: Dict[Tuple[str, int], Tuple[str, int]] = pickle.load(pickle_f)
     with open(pdg_path, 'r') as pdg_f:
         pdg_csv = csv.reader(pdg_f, quotechar='"', skipinitialspace=True)
         if out_type == 'assignment':
             with open(file, 'r') as f:
-                result = parseAssignment(f.read(), pdg_csv)
+                result = parseAssignment(f.read(), pdg_csv, source_map)
             topology = result['topology']
             if output:
                 with open(output, 'w') as of:
@@ -53,7 +58,7 @@ def main() -> None:
         elif out_type == 'findmus':
 
             with open(file, 'r') as f:
-                result = parseFindMUS(f.read(), pdg_csv)
+                result = parseFindMUS(f.read(), pdg_csv, source_map)
             conflicts = result['conflicts'] 
             if zmq_addr:
                 context = zmq.Context()
@@ -67,7 +72,7 @@ def main() -> None:
                     of.write(json.dumps(conflicts, indent=4))
 
 
-def parseAssignment(mzn_output: str, pdg_csv: Iterable) -> Dict[str, Any]:
+def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
     pdg_csv = list(pdg_csv)
     
     function_entries : List[Dict[str, str]] = []
@@ -83,14 +88,16 @@ def parseAssignment(mzn_output: str, pdg_csv: Iterable) -> Dict[str, Any]:
         parts = [ s.strip() for s in line.split(" ") if s != '' ]
         node, [enclave, _label] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
         node_, source, llvm, line = nodes[node-1]
+        line_no = int(line)
         source = None if (stripped := source.strip()) == 'Not Found' else stripped
         assert node == node_ 
         match = re.search(r'@((\w|\.)*)', llvm)
         assert match is not None
         name = match.group(1)
         enclaves.add(enclave)
-        entries.append({ "name": name, "level": enclave, "line": line })
-        print(f"{name} is in {enclave}{'' if not source else f' at {source}:{line}'}")
+        source, line_no = source_map[(source, line_no)] if source_map else (source, line_no)
+        entries.append({ "name": name, "level": enclave, "line": str(line_no) })
+        print(f"{name} is in {enclave}{'' if not source else f' at {source}:{str(line_no)}'}")
     
     out = mzn_output.splitlines() 
     for line in out:
@@ -108,7 +115,7 @@ def parseAssignment(mzn_output: str, pdg_csv: Iterable) -> Dict[str, Any]:
 
     return { "result": "Success", "topology": topology } 
 
-def parseFindMUS(mzn_output: str, pdg_csv: Iterable) -> Dict[str, Any]: 
+def parseFindMUS(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
     pdg_csv = list(pdg_csv)
     nodes = sorted(
         [ (int(num), source, llvm, line) for [type_, num, _, _, llvm, *_, source, line, _]  in pdg_csv if type_ == 'Node' ], 
@@ -138,16 +145,18 @@ def parseFindMUS(mzn_output: str, pdg_csv: Iterable) -> Dict[str, Any]:
             match = re.search(r'n=(\d+)', item['assigns'])
             if match is not None:
                 node_num = int(match.group(1))
-                (_, src, _, line) = nodes[node_num - 1] 
+                (_, source, _, line) = nodes[node_num - 1] 
+                line_no = int(line)
+                source, line_no = source_map[(source, line_no)] if source_map else (source, line_no)
                 conflicts.append({
                     "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
                     "description": "TODO",
                     "sources": [
                         {
-                            "file": src,
+                            "file": source,
                             "range": {
-                                "start": { "line": line, "character": -1, },
-                                "end": { "line": line, "character": -1, }
+                                "start": { "line": line_no, "character": -1, },
+                                "end": { "line": line_no, "character": -1, }
                             }
                         }
                     ]
@@ -158,24 +167,28 @@ def parseFindMUS(mzn_output: str, pdg_csv: Iterable) -> Dict[str, Any]:
                 edge_num = int(match.group(1))
                 if edge_num >= len(edges) - 1:
                     continue
-                _, source, dest = edges[edge_num - 1]
-                (_, source_src, _, source_line), (_, dest_src, _, dest_line) = nodes[source - 1], nodes[dest - 1]
+                _, first, second  = edges[edge_num - 1]
+                (_, first_source, _, first_line), (_, second_source, _, second_line) = nodes[first - 1], nodes[second - 1]
+                first_line_no = int(first_line)
+                second_line_no = int(second_line)
+                first_source, first_line_no = source_map[(first_source, first_line_no)] if source_map else (first_source, first_line_no)
+                second_source, second_line_no = source_map[(second_source, second_line_no)] if source_map else (second_source, second_line_no)
                 conflicts.append({
                     "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
-                    "description": "TODO",
+                    "description": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
                     "sources": [
                         { 
-                            "file": source_src, 
+                            "file": first_source, 
                             "range": { 
-                                "start": { "line": source_line, "character": -1 }, 
-                                "end": { "line": source_line, "character": -1 }, 
+                                "start": { "line": first_line_no, "character": 0 }, 
+                                "end": { "line": first_line_no, "character": 1 }, 
                             },
                         },                 
                         {
-                            "file": dest_src,
+                            "file": second_source,
                             "range": { 
-                                "start": { "line": dest_line, "character": -1 }, 
-                                "end": { "line": dest_line, "character": -1 }, 
+                                "start": { "line": second_line_no, "character": 0 }, 
+                                "end": { "line": second_line_no, "character": 1 }, 
                             },
                         }
                     ],
