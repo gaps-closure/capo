@@ -183,14 +183,14 @@ def parseFindMUS(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[T
                     "description": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
                     "sources": [
                         { 
-                            "file": first_source, 
+                            "file": str(first_source), 
                             "range": { 
                                 "start": { "line": first_line_no, "character": 0 }, 
                                 "end": { "line": first_line_no, "character": 1 }, 
                             },
                         },                 
                         {
-                            "file": second_source,
+                            "file": str(second_source),
                             "range": { 
                                 "start": { "line": second_line_no, "character": 0 }, 
                                 "end": { "line": second_line_no, "character": 1 }, 
