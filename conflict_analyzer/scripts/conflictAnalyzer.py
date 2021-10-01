@@ -8,7 +8,8 @@ import argparse
 import json
 import parseMZN
 from pathlib import Path
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Dict, Tuple
+import pickle
 
 
 def main() -> None:
@@ -23,6 +24,7 @@ def main() -> None:
     parser.add_argument('--pdg-instance','-p', type=Path, help='PDG instance', required=True)
     parser.add_argument('--pdg-data','-pd', type=Path, help='PDG data csv', required=True)
     parser.add_argument('--constraints-dir','-cd', type=Path, help='PDG data csv', default=Path('/opt/closure/scripts/constraints'))
+    parser.add_argument('--pickle','-P', type=Path, required=True, help='Pickle source map')
     parser.add_argument('--output-dir','-o', type=Path, help='Output directory', default=Path('.'))
     parser.add_argument('--zmq','-z', type=str, 
                     help='ZMQ IP Address (tcp://XXX.XXX.XXX.XXX:PORT)')
@@ -35,8 +37,12 @@ def main() -> None:
     constraints_dir : Path = args.constraints_dir
     output_dir : Path = args.output_dir
     zmq_addr : Optional[str] = args.zmq
+    pickle_path : Path = args.pickle
     
     constraint_files = [ constraints_dir / file for file in list(os.walk(constraints_dir))[0][2] if file.endswith('.mzn') ]
+
+    with open(pickle_path, 'rb') as pickle_f:
+        source_map: Dict[Tuple[str, int], Tuple[str, int]] = pickle.load(pickle_f)
 
     with open(pdg_data_path, 'r') as pdg_f:
         pdg_data_csv = csv.reader(pdg_f, quotechar='"', skipinitialspace=True)
@@ -71,7 +77,7 @@ def main() -> None:
             if findmus_res.stderr.strip() != '':
                 print(findmus_res.stderr)
             else:
-                result = parseMZN.parseFindMUS(findmus_res.stdout, pdg_data_csv)
+                result = parseMZN.parseFindMUS(findmus_res.stdout, pdg_data_csv, source_map)
                 conflicts = result['conflicts']
                 with open(output_dir / 'conflicts.json', 'w') as conflicts_f:
                    conflicts_f.write(json.dumps(conflicts, indent=4)) 
@@ -82,7 +88,7 @@ def main() -> None:
                     socket.send_string(json.dumps(result))
                     print(f"Result sent to {zmq_addr}")
         else:
-            result = parseMZN.parseAssignment(minizinc_res.stdout, pdg_data_csv)
+            result = parseMZN.parseAssignment(minizinc_res.stdout, pdg_data_csv, source_map)
             topology = result['topology']
             with open(output_dir / 'topology.json', 'w') as topology_f:
                 topology_f.write(json.dumps(topology, indent=4)) 
