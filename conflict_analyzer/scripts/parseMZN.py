@@ -74,7 +74,8 @@ def main() -> None:
 
 def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
     pdg_csv = list(pdg_csv)
-    
+    if source_map:
+        source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
     function_entries : List[Dict[str, str]] = []
     global_var_entries : List[Dict[str, str]] = []
     enclaves : Set[str] = set() 
@@ -95,7 +96,7 @@ def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dic
         assert match is not None
         name = match.group(1)
         enclaves.add(enclave)
-        source, line_no = source_map[(source, line_no)] if source_map else (source, line_no)
+        source, line_no = source_map_resolved[(Path(source).resolve(), line_no)] if source_map else (source, line_no)
         entries.append({ "name": name, "level": enclave, "line": str(line_no) })
         print(f"{name} is in {enclave}{'' if not source else f' at {source}:{str(line_no)}'}")
     
@@ -117,6 +118,10 @@ def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dic
 
 def parseFindMUS(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
     pdg_csv = list(pdg_csv)
+
+    if source_map:
+        source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
+
     nodes = sorted(
         [ (int(num), source, llvm, line) for [type_, num, _, _, llvm, *_, source, line, _]  in pdg_csv if type_ == 'Node' ], 
         key=lambda x: x[0]
@@ -171,8 +176,8 @@ def parseFindMUS(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[T
                 (_, first_source, _, first_line), (_, second_source, _, second_line) = nodes[first - 1], nodes[second - 1]
                 first_line_no = int(first_line)
                 second_line_no = int(second_line)
-                first_source, first_line_no = source_map[(first_source, first_line_no)] if source_map else (first_source, first_line_no)
-                second_source, second_line_no = source_map[(second_source, second_line_no)] if source_map else (second_source, second_line_no)
+                first_source, first_line_no = source_map_resolved[(Path(first_source).resolve(), first_line_no)] if source_map else (first_source, first_line_no)
+                second_source, second_line_no = source_map_resolved[(Path(second_source).resolve(), second_line_no)] if source_map else (second_source, second_line_no)
                 conflicts.append({
                     "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
                     "description": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
