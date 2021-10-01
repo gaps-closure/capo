@@ -87,6 +87,7 @@ def compute_zinc(cleJson):
     listOfLevels.remove("nullLevel")
     listOfLevels.insert(0,"nullLevel")
     nullLevel = ["nullCdf" for x in range(len(listOfLevels))]
+    # TODO: Need to check that for each CDF there is exactly one entry and if not raise an error.
     arrays["cdfForRemoteLevel"].append(nullLevel)
     print(listOfLevels)
 
@@ -295,7 +296,8 @@ def compute_zinc(cleJson):
                     taintEntry.append(paramEntry)
                     paramCount +=1
                 
-                if entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < paramCount and hasArgFlag:
+
+                if entry["cle-label"] in fun2ArgCount.keys() and entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < paramCount and hasArgFlag:
                     print("ERROR! Function annotation argument mismatch!")
                     return
 
