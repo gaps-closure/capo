@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from conflict_analyzer.compile import compile_c, opt
 from conflict_analyzer.minizinc import minizinc
 from conflict_analyzer.preprocessor import Transform
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import conflict_analyzer.preprocessor as preprocessor
 import tempfile
 import conflict_analyzer.clejson2zinc as clejson2zinc
@@ -15,8 +15,9 @@ class Args:
     sources: List[Path]
     temp_dir: Path
     clang_args: List[str]
+    schema: Optional[Path]
 
-def preprocess(source: Path, clang_args: List[str]) -> Transform:
+def preprocess(source: Path, clang_args: List[str], schema: Optional[Any]) -> Transform:
     toks = preprocessor.cindex_tokenizer(source, clang_args)
     tree = preprocessor.cle_parser().parser.parse(toks)
     tree = preprocessor.CLETransformer().transform(tree)
@@ -52,9 +53,16 @@ def main() -> None:
     parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
     parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
     parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, nargs="*", required=False, default=[])
+    parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
     args = parser.parse_args(namespace=Args)
+    schema = None
+
+    if args.schema:
+        with open(args.schema) as schema_f:
+            schema = json.loads(schema_f.read())
+
     def make_source_entity(source: Path) -> SourceEntity:
-        transform = preprocess(source, args.clang_args)
+        transform = preprocess(source, args.clang_args, schema)
         return SourceEntity(source, transform.preprocessed, transform.cle_json, transform.source_map) 
 
     entities = [ make_source_entity(source) for source in args.sources ]
