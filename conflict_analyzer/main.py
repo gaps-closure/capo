@@ -16,6 +16,8 @@ class Args:
     temp_dir: Path
     clang_args: List[str]
     schema: Optional[Path]
+    pdg_lib: Path
+    constraint_files: List[Path]
 
 def preprocess(source: Path, clang_args: List[str], schema: Optional[Any]) -> Transform:
     toks = preprocessor.cindex_tokenizer(source, clang_args)
@@ -49,11 +51,18 @@ def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tup
 
 
 def main() -> None: 
+    constraints_def = Path('/opt/closure/scripts/constraints/conflict_analyzer_constraints.mzn') 
+    decls_def = Path('/opt/closure/scripts/constraints/conflict_variable_declarations.mzn') 
+
     parser = argparse.ArgumentParser("Conflict Analyzer") 
     parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
     parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
     parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, nargs="*", required=False, default=[])
     parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
+    parser.add_argument('--pdg-lib', help="Path to pdg lib", 
+        type=Path, required=False, default=Path('/opt/closure/lib/libpdg.so'))
+    parser.add_argument('--constraint-files', help="Path to constraint files", 
+        type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
     args = parser.parse_args(namespace=Args)
     schema = None
 
@@ -68,12 +77,10 @@ def main() -> None:
     entities = [ make_source_entity(source) for source in args.sources ]
     collated = collate_json([ entity.cle_json for entity in entities ])
     bitcode = compile_c([ (entity.path.name, entity.preprocessed) for entity in entities ], args.temp_dir, args.clang_args)
-    opt_out = opt(Path('/opt/closure/lib/libpdg.so'), bitcode, args.temp_dir) 
+    opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
     zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance) 
-    constraints = Path('/opt/closure/scripts/constraints/conflict_analyzer_constraints.mzn') 
-    decls = Path('/opt/closure/scripts/constraints/conflict_variable_declarations.mzn') 
     collated_map = collate_source_map(entities, args.temp_dir) 
-    out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, [constraints, decls], opt_out.pdg_csv, collated_map) 
+    out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map) 
     print(json.dumps(out, indent=2))
 
 
