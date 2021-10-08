@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # A quick and dirty cle-preprocessor implementation for GAPS-CLOSURE
 #
+from logging import Logger
 from typing import Any, Dict, List, Literal
 from clang.cindex  import Index, TokenKind
 from lark.lexer    import Lexer, Token
@@ -105,16 +106,15 @@ class CLETransformer(Transformer):
   def cleend(self, items):   return [['cleend'] + items]
   def cleappnl(self, items): return [['cleappnl'] + items]
 
-def validate_cle(tree_entry, schema):
+def validate_cle(tree_entry, schema, logger: Logger):
   """validate the CLE entry is valid against the shcema"""
   try:
     jsonschema.validate(tree_entry[4],schema)
   except Exception as e:
-    print("")
-    print("Error parsing CLE on line %d for %s"%(tree_entry[1],tree_entry[3]))
-    raise
-  print("CLE line %d (%s) is valid"%(tree_entry[1],tree_entry[3]))
-  return(tree_entry[4])
+    logger.error("Error parsing CLE on line %d for %s",  tree_entry[1], tree_entry[3], exc_info=e)
+    raise e
+  logger.info("CLE line %d (%s) is valid", tree_entry[1],tree_entry[3])
+  return tree_entry[4]
 
 @dataclass
 class Transform:
@@ -123,12 +123,12 @@ class Transform:
   cle_json: List[Dict[str, Any]]
 
 # Based on transformed tree create modified source and mappings file
-def source_transform(source: str, ttree, astyle: str, schema) -> Transform:
+def source_transform(source: str, ttree, astyle: str, schema, logger: Logger) -> Transform:
   if(schema is None):
     #schema check is disabled
     defs = [{"cle-label": x[3], "cle-json": x[4]} for x in ttree if x[0] == 'cledef']
   else:
-    defs = [{"cle-label": x[3], "cle-json": validate_cle(x,schema)} for x in ttree if x[0] == 'cledef']
+    defs = [{"cle-label": x[3], "cle-json": validate_cle(x,schema, logger)} for x in ttree if x[0] == 'cledef']
 
   curline = 0
   offset = 0

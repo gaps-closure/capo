@@ -8,10 +8,11 @@ import argparse
 import json
 import re
 from pathlib import Path
+from logging import Logger
 from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, Union
 
 def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_instance: str, constraint_files: List[Path], 
-    pdg_csv: list, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> Dict[str, Any]:
+    pdg_csv: list, source_map: Dict[Tuple[str, int], Tuple[str, int]], logger: Logger) -> Dict[str, Any]:
     cle_instance_path, pdg_instance_path, enclave_instance_path = \
         tuple([ temp_dir / name for name in ['cle_instance.mzn', 'pdg_instance.mzn', 'enclave_instance.mzn']])
     with open(cle_instance_path, 'w') as f:
@@ -50,13 +51,13 @@ def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_insta
         findmus_out = subprocess.run(findmus_args, capture_output=True, encoding='utf-8')
         if findmus_out.stderr.strip() != '' or findmus_out.returncode != 0:
             raise Exception("minizinc failure", findmus_out)         
-        return parse_findmus(findmus_out.stdout, pdg_csv, source_map)
+        return parse_findmus(findmus_out.stdout, pdg_csv, logger, source_map)
     else:
-        return parse_assignment(mzn_out.stdout, pdg_csv, source_map)
+        return parse_assignment(mzn_out.stdout, pdg_csv, logger, source_map)
 
         
 
-def parse_assignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
+def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
     pdg_csv = list(pdg_csv)
     if source_map:
         source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
@@ -69,7 +70,7 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Di
         key=lambda x: x[0]
     )
 
-    def add_entry(line: str, entries: List[Dict[str, str]]) -> None:
+    def add_entry(line: str, entries: List[Dict[str, str]], entry_type: str) -> None:
         parts = [ s.strip() for s in line.split(" ") if s != '' ]
         node, [enclave, _label] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
         node_, source, llvm, line = nodes[node-1]
@@ -82,14 +83,14 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Di
         enclaves.add(enclave)
         source, line_no = source_map_resolved[(Path(source).resolve(), line_no)] if source_map else (source, line_no)
         entries.append({ "name": name, "level": enclave, "line": str(line_no) })
-        print(f"{name} is in {enclave}{'' if not source else f' at {source}:{str(line_no)}'}")
+        logger.info(f"{entry_type} {name} is in {enclave}{'' if not source else f' @ {source}:{str(line_no)}'}")
     
     out = mzn_output.splitlines() 
     for line in out:
         if line.find('FunctionEntry') != -1:
-            add_entry(line, function_entries)
+            add_entry(line, function_entries, 'function')
         elif line.find('VarNode') != -1:
-            add_entry(line, global_var_entries)
+            add_entry(line, global_var_entries, 'variable')
          
     topology = {
         "source_path": str(Path('.').resolve()), # provisional, not sure what is correct here
@@ -100,7 +101,7 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Di
 
     return { "result": "Success", "topology": topology } 
 
-def parse_findmus(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
+def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
     pdg_csv = list(pdg_csv)
 
     if source_map:

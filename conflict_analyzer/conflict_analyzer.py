@@ -2,13 +2,16 @@ import argparse
 import json
 from pathlib import Path
 from dataclasses import dataclass
+from typing import Any, Dict, List, Literal, Optional, Tuple
+from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
 from conflict_analyzer.minizinc import minizinc
 from conflict_analyzer.preprocessor import Transform
-from typing import Any, Dict, List, Optional, Tuple
 import conflict_analyzer.preprocessor as preprocessor
-import tempfile
 import conflict_analyzer.clejson2zinc as clejson2zinc
+import tempfile
+import logging
+import sys
 
 @dataclass
 class Args:
@@ -18,13 +21,14 @@ class Args:
     schema: Optional[Path]
     pdg_lib: Path
     constraint_files: List[Path]
+    log_level: str 
 
-def preprocess(source: Path, clang_args: List[str], schema: Optional[Any]) -> Transform:
+def preprocess(source: Path, clang_args: List[str], schema: Optional[Any], logger: Logger) -> Transform:
     toks = preprocessor.cindex_tokenizer(source, clang_args)
     tree = preprocessor.cle_parser().parser.parse(toks)
     tree = preprocessor.CLETransformer().transform(tree)
     with open(source) as source_f:
-        transform = preprocessor.source_transform(source_f.read(), tree, 'naive', None)
+        transform = preprocessor.source_transform(source_f.read(), tree, 'naive', None, logger)
     return transform
 
 def collate_json(jsons: List[List[Dict[str, Any]]]) -> List[Dict[str, Any]]: 
@@ -36,7 +40,7 @@ def collate_json(jsons: List[List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
 
 @dataclass
 class SourceEntity:
-    path: Path
+    source_path: Path
     preprocessed: str
     cle_json: List[Dict[str, Any]]
     source_map: Dict[int, int]
@@ -46,7 +50,7 @@ def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tup
     src_map = {}
     for entity in entities:
         for key in entity.source_map:
-            src_map[(str(temp_dir / entity.path.name), key)] = (str(entity.path), entity.source_map[key])
+            src_map[(str(temp_dir / entity.source_path.name), key)] = (str(entity.source_path), entity.source_map[key])
     return src_map
 
 
@@ -63,24 +67,49 @@ def main() -> None:
         type=Path, required=False, default=Path('/opt/closure/lib/libpdg.so'))
     parser.add_argument('--constraint-files', help="Path to constraint files", 
         type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
+    parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args)
     schema = None
 
+    log_level_map = {
+        "INFO": logging.INFO,
+        "DEBUG": logging.DEBUG,
+        "ERROR": logging.ERROR
+    }
+    logger = logging.getLogger()
+    handler = logging.StreamHandler(sys.stderr)
+    formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
+    handler.setFormatter(formatter)
+    level = log_level_map[args.log_level]
+    logger.setLevel(level)
+    logger.addHandler(handler)
+    logger.info("Set up logger with log level %s", logging.getLevelName(level))
     if args.schema:
         with open(args.schema) as schema_f:
             schema = json.loads(schema_f.read())
+            logger.info("Schema found at %s", args.schema) 
+    else:
+        logger.info("No schema provided, using liberal mode in preprocessor") 
 
     def make_source_entity(source: Path) -> SourceEntity:
-        transform = preprocess(source, args.clang_args, schema)
+        transform = preprocess(source, args.clang_args, schema, logger)
+        logger.info("Preprocessed source file %s", source)
         return SourceEntity(source, transform.preprocessed, transform.cle_json, transform.source_map) 
 
     entities = [ make_source_entity(source) for source in args.sources ]
     collated = collate_json([ entity.cle_json for entity in entities ])
-    bitcode = compile_c([ (entity.path.name, entity.preprocessed) for entity in entities ], args.temp_dir, args.clang_args)
+    logger.info("Collated JSON")
+    logger.debug("%s", json.dumps(collated, indent=2))
+    bitcode = compile_c([ (entity.source_path.name, entity.preprocessed) for entity in entities ], args.temp_dir, args.clang_args)
+    logger.info("Compiled c files into LLVM IR")
     opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
-    zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance) 
+    logger.info("Produced pdg related data from opt")
+    zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, logger) 
+    logger.info("Produced minizinc enclave and cle instances")
     collated_map = collate_source_map(entities, args.temp_dir) 
-    out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map) 
+    logger.info("Collated source maps")
+    out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map, logger) 
+    logger.info("Produced JSON result from minizinc")
     print(json.dumps(out, indent=2))
 
 

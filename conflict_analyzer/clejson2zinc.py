@@ -8,6 +8,7 @@ import os
 import os.path
 from collections import defaultdict
 from typing import Any, Dict, List
+from logging import Logger
 
 
 output_order_enums = [
@@ -38,7 +39,7 @@ class ZincSrc:
     cle_instance: str
     enclave_instance: str
 
-def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance: str) -> ZincSrc:
+def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance: str, logger: Logger) -> ZincSrc:
     hasCDF = []
     hasArgTaints = []
     listOfLevels = []
@@ -71,7 +72,7 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
         if 'MaxFuncParms' in d:
             maxArgIdx = int(d.split()[-1][:-1])
             break
-    print(maxArgIdx)
+    logger.debug(maxArgIdx)
 
     fun2ArgCount = {}
     data = function_args.splitlines()
@@ -93,12 +94,12 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
     nullLevel = ["nullCdf" for x in range(len(listOfLevels))]
     # TODO: Need to check that for each CDF there is exactly one entry and if not raise an error.
     arrays["cdfForRemoteLevel"].append(nullLevel)
-    print(listOfLevels)
+    logger.debug(listOfLevels)
 
     for entry in cleJson:
         CDF_flag = False
-        print("ENTRY")
-        print(entry)
+        logger.debug("ENTRY")
+        logger.debug(entry)
         
 
         enums["cleLabel"].append(entry["cle-label"])
@@ -125,7 +126,7 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
                         if cdf["remotelevel"] == j:
                             CDFforEntry.append(cdfStr)
                             temp = cdf["remotelevel"]
-                            print(f"Found remote level: {j}")
+                            logger.debug(f"Found remote level: {j}")
                             found = 1
                     cdfIdx+=1
             if found == 0:
@@ -231,24 +232,24 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
 
     
     for entry in cleJson:
-        print("ENTRY")
-        print(entry)
+        logger.debug("ENTRY")
+        logger.debug(entry)
         
         #if codtaints is defined, all taints need to be defined
         if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
             if "codtaints" in entry["cle-json"]["cdf"][0] or "rettaints" in entry["cle-json"]["cdf"][0] or "argtaints" in entry["cle-json"]["cdf"][0]:
                 if not("codtaints" in entry["cle-json"]["cdf"][0] and "rettaints" in entry["cle-json"]["cdf"][0] and "argtaints" in entry["cle-json"]["cdf"][0]):
-                    print("ERROR! Missing 1 or more function taints!")
-                    return
+                    logger.error("Missing 1 or more function taints!")
+                    raise
 
         if entry["cle-label"] != "EmptyFunction" and entry["cle-label"] in fun2ArgCount.keys():
             if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
                 if not("codtaints" in entry["cle-json"]["cdf"][0] and "rettaints" in entry["cle-json"]["cdf"][0] and "argtaints" in entry["cle-json"]["cdf"][0]):
-                    print("ERROR! Function Annotation missing function taints!")
-                    return
+                    logger.error("Function Annotation missing function taints!")
+                    raise
             else:
-                print("ERROR! Function Annotation missing CDF!")
-                return
+                logger.error("Function Annotation missing CDF!")
+                raise
 
         if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]:
             ARCTaint = ["false" if label != entry["cle-label"] else "true" for label in enums["cleLabel"] ]
@@ -281,7 +282,7 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
                 hasArgFlag = 1
                 # Arg Taints
                 taintEntry = []
-                print(cdf["argtaints"])
+                logger.debug(cdf["argtaints"])
                 paramCount = 0
                 for param in cdf["argtaints"]:
                     if len(param) == 0:
@@ -302,8 +303,8 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
                 
 
                 if entry["cle-label"] in fun2ArgCount.keys() and entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < paramCount and hasArgFlag:
-                    print("ERROR! Function annotation argument mismatch!")
-                    return
+                    logger.error("ERROR! Function annotation argument mismatch!")
+                    raise
 
                 while paramCount < maxArgIdx:
                     paramEntry = []  
@@ -317,8 +318,8 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
                 arrays["hasARCtaints"].append(ARCTaint)
 
     if len(enums["cleLabel"]) > len(set(enums["cleLabel"])):
-        print("Error! Duplicate CLE Lables detected.")
-        return
+        logger.error("Error! Duplicate CLE Lables detected.")
+        raise
 
     maxCodTaint = 0
     # maxArgIdx = 0
@@ -459,7 +460,7 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
 
     cle_instance += (f"cdfForRemoteLevel = [|\n ")
     for row in arrays["cdfForRemoteLevel"]:
-        print(row)
+        logger.debug(row)
         first = True
         for j in row:
             if first:
@@ -471,15 +472,15 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
     cle_instance += ("]; \n")
 
     numFunctionCDFS = len(arrays["hasRettaints"])
-    print(f"Num Function CDFs: {numFunctionCDFS}")
+    logger.debug(f"Num Function CDFs: {numFunctionCDFS}")
     numCleLabels = len(enums["cleLabel"])
-    print(f"Num CLE Labels: {numCleLabels}")
+    logger.debug(f"Num CLE Labels: {numCleLabels}")
 
 
     cle_instance += (f"hasRettaints = array2d(functionCdf, cleLabel, [\n ")
     first = True
     for row in arrays["hasRettaints"]:
-        print(row)
+        logger.debug(row)
         for j in row:
             if j == "true":
                 j = "true "
@@ -495,13 +496,13 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
         for j in i:
             numElts+=1
     if numFunctionCDFS * numCleLabels != numElts:
-        print("hasRettaints has incorrect dimensions")
+        logger.error("hasRettaints has incorrect dimensions")
 
 
     cle_instance += (f"hasCodtaints = array2d(functionCdf, cleLabel, [\n ")
     first = True
     for row in arrays["hasCodtaints"]:
-        print(row)
+        logger.debug(row)
         for j in row:
             if j == "true":
                 j = "true "
@@ -517,12 +518,12 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
         for j in i:
             numElts+=1
     if numFunctionCDFS * numCleLabels != numElts:
-        print("hasCodtaints has incorrect dimensions")
+        logger.error("hasCodtaints has incorrect dimensions")
 
     cle_instance += (f"hasArgtaints = array3d(functionCdf, parmIdx, cleLabel, [\n ")
     first = True
     for row in arrays["hasArgtaints"]:
-        print(row)
+        logger.debug(row)
         argCount = 0
         for nested in row:
             for j in nested:
@@ -545,12 +546,12 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
             for k in j:
                 numElts+=1
     if numFunctionCDFS * maxArgIdx * numCleLabels != numElts:
-        print("hasArgtaints has incorrect dimensions")
+        logger.error("hasArgtaints has incorrect dimensions")
 
     cle_instance += (f"hasARCtaints = array2d(functionCdf, cleLabel, [\n ")
     first = True
     for row in arrays["hasARCtaints"]:
-        print(row)
+        logger.debug(row)
         for j in row:
             if j == "true":
                 j = "true "
@@ -567,10 +568,10 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
         for j in i:
             numElts+=1
     if numFunctionCDFS * numCleLabels != numElts:
-        print("hasARCtaints has incorrect dimensions")
+        logger.debug("hasARCtaints has incorrect dimensions")
 
-    print(enums)
-    print(arrays)
+    logger.debug(enums)
+    logger.debug(arrays)
 
     return ZincSrc(cle_instance, enclave_instance)   
    
