@@ -17,7 +17,7 @@ import sys
 class Args:
     sources: List[Path]
     temp_dir: Path
-    clang_args: List[str]
+    clang_args: str
     schema: Optional[Path]
     pdg_lib: Path
     constraint_files: List[Path]
@@ -61,7 +61,7 @@ def main() -> None:
     parser = argparse.ArgumentParser("Conflict Analyzer") 
     parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
     parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
-    parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, nargs="*", required=False, default=[])
+    parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, required=False, default="")
     parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
     parser.add_argument('--pdg-lib', help="Path to pdg lib", 
         type=Path, required=False, default=Path('/opt/closure/lib/libpdg.so'))
@@ -71,6 +71,7 @@ def main() -> None:
     args = parser.parse_args(namespace=Args)
     schema = None
 
+    clang_args = args.clang_args.split(",")
     log_level_map = {
         "INFO": logging.INFO,
         "DEBUG": logging.DEBUG,
@@ -92,7 +93,7 @@ def main() -> None:
         logger.info("No schema provided, using liberal mode in preprocessor") 
 
     def make_source_entity(source: Path) -> SourceEntity:
-        transform = preprocess(source, args.clang_args, schema, logger)
+        transform = preprocess(source, clang_args, schema, logger)
         logger.info("Preprocessed source file %s", source)
         return SourceEntity(source, transform.preprocessed, transform.cle_json, transform.source_map) 
 
@@ -100,12 +101,15 @@ def main() -> None:
     collated = collate_json([ entity.cle_json for entity in entities ])
     logger.info("Collated JSON")
     logger.debug("%s", json.dumps(collated, indent=2))
-    bitcode = compile_c([ (entity.source_path.name, entity.preprocessed) for entity in entities ], args.temp_dir, args.clang_args)
+    bitcode = compile_c([ (entity.source_path.name, entity.preprocessed) for entity in entities if entity.source_path.suffix == ".c" ], args.temp_dir, clang_args)
     logger.info("Compiled c files into LLVM IR")
     opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
+    logger.debug(opt_out.pdg_instance)
     logger.info("Produced pdg related data from opt")
     zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, logger) 
     logger.info("Produced minizinc enclave and cle instances")
+    logger.debug(zinc_src.cle_instance)
+    logger.debug(zinc_src.enclave_instance)
     collated_map = collate_source_map(entities, args.temp_dir) 
     logger.info("Collated source maps")
     out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map, logger) 
