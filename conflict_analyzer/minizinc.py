@@ -1,78 +1,63 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3
 
+import os
 import zmq
+import csv
+import subprocess
 import argparse
 import json
-import csv
-import sys
 import re
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 from pathlib import Path
-import pickle
+from logging import Logger
+from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, Union
 
+def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_instance: str, constraint_files: List[Path], 
+    pdg_csv: list, source_map: Dict[Tuple[str, int], Tuple[str, int]], logger: Logger) -> Dict[str, Any]:
+    cle_instance_path, pdg_instance_path, enclave_instance_path = \
+        tuple([ temp_dir / name for name in ['cle_instance.mzn', 'pdg_instance.mzn', 'enclave_instance.mzn']])
+    with open(cle_instance_path, 'w') as f:
+        f.write(cle_instance)
+    with open(pdg_instance_path, 'w') as f:
+        f.write(pdg_instance)
+    with open(enclave_instance_path, 'w') as f:
+        f.write(enclave_instance)
+    mzn_args : List[Union[Path, str]] = [
+            'minizinc',
+            '--solver',
+            'Gecode',
+            cle_instance_path,
+            enclave_instance_path,
+            pdg_instance_path,
+            *constraint_files
+    ]  
+    mzn_out = subprocess.run(mzn_args, capture_output=True, encoding='utf-8')
+    if mzn_out.stderr.strip() != '' or mzn_out.returncode != 0:
+        raise Exception("minizinc failure", mzn_out)          
+    if "UNSATISFIABLE" in mzn_out.stdout:
+        findmus_args : List[Union[Path, str]] = [
+            'minizinc',
+            '--solver',
+            'findmus',
+            '--subsolver',
+            'Gecode',
+            '--depth',
+            '3',
+            '--output-json',
+            cle_instance_path,
+            enclave_instance_path,
+            pdg_instance_path,
+            *constraint_files
+        ]  
+        findmus_out = subprocess.run(findmus_args, capture_output=True, encoding='utf-8')
+        if findmus_out.stderr.strip() != '' or findmus_out.returncode != 0:
+            raise Exception("minizinc failure", findmus_out)         
+        return parse_findmus(findmus_out.stdout, pdg_csv, logger, source_map)
+    else:
+        return parse_assignment(mzn_out.stdout, pdg_csv, logger, source_map)
 
-def main() -> None:
-    csv.field_size_limit(sys.maxsize)
-    parser = argparse.ArgumentParser(
-        description="""
-        Parses minizinc output from conflict analyzer
-        """
-    )
-    parser.add_argument('--file', '-f', type=Path,
-                        help='minizinc output file to process')
-    parser.add_argument('--type', '-t', type=str,
-                        help='minizinc output file type', choices=['assignment', 'findmus'])
-    parser.add_argument('--pdg-data', '-p', type=Path,
-                        required=True, help='pdg_data csv')
-    parser.add_argument('--zmq', '-z', type=str, nargs='?',
-                        help='ZMQ IP Address (tcp://XXX.XXX.XXX.XXX:PORT)')
-    parser.add_argument('--pickle', '-P', type=Path, required=True,
-                        help='Pickle file for source maps')
-    parser.add_argument('--output', '-o', type=Path, help='Output file')
+        
 
-    args = parser.parse_args()
-    file: Path = args.file
-    out_type: str = args.type
-    pdg_path: Path = args.pdg_data
-    zmq_addr: Optional[str] = args.zmq
-    output: Optional[Path] = args.output
-    pickle_path: Path = args.pickle
-    with open(pickle_path, 'rb') as pickle_f:
-        source_map: Dict[Tuple[str, int], Tuple[str, int]] = pickle.load(pickle_f)
-    with open(pdg_path, 'r') as pdg_f:
-        pdg_csv = csv.reader(pdg_f, quotechar='"', skipinitialspace=True)
-        if out_type == 'assignment':
-            with open(file, 'r') as f:
-                result = parseAssignment(f.read(), pdg_csv, source_map)
-            topology = result['topology']
-            if output:
-                with open(output, 'w') as of:
-                    print(f"Topology written to {output}")
-                    of.write(json.dumps(topology, indent=4))
-            if zmq_addr:
-                context = zmq.Context()
-                socket = context.socket(zmq.REQ)
-                socket.connect(args.zmq)
-                socket.send_string(json.dumps(result))
-                print(f"Result sent to {zmq_addr}")
-        elif out_type == 'findmus':
-
-            with open(file, 'r') as f:
-                result = parseFindMUS(f.read(), pdg_csv, source_map)
-            conflicts = result['conflicts'] 
-            if zmq_addr:
-                context = zmq.Context()
-                socket = context.socket(zmq.REQ)
-                socket.connect(args.zmq)
-                socket.send_string(json.dumps(result))
-                print(f"Result sent to {zmq_addr}")
-            if output:
-                with open(output, 'w') as of:
-                    print(f"Conflicts written to {output}")
-                    of.write(json.dumps(conflicts, indent=4))
-
-
-def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
+def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
     pdg_csv = list(pdg_csv)
     if source_map:
         source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
@@ -85,7 +70,7 @@ def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dic
         key=lambda x: x[0]
     )
 
-    def add_entry(line: str, entries: List[Dict[str, str]]) -> None:
+    def add_entry(line: str, entries: List[Dict[str, str]], entry_type: str) -> None:
         parts = [ s.strip() for s in line.split(" ") if s != '' ]
         node, [enclave, _label] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
         node_, source, llvm, line = nodes[node-1]
@@ -98,14 +83,14 @@ def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dic
         enclaves.add(enclave)
         source, line_no = source_map_resolved[(Path(source).resolve(), line_no)] if source_map else (source, line_no)
         entries.append({ "name": name, "level": enclave, "line": str(line_no) })
-        print(f"{name} is in {enclave}{'' if not source else f' at {source}:{str(line_no)}'}")
+        logger.info(f"{entry_type} {name} is in {enclave}{'' if not source else f' @ {source}:{str(line_no)}'}")
     
     out = mzn_output.splitlines() 
     for line in out:
         if line.find('FunctionEntry') != -1:
-            add_entry(line, function_entries)
+            add_entry(line, function_entries, 'function')
         elif line.find('VarNode') != -1:
-            add_entry(line, global_var_entries)
+            add_entry(line, global_var_entries, 'variable')
          
     topology = {
         "source_path": str(Path('.').resolve()), # provisional, not sure what is correct here
@@ -116,7 +101,7 @@ def parseAssignment(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dic
 
     return { "result": "Success", "topology": topology } 
 
-def parseFindMUS(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
+def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
     pdg_csv = list(pdg_csv)
 
     if source_map:
@@ -200,7 +185,4 @@ def parseFindMUS(mzn_output: str, pdg_csv: Iterable, source_map: Optional[Dict[T
                     "remedies": [],
                 })
     return { "result": "Conflict", "conflicts": conflicts }
-
-
-if __name__ == "__main__":
-    main()
+       
