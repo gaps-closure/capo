@@ -25,13 +25,14 @@ class OptOutput:
     pdg_instance: str
     function_args: str 
     pdg_csv: list
+    one_way: str
 
 
 def opt(pdg_so: Path, bitcode: bytes, temp_dir: Path) -> OptOutput:
     out_bc_path = temp_dir / 'out.bc'
     with open(out_bc_path, "wb") as bc_f:
         bc_f.write(bitcode)
-    args : List[Union[Path, str]] = ['opt', '-load', pdg_so, '-minizinc', out_bc_path]
+    args : List[Union[Path, str]] = ['opt', '-load', pdg_so, '-minizinc','-zinc-debug', out_bc_path]
     out = subprocess.run(args, cwd=temp_dir, capture_output=True)
     if out.returncode != 0:
         raise Exception("opt failed", out)
@@ -41,5 +42,9 @@ def opt(pdg_so: Path, bitcode: bytes, temp_dir: Path) -> OptOutput:
         function_args = fn_args_f.read()
     with open(temp_dir / 'pdg_data.csv') as pdg_f:
         pdg_data = list(csv.reader(pdg_f, quotechar='"', skipinitialspace=True))
-
-    return OptOutput(pdg_instance, function_args, pdg_data)
+    try:
+        with open(temp_dir / 'oneway.txt') as one_way_f:
+            one_way = one_way_f.read()
+    except:
+       one_way = ""
+    return OptOutput(pdg_instance, function_args, pdg_data, one_way)
