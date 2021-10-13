@@ -39,10 +39,14 @@ class ZincSrc:
     cle_instance: str
     enclave_instance: str
 
-def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance: str, logger: Logger) -> ZincSrc:
+def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance: str, one_way: str, logger: Logger) -> ZincSrc:
     hasCDF = []
     hasArgTaints = []
     listOfLevels = []
+
+    one_way_map = {}
+    for line in one_way:
+        one_way_map[line.split()[0]] =  line.split()[1]
 
     noneCount = 0
     enums = defaultdict(lambda: [])
@@ -156,6 +160,9 @@ def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance
                     arrays['hasGuardOperation'].append("nullGuardOperation")
 
                 if "oneway" in cdf.keys():
+                    if entry["cle-label"] in one_way_map.keys() and one_way_map[entry["cle-label"]] == "false":
+                        logger.error("Error, oneway function has uses!")
+                        raise
                     arrays['isOneway'].append(cdf["oneway"])
                 else:
                     arrays['isOneway'].append("false")

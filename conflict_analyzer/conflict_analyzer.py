@@ -4,11 +4,11 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Tuple
 from logging import Logger
-from conflict_analyzer.compile import compile_c, opt
-from conflict_analyzer.minizinc import minizinc
-from conflict_analyzer.preprocessor import Transform
-import conflict_analyzer.preprocessor as preprocessor
-import conflict_analyzer.clejson2zinc as clejson2zinc
+from compile import compile_c, opt
+from minizinc import minizinc
+from preprocessor import Transform
+import preprocessor as preprocessor
+import clejson2zinc as clejson2zinc
 import tempfile
 import logging
 import sys
@@ -106,7 +106,7 @@ def main() -> None:
     opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
     logger.debug(opt_out.pdg_instance)
     logger.info("Produced pdg related data from opt")
-    zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, logger) 
+    zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger) 
     logger.info("Produced minizinc enclave and cle instances")
     logger.debug(zinc_src.cle_instance)
     logger.debug(zinc_src.enclave_instance)
