@@ -2,7 +2,7 @@
 # A quick and dirty cle-preprocessor implementation for GAPS-CLOSURE
 #
 from logging import Logger
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, List, Literal, Optional, TypedDict, cast
 from clang.cindex  import Index, TokenKind
 from lark.lexer    import Lexer, Token
 from argparse      import ArgumentParser
@@ -48,7 +48,7 @@ class TypeLexer(Lexer):
         raise TypeError(x)
 
 # Grammar and parser for CLE
-def cle_parser():
+def cle_parser() -> Lark:
   return Lark(r"""
     acode:       acode_item+
     ?acode_item: cdirective
@@ -116,11 +116,29 @@ def validate_cle(tree_entry, schema, logger: Logger):
   logger.info("CLE line %d (%s) is valid", tree_entry[1],tree_entry[3])
   return tree_entry[4]
 
+Guarddirective = TypedDict('Guarddirective', {
+    'operation': Optional[Literal['allow', 'block', 'redact']],
+    'oneway': Optional[bool],
+    'gapstag': List[int]
+})
+
+Cdf = TypedDict('Cdf', {
+  'remotelevel': str, 
+  'direction': Literal['egress', 'ingress', 'bidirectional'], 
+  'guarddirective': Guarddirective,
+  'argtaints': Optional[List[List[str]]],
+  'codttaints': Optional[List[str]],
+  'rettaints': Optional[List[str]]
+})  
+
+CleJson = TypedDict('CleJson', {'level': str, 'cdf': Optional[List[Cdf]] }) 
+LabelledCleJson = TypedDict('LabelledCleJson', {'cle-label': str, 'cle-json': CleJson}) 
+
 @dataclass
 class Transform:
   preprocessed: str
   source_map: Dict[int, int] 
-  cle_json: List[Dict[str, Any]]
+  cle_json: List[LabelledCleJson]
 
 # Based on transformed tree create modified source and mappings file
 def source_transform(source: str, ttree, astyle: str, schema, logger: Logger) -> Transform:
@@ -128,7 +146,7 @@ def source_transform(source: str, ttree, astyle: str, schema, logger: Logger) ->
     #schema check is disabled
     defs = [{"cle-label": x[3], "cle-json": x[4]} for x in ttree if x[0] == 'cledef']
   else:
-    defs = [{"cle-label": x[3], "cle-json": validate_cle(x,schema, logger)} for x in ttree if x[0] == 'cledef']
+    defs = [{"cle-label": x[3], "cle-json": validate_cle(x, schema, logger)} for x in ttree if x[0] == 'cledef']
 
   curline = 0
   offset = 0
@@ -165,7 +183,7 @@ def source_transform(source: str, ttree, astyle: str, schema, logger: Logger) ->
     preproc.append(unproc[curline])
     offsetDic[curline+offset] = curline
     curline += 1
-  return Transform("\n".join(preproc), offsetDic, defs)
+  return Transform("\n".join(preproc), offsetDic, cast(List[LabelledCleJson], defs))
 
 
 # Parse command line argumets
