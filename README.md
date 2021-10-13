@@ -18,3 +18,7 @@ You can run the conflict analyzer locally using
 You can install using 
 
 `python3 -m pip install .`
+
+You can run the associated tests using
+
+`python3 -m unittest`

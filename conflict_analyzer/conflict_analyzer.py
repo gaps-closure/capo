@@ -2,13 +2,13 @@ import argparse
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 from logging import Logger
-from compile import compile_c, opt
-from minizinc import minizinc
-from preprocessor import LabelledCleJson, Transform
-import preprocessor as preprocessor
-import clejson2zinc as clejson2zinc
+from conflict_analyzer.compile import compile_c, opt
+from conflict_analyzer.minizinc import minizinc
+from conflict_analyzer.preprocessor import LabelledCleJson, Transform
+import conflict_analyzer.preprocessor as preprocessor
+import conflict_analyzer.clejson2zinc as clejson2zinc
 import tempfile
 import logging
 import sys
@@ -52,22 +52,7 @@ def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tup
             src_map[(str(temp_dir / entity.source_path.name), key)] = (str(entity.source_path), entity.source_map[key])
     return src_map
 
-
-def main() -> None: 
-    constraints_def = Path('/opt/closure/scripts/constraints/conflict_analyzer_constraints.mzn') 
-    decls_def = Path('/opt/closure/scripts/constraints/conflict_variable_declarations.mzn') 
-
-    parser = argparse.ArgumentParser("Conflict Analyzer") 
-    parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
-    parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
-    parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, required=False, default="")
-    parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
-    parser.add_argument('--pdg-lib', help="Path to pdg lib", 
-        type=Path, required=False, default=Path('/opt/closure/lib/libpdg.so'))
-    parser.add_argument('--constraint-files', help="Path to constraint files", 
-        type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
-    parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
-    args = parser.parse_args(namespace=Args)
+def start(args: Type[Args]) -> Dict[str, Any]:
     schema = None
 
     clang_args = args.clang_args.split(",")
@@ -113,8 +98,28 @@ def main() -> None:
     logger.info("Collated source maps")
     out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map, logger) 
     logger.info("Produced JSON result from minizinc")
-    print(json.dumps(out, indent=2))
+    return out
+   
 
+
+def main() -> None: 
+    constraints_def = Path('/opt/closure/scripts/constraints/conflict_analyzer_constraints.mzn') 
+    decls_def = Path('/opt/closure/scripts/constraints/conflict_variable_declarations.mzn') 
+
+    parser = argparse.ArgumentParser("Conflict Analyzer") 
+    parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
+    parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
+    parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, required=False, default="")
+    parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
+    parser.add_argument('--pdg-lib', help="Path to pdg lib", 
+        type=Path, required=False, default=Path('/opt/closure/lib/libpdg.so'))
+    parser.add_argument('--constraint-files', help="Path to constraint files", 
+        type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
+    parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
+    args = parser.parse_args(namespace=Args)
+    out = start(args)
+    print(json.dumps(out, indent=2))
+    
 
 if __name__ == '__main__':
     main()
