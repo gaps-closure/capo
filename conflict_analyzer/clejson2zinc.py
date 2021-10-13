@@ -10,6 +10,8 @@ from collections import defaultdict
 from typing import Any, Dict, List
 from logging import Logger
 
+from conflict_analyzer.preprocessor import LabelledCleJson
+
 
 output_order_enums = [
   "cleLabel",
@@ -39,7 +41,8 @@ class ZincSrc:
     cle_instance: str
     enclave_instance: str
 
-def compute_zinc(cleJson: List[Dict[str, Any]], function_args: str, pdg_instance: str, one_way: str, logger: Logger) -> ZincSrc:
+
+def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instance: str, one_way: str, logger: Logger) -> ZincSrc:
     hasCDF = []
     hasArgTaints = []
     listOfLevels = []

@@ -41,5 +41,6 @@ def opt(pdg_so: Path, bitcode: bytes, temp_dir: Path) -> OptOutput:
         function_args = fn_args_f.read()
     with open(temp_dir / 'pdg_data.csv') as pdg_f:
         pdg_data = list(csv.reader(pdg_f, quotechar='"', skipinitialspace=True))
-
-    return OptOutput(pdg_instance, function_args, pdg_data)
+    with open(temp_dir / 'oneway.txt') as one_way_f:
+        one_way = one_way_f.read()
+    return OptOutput(pdg_instance, function_args, pdg_data, one_way)

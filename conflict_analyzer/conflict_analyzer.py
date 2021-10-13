@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 from logging import Logger
 from compile import compile_c, opt
 from minizinc import minizinc
-from preprocessor import Transform
+from preprocessor import LabelledCleJson, Transform
 import preprocessor as preprocessor
 import clejson2zinc as clejson2zinc
 import tempfile
@@ -31,20 +31,19 @@ def preprocess(source: Path, clang_args: List[str], schema: Optional[Any], logge
         transform = preprocessor.source_transform(source_f.read(), tree, 'naive', None, logger)
     return transform
 
-def collate_json(jsons: List[List[Dict[str, Any]]]) -> List[Dict[str, Any]]: 
+@dataclass
+class SourceEntity:
+    source_path: Path
+    preprocessed: str
+    cle_json: List[LabelledCleJson]
+    source_map: Dict[int, int]
+
+def collate_json(jsons: List[List[LabelledCleJson]]) -> List[LabelledCleJson]: 
     collated = {}
     for cle_json in jsons:
         for obj in cle_json:
             collated[obj['cle-label']] = obj
     return list(collated.values())
-
-@dataclass
-class SourceEntity:
-    source_path: Path
-    preprocessed: str
-    cle_json: List[Dict[str, Any]]
-    source_map: Dict[int, int]
-
 
 def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tuple[str, int], Tuple[str, int]]:
     src_map = {}
