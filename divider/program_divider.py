@@ -267,7 +267,7 @@ def get_args():
                  default='-x,c++,-stdlib=libc++', help='Arguments for clang')
   return p.parse_args()
 
-if __name__ == '__main__':
+def main():
   args   = get_args()
   
   #cleanup clang_args if it starts with a "," or " ", since a "-" can't be the first char of an argument
@@ -277,3 +277,6 @@ if __name__ == '__main__':
   print('Options selected:')
   for x in vars(args).items(): print('  %s: %s' % x)
   walk_source_tree(load_topology(args.file), args.output_dir, args.clang_args, args.debug_map)
+
+if __name__ == '__main__':
+  main()
