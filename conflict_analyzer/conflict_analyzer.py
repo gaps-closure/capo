@@ -42,6 +42,8 @@ def collate_json(jsons: List[List[LabelledCleJson]]) -> List[LabelledCleJson]:
     collated = {}
     for cle_json in jsons:
         for obj in cle_json:
+            if obj['cle-label'] in collated:
+                raise Exception(f"{obj['cle-label']} is defined twice")
             collated[obj['cle-label']] = obj
     return list(collated.values())
 
