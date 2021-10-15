@@ -56,23 +56,17 @@ def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tup
     return src_map
 
 
-def start(args: Type[Args]) -> Optional[Dict[str, Any]]:
+def start(args: Type[Args], logger: Logger) -> Optional[Dict[str, Any]]:
     schema = None
-
-    clang_args = args.clang_args.split(",")
     log_level_map = {
         "INFO": logging.INFO,
         "DEBUG": logging.DEBUG,
         "ERROR": logging.ERROR
     }
-    logger = logging.getLogger()
-    handler = logging.StreamHandler(sys.stderr)
-    # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
-    # handler.setFormatter(formatter)
     level = log_level_map[args.log_level]
     logger.setLevel(level)
-    logger.addHandler(handler)
     logger.info("Set up logger with log level %s", logging.getLevelName(level))
+    clang_args = args.clang_args.split(",")
     if args.schema:
         with open(args.schema) as schema_f:
             schema = json.loads(schema_f.read())
@@ -105,12 +99,7 @@ def start(args: Type[Args]) -> Optional[Dict[str, Any]]:
         logger.info("Produced JSON result from minizinc")
         return out
 
-    out = None
-    try:
-        out = analyze()
-    except Exception as e:
-        logger.error(str(e))
-    return out
+    return analyze()
    
 
 
@@ -129,7 +118,14 @@ def main() -> None:
         type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args)
-    out = start(args)
+    
+    logger = logging.getLogger()
+    handler = logging.StreamHandler(sys.stderr)
+    logger.addHandler(handler)
+    # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
+    # handler.setFormatter(formatter)
+   
+    out = start(args, logger)
     if out:
         print(json.dumps(out, indent=2))
     

@@ -35,4 +35,4 @@ class SourcedException(Exception):
                 out.append(f"{where} {str(source.path)}{range_msg}")
             else:
                 out.append(f"\t{where} {str(source.path)}{range_msg}")
-        return "\r\n".join(out)
+        return "\n".join(out)

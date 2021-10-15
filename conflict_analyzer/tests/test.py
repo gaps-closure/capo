@@ -1,6 +1,8 @@
+import logging
 from pathlib import Path
 import unittest
 import tempfile
+import sys
 from conflict_analyzer import conflict_analyzer
 
 pdg_lib = Path('/opt/closure/lib/libpdg.so') 
@@ -8,6 +10,9 @@ constraints_def = Path('/opt/closure/scripts/constraints/conflict_analyzer_const
 decls_def = Path('/opt/closure/scripts/constraints/conflict_variable_declarations.mzn')
 sdir = Path('conflict_analyzer/tests')
 tdir = Path(tempfile.mkdtemp())
+logger = logging.getLogger()
+handler = logging.FileHandler('/dev/null')
+logger.addHandler(handler)
 
 class End2EndTests(unittest.TestCase):
     def test_example1(self):
@@ -18,7 +23,7 @@ class End2EndTests(unittest.TestCase):
             pdg_lib=pdg_lib,
             constraint_files=[constraints_def, decls_def],
             log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Success')
         self.assertEqual([ fn["level"] for fn in out["topology"]["functions"] if fn["name"] == "get_a" ][0], 'orange_E')
 
@@ -30,7 +35,7 @@ class End2EndTests(unittest.TestCase):
             pdg_lib=pdg_lib,
             constraint_files=[constraints_def, decls_def],
             log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Success')
 
     def test_example3(self):
@@ -41,7 +46,7 @@ class End2EndTests(unittest.TestCase):
             pdg_lib=pdg_lib,
             constraint_files=[constraints_def, decls_def],
             log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Success')
 
     def test_array_1(self):
@@ -52,7 +57,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Success')
 
     def test_argument_mismatch(self):
@@ -64,7 +69,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-            ))
+            ), logger)
         except:
             self.assertTrue(True)
             return
@@ -79,7 +84,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
     def test_example2_error(self):
@@ -90,7 +95,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
     
     def test_global_variable_level_mismatch(self):
@@ -101,7 +106,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
     def test_label_duplicate(self):
@@ -113,7 +118,7 @@ class End2EndTests(unittest.TestCase):
                     pdg_lib=pdg_lib,
                     constraint_files=[constraints_def, decls_def],
                     log_level="ERROR" 
-            ))
+            ), logger)
         except:
             self.assertTrue(True)
             return
@@ -128,7 +133,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
     def test_missing_taints_def(self):
@@ -140,7 +145,7 @@ class End2EndTests(unittest.TestCase):
                     pdg_lib=pdg_lib,
                     constraint_files=[constraints_def, decls_def],
                     log_level="ERROR" 
-            ))
+            ), logger)
         except:
             self.assertTrue(True)
             return
@@ -155,7 +160,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
     def test_multiple_taints_1(self):
@@ -166,7 +171,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
     
     def test_multiple_taints_2(self):
@@ -177,7 +182,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
     def test_multiple_taints_3(self):
@@ -188,7 +193,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
     def test_taint_conflict(self):
@@ -199,7 +204,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
     def test_unannotated_cut(self):
@@ -210,7 +215,7 @@ class End2EndTests(unittest.TestCase):
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
                 log_level="ERROR" 
-        ))
+        ), logger)
         self.assertEqual(out["result"], 'Conflict')
 
 
