@@ -9,6 +9,7 @@ from conflict_analyzer.minizinc import minizinc
 from conflict_analyzer.preprocessor import LabelledCleJson, Transform
 import conflict_analyzer.preprocessor as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
+from conflict_analyzer.exceptions import SourcedException, Source
 import tempfile
 import logging
 import sys
@@ -28,7 +29,7 @@ def preprocess(source: Path, clang_args: List[str], schema: Optional[Any], logge
     tree = preprocessor.cle_parser().parser.parse(toks)
     tree = preprocessor.CLETransformer().transform(tree)
     with open(source) as source_f:
-        transform = preprocessor.source_transform(source_f.read(), tree, 'naive', None, logger)
+        transform = preprocessor.source_transform(source, source_f.read(), tree, 'naive', schema, logger)
     return transform
 
 @dataclass
@@ -38,12 +39,12 @@ class SourceEntity:
     cle_json: List[LabelledCleJson]
     source_map: Dict[int, int]
 
-def collate_json(jsons: List[List[LabelledCleJson]]) -> List[LabelledCleJson]: 
+def collate_json(entities: List[SourceEntity]) -> List[LabelledCleJson]: 
     collated = {}
-    for cle_json in jsons:
-        for obj in cle_json:
+    for entity in entities:
+        for obj in entity.cle_json:
             if obj['cle-label'] in collated:
-                raise Exception(f"{obj['cle-label']} is defined twice")
+                raise SourcedException(f"Label {obj['cle-label']} is defined twice", [Source(entity.source_path, None)])
             collated[obj['cle-label']] = obj
     return list(collated.values())
 
@@ -54,7 +55,8 @@ def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tup
             src_map[(str(temp_dir / entity.source_path.name), key)] = (str(entity.source_path), entity.source_map[key])
     return src_map
 
-def start(args: Type[Args]) -> Dict[str, Any]:
+
+def start(args: Type[Args]) -> Optional[Dict[str, Any]]:
     schema = None
 
     clang_args = args.clang_args.split(",")
@@ -65,8 +67,8 @@ def start(args: Type[Args]) -> Dict[str, Any]:
     }
     logger = logging.getLogger()
     handler = logging.StreamHandler(sys.stderr)
-    formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
-    handler.setFormatter(formatter)
+    # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
+    # handler.setFormatter(formatter)
     level = log_level_map[args.log_level]
     logger.setLevel(level)
     logger.addHandler(handler)
@@ -83,23 +85,31 @@ def start(args: Type[Args]) -> Dict[str, Any]:
         logger.info("Preprocessed source file %s", source)
         return SourceEntity(source, transform.preprocessed, transform.cle_json, transform.source_map) 
 
-    entities = [ make_source_entity(source) for source in args.sources ]
-    collated = collate_json([ entity.cle_json for entity in entities ])
-    logger.info("Collated JSON")
-    logger.debug("%s", json.dumps(collated, indent=2))
-    bitcode = compile_c([ (entity.source_path.name, entity.preprocessed) for entity in entities if entity.source_path.suffix == ".c" ], args.temp_dir, clang_args)
-    logger.info("Compiled c files into LLVM IR")
-    opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
-    logger.debug(opt_out.pdg_instance)
-    logger.info("Produced pdg related data from opt")
-    zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger) 
-    logger.info("Produced minizinc enclave and cle instances")
-    logger.debug(zinc_src.cle_instance)
-    logger.debug(zinc_src.enclave_instance)
-    collated_map = collate_source_map(entities, args.temp_dir) 
-    logger.info("Collated source maps")
-    out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map, logger) 
-    logger.info("Produced JSON result from minizinc")
+    def analyze() -> Dict[str, Any]:
+        entities = [ make_source_entity(source) for source in args.sources ]
+        collated = collate_json(entities)
+        logger.info("Collated JSON")
+        logger.debug("%s", json.dumps(collated, indent=2))
+        bitcode = compile_c([ (entity.source_path.name, entity.preprocessed) for entity in entities if entity.source_path.suffix == ".c" ], args.temp_dir, clang_args)
+        logger.info("Compiled c files into LLVM IR")
+        opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
+        logger.debug(opt_out.pdg_instance)
+        logger.info("Produced pdg related data from opt")
+        zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger) 
+        logger.info("Produced minizinc enclave and cle instances")
+        logger.debug(zinc_src.cle_instance)
+        logger.debug(zinc_src.enclave_instance)
+        collated_map = collate_source_map(entities, args.temp_dir) 
+        logger.info("Collated source maps")
+        out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map, logger) 
+        logger.info("Produced JSON result from minizinc")
+        return out
+
+    out = None
+    try:
+        out = analyze()
+    except Exception as e:
+        logger.error(str(e))
     return out
    
 
@@ -120,7 +130,8 @@ def main() -> None:
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args)
     out = start(args)
-    print(json.dumps(out, indent=2))
+    if out:
+        print(json.dumps(out, indent=2))
     
 
 if __name__ == '__main__':

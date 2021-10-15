@@ -2,30 +2,32 @@
 # A quick and dirty cle-preprocessor implementation for GAPS-CLOSURE
 #
 from logging import Logger
-from typing import Any, Dict, List, Literal, Optional, TypedDict, cast
-from clang.cindex  import Index, TokenKind
+from typing import Any, Dict, Generator, Iterator, List, Literal, Optional, TypedDict, cast
+from clang.cindex  import Index, TokenKind 
+from clang         import cindex
+from jsonschema.exceptions import ValidationError
 from lark.lexer    import Lexer, Token
 from argparse      import ArgumentParser
 from lark          import Lark, Tree
 from lark.visitors import Transformer
 from pathlib       import Path
 from dataclasses   import dataclass
+from conflict_analyzer.exceptions import Source, SourcedException, Range, Position
 import json
 import sys
 import os
 import os.path
 import jsonschema
-import pickle
 
 
 # Invoke libclang tokenizer
-def cindex_tokenizer(f,a):
+def cindex_tokenizer(f: Path, a: List[str]) -> Iterator[cindex.Token]:
   return Index.create().parse(f,args=a).cursor.get_tokens()
 
 # Transform tokens for CLE parsing
 class TypeLexer(Lexer):
   def __init__(self, lexer_conf): pass
-  def lex(self, data):
+  def lex(self, data: Iterator[cindex.Token]) -> Generator[Token, None, None]:
     for x in data:
       if x.kind == TokenKind.PUNCTUATION:
         yield Token('HASH' if x.spelling=='#' else 'PUNCT', x)
@@ -86,33 +88,34 @@ def cle_parser() -> Lark:
     %declare PUNCT COMMENT KWD LITERAL IDENT HASH PRAGMA CLE DEF BEGIN END TRUE FALSE
   """, start='acode', parser='lalr', lexer=TypeLexer)
 
-def deraw(s):
-  return s.replace('R"JSON(','').replace(')JSON"','').replace('\n','')
-
 # Tranform parsed tree to extract relevant CLE information
 class CLETransformer(Transformer):
-  def _hlp(self, items):
-    return ' '.join([x.value.spelling for x in items if isinstance(x, Token)])
-  def acode(self, items):    return [i for s in items for i in s]
-  def other(self, items):    return []
-  def begin(self, items):    return []
-  def end(self, items):      return []
-  def deff(self, items):     return []
-  def pfx(self, items):      return items[0].value.extent.start.line
-  def label(self, items):    return self._hlp(items)
-  def clejson(self, items):  return json.loads(deraw(self._hlp(items)))
-  def cledef(self, items):   return [['cledef'] + items]
-  def clebegin(self, items): return [['clebegin'] + items]
-  def cleend(self, items):   return [['cleend'] + items]
-  def cleappnl(self, items): return [['cleappnl'] + items]
+  def _deraw(self, s):
+    return s.replace('R"JSON(','').replace(')JSON"','').replace('\n','')
+  def _hlp(self, items: List[Token]):
+    return ' '.join([x.value.spelling for x in items])
+  def acode(self, items: List[Token]):    return [i for s in items for i in s]
+  def other(self, items: List[Token]):    return []
+  def begin(self, items: List[Token]):    return []
+  def end(self, items: List[Token]):      return []
+  def deff(self, items: List[Token]):     return []
+  def pfx(self, items: List[Token]):      return items[0].value.extent.start.line
+  def label(self, items: List[Token]):    return self._hlp(items)
+  def clejson(self, items: List[Token]):  return json.loads(self._deraw(self._hlp(items)))
+  def cledef(self, items: List[Token]):   return [['cledef'] + items]
+  def clebegin(self, items: List[Token]): return [['clebegin'] + items]
+  def cleend(self, items: List[Token]):   return [['cleend'] + items]
+  def cleappnl(self, items: List[Token]): return [['cleappnl'] + items]
 
-def validate_cle(tree_entry, schema, logger: Logger):
+def validate_cle(tree_entry, schema, path: Path, logger: Logger):
   """validate the CLE entry is valid against the shcema"""
+  err = None
   try:
     jsonschema.validate(tree_entry[4],schema)
-  except Exception as e:
-    logger.error("Error parsing CLE on line %d for %s",  tree_entry[1], tree_entry[3], exc_info=e)
-    raise e
+  except ValidationError as e:
+    err = SourcedException(str(e), [Source(path, Range(Position(tree_entry[1], None), None))]) 
+  if err:
+    raise err
   logger.info("CLE line %d (%s) is valid", tree_entry[1],tree_entry[3])
   return tree_entry[4]
 
@@ -141,12 +144,12 @@ class Transform:
   cle_json: List[LabelledCleJson]
 
 # Based on transformed tree create modified source and mappings file
-def source_transform(source: str, ttree, astyle: str, schema, logger: Logger) -> Transform:
+def source_transform(path: Path, source: str, ttree, astyle: str, schema: Any, logger: Logger) -> Transform:
   if(schema is None):
     #schema check is disabled
     defs = [{"cle-label": x[3], "cle-json": x[4]} for x in ttree if x[0] == 'cledef']
   else:
-    defs = [{"cle-label": x[3], "cle-json": validate_cle(x, schema, logger)} for x in ttree if x[0] == 'cledef']
+    defs = [{"cle-label": x[3], "cle-json": validate_cle(x, schema, path, logger)} for x in ttree if x[0] == 'cledef']
 
   curline = 0
   offset = 0
