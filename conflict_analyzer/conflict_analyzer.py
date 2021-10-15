@@ -124,9 +124,11 @@ def main() -> None:
     logger.addHandler(handler)
     # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
     # handler.setFormatter(formatter)
-   
-    out = start(args, logger)
-    if out:
+    try:
+        out = start(args, logger)
+    except Exception as e:
+        logger.error(str(e))
+    else: 
         print(json.dumps(out, indent=2))
     
 
