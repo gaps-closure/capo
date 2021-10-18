@@ -87,7 +87,11 @@ build_partitioner_verifier_gedl () {
   make 
   cd $TMP_DIR
   cd gedl
-  make
+  rm -rf build
+  mkdir build
+  cd build
+  cmake ..
+  make -j 8
   cd $TMP_DIR
 }
 
@@ -103,8 +107,7 @@ clean_partitioner_verifier_gedl () {
   make clean
   cd $TMP_DIR
   cd gedl
-  make clean
-
+  rm -rf build
 }
 
 
