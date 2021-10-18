@@ -617,7 +617,7 @@ class GEDLProcessor:
       copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
 
 #####################################################################################################################################################
-if __name__ == '__main__':
+def main():
   args = argparser()
   gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base)
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
@@ -633,3 +633,5 @@ if __name__ == '__main__':
   print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
 
+if __name__ == '__main__':
+  main()
