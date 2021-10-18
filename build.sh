@@ -54,6 +54,8 @@ handle_opts() {
 
 build_pdg () {
   echo "Building PDG"
+  git submodule init pdg2
+  git submodule update pdg2
 
   TMP_DIR=$(pwd)
   cd pdg2
