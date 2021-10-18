@@ -7,7 +7,6 @@ packages
 *.a
 build/scratch/
 scratch
-pdg2/
 dist/
 *.egg-info
 __pycache__/
