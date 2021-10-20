@@ -8,5 +8,6 @@ packages
 build/scratch/
 scratch
 dist/
+build/
 *.egg-info
 __pycache__/

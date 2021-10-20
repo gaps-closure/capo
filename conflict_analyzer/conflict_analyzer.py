@@ -104,16 +104,15 @@ def start(args: Type[Args], logger: Logger) -> Optional[Dict[str, Any]]:
 
 
 def main() -> None: 
-    constraints_def = Path('/opt/closure/scripts/constraints/conflict_analyzer_constraints.mzn') 
-    decls_def = Path('/opt/closure/scripts/constraints/conflict_variable_declarations.mzn') 
-
+    constraints_def = Path(__package__).resolve() / 'constraints/conflict_analyzer_constraints.mzn'
+    decls_def = Path(__package__).resolve() / 'constraints/conflict_variable_declarations.mzn'
     parser = argparse.ArgumentParser("Conflict Analyzer") 
     parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
     parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
     parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, required=False, default="")
     parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
     parser.add_argument('--pdg-lib', help="Path to pdg lib", 
-        type=Path, required=False, default=Path('/opt/closure/lib/libpdg.so'))
+        type=Path, required=False, default=Path(__package__).resolve() / '../libpdg.so')
     parser.add_argument('--constraint-files', help="Path to constraint files", 
         type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
