@@ -1,3 +1,0 @@
-recursive-include gedl *
-recursive-include pdg2 *
-recursive-include conflict_analyzer/constraints *
