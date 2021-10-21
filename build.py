@@ -4,6 +4,10 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+def submodules() -> None:
+    subprocess.check_call(['git', 'submodule', 'init'])
+    subprocess.check_call(['git', 'submodule', 'update'])
+
 def build_pdg() -> None:
     cwd = Path('pdg2')
     subprocess.check_call(['cmake', '-B', 'build'], cwd=cwd)
@@ -35,6 +39,7 @@ class Args:
     clean: bool
 
 def build() -> None:
+    submodules()
     build_pdg()
     build_gedl()
     build_verifier()
