@@ -20,9 +20,10 @@ jobs:
     container: gapsclosure/closuredev
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Switch to root
+        run: sudo su 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-          
       # Build script
       - name: Build
         run: ./build.sh
