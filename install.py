@@ -30,10 +30,10 @@ def install_python_package(out: Path) -> None:
 
 def make_env(out: Path) -> None:
     with open(out / 'closureenv', 'a') as env_f: 
-        env_f.writelines([
+        env_f.write("\n".join([
             f'export PYTHONPATH={out.resolve()}:$PYTHONPATH',
             f'export PATH={out.resolve()}/bin:$PATH'
-        ])
+        ]))
 
 @dataclass
 class Args:

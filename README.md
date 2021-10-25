@@ -1,5 +1,7 @@
 # Compiler and Partitioner Optimizer (CAPO)
+
 [![build](https://github.com/gaps-closure/capo/actions/workflows/main.yml/badge.svg)](https://github.com/gaps-closure/capo/actions/workflows/main.yml)
+
 This repository hosts the open source components of CAPO. The `master` branch contains the most recent public release software while `develop` contains bleeding-edge updates and work-in-progress features for use by beta testers and early adopters.
 
 This repository is maintained by Perspecta Labs.
