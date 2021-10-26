@@ -29,11 +29,17 @@ but in some cases the algorithm implemented by the code body itself may be
 sensitive). The user will typically annotate only a subset of functions, and 
 the entailed constraints will be propagated by the solver.
 
+The model uses the Program Dependency Graph (PDG) abstraction of the 
+CLE-annotated LLVM IR generated from the annotated C program. The PDG 
+nodes are
+
+See the PSU [PDG documentation](https://github.com/gaps-closure/pdg2/tree/develop/Edge_Specification) and 
+CLOSURE [CLE documentation](https://github.com/gaps-closure/mules/tree/develop/cle-spec) 
+for further details about them.
+
 The constraint solver must assign each function and global variable in the
 program to an enclave subject to constraints entailed on the program by CLE
-annotations as specified in the Minizinc model excerpt below. The model uses
-the Program Dependency Graph (PDG) abstraction of the CLE-annotated LLVM IR
-generated from the annotated C program. 
+annotations as specified in the Minizinc model excerpt below. 
 
 Additionally, upon satisfaction, the solver will assign a CLE enclave and CLE
 label to every PDG node that is not an LLVM annotation node. It will also
@@ -62,7 +68,6 @@ edge are in different enclaves. Several other auxiliary decision variables are
 used in the constraint model to express the constraints or for efficient
 compilation. They are described later in the model.
 
-See the PSU PDG and CLOSURE CLE documentation for further details about them.
 
 ## Constraint Model in MiniZinc
 
