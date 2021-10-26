@@ -2,19 +2,44 @@
 
 ## Preliminaries
 
-_Levels_ are arbitrary symbols specifying sensitivity levels. _Enclaves_ are
-isolated computation+memory units; each enclave operates at a specified level.
+### GAPS and CLOSURE
+DARPA Guarantted Architecrture for Phsysical Systems (GAPS) is a research program 
+that  addresses software and hardware for compartmentalized applications where
+multiple parties with strong physical isolation of their computational
+environment, have specific constraints on data sharing (possibly with redaction
+requirements) with other parties, and any data exchange between the parties is
+mediated through a guard that enforces the security requirements.
+
+Peraton Labs' Cross-domain Language extensions for Optimal SecUre Refactoring
+and Execution (CLOSURE) project is building a toolchain to support the
+development, refactoring, and correct-by-construction partitioning of
+applications and configuration of the guards. Using the CLOSURE approach and
+toolchain, developers will express security intent through annotations applied
+to the program, which drive the program analysis, partitioning, and code
+autogeneration required by a GAPS application.
+
+### CLOSURE Language Extensions and Program Dependency Graph
 
 Developers annotate programs using CLOSURE Language Extensions (CLE) to specify
 cross-domain security constraints. Each CLE annotation definition associates
 a _CLE label_ (a symbol) with a _CLE JSON_ which provides detailed specification
 of cross-domain data sharing and function invocation constraints.
 
+In CLOSURE, _Levels_ are arbitrary symbols specifying sensitivity levels.
+Levels in GAPS are not ordered (unlike, for example, CALIPSO Sensitivity
+Levels). _Enclaves_ are isolated compartments with computation and memory
+reources. Each enclave operates at a specified level. Enclaves at the same
+level may be connected by a network, but enclaves at different levels must be
+connected through a cross-domain guard (also known as SDH or TA-1 hardware
+within the GAPS program).
+
 The user can apply _node annotations_ to local or global variables; through the
-associated CLE-JSON, the user can constraint which level the data can reside,
+associated CLE-JSON, the user can constrain which level the data can reside,
 and with which (enclaves at) other levels, the data can be shared. The user 
 will typically annotate only a subset of variables, and the entailed constraints 
-will be propagated by the solver. 
+will be propagated by the solver. (In future versions of CLE, the user can
+specify enclave preferences as well, such as assign to an enclave which has
+a GPU, but this is currently not supported.)
 
 The user can apply _function annotations_ to selected functions; the user will
 do so after auditing the function and explicity allow the function to be called
@@ -29,22 +54,49 @@ but in some cases the algorithm implemented by the code body itself may be
 sensitive). The user will typically annotate only a subset of functions, and 
 the entailed constraints will be propagated by the solver.
 
-The model uses the Program Dependency Graph (PDG) abstraction of the 
-CLE-annotated LLVM IR generated from the annotated C program. The PDG 
-nodes are
+The model uses the Program Dependency Graph (PDG) abstraction of the
+CLE-annotated LLVM IR generated from the annotated C program. The PDG node
+types are Inst (instructions), VarNode (global, static, or module static
+variables), FunctionEntry (function entry points), Param (nodes denoting
+actual and formal parameters for input and output), and Annotation (LLVM IR
+annotation nodes, a subset of which will be CLE labels).  The PDG edge types
+include ControlDep (control dependency edges), DataDep (data dependency edges),
+Parameter (parameter edges relating to input params, output params, or
+parameter field edges to encode parameter trees), and Annot (edges that connect
+a non-annotation PDG node to an LLVM annotation node).  Each of these node and
+edge types are further divided into subtypes. 
 
 See the PSU [PDG documentation](https://github.com/gaps-closure/pdg2/tree/develop/Edge_Specification) and 
 CLOSURE [CLE documentation](https://github.com/gaps-closure/mules/tree/develop/cle-spec) 
 for further details about them.
 
+### Role of the Contraint Solver
+
+In CLOSURE, we use a constraint solver to perform program analysis and 
+determine a correct-by-construction partition that satifies the constraints
+specified by the developer using CLE annotations. The constraint solver
+takes three items as input: (i) the PDG constructed from the linked LLVM 
+IR of the annotated C program, (ii) the CLE JSON corresponding to the CLE 
+labels used in the annotated program, and (iii) the enclave topology including
+the set of enclaves, and the level of each enclave (future versions of the
+topology may include network and cross-domain-guard interconnections between
+the enclaves and the computational resources available within each enclave).
+
 The constraint solver must assign each function and global variable in the
 program to an enclave subject to constraints entailed on the program by CLE
-annotations as specified in the Minizinc model excerpt below. 
+annotations as specified in the Minizinc model excerpt below. Additionally,
+upon satisfaction, the solver will assign a CLE enclave and CLE label to every
+PDG node that is not an LLVM annotation node. It will also identify the PDG
+call invocation edges that are in the cross-domain cut, i.e., the caller
+(callsite) and callee (function entry) belong to different enclaves.
 
-Additionally, upon satisfaction, the solver will assign a CLE enclave and CLE
-label to every PDG node that is not an LLVM annotation node. It will also
-identify the PDG call invocation edges that are in the cross-domain cut, i.e.,
-the caller (callsite) and callee (function entry) belong to different enclaves.
+In the model below, the `nodeEnclave` decision variable stores the enclave
+assignment for each node, the `taint` decision variable stores the label
+assignment for each node, and the `xdedge` decision variable stores whether a
+given edge is in the enclave cut (i.e., the source and destination nodes of the
+edge are in different enclaves. Several other auxiliary decision variables are
+used in the constraint model to express the constraints or for efficient
+compilation. They are described later in the model.
 
 The solver will assign a node annotation label (rather than a function
 annotation which only the user can assign) to functions not annotated by the
@@ -58,18 +110,24 @@ determine whether each parameter is an input, output, or both, and the size of
 the parameter), the downstream tools will autogenerate code for marshalling and
 serialization of input and output/return data for the cross-domain call, as
 well as code for invocation and handling of cross-domain remote-procedure calls
-that wrap the function invocations in the cross-domain cut.
-
-In the model below, the `nodeEnclave` decision variable stores the enclave
-assignment for each node, the `taint` decision variable stores the label
-assignment for each node, and the `xdedge` decision variable stores whether a
-given edge is in the enclave cut (i.e., the source and destination nodes of the
-edge are in different enclaves. Several other auxiliary decision variables are
-used in the constraint model to express the constraints or for efficient
-compilation. They are described later in the model.
-
+that wrap the function invocations in the cross-domain cut. 
 
 ## Constraint Model in MiniZinc
+
+We encode the constraint model for CLE for C/LLVM programs using the 
+[MiniZinc](https://www.minizinc.org/doc-2.5.5/en/index.html) Domain 
+Specific Language (version 2.5.5). MiniZinc provides a high level
+language abstraction to express constraint solving problems clearly.
+MiniZinc compiles a MiniZinc language specification of a problem for 
+lower level solver such as Gecode. We use an Integer Logic Program (ILP) 
+formulation with MiniZinc. MiniZinc also includes a tool that computes
+the minimum unsatisfiable subset (MUS) of constraints if a problem
+instance is unsatisfiable; the output of this tool can be used to
+provide diagnostic feedbakc to the user to help refactor the program.
+
+The constraint model below can be adapted to other solvers, for example,
+the Z3 theorem prover, which is based on Sastisfiability-Modulo-Theories
+(SMT).
 
 ### General Constraints on Output and Auxiliary Decision Variables
 
