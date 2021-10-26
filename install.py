@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 import argparse
 from dataclasses import dataclass
-from shutil import copyfile
+from shutil import copyfile, copytree
 from pathlib import Path
 import subprocess
 import sys
@@ -29,6 +29,15 @@ def install_verifier(out: Path) -> None:
 def install_python_package(out: Path) -> None:
     subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--upgrade', '--target', out])   
 
+def install_heuristics(out: Path) -> None:
+    copytree(Path('gedl') / 'heuristics', out / 'heuristics', dirs_exist_ok=True)
+
+def install_gedl_schema(out: Path) -> None:
+    path = Path('gedl') / 'schema'
+    out_schemas = out / 'schemas'
+    out_schemas.mkdir(parents=True, exist_ok=True)
+    copyfile(path / 'gedl-schema.json', out_schemas / 'gedl-schema.json')
+
 @dataclass
 class Args:
     output: Path
@@ -37,6 +46,8 @@ def install(args: Type[Args]) -> Dict[str, str]:
     install_pdg(args.output)
     install_gedl(args.output)
     install_verifier(args.output)
+    install_heuristics(args.output)
+    install_gedl_schema(args.output)
     install_python_package(args.output)
     return {
         "PATH": f"{args.output.resolve()}/bin",
