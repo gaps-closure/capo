@@ -13,8 +13,8 @@ of cross-domain data sharing and function invocation constraints.
 The user can apply _node annotations_ to local or global variables; through the
 associated CLE-JSON, the user can constraint which level the data can reside,
 and with which (enclaves at) other levels, the data can be shared. The user 
-will typically annotate only a subset of variables, and constraints will be
-propagated by the solver. 
+will typically annotate only a subset of variables, and the entailed constraints 
+will be propagated by the solver. 
 
 The user can apply _function annotations_ to selected functions; the user will
 do so after auditing the function and explicity allow the function to be called
@@ -22,9 +22,12 @@ from enclaves at other levels, and also explicitly constrain the allowed taints
 on the arguments, return value and code body through the CLE JSON of the
 function annotation. Through the function annotation the user specifies that
 data with the allowed taints (CLE labels they are explicitly tagged with or
-propagated through the model) can be handled (coerced) by the function. The
-user will typically annotate only a subset of functions, and constraints will
-be propagated by the solver.
+propagated through the model) can be handled (coerced) by the function. The user
+also constrains the level of the enclave to which the function must be assigned
+to (this could be due to the sensitivity of the data touched by the function,
+but in some cases the algorithm implemented by the code body itself may be 
+sensitive). The user will typically annotate only a subset of functions, and 
+the entailed constraints will be propagated by the solver.
 
 The constraint solver must assign each function and global variable in the
 program to an enclave subject to constraints entailed on the program by CLE
@@ -33,24 +36,33 @@ the Program Dependency Graph (PDG) abstraction of the CLE-annotated LLVM IR
 generated from the annotated C program. 
 
 Additionally, upon satisfaction, the solver will assign a CLE enclave and CLE
-label to every PDG node that is not an annotation. It will also identify the 
-PDG call invocation edges that are in the cross-domain cut, i.e., the caller 
-(callsite) and callee (function entry) belong to different enclaves.
+label to every PDG node that is not an LLVM annotation node. It will also
+identify the PDG call invocation edges that are in the cross-domain cut, i.e.,
+the caller (callsite) and callee (function entry) belong to different enclaves.
 
-The `nodeEnclave` decision variable stores the enclave assignment for each node, 
-the `taint` decision variable stores the label assignment for each node, and the
-`xdedge` decision variable stores whether a given edge is in the enclave cut (i.e.,
-the source and destination nodes of the edge are in different enclaves. Several 
-other auxiliary decision variables are used in the constraint model to express 
-the constraints or for efficient compilation. They are described later in the model.
-
-The solver will assign a node annotation label to functions not annotated
-by the user. Such functions cannot be invoked cross-domain, and across all 
+The solver will assign a node annotation label (rather than a function
+annotation which only the user can assign) to functions not annotated by the
+user. Such functions cannot be invoked cross-domain, and across all
 invocations, they must be singly tainted. In other words, arguments, return,
-and function body can contain or touch nodes that match the taint.
+and function body can contain or touch nodes that match the taint.  
 
-See the PSU PDG and CLOSURE CLE documentation for further details about the PDG
-and CLE. 
+Downstream tools in the CLOSURE toolchain will use the output of the solver to
+physically partition the code, and after further analysis (for example, to
+determine whether each parameter is an input, output, or both, and the size of
+the parameter), the downstream tools will autogenerate code for marshalling and
+serialization of input and output/return data for the cross-domain call, as
+well as code for invocation and handling of cross-domain remote-procedure calls
+that wrap the function invocations in the cross-domain cut.
+
+In the model below, the `nodeEnclave` decision variable stores the enclave
+assignment for each node, the `taint` decision variable stores the label
+assignment for each node, and the `xdedge` decision variable stores whether a
+given edge is in the enclave cut (i.e., the source and destination nodes of the
+edge are in different enclaves. Several other auxiliary decision variables are
+used in the constraint model to express the constraints or for efficient
+compilation. They are described later in the model.
+
+See the PSU PDG and CLOSURE CLE documentation for further details about them.
 
 ## Constraint Model in MiniZinc
 
