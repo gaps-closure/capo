@@ -5,6 +5,7 @@ from shutil import copyfile, copytree
 from pathlib import Path
 import subprocess
 import sys
+import os
 from typing import Dict, Type
 import build
 
@@ -25,9 +26,10 @@ def install_verifier(out: Path) -> None:
     out_bin = out / 'bin'
     out_bin.mkdir(parents=True, exist_ok=True)
     copyfile(path / 'verifier', out_bin / 'verifier')
+    os.chmod(out_bin / 'verifier', 0o755)
 
 def install_python_package(out: Path) -> None:
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--upgrade', '--target', out])   
+    subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--upgrade', '--target', out / 'python'])   
 
 def install_heuristics(out: Path) -> None:
     copytree(Path('gedl') / 'heuristics', out / 'heuristics', dirs_exist_ok=True)
@@ -50,8 +52,8 @@ def install(args: Type[Args]) -> Dict[str, str]:
     install_gedl_schema(args.output)
     install_python_package(args.output)
     return {
-        "PATH": f"{args.output.resolve()}/bin",
-        "PYTHONPATH": f"{args.output.resolve()}/bin",
+        "PATH": f"{args.output.resolve()}/bin:{args.output.resolve()}/python/bin",
+        "PYTHONPATH": f"{args.output.resolve()}/python",
     }
 
 def main() -> None: 
