@@ -5,6 +5,7 @@ from shutil import copyfile
 from pathlib import Path
 import subprocess
 import sys
+from typing import Dict, Type
 import build
 
 def install_pdg(out: Path) -> None:
@@ -28,16 +29,19 @@ def install_verifier(out: Path) -> None:
 def install_python_package(out: Path) -> None:
     subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--upgrade', '--target', out])   
 
-def make_env(out: Path) -> None:
-    with open(out / 'closureenv', 'a') as env_f: 
-        env_f.write("\n".join([
-            f'export PYTHONPATH={out.resolve()}:$PYTHONPATH',
-            f'export PATH={out.resolve()}/bin:$PATH'
-        ]))
-
 @dataclass
 class Args:
     output: Path
+
+def install(args: Type[Args]) -> Dict[str, str]:
+    install_pdg(args.output)
+    install_gedl(args.output)
+    install_verifier(args.output)
+    install_python_package(args.output)
+    return {
+        "PATH": f"{args.output.resolve()}/bin",
+        "PYTHONPATH": f"{args.output.resolve()}/bin",
+    }
 
 def main() -> None: 
     parser = argparse.ArgumentParser('install.py') 
@@ -45,12 +49,7 @@ def main() -> None:
     args = parser.parse_args(namespace=Args)
     args.output.mkdir(parents=True, exist_ok=True)
     build.build()
-    install_pdg(args.output)
-    install_gedl(args.output)
-    install_verifier(args.output)
-    install_python_package(args.output)
-    make_env(args.output)
-
+    install(args)
     
 if __name__ == '__main__':
     main()
