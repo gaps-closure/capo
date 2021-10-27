@@ -1,8 +1,8 @@
 # Constraint model for CLE for PDG based on C/LLVM
 
-## Preliminaries
+## 1. Preliminaries
 
-### GAPS and CLOSURE
+### 1.1 Background on GAPS and CLOSURE
 DARPA Guarantted Architecrture for Phsysical Systems (GAPS) is a research program 
 that  addresses software and hardware for compartmentalized applications where
 multiple parties with strong physical isolation of their computational
@@ -33,13 +33,14 @@ level may be connected by a network, but enclaves at different levels must be
 connected through a cross-domain guard (also known as SDH or TA-1 hardware
 within the GAPS program).
 
-The user can apply _node annotations_ to local or global variables; through the
-associated CLE-JSON, the user can constrain which level the data can reside,
-and with which (enclaves at) other levels, the data can be shared. The user 
-will typically annotate only a subset of variables, and the entailed constraints 
-will be propagated by the solver. (In future versions of CLE, the user can
-specify enclave preferences as well, such as assign to an enclave which has
-a GPU, but this is currently not supported.)
+The user (of the CLOSURE toolcahin, in other words, the cross-domain
+application developer) can apply _node annotations_ to local or global
+variables; through the associated CLE-JSON, the user can constrain which level
+the data can reside, and with which (enclaves at) other levels, the data can be
+shared. The user will typically annotate only a subset of variables, and the
+entailed constraints will be propagated by the solver. (In future versions of
+CLE, the user can specify enclave preferences as well, such as assign to an
+enclave which has a GPU, but this is currently not supported.)
 
 The user can apply _function annotations_ to selected functions; the user will
 do so after auditing the function and explicity allow the function to be called
@@ -70,7 +71,7 @@ See the PSU [PDG documentation](https://github.com/gaps-closure/pdg2/tree/develo
 CLOSURE [CLE documentation](https://github.com/gaps-closure/mules/tree/develop/cle-spec) 
 for further details about them.
 
-### Role of the Contraint Solver
+### 1.2 Role of the Contraint Solver
 
 In CLOSURE, we use a constraint solver to perform program analysis and 
 determine a correct-by-construction partition that satifies the constraints
@@ -112,7 +113,7 @@ serialization of input and output/return data for the cross-domain call, as
 well as code for invocation and handling of cross-domain remote-procedure calls
 that wrap the function invocations in the cross-domain cut. 
 
-## Constraint Model in MiniZinc
+## 2. Constraint Model in MiniZinc
 
 We encode the constraint model for CLE for C/LLVM programs using the 
 [MiniZinc](https://www.minizinc.org/doc-2.5.5/en/index.html) Domain 
@@ -129,7 +130,7 @@ The constraint model below can be adapted to other solvers, for example,
 the Z3 theorem prover, which is based on Sastisfiability-Modulo-Theories
 (SMT).
 
-### General Constraints on Output and Auxiliary Decision Variables
+### 2.1 General Constraints on Output and Setup of Auxiliary Decision Variables
 
 Every global variable and function entry must be assigned to a valid enclave.
 Instructions and parameters are assigned the same enclave as their containing
@@ -210,7 +211,7 @@ by the user can only contain nodes with taints that are explicitly permitted
 constraint :: "AnnotatedFunContentCoercible"    forall (n in NonAnnotation where hasFunction[n]!=0 /\ isFunctionEntry(n)==false) (userAnnotatedFunction[hasFunction[n]] -> isInArctaint(ftaint[n], taint[n], hasLabelLevel[taint[n]]));
 ```
 
-### Constraints on the Cross-Domain Control Flow
+### 2.2 Constraints on the Cross-Domain Control Flow
 
 The control flow can never leave an enclave, unless it is done through an
 approved cross-domain call, as expressed in the following three constraints.
@@ -244,7 +245,7 @@ Notes:
      the called function, or if the return taints match the value to which the 
      return value is assigned. A downstream verification tool will check this.
 
-### Constraints on the Cross-Domain Data Flow
+### 2.3 Constraints on the Cross-Domain Data Flow
 
 Data can only leave an enclave through parameters or return of valid
 cross-domain call invocations, as expressed in the following three constraints. 
@@ -264,11 +265,18 @@ constraint :: "XDCDataReturnAllowed"           forall (e in DataDepEdge_Ret)    
 constraint :: "XDCParmAllowed"                 forall (e in Parameter)          (xdedge[e] -> allowOrRedact(cdfForRemoteLevel[esTaint[e], hasLabelLevel[edTaint[e]]]));
 ```
 
-### Taint coercion constraints within each enclave
+### 2.4 Constraints on Taint Coercion Within Each Enclave
 
-Labels can be cooerced inside an enclave only through user annotated functions.
-To track valid label coercion across a PDG edge `e`, the model uses an additional 
-auxiliary decision variable called `coerced[e]`.
+While the constraints on the control dependency and data depdendency that
+we discussed governed data sharing at the cross-domain cut, we still need
+to perform taint checking to ensure that data annotated with different 
+labels inside each enclave are managed correctly and only when the
+mixing of the taints is explcitly allowed by the user.
+
+Labels can be cooerced (i.e., nodes of a given PDG edge can be permitted to
+have different label assigments) inside an enclave only through user annotated
+functions.  To track valid label coercion across a PDG edge `e`, the model uses
+an additional auxiliary decision variable called `coerced[e]`.
 
 Any data dependency or parameter edge that is intra-enclave (not in the
 cross-domain cut) and with different CLE label taints assigned to the source
@@ -333,7 +341,7 @@ constraint :: "DataTaintCoerced"
    endif);
 ```
 
-### Solution objective
+### 2.5 Solution Objective
 
 In this model, we require the solver to provide a satisfying assignment that
 minimizes the total number of call invocation that are in the cross-domain cut.
