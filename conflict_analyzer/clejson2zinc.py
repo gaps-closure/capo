@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import Any, Dict, List
 from logging import Logger
 
-from conflict_analyzer.preprocessor import LabelledCleJson
+from preprocessor.preprocessor import LabelledCleJson
 
 
 output_order_enums = [

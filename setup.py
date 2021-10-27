@@ -12,7 +12,7 @@ setup(
         "Bug Tracker": "https://github.com/gaps-closure/capo/issues"
     },
     classifiers=["Programming Language :: Python :: 3"],
-    packages=["conflict_analyzer", "gedl", "divider"],
+    packages=["preprocessor", "conflict_analyzer", "gedl", "divider"],
     python_requires=">=3.6",
     entry_points={
         "console_scripts": [
