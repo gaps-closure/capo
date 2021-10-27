@@ -266,14 +266,29 @@ constraint :: "XDCParmAllowed"                 forall (e in Parameter)          
 
 ### Taint coercion constraints within each enclave
 
-Labels can be cooerced inside an enclave only through user annotated functions. To track valid label coercion across 
-a PDG edge `e`, the model uses an additional auxiliary decision variable called `coerced[e]`.
+Labels can be cooerced inside an enclave only through user annotated functions.
+To track valid label coercion across a PDG edge `e`, the model uses an additional 
+auxiliary decision variable called `coerced[e]`.
 
-XXX: document taint coercion constraints
+Any data dependency or parameter edge that is intra-enclave (not in the
+cross-domain cut) and with different CLE label taints assigned to the source
+and destination nodes must be coerced (through an annotated function).
 
-
+Note: one may wonder whether a similar constraint must be added for control 
+dependency edges at the entry block for completeness. Such a constraint is 
+not necessary given our inclusion of the `UnannotatedFunContentTaintMatch` and
+`AnnotatedFunContentCoercible` constraints discussed earlier. 
 ```
 constraint :: "TaintsSafeOrCoerced"            forall (e in DataEdgeParam)      ((tcedge[e] /\ (xdedge[e]==false)) -> coerced[e]);
+
+```
+
+If the edge is a paremeter in or parameter out edege, then it can be coerced if
+and only if the associated function annotation has the taint of the other node
+in the argument taints for the corresponding parameter index. In other words,
+what is passed in through this parameter has a taint allowed by the function
+annotation.
+```
 constraint :: "ArgumentTaintCoerced"
  forall (e in Parameter_In union Parameter_Out)
   (if     destAnnotFun(e)   /\ isParam_ActualIn(hasDest[e])    /\ (hasParamIdx[hasDest[e]]>0)
@@ -282,9 +297,27 @@ constraint :: "ArgumentTaintCoerced"
    then coerced[e] == hasArgtaints[esFunCdf[e], hasParamIdx[hasSource[e]], edTaint[e]]
    else true 
    endif);
+```
 
+If the edge is a data return edge, then it can be coerced if and only if the
+associated function annotation has the taint of the other node in the return
+taints.
+```
 constraint :: "ReturnTaintCoerced"            forall (e in DataDepEdge_Ret)     (coerced[e] == (if sourceAnnotFun(e) then hasRettaints[esFunCdf[e], edTaint[e]] else false endif));
+```
 
+If the edge is a data dependency edge (and not a return or parameter edge),
+then it can be coerced if and only if the associated function annotation allows
+the taint of the other node in the argument taints of any parameter, 
+
+Note that this constraint might appear seem redundant given the
+`AnnotatedFunContentCoercible` constraint discussed earlier. On closer
+inspection we can see that the following constraint also includes edges 
+between nodes in the function and global/static variables; the earlier 
+constraint dows not. There is overlap between the constraints, so some
+refinement is possible, which may make the model a little harder to understand.
+
+```
 constraint :: "DataTaintCoerced"
  forall (e in DataEdgeNoRetParam)
   (if (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
