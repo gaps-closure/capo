@@ -18,7 +18,7 @@ toolchain, developers will express security intent through annotations applied
 to the program, which drive the program analysis, partitioning, and code
 autogeneration required by a GAPS application.
 
-### CLOSURE Language Extensions and Program Dependency Graph
+### 1.2 CLOSURE Language Extensions and Program Dependency Graph
 
 Developers annotate programs using CLOSURE Language Extensions (CLE) to specify
 cross-domain security constraints. Each CLE annotation definition associates
@@ -71,7 +71,7 @@ See the PSU [PDG documentation](https://github.com/gaps-closure/pdg2/tree/develo
 CLOSURE [CLE documentation](https://github.com/gaps-closure/mules/tree/develop/cle-spec) 
 for further details about them.
 
-### 1.2 Role of the Contraint Solver
+### 1.3 Role of the Contraint Solver
 
 In CLOSURE, we use a constraint solver to perform program analysis and 
 determine a correct-by-construction partition that satifies the constraints
