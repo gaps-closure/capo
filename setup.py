@@ -30,6 +30,7 @@ setup(
         'ect/flowspec/xdmfview.py'
     ],
     package_data={
-        "conflict_analyzer": ["constraints/*.mzn"]
+        "conflict_analyzer": ["constraints/*.mzn"],
+        "gedl": ["heuristics/*.json"]
     }
 )

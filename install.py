@@ -31,8 +31,6 @@ def install_verifier(out: Path) -> None:
 def install_python_package(out: Path) -> None:
     subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--upgrade', '--target', out / 'python'])   
 
-def install_heuristics(out: Path) -> None:
-    copytree(Path('gedl') / 'heuristics', out / 'heuristics', dirs_exist_ok=True)
 
 def install_gedl_schema(out: Path) -> None:
     path = Path('gedl') / 'schema'
@@ -48,7 +46,6 @@ def install(args: Type[Args]) -> Dict[str, str]:
     install_pdg(args.output)
     install_gedl(args.output)
     install_verifier(args.output)
-    install_heuristics(args.output)
     install_gedl_schema(args.output)
     install_python_package(args.output)
     return {

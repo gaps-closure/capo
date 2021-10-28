@@ -82,7 +82,7 @@ def main() -> None:
     parser.add_argument('--temp-dir', '-t', help="Temporary working directory", type=Path, default=Path(tempfile.mkdtemp()))
     parser.add_argument('--clang-args', help="Args to pass to clang", type=str, default="")
     parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
-    parser.add_argument('--heuristics', help="Heuristics directory", type=Path, required=True)
+    parser.add_argument('--heuristics', help="Heuristics directory", type=Path, default=Path(__package__) / 'heuristics')
     parser.add_argument('--output', '-o', help="Output file", type=Path, nargs="?")
     parser.add_argument('divvied', help="Divvied directory", type=Path)  
     args = parser.parse_args(namespace=Args)
