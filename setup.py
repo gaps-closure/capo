@@ -16,8 +16,9 @@ setup(
     python_requires=">=3.6",
     entry_points={
         "console_scripts": [
-            "conflict_analyzer=conflict_analyzer:conflict_analyzer.main",
+            "conflict_analyzer=conflict_analyzer:__main__.main",
             "divider=divider:program_divider.main",
+            "gedl=gedl:__main__.main",
             "rpc_generator=gedl:rpc_generator.main",
             "idl_generator=gedl:idl_generator.main"
         ]

@@ -10,7 +10,7 @@ static llvm::cl::opt<std::string> heuristicPath("he", llvm::cl::desc("Path to he
 
 void Heuristics::populateStringFuncs() {
   json::JSON strJSON;
-  std::ifstream t("../" + heuristicPath + "/str.json");
+  std::ifstream t(heuristicPath + "/str.json");
   if(!t)
     llvm::errs() << "File " << heuristicPath + "/str.json does not exist. Please pass proper path to -he argument for complete heuristic directory.\n";
   else{
@@ -24,7 +24,7 @@ void Heuristics::populateStringFuncs() {
 
 void Heuristics::populateMemFuncs() {
   json::JSON memJSON;
-  std::ifstream t("../" + heuristicPath + "/mem.json");
+  std::ifstream t(heuristicPath + "/mem.json");
   if(!t)
     llvm::errs() << "File " << heuristicPath + "/mem.json does not exist. Please pass proper path to -he argument for complete heuristic directory.\n";
   else{
@@ -39,7 +39,7 @@ void Heuristics::populateMemFuncs() {
 
 void Heuristics::populateprintfFuncs() {
   json::JSON printfJSON;
-  std::ifstream t("../" + heuristicPath + "/printf.json");
+  std::ifstream t(heuristicPath + "/printf.json");
   if(!t)
     llvm::errs() << "File " << heuristicPath + "/str.json does not exist. Please pass proper path to -he argument for complete heuristic directory.\n";
   else{

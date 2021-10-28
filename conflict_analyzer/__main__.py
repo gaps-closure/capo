@@ -6,8 +6,8 @@ from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
 from conflict_analyzer.minizinc import minizinc
-from preprocessor.preprocessor import LabelledCleJson, Transform
-import preprocessor.preprocessor as preprocessor
+from preprocessor.__main__ import LabelledCleJson, Transform
+import preprocessor.__main__ as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
 from conflict_analyzer.exceptions import SourcedException, Source
 import tempfile

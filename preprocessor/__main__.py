@@ -2,12 +2,12 @@
 # A quick and dirty cle-preprocessor implementation for GAPS-CLOSURE
 #
 from logging import Logger
-from typing import Any, Dict, Generator, Iterator, List, Literal, Optional, TypedDict, cast
+from typing import Any, Dict, Generator, Iterator, List, Literal, Optional, Type, TypedDict, cast
 from clang.cindex  import Index, TokenKind 
 from clang         import cindex
 from jsonschema.exceptions import ValidationError
 from lark.lexer    import Lexer, Token
-from argparse      import ArgumentParser
+import argparse      
 from lark          import Lark, Tree
 from lark.visitors import Transformer
 from pathlib       import Path
@@ -17,6 +17,8 @@ import json
 import sys
 import os
 import os.path
+import logging
+import pickle
 import jsonschema
 
 
@@ -189,50 +191,47 @@ def source_transform(path: Path, source: str, ttree, astyle: str, schema: Any, l
   return Transform("\n".join(preproc), offsetDic, cast(List[LabelledCleJson], defs))
 
 
-# Parse command line argumets
-def get_args():
-  p = ArgumentParser(description='CLOSURE Language Extensions Preprocessor')
-  p.add_argument('-f', '--file', required=True, type=str, help='Input file')
+@dataclass
+class Args:
+  input_file: Path
+  clang_args: str
+  annotation_style: Literal['naive', 'type', 'both']
+  schema: Path
+  pickle: bool
+  output: Path
+
+# Create and invoke tokenizer, parser, tree transformer, and source transformer
+def main() -> None:
+  p = argparse.ArgumentParser(description='CLOSURE Language Extensions Preprocessor')
+  p.add_argument('-f', '--input-file', required=True, type=Path, help='Input file')
   p.add_argument('-c', '--clang_args', required=False, type=str, 
                  default='-x,c++,-stdlib=libc++', help='Arguments for clang')
   p.add_argument('-a', '--annotation_style', required=False, type=str, 
                  default='naive', help='Annotation style (naive, type, or both)')
-  p.add_argument('-t', '--tool_chain', required=False, type=str, 
-                 default='clang', help='Toolchain (clang)')
-  p.add_argument('-s', '--schema', required=False, type=str,
-                 default='../../cle-spec/schema/cle-schema.json',
+  p.add_argument('-s', '--schema', required=False, type=Path,
                  help='override the location of the of the schema if required')
-  p.add_argument('-L', '--liberal',help="Liberal mode: disable cle schema check",
+  p.add_argument('-p', '--pickle',help="Produce pickle file with map of offsets.",
                  default=False, action='store_true') 
-  p.add_argument('-P', '--pickle',help="Produce pickle file with map of offsets.",
-                 default=False, action='store_true') 
-  p.add_argument('-o', '--output', type=str, help='Output directory')
+  p.add_argument('-o', '--output', type=Path, help='Output directory', required=True)
+  args = p.parse_args(namespace=Args)
+  toks = cindex_tokenizer(args.input_file, args.clang_args.split(','))
+  tree = cle_parser().parser.parse(toks)
+  ttree = CLETransformer().transform(tree)
+  try:
+    with open(args.input_file) as f:
+      transform = source_transform(args.input_file, f.read(), ttree, args.annotation_style, args.schema, logging.getLogger())
+  except jsonschema.exceptions.ValidationError as schemaerr:
+    print(schemaerr)
+    sys.exit(-1)
+  with open(args.output / args.input_file.with_suffix('.mod.c').name, 'w') as f: 
+    f.write(transform.preprocessed)
+  with open(args.output / args.input_file.with_suffix('.clemap.json').name, 'w') as f:
+    f.write(json.dumps(transform.cle_json, indent=2))
   
-  return p.parse_args()
+  if args.pickle:
+    with open(args.output / args.input_file.with_suffix('.pickle').name, 'wb') as f_pickle:
+      pickle.dump(transform.source_map, f_pickle)
+  
 
-def get_cle_schema(schema_location):
-  basepath = ""
-  
-  #get the module paths to help find the schema in a relitive to ourself
-  if(len(sys.path) > 1):
-    basepath = sys.path[0]
-  path = os.path.join(basepath,schema_location)
-  
-  if(not os.path.exists(path)):
-    #schema not found relitive to the python enviroment, check a local path
-    path = schema_location
-    if(not os.path.exists(path)):
-      #Unable to get python schema
-      raise(IOError("Unable to fild cle schema (expected at): " + path))
-  
-  #we found the schema load it into ram
-  print("Using CLE schema: " + path)
-  with open(path,"r",encoding="UTF-8") as schemafile:
-    return(json.loads(schemafile.read()))
-
-def check_jsonschema_version():
-  """validate the json schema version is new enogh to process
-     Draft 7 schemas"""
-  if(jsonschema.__version__ < "3.2.0"):
-    raise(ModuleNotFoundError("Newer version of jsonschema module required"
-      " (>= 3.2.0)"))
+if __name__ == '__main__':
+  main()

@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import Any, Dict, List
 from logging import Logger
 
-from preprocessor.preprocessor import LabelledCleJson
+from preprocessor.__main__ import LabelledCleJson
 
 
 output_order_enums = [
