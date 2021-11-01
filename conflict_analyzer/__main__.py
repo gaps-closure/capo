@@ -13,6 +13,7 @@ from conflict_analyzer.exceptions import SourcedException, Source
 import tempfile
 import logging
 import sys
+import zmq
 
 @dataclass
 class Args:
@@ -21,6 +22,9 @@ class Args:
     clang_args: str
     schema: Optional[Path]
     pdg_lib: Path
+    source_path: Path
+    output: Optional[Path]
+    zmq: Optional[str]
     constraint_files: List[Path]
     log_level: str 
 
@@ -86,7 +90,7 @@ def start(args: Type[Args], logger: Logger) -> Optional[Dict[str, Any]]:
         logger.debug("%s", json.dumps(collated, indent=2))
         bitcode = compile_c([ (entity.source_path.name, entity.preprocessed) for entity in entities if entity.source_path.suffix == ".c" ], args.temp_dir, clang_args)
         logger.info("Compiled c files into LLVM IR")
-        opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
+        opt_out = opt(args.pdg_lib.resolve(), bitcode, args.temp_dir) 
         logger.debug(opt_out.pdg_instance)
         logger.info("Produced pdg related data from opt")
         zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger) 
@@ -95,7 +99,7 @@ def start(args: Type[Args], logger: Logger) -> Optional[Dict[str, Any]]:
         logger.debug(zinc_src.enclave_instance)
         collated_map = collate_source_map(entities, args.temp_dir) 
         logger.info("Collated source maps")
-        out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, collated_map, logger) 
+        out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, args.source_path, collated_map, logger) 
         logger.info("Produced JSON result from minizinc")
         return out
 
@@ -112,9 +116,14 @@ def main() -> None:
     parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, required=False, default="")
     parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
     parser.add_argument('--pdg-lib', help="Path to pdg lib", 
-        type=Path, required=False, default=Path(__package__).resolve() / '../libpdg.so')
+        type=Path, required=True)
+    parser.add_argument('--source-path', help="Source path for output topology. Defaults to current directory", 
+        default=Path('.'))
     parser.add_argument('--constraint-files', help="Path to constraint files", 
         type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
+    parser.add_argument('--output', help="Output path for topology json",
+        type=Path)
+    parser.add_argument('--zmq', help="zmq url to post result to", type=str, nargs="?")
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args)
     
@@ -123,12 +132,35 @@ def main() -> None:
     logger.addHandler(handler)
     # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
     # handler.setFormatter(formatter)
-    try:
-        out = start(args, logger)
-    except Exception as e:
-        logger.error(str(e))
-    else: 
-        print(json.dumps(out, indent=2))
+    # try:
+    out = start(args, logger)
+    # except Exception as e:
+        # logger.error(str(e))
+    # else: 
+    def output_to_file(path: Path):
+        def _out(top: Any):
+            with open(path, "w") as f:
+                f.write(top)
+        return _out
+    def err_fn(err: Any):
+        print(err) 
+        if args.zmq:
+            context = zmq.Context()
+            socket = context.socket(zmq.REQ)
+            socket.bind(args.zmq)
+            socket.send(err)
+
+    output_fn = output_to_file(args.output) if args.output else print 
+    if out:
+        result = out["result"]
+        if result == "Success":
+            output_fn(json.dumps(out["topology"], indent=2))
+        elif result == "Conflict":
+            print(json.dumps(out["conflicts"], indent=2))
+        else:
+            logger.error("Internal error")
+                  
+
     
 
 if __name__ == '__main__':

@@ -3,9 +3,9 @@ from pathlib import Path
 import unittest
 import tempfile
 import sys
-from conflict_analyzer import conflict_analyzer
+from conflict_analyzer import __main__ as conflict_analyzer
 
-pdg_lib = Path('/opt/closure/lib/libpdg.so') 
+pdg_lib = Path('pdg2/build/libpdg.so') 
 constraints_def = Path('/opt/closure/scripts/constraints/conflict_analyzer_constraints.mzn') 
 decls_def = Path('/opt/closure/scripts/constraints/conflict_variable_declarations.mzn')
 sdir = Path('conflict_analyzer/tests')
@@ -22,6 +22,9 @@ class End2EndTests(unittest.TestCase):
             schema=None, 
             pdg_lib=pdg_lib,
             constraint_files=[constraints_def, decls_def],
+            source_path=Path('tests'),
+            output=None,
+            zmq=None,
             log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Success')
@@ -34,6 +37,9 @@ class End2EndTests(unittest.TestCase):
             schema=None, 
             pdg_lib=pdg_lib,
             constraint_files=[constraints_def, decls_def],
+            source_path=Path('tests'),
+            output=None,
+            zmq=None,
             log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Success')
@@ -45,6 +51,9 @@ class End2EndTests(unittest.TestCase):
             schema=None, 
             pdg_lib=pdg_lib,
             constraint_files=[constraints_def, decls_def],
+            source_path=Path('tests'),
+            output=None,
+            zmq=None,
             log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Success')
@@ -56,6 +65,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Success')
@@ -68,6 +80,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
             ), logger)
         except:
@@ -83,6 +98,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -94,6 +112,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -105,6 +126,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -117,6 +141,9 @@ class End2EndTests(unittest.TestCase):
                     schema=None, 
                     pdg_lib=pdg_lib,
                     constraint_files=[constraints_def, decls_def],
+                    source_path=Path('tests'),
+                    output=None, 
+                    zmq=None,
                     log_level="ERROR" 
             ), logger)
         except:
@@ -132,6 +159,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -144,6 +174,9 @@ class End2EndTests(unittest.TestCase):
                     schema=None, 
                     pdg_lib=pdg_lib,
                     constraint_files=[constraints_def, decls_def],
+                    source_path=Path('tests'),
+                    output=None, 
+                    zmq=None,
                     log_level="ERROR" 
             ), logger)
         except:
@@ -159,6 +192,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -170,6 +206,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -181,6 +220,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -192,6 +234,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -203,6 +248,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')
@@ -214,6 +262,9 @@ class End2EndTests(unittest.TestCase):
                 schema=None, 
                 pdg_lib=pdg_lib,
                 constraint_files=[constraints_def, decls_def],
+                source_path=Path('tests'),
+                output=None, 
+                zmq=None,
                 log_level="ERROR" 
         ), logger)
         self.assertEqual(out["result"], 'Conflict')

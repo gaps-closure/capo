@@ -11,7 +11,7 @@ from logging import Logger
 from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, Union
 
 def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_instance: str, constraint_files: List[Path], 
-    pdg_csv: list, source_map: Dict[Tuple[str, int], Tuple[str, int]], logger: Logger) -> Dict[str, Any]:
+    pdg_csv: list, source_path: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]], logger: Logger) -> Dict[str, Any]:
     cle_instance_path, pdg_instance_path, enclave_instance_path = \
         tuple([ temp_dir / name for name in ['cle_instance.mzn', 'pdg_instance.mzn', 'enclave_instance.mzn']])
     with open(cle_instance_path, 'w') as f:
@@ -52,11 +52,11 @@ def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_insta
             raise Exception("minizinc failure", findmus_out)         
         return parse_findmus(findmus_out.stdout, pdg_csv, logger, source_map)
     else:
-        return parse_assignment(mzn_out.stdout, pdg_csv, logger, source_map)
+        return parse_assignment(mzn_out.stdout, pdg_csv, logger, source_path, source_map)
 
         
 
-def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
+def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_path: Path, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
     pdg_csv = list(pdg_csv)
     if source_map:
         source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
@@ -92,7 +92,7 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
             add_entry(line, global_var_entries, 'variable')
          
     topology = {
-        "source_path": str(Path('.').resolve()), # provisional, not sure what is correct here
+        "source_path": source_path, 
         "levels": list(enclaves),
         "global_scoped_vars": global_var_entries,
         "functions": function_entries
@@ -136,7 +136,11 @@ def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map
                 node_num = int(match.group(1))
                 (_, source, _, line) = nodes[node_num - 1] 
                 line_no = int(line)
-                source, line_no = source_map[(source, line_no)] if source_map else (source, line_no)
+                if line_no > 0:
+                    source, line_no = source_map[(source, line_no)] if source_map else (source, line_no)
+                else:
+                    source, _ = source_map[(source, 1)] if source_map else (source, -1)
+                    line_no = -1 
                 conflicts.append({
                     "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
                     "description": "TODO",
