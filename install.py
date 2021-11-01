@@ -29,7 +29,7 @@ def install_verifier(out: Path) -> None:
     os.chmod(out_bin / 'verifier', 0o755)
 
 def install_python_package(out: Path) -> None:
-    subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--upgrade', '--target', out / 'python'])   
+    subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--target', out / 'python'])   
 
 
 def install_gedl_schema(out: Path) -> None:
