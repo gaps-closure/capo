@@ -17,7 +17,7 @@ def main():
     if len(sys.argv) < 3:
         print("Output name and at least one input is necessary")
         exit()
-    main(sys.argv[1], sys.argv[2:])
+    join(sys.argv[1], sys.argv[2:])
 
 if __name__ == "__main__":
     main()

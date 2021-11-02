@@ -219,13 +219,16 @@ def main() -> None:
   ttree = CLETransformer().transform(tree)
   try:
     with open(args.input_file) as f:
-      transform = source_transform(args.input_file, f.read(), ttree, args.annotation_style, args.schema, logging.getLogger())
+      with open(args.schema) as s:
+        transform = source_transform(args.input_file, f.read(), ttree, args.annotation_style, json.loads(s.read()), logging.getLogger())
   except jsonschema.exceptions.ValidationError as schemaerr:
     print(schemaerr)
     sys.exit(-1)
-  with open(args.output / args.input_file.with_suffix('.mod.c').name, 'w') as f: 
+  src_suffix = f'.mod{args.input_file.suffix}'
+  cle_suffix = f'{args.input_file.suffix}.clemap.json'
+  with open(args.output / args.input_file.with_suffix(src_suffix).name, 'w') as f: 
     f.write(transform.preprocessed)
-  with open(args.output / args.input_file.with_suffix('.clemap.json').name, 'w') as f:
+  with open(args.output / args.input_file.with_suffix(cle_suffix).name, 'w') as f:
     f.write(json.dumps(transform.cle_json, indent=2))
   
   if args.pickle:
