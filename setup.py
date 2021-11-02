@@ -20,7 +20,9 @@ setup(
             "divider=divider:program_divider.main",
             "gedl=gedl:__main__.main",
             "rpc_generator=gedl:rpc_generator.main",
-            "idl_generator=gedl:idl_generator.main"
+            "idl_generator=gedl:idl_generator.main",
+            "preprocessor=preprocessor:__main__.main",
+            "join_clemaps=preprocessor:join_clemaps.main"
         ]
     },
     scripts=[
