@@ -7,7 +7,6 @@ import subprocess
 import sys
 import os
 from typing import Dict, Type
-import build_capo
 
 def install_pdg(out: Path) -> None:
     path = Path('pdg2')
@@ -54,11 +53,12 @@ def install(args: Type[Args]) -> Dict[str, str]:
     }
 
 def main() -> None: 
+    import build
     parser = argparse.ArgumentParser('install.py') 
     parser.add_argument('--output', '-o', default=False, help="Output directory", type=Path, required=True)
     args = parser.parse_args(namespace=Args)
     args.output.mkdir(parents=True, exist_ok=True)
-    build_capo.build()
+    build.build()
     install(args)
     
 if __name__ == '__main__':
