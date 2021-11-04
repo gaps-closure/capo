@@ -137,9 +137,9 @@ solve minimize objective;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 output ["Domain assignments for globals:" ++ "\n"];
-output [" GLOBAL   : " ++ show(x) ++ " -> " ++ show(nodeEnclave[x]) ++ "::" ++ show(taint[x]) ++ "\n" | x in Global] ;
+output [" GLOBAL   : " ++ show(x) ++ " -> " ++ show(nodeEnclave[x]) ++ "::" ++ show(taint[x]) ++ "::" ++ show(nodeLevel[x]) ++ "\n" | x in Global] ;
 output ["Domain assignments for functions:" ++ "\n"];
-output [" FUNCTION : " ++ show(x) ++ " -> " ++ show(nodeEnclave[x]) ++ "::" ++ show(taint[x]) ++ "\n" | x in FunctionEntry ] ;
+output [" FUNCTION : " ++ show(x) ++ " -> " ++ show(nodeEnclave[x]) ++ "::" ++ show(taint[x]) ++ "::" ++ show(nodeLevel[x]) ++ "\n" | x in FunctionEntry ] ;
 output ["Cross-domain cut:" ++ "\n"];
 output [" XDCALL   : " ++ "(" ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSource[e]]) ++ ")"
                        ++ "--[" ++ show(nodeEnclave[hasFunction[hasSource[e]]]) ++ "]"
@@ -160,7 +160,7 @@ output [" ASSIGN   : " ++
   endif)
  ++ "[" ++
  show(nodeEnclave[n])
- ++ "]::" ++ show(taint[n]) ++ "\n"
+ ++ "]::" ++ show(taint[n]) ++ "::" ++ show(nodeLevel[n]) ++ "\n"
  | n in PDGNodeIdx where debug];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

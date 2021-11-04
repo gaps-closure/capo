@@ -63,6 +63,7 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
     function_entries : List[Dict[str, str]] = []
     global_var_entries : List[Dict[str, str]] = []
     enclaves : Set[str] = set() 
+    levels : Set[str] = set() 
 
     nodes = sorted(
         [ (int(num), source, llvm, line) for [type_, num, _, _, llvm, *_, source, line, _]  in pdg_csv if type_ == 'Node' ], 
@@ -71,7 +72,7 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
 
     def add_entry(line: str, entries: List[Dict[str, str]], entry_type: str) -> None:
         parts = [ s.strip() for s in line.split(" ") if s != '' ]
-        node, [enclave, _label] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
+        node, [enclave, _label, level] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
         node_, source, llvm, line = nodes[node-1]
         line_no = int(line)
         source = None if (stripped := source.strip()) == 'Not Found' else stripped
@@ -80,8 +81,9 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
         assert match is not None
         name = match.group(1)
         enclaves.add(enclave)
+        levels.add(level)
         source, line_no = source_map_resolved[(Path(source).resolve(), line_no)] if source_map else (source, line_no)
-        entries.append({ "name": name, "level": enclave, "line": str(line_no) })
+        entries.append({ "name": name, "enclave": enclave, "level": level, "line": str(line_no) })
         logger.info(f"{entry_type} {name} is in {enclave}{'' if not source else f' @ {source}:{str(line_no)}'}")
     
     out = mzn_output.splitlines() 
@@ -92,8 +94,9 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
             add_entry(line, global_var_entries, 'variable')
          
     topology = {
-        "source_path": source_path, 
-        "levels": list(enclaves),
+        "source_path": str(source_path), 
+        "enclaves": list(enclaves),
+        "levels": list(levels),
         "global_scoped_vars": global_var_entries,
         "functions": function_entries
     }
