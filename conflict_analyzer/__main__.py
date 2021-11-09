@@ -1,5 +1,6 @@
 import argparse
 import json
+from os import environ
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Tuple, Type
@@ -108,8 +109,8 @@ def start(args: Type[Args], logger: Logger) -> Optional[Dict[str, Any]]:
 
 
 def main() -> None: 
-    constraints_def = Path(__package__).resolve() / 'constraints/conflict_analyzer_constraints.mzn'
-    decls_def = Path(__package__).resolve() / 'constraints/conflict_variable_declarations.mzn'
+    constraints_def = Path(__file__).parent / 'constraints/conflict_analyzer_constraints.mzn'
+    decls_def = Path(__file__).parent / 'constraints/conflict_variable_declarations.mzn'
     parser = argparse.ArgumentParser("Conflict Analyzer") 
     parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
     parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
