@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 import os
-from typing import Dict, Type
+from typing import Dict, Optional, Type
 
 def install_pdg(out: Path) -> None:
     path = Path('pdg2')
@@ -41,12 +41,13 @@ def install_gedl_schema(out: Path) -> None:
 class Args:
     output: Path
 
-def install(args: Type[Args]) -> Dict[str, str]:
+def install(args: Type[Args], install_python_package: bool = False) -> Dict[str, str]:
     install_pdg(args.output)
     install_gedl(args.output)
     install_verifier(args.output)
     install_gedl_schema(args.output)
-    install_python_package(args.output)
+    if install_python_package:
+        install_python_package(args.output)
     return {
         "PATH": f"{args.output.resolve()}/bin:{args.output.resolve()}/python/bin",
         "PYTHONPATH": f"{args.output.resolve()}/python",
@@ -59,7 +60,7 @@ def main() -> None:
     args = parser.parse_args(namespace=Args)
     args.output.mkdir(parents=True, exist_ok=True)
     build.build()
-    install(args)
+    install(args, True)
     
 if __name__ == '__main__':
     main()

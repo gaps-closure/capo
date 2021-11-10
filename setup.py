@@ -14,6 +14,11 @@ setup(
     classifiers=["Programming Language :: Python :: 3"],
     packages=["preprocessor", "conflict_analyzer", "gedl", "divider"],
     python_requires=">=3.6",
+    install_requires=[
+        "jsonschema",
+        "pyzmq",
+        "lark"
+    ],
     entry_points={
         "console_scripts": [
             "conflict_analyzer=conflict_analyzer:__main__.main",
