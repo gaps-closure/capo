@@ -1,0 +1,17 @@
+digraph "CFG for 'fio_max_fd_shrink' function" {
+	label="CFG for 'fio_max_fd_shrink' function";
+
+	Node0x5568516a7090 [shape=record,label="{%0:\l  %1 = alloca i32, align 4\l  %2 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2802\l  %3 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %2, i32\l... 0, i32 9, !dbg !2803\l  call void @fio_lock(i8* %3), !dbg !2804\l  call void @llvm.dbg.declare(metadata i32* %1, metadata !2805, metadata\l... !DIExpression()), !dbg !2806\l  %4 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2807\l  %5 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %4, i32\l... 0, i32 10, !dbg !2808\l  %6 = load i32, i32* %5, align 8, !dbg !2808\l  store i32 %6, i32* %1, align 4, !dbg !2806\l  br label %7, !dbg !2809\l}"];
+	Node0x5568516a7090 -> Node0x5568516a7e40;
+	Node0x5568516a7e40 [shape=record,label="{%7:\l7:                                                \l  %8 = load i32, i32* %1, align 4, !dbg !2810\l  %9 = icmp ne i32 %8, 0, !dbg !2810\l  br i1 %9, label %10, label %19, !dbg !2811\l|{<s0>T|<s1>F}}"];
+	Node0x5568516a7e40:s0 -> Node0x5568516a7e90;
+	Node0x5568516a7e40:s1 -> Node0x5568516a7ee0;
+	Node0x5568516a7e90 [shape=record,label="{%10:\l10:                                               \l  %11 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2812\l  %12 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %11,\l... i32 0, i32 12, !dbg !2812\l  %13 = load i32, i32* %1, align 4, !dbg !2812\l  %14 = zext i32 %13 to i64, !dbg !2812\l  %15 = getelementptr inbounds [0 x %struct.fio_fd_data_s], [0 x\l... %struct.fio_fd_data_s]* %12, i64 0, i64 %14, !dbg !2812\l  %16 = getelementptr inbounds %struct.fio_fd_data_s, %struct.fio_fd_data_s*\l... %15, i32 0, i32 3, !dbg !2813\l  %17 = load %struct.fio_protocol_s*, %struct.fio_protocol_s** %16, align 8,\l... !dbg !2813\l  %18 = icmp eq %struct.fio_protocol_s* %17, null, !dbg !2814\l  br label %19\l}"];
+	Node0x5568516a7e90 -> Node0x5568516a7ee0;
+	Node0x5568516a7ee0 [shape=record,label="{%19:\l19:                                               \l  %20 = phi i1 [ false, %7 ], [ %18, %10 ], !dbg !2815\l  br i1 %20, label %21, label %24, !dbg !2809\l|{<s0>T|<s1>F}}"];
+	Node0x5568516a7ee0:s0 -> Node0x5568516a7f30;
+	Node0x5568516a7ee0:s1 -> Node0x5568516a7f80;
+	Node0x5568516a7f30 [shape=record,label="{%21:\l21:                                               \l  %22 = load i32, i32* %1, align 4, !dbg !2816\l  %23 = add i32 %22, -1, !dbg !2816\l  store i32 %23, i32* %1, align 4, !dbg !2816\l  br label %7, !dbg !2809, !llvm.loop !2817\l}"];
+	Node0x5568516a7f30 -> Node0x5568516a7e40;
+	Node0x5568516a7f80 [shape=record,label="{%24:\l24:                                               \l  %25 = load i32, i32* %1, align 4, !dbg !2819\l  %26 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2820\l  %27 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %26,\l... i32 0, i32 10, !dbg !2821\l  store i32 %25, i32* %27, align 8, !dbg !2822\l  %28 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2823\l  %29 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %28,\l... i32 0, i32 9, !dbg !2824\l  %30 = call i32 @fio_unlock(i8* %29), !dbg !2825\l  ret void, !dbg !2826\l}"];
+}

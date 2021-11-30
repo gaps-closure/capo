@@ -1,0 +1,24 @@
+digraph "CFG for 'fio_publish2channel_task' function" {
+	label="CFG for 'fio_publish2channel_task' function";
+
+	Node0x5568515e8d90 [shape=record,label="{%2:\l  %3 = alloca i8*, align 8\l  %4 = alloca i8*, align 8\l  %5 = alloca %struct.channel_s*, align 8\l  %6 = alloca %struct.fio_defer_task_s, align 8\l  store i8* %0, i8** %3, align 8\l  call void @llvm.dbg.declare(metadata i8** %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store i8* %1, i8** %4, align 8\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  call void @llvm.dbg.declare(metadata %struct.channel_s** %5, metadata !2806,\l... metadata !DIExpression()), !dbg !2807\l  %7 = load i8*, i8** %3, align 8, !dbg !2808\l  %8 = bitcast i8* %7 to %struct.channel_s*, !dbg !2808\l  store %struct.channel_s* %8, %struct.channel_s** %5, align 8, !dbg !2807\l  %9 = load i8*, i8** %3, align 8, !dbg !2809\l  %10 = icmp ne i8* %9, null, !dbg !2809\l  br i1 %10, label %12, label %11, !dbg !2811\l|{<s0>T|<s1>F}}"];
+	Node0x5568515e8d90:s0 -> Node0x5568515e8e30;
+	Node0x5568515e8d90:s1 -> Node0x5568515e8de0;
+	Node0x5568515e8de0 [shape=record,label="{%11:\l11:                                               \l  br label %37, !dbg !2812\l}"];
+	Node0x5568515e8de0 -> Node0x5568515e9010;
+	Node0x5568515e8e30 [shape=record,label="{%12:\l12:                                               \l  %13 = load i8*, i8** %4, align 8, !dbg !2813\l  %14 = icmp ne i8* %13, null, !dbg !2813\l  br i1 %14, label %16, label %15, !dbg !2815\l|{<s0>T|<s1>F}}"];
+	Node0x5568515e8e30:s0 -> Node0x5568515e8ed0;
+	Node0x5568515e8e30:s1 -> Node0x5568515e8e80;
+	Node0x5568515e8e80 [shape=record,label="{%15:\l15:                                               \l  br label %35, !dbg !2816\l}"];
+	Node0x5568515e8e80 -> Node0x5568515e8fc0;
+	Node0x5568515e8ed0 [shape=record,label="{%16:\l16:                                               \l  %17 = load %struct.channel_s*, %struct.channel_s** %5, align 8, !dbg !2817\l  %18 = getelementptr inbounds %struct.channel_s, %struct.channel_s* %17, i32\l... 0, i32 6, !dbg !2819\l  %19 = call i32 @fio_trylock(i8* %18), !dbg !2820\l  %20 = icmp ne i32 %19, 0, !dbg !2820\l  br i1 %20, label %21, label %28, !dbg !2821\l|{<s0>T|<s1>F}}"];
+	Node0x5568515e8ed0:s0 -> Node0x5568515e8f20;
+	Node0x5568515e8ed0:s1 -> Node0x5568515e8f70;
+	Node0x5568515e8f20 [shape=record,label="{%21:\l21:                                               \l  %22 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %6, i32 0, i32 0, !dbg !2822\l  store void (i8*, i8*)* @fio_publish2channel_task, void (i8*, i8*)** %22,\l... align 8, !dbg !2822\l  %23 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %6, i32 0, i32 1, !dbg !2822\l  %24 = load %struct.channel_s*, %struct.channel_s** %5, align 8, !dbg !2822\l  %25 = bitcast %struct.channel_s* %24 to i8*, !dbg !2822\l  store i8* %25, i8** %23, align 8, !dbg !2822\l  %26 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %6, i32 0, i32 2, !dbg !2822\l  %27 = load i8*, i8** %4, align 8, !dbg !2822\l  store i8* %27, i8** %26, align 8, !dbg !2822\l  call void @fio_defer_push_task_fn(%struct.fio_defer_task_s*\l... byval(%struct.fio_defer_task_s) align 8 %6, %struct.fio_task_queue_s*\l... @task_queue_urgent), !dbg !2822\l  br label %37, !dbg !2824\l}"];
+	Node0x5568515e8f20 -> Node0x5568515e9010;
+	Node0x5568515e8f70 [shape=record,label="{%28:\l28:                                               \l  %29 = load %struct.channel_s*, %struct.channel_s** %5, align 8, !dbg !2825\l  %30 = load i8*, i8** %4, align 8, !dbg !2826\l  %31 = bitcast i8* %30 to %struct.fio_msg_internal_s*, !dbg !2826\l  call void @fio_publish2channel(%struct.channel_s* %29,\l... %struct.fio_msg_internal_s* %31), !dbg !2827\l  %32 = load %struct.channel_s*, %struct.channel_s** %5, align 8, !dbg !2828\l  %33 = getelementptr inbounds %struct.channel_s, %struct.channel_s* %32, i32\l... 0, i32 6, !dbg !2829\l  %34 = call i32 @fio_unlock(i8* %33), !dbg !2830\l  br label %35, !dbg !2830\l}"];
+	Node0x5568515e8f70 -> Node0x5568515e8fc0;
+	Node0x5568515e8fc0 [shape=record,label="{%35:\l35:                                               \l  call void @llvm.dbg.label(metadata !2831), !dbg !2832\l  %36 = load %struct.channel_s*, %struct.channel_s** %5, align 8, !dbg !2833\l  call void @fio_channel_free(%struct.channel_s* %36), !dbg !2834\l  br label %37, !dbg !2835\l}"];
+	Node0x5568515e8fc0 -> Node0x5568515e9010;
+	Node0x5568515e9010 [shape=record,label="{%37:\l37:                                               \l  ret void, !dbg !2835\l}"];
+}

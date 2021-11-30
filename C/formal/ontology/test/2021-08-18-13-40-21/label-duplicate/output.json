@@ -1,0 +1,26 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Duplicate Label",
+            "description": "Label 'ORANGE' is already defined",
+            "sources": [{
+                "file": "annotated/label-duplicate.c",
+                "range": {
+                    "start": {
+                        "line": 5,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 14,
+                        "character": 4 
+                    }
+                }
+            }],
+            "remedies": [
+                "Rename label 'ORANGE'",
+                "Remove label 'ORANGE'"
+            ]
+        }
+    ]
+}

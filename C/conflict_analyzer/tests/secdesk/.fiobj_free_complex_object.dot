@@ -1,0 +1,12 @@
+digraph "CFG for 'fiobj_free_complex_object' function" {
+	label="CFG for 'fiobj_free_complex_object' function";
+
+	Node0x556851e0ac60 [shape=record,label="{%1:\l  %2 = alloca i64, align 8\l  %3 = alloca %struct.fio_ary___s, align 8\l  store i64 %0, i64* %2, align 8\l  call void @llvm.dbg.declare(metadata i64* %2, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  call void @llvm.dbg.declare(metadata %struct.fio_ary___s* %3, metadata\l... !2806, metadata !DIExpression()), !dbg !2814\l  %4 = bitcast %struct.fio_ary___s* %3 to i8*, !dbg !2814\l  call void @llvm.memset.p0i8.i64(i8* align 8 %4, i8 0, i64 32, i1 false),\l... !dbg !2814\l  br label %5, !dbg !2815\l}"];
+	Node0x556851e0ac60 -> Node0x556851e0c880;
+	Node0x556851e0c880 [shape=record,label="{%5:\l5:                                                \l  %6 = load i64, i64* %2, align 8, !dbg !2816\l  %7 = call %struct.fiobj_object_vtable_s* @fiobj_type_vtable.23(i64 %6), !dbg\l... !2816\l  %8 = getelementptr inbounds %struct.fiobj_object_vtable_s,\l... %struct.fiobj_object_vtable_s* %7, i32 0, i32 1, !dbg !2818\l  %9 = load void (i64, void (i64, i8*)*, i8*)*, void (i64, void (i64, i8*)*,\l... i8*)** %8, align 8, !dbg !2818\l  %10 = load i64, i64* %2, align 8, !dbg !2819\l  %11 = bitcast %struct.fio_ary___s* %3 to i8*, !dbg !2820\l  call void %9(i64 %10, void (i64, i8*)* @fiobj_dealloc_task, i8* %11), !dbg\l... !2816\l  br label %12, !dbg !2821\l}"];
+	Node0x556851e0c880 -> Node0x556851e0c8d0;
+	Node0x556851e0c8d0 [shape=record,label="{%12:\l12:                                               \l  %13 = call i32 @fiobj_stack_pop(%struct.fio_ary___s* %3, i64* %2), !dbg !2822\l  %14 = icmp ne i32 %13, 0, !dbg !2823\l  %15 = xor i1 %14, true, !dbg !2823\l  br i1 %15, label %5, label %16, !dbg !2821, !llvm.loop !2824\l|{<s0>T|<s1>F}}"];
+	Node0x556851e0c8d0:s0 -> Node0x556851e0c880;
+	Node0x556851e0c8d0:s1 -> Node0x556851e0c920;
+	Node0x556851e0c920 [shape=record,label="{%16:\l16:                                               \l  call void @fiobj_stack_free(%struct.fio_ary___s* %3), !dbg !2826\l  ret void, !dbg !2827\l}"];
+}

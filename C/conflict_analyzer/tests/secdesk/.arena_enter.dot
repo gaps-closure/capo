@@ -1,0 +1,5 @@
+digraph "CFG for 'arena_enter' function" {
+	label="CFG for 'arena_enter' function";
+
+	Node0x556851401260 [shape=record,label="{%0:\l  %1 = load %struct.arena_s*, %struct.arena_s** @arena_last_used, align 8,\l... !dbg !2802\l  %2 = call %struct.arena_s* @arena_lock(%struct.arena_s* %1), !dbg !2803\l  store %struct.arena_s* %2, %struct.arena_s** @arena_last_used, align 8, !dbg\l... !2804\l  ret void, !dbg !2805\l}"];
+}

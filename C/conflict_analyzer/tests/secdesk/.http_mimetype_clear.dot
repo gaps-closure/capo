@@ -1,0 +1,5 @@
+digraph "CFG for 'http_mimetype_clear' function" {
+	label="CFG for 'http_mimetype_clear' function";
+
+	Node0x556852475ac0 [shape=record,label="{%0:\l  call void @fio_mime_set_free(%struct.fio_mime_set_s* @fio_http_mime_types),\l... !dbg !2802\l  %1 = load i64, i64* @current_date, align 8, !dbg !2803\l  call void @fiobj_free.403(i64 %1), !dbg !2804\l  store i64 0, i64* @current_date, align 8, !dbg !2805\l  store i64 0, i64* @last_date_added, align 8, !dbg !2806\l  ret void, !dbg !2807\l}"];
+}

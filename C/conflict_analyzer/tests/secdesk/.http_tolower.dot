@@ -1,0 +1,13 @@
+digraph "CFG for 'http_tolower' function" {
+	label="CFG for 'http_tolower' function";
+
+	Node0x55685220e5d0 [shape=record,label="{%1:\l  %2 = alloca i8, align 1\l  store i8 %0, i8* %2, align 1\l  call void @llvm.dbg.declare(metadata i8* %2, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %3 = load i8, i8* %2, align 1, !dbg !2806\l  %4 = zext i8 %3 to i32, !dbg !2806\l  %5 = icmp sge i32 %4, 65, !dbg !2808\l  br i1 %5, label %6, label %15, !dbg !2809\l|{<s0>T|<s1>F}}"];
+	Node0x55685220e5d0:s0 -> Node0x5568522114d0;
+	Node0x55685220e5d0:s1 -> Node0x556852211570;
+	Node0x5568522114d0 [shape=record,label="{%6:\l6:                                                \l  %7 = load i8, i8* %2, align 1, !dbg !2810\l  %8 = zext i8 %7 to i32, !dbg !2810\l  %9 = icmp sle i32 %8, 90, !dbg !2811\l  br i1 %9, label %10, label %15, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x5568522114d0:s0 -> Node0x556852211520;
+	Node0x5568522114d0:s1 -> Node0x556852211570;
+	Node0x556852211520 [shape=record,label="{%10:\l10:                                               \l  %11 = load i8, i8* %2, align 1, !dbg !2813\l  %12 = zext i8 %11 to i32, !dbg !2813\l  %13 = or i32 %12, 32, !dbg !2813\l  %14 = trunc i32 %13 to i8, !dbg !2813\l  store i8 %14, i8* %2, align 1, !dbg !2813\l  br label %15, !dbg !2814\l}"];
+	Node0x556852211520 -> Node0x556852211570;
+	Node0x556852211570 [shape=record,label="{%15:\l15:                                               \l  %16 = load i8, i8* %2, align 1, !dbg !2815\l  ret i8 %16, !dbg !2816\l}"];
+}

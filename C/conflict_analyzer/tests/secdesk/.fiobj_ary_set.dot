@@ -1,0 +1,14 @@
+digraph "CFG for 'fiobj_ary_set' function" {
+	label="CFG for 'fiobj_ary_set' function";
+
+	Node0x556851a5e540 [shape=record,label="{%3:\l  %4 = alloca i64, align 8\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  %7 = alloca i64, align 8\l  store i64 %0, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %1, i64* %5, align 8\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i64 %2, i64* %6, align 8\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  %8 = load i64, i64* %4, align 8, !dbg !2810\l  %9 = icmp ne i64 %8, 0, !dbg !2810\l  br i1 %9, label %10, label %15, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x556851a5e540:s0 -> Node0x556851a5fd00;
+	Node0x556851a5e540:s1 -> Node0x556851a5fda0;
+	Node0x556851a5fd00 [shape=record,label="{%10:\l10:                                               \l  %11 = load i64, i64* %4, align 8, !dbg !2810\l  %12 = call i64 @fiobj_type_is(i64 %11, i8 zeroext 41), !dbg !2810\l  %13 = icmp ne i64 %12, 0, !dbg !2810\l  br i1 %13, label %14, label %15, !dbg !2813\l|{<s0>T|<s1>F}}"];
+	Node0x556851a5fd00:s0 -> Node0x556851a5fd50;
+	Node0x556851a5fd00:s1 -> Node0x556851a5fda0;
+	Node0x556851a5fd50 [shape=record,label="{%14:\l14:                                               \l  br label %16, !dbg !2813\l}"];
+	Node0x556851a5fd50 -> Node0x556851a5fdf0;
+	Node0x556851a5fda0 [shape=record,label="{%15:\l15:                                               \l  call void @__assert_fail(i8* getelementptr inbounds ([41 x i8], [41 x i8]*\l... @.str.5.6, i64 0, i64 0), i8* getelementptr inbounds ([38 x i8], [38 x i8]*\l... @.str.3.3, i64 0, i64 0), i32 140, i8* getelementptr inbounds ([42 x i8], [42\l... x i8]* @__PRETTY_FUNCTION__.fiobj_ary_set, i64 0, i64 0)) #10, !dbg !2810\l  unreachable, !dbg !2810\l}"];
+	Node0x556851a5fdf0 [shape=record,label="{%16:\l16:                                               \l  call void @llvm.dbg.declare(metadata i64* %7, metadata !2814, metadata\l... !DIExpression()), !dbg !2815\l  store i64 0, i64* %7, align 8, !dbg !2815\l  %17 = load i64, i64* %4, align 8, !dbg !2816\l  %18 = inttoptr i64 %17 to %struct.fiobj_ary_s*, !dbg !2816\l  %19 = getelementptr inbounds %struct.fiobj_ary_s, %struct.fiobj_ary_s* %18,\l... i32 0, i32 1, !dbg !2817\l  %20 = load i64, i64* %6, align 8, !dbg !2818\l  %21 = load i64, i64* %5, align 8, !dbg !2819\l  call void @fio_ary___set(%struct.fio_ary___s* %19, i64 %20, i64 %21, i64*\l... %7), !dbg !2820\l  %22 = load i64, i64* %7, align 8, !dbg !2821\l  call void @fiobj_free(i64 %22), !dbg !2822\l  ret void, !dbg !2823\l}"];
+}

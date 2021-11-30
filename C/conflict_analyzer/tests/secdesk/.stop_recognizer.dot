@@ -1,0 +1,5 @@
+digraph "CFG for 'stop_recognizer' function" {
+	label="CFG for 'stop_recognizer' function";
+
+	Node0x556852542e70 [shape=record,label="{%0:\l  ret i32 0, !dbg !2804\l}"];
+}

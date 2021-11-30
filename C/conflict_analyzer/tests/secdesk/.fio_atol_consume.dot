@@ -1,0 +1,20 @@
+digraph "CFG for 'fio_atol_consume' function" {
+	label="CFG for 'fio_atol_consume' function";
+
+	Node0x5568515a0270 [shape=record,label="{%2:\l  %3 = alloca i8**, align 8\l  %4 = alloca i8, align 1\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  store i8** %0, i8*** %3, align 8\l  call void @llvm.dbg.declare(metadata i8*** %3, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i8 %1, i8* %4, align 1\l  call void @llvm.dbg.declare(metadata i8* %4, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  store i64 0, i64* %5, align 8, !dbg !2809\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2810, metadata\l... !DIExpression()), !dbg !2812\l  %7 = load i8, i8* %4, align 1, !dbg !2813\l  %8 = zext i8 %7 to i32, !dbg !2813\l  %9 = load i8, i8* %4, align 1, !dbg !2814\l  %10 = zext i8 %9 to i32, !dbg !2814\l  %11 = mul nsw i32 %8, %10, !dbg !2815\l  %12 = sext i32 %11 to i64, !dbg !2816\l  %13 = sub i64 -1, %12, !dbg !2817\l  store i64 %13, i64* %6, align 8, !dbg !2812\l  br label %14, !dbg !2818\l}"];
+	Node0x5568515a0270 -> Node0x5568515a6020;
+	Node0x5568515a6020 [shape=record,label="{%14:\l14:                                               \l  %15 = load i8**, i8*** %3, align 8, !dbg !2819\l  %16 = load i8*, i8** %15, align 8, !dbg !2820\l  %17 = load i8, i8* %16, align 1, !dbg !2821\l  %18 = sext i8 %17 to i32, !dbg !2821\l  %19 = icmp sge i32 %18, 48, !dbg !2822\l  br i1 %19, label %20, label %33, !dbg !2823\l|{<s0>T|<s1>F}}"];
+	Node0x5568515a6020:s0 -> Node0x5568515a6110;
+	Node0x5568515a6020:s1 -> Node0x5568515a61b0;
+	Node0x5568515a6110 [shape=record,label="{%20:\l20:                                               \l  %21 = load i8**, i8*** %3, align 8, !dbg !2824\l  %22 = load i8*, i8** %21, align 8, !dbg !2825\l  %23 = load i8, i8* %22, align 1, !dbg !2826\l  %24 = sext i8 %23 to i32, !dbg !2826\l  %25 = load i8, i8* %4, align 1, !dbg !2827\l  %26 = zext i8 %25 to i32, !dbg !2827\l  %27 = add nsw i32 48, %26, !dbg !2828\l  %28 = icmp slt i32 %24, %27, !dbg !2829\l  br i1 %28, label %29, label %33, !dbg !2830\l|{<s0>T|<s1>F}}"];
+	Node0x5568515a6110:s0 -> Node0x5568515a6160;
+	Node0x5568515a6110:s1 -> Node0x5568515a61b0;
+	Node0x5568515a6160 [shape=record,label="{%29:\l29:                                               \l  %30 = load i64, i64* %5, align 8, !dbg !2831\l  %31 = load i64, i64* %6, align 8, !dbg !2832\l  %32 = icmp ule i64 %30, %31, !dbg !2833\l  br label %33\l}"];
+	Node0x5568515a6160 -> Node0x5568515a61b0;
+	Node0x5568515a61b0 [shape=record,label="{%33:\l33:                                               \l  %34 = phi i1 [ false, %20 ], [ false, %14 ], [ %32, %29 ], !dbg !2834\l  br i1 %34, label %35, label %50, !dbg !2818\l|{<s0>T|<s1>F}}"];
+	Node0x5568515a61b0:s0 -> Node0x5568515a6200;
+	Node0x5568515a61b0:s1 -> Node0x5568515a6250;
+	Node0x5568515a6200 [shape=record,label="{%35:\l35:                                               \l  %36 = load i64, i64* %5, align 8, !dbg !2835\l  %37 = load i8, i8* %4, align 1, !dbg !2837\l  %38 = zext i8 %37 to i64, !dbg !2837\l  %39 = mul i64 %36, %38, !dbg !2838\l  %40 = load i8**, i8*** %3, align 8, !dbg !2839\l  %41 = load i8*, i8** %40, align 8, !dbg !2840\l  %42 = load i8, i8* %41, align 1, !dbg !2841\l  %43 = sext i8 %42 to i32, !dbg !2841\l  %44 = sub nsw i32 %43, 48, !dbg !2842\l  %45 = sext i32 %44 to i64, !dbg !2843\l  %46 = add i64 %39, %45, !dbg !2844\l  store i64 %46, i64* %5, align 8, !dbg !2845\l  %47 = load i8**, i8*** %3, align 8, !dbg !2846\l  %48 = load i8*, i8** %47, align 8, !dbg !2847\l  %49 = getelementptr inbounds i8, i8* %48, i32 1, !dbg !2847\l  store i8* %49, i8** %47, align 8, !dbg !2847\l  br label %14, !dbg !2818, !llvm.loop !2848\l}"];
+	Node0x5568515a6200 -> Node0x5568515a6020;
+	Node0x5568515a6250 [shape=record,label="{%50:\l50:                                               \l  %51 = load i64, i64* %5, align 8, !dbg !2850\l  ret i64 %51, !dbg !2851\l}"];
+}

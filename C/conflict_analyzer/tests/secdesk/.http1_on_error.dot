@@ -1,0 +1,21 @@
+digraph "CFG for 'http1_on_error' function" {
+	label="CFG for 'http1_on_error' function";
+
+	Node0x556852229340 [shape=record,label="{%1:\l  %2 = alloca i32, align 4\l  %3 = alloca %struct.http1_parser_s*, align 8\l  store %struct.http1_parser_s* %0, %struct.http1_parser_s** %3, align 8\l  call void @llvm.dbg.declare(metadata %struct.http1_parser_s** %3, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  %4 = load %struct.http1_parser_s*, %struct.http1_parser_s** %3, align 8,\l... !dbg !2807\l  %5 = ptrtoint %struct.http1_parser_s* %4 to i64, !dbg !2807\l  %6 = sub i64 %5, ptrtoint (%struct.http1_parser_s* getelementptr inbounds\l... (%struct.http1pr_s, %struct.http1pr_s* null, i32 0, i32 1) to i64), !dbg !2807\l  %7 = inttoptr i64 %6 to %struct.http1pr_s*, !dbg !2807\l  %8 = getelementptr inbounds %struct.http1pr_s, %struct.http1pr_s* %7, i32 0,\l... i32 6, !dbg !2809\l  %9 = load i8, i8* %8, align 8, !dbg !2809\l  %10 = icmp ne i8 %9, 0, !dbg !2807\l  br i1 %10, label %11, label %12, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x556852229340:s0 -> Node0x556852229390;
+	Node0x556852229340:s1 -> Node0x5568522293e0;
+	Node0x556852229390 [shape=record,label="{%11:\l11:                                               \l  store i32 -1, i32* %2, align 4, !dbg !2811\l  br label %26, !dbg !2811\l}"];
+	Node0x556852229390 -> Node0x556852229570;
+	Node0x5568522293e0 [shape=record,label="{%12:\l12:                                               \l  br label %13, !dbg !2812\l}"];
+	Node0x5568522293e0 -> Node0x556852229430;
+	Node0x556852229430 [shape=record,label="{%13:\l13:                                               \l  %14 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2813\l  %15 = icmp sle i32 5, %14, !dbg !2813\l  br i1 %15, label %16, label %17, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x556852229430:s0 -> Node0x556852229480;
+	Node0x556852229430:s1 -> Node0x5568522294d0;
+	Node0x556852229480 [shape=record,label="{%16:\l16:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([66 x i8],\l... [66 x i8]* @.str.99.394, i64 0, i64 0)), !dbg !2817\l  br label %17, !dbg !2817\l}"];
+	Node0x556852229480 -> Node0x5568522294d0;
+	Node0x5568522294d0 [shape=record,label="{%17:\l17:                                               \l  br label %18, !dbg !2816\l}"];
+	Node0x5568522294d0 -> Node0x556852229520;
+	Node0x556852229520 [shape=record,label="{%18:\l18:                                               \l  %19 = load %struct.http1_parser_s*, %struct.http1_parser_s** %3, align 8,\l... !dbg !2819\l  %20 = ptrtoint %struct.http1_parser_s* %19 to i64, !dbg !2819\l  %21 = sub i64 %20, ptrtoint (%struct.http1_parser_s* getelementptr inbounds\l... (%struct.http1pr_s, %struct.http1pr_s* null, i32 0, i32 1) to i64), !dbg !2819\l  %22 = inttoptr i64 %21 to %struct.http1pr_s*, !dbg !2819\l  %23 = getelementptr inbounds %struct.http1pr_s, %struct.http1pr_s* %22, i32\l... 0, i32 0, !dbg !2820\l  %24 = getelementptr inbounds %struct.http_fio_protocol_s,\l... %struct.http_fio_protocol_s* %23, i32 0, i32 1, !dbg !2821\l  %25 = load i64, i64* %24, align 8, !dbg !2821\l  call void @fio_close(i64 %25), !dbg !2822\l  store i32 -1, i32* %2, align 4, !dbg !2823\l  br label %26, !dbg !2823\l}"];
+	Node0x556852229520 -> Node0x556852229570;
+	Node0x556852229570 [shape=record,label="{%26:\l26:                                               \l  %27 = load i32, i32* %2, align 4, !dbg !2824\l  ret i32 %27, !dbg !2824\l}"];
+}

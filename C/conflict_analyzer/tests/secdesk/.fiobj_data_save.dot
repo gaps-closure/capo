@@ -1,0 +1,15 @@
+digraph "CFG for 'fiobj_data_save' function" {
+	label="CFG for 'fiobj_data_save' function";
+
+	Node0x556851daa780 [shape=record,label="{%2:\l  %3 = alloca i32, align 4\l  %4 = alloca i64, align 8\l  %5 = alloca i8*, align 8\l  store i64 %0, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i8* %1, i8** %5, align 8\l  call void @llvm.dbg.declare(metadata i8** %5, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  %6 = load i64, i64* %4, align 8, !dbg !2808\l  %7 = inttoptr i64 %6 to %struct.fiobj_data_s*, !dbg !2808\l  %8 = getelementptr inbounds %struct.fiobj_data_s, %struct.fiobj_data_s* %7,\l... i32 0, i32 6, !dbg !2809\l  %9 = load i32, i32* %8, align 8, !dbg !2809\l  switch i32 %9, label %18 [\l    i32 -1, label %10\l    i32 -2, label %14\l  ], !dbg !2810\l|{<s0>def|<s1>-1|<s2>-2}}"];
+	Node0x556851daa780:s0 -> Node0x556851dab940;
+	Node0x556851daa780:s1 -> Node0x556851dab8a0;
+	Node0x556851daa780:s2 -> Node0x556851dab8f0;
+	Node0x556851dab8a0 [shape=record,label="{%10:\l10:                                               \l  %11 = load i64, i64* %4, align 8, !dbg !2811\l  %12 = load i8*, i8** %5, align 8, !dbg !2813\l  %13 = call i32 @fiobj_data_save_str(i64 %11, i8* %12), !dbg !2814\l  store i32 %13, i32* %3, align 4, !dbg !2815\l  br label %22, !dbg !2815\l}"];
+	Node0x556851dab8a0 -> Node0x556851dab990;
+	Node0x556851dab8f0 [shape=record,label="{%14:\l14:                                               \l  %15 = load i64, i64* %4, align 8, !dbg !2816\l  %16 = load i8*, i8** %5, align 8, !dbg !2817\l  %17 = call i32 @fiobj_data_save_slice(i64 %15, i8* %16), !dbg !2818\l  store i32 %17, i32* %3, align 4, !dbg !2819\l  br label %22, !dbg !2819\l}"];
+	Node0x556851dab8f0 -> Node0x556851dab990;
+	Node0x556851dab940 [shape=record,label="{%18:\l18:                                               \l  %19 = load i64, i64* %4, align 8, !dbg !2820\l  %20 = load i8*, i8** %5, align 8, !dbg !2821\l  %21 = call i32 @fiobj_data_save_file(i64 %19, i8* %20), !dbg !2822\l  store i32 %21, i32* %3, align 4, !dbg !2823\l  br label %22, !dbg !2823\l}"];
+	Node0x556851dab940 -> Node0x556851dab990;
+	Node0x556851dab990 [shape=record,label="{%22:\l22:                                               \l  %23 = load i32, i32* %3, align 4, !dbg !2824\l  ret i32 %23, !dbg !2824\l}"];
+}

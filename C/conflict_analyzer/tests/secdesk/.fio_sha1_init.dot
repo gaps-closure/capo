@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_sha1_init' function" {
+	label="CFG for 'fio_sha1_init' function";
+
+	Node0x5568511d27e0 [shape=record,label="{%1:\l  %2 = bitcast %struct.fio_sha1_s* %0 to i8*, !dbg !2821\l  call void @llvm.memset.p0i8.i64(i8* align 8 %2, i8 0, i64 96, i1 false),\l... !dbg !2821\l  %3 = getelementptr inbounds %struct.fio_sha1_s, %struct.fio_sha1_s* %0, i32\l... 0, i32 2, !dbg !2822\l  %4 = bitcast %union.anon.31* %3 to [5 x i32]*, !dbg !2823\l  %5 = getelementptr inbounds [5 x i32], [5 x i32]* %4, i64 0, i64 0, !dbg\l... !2824\l  %6 = bitcast [5 x i32]* %4 to i8*, !dbg !2824\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %6, i8* align 4 bitcast ([5\l... x i32]* @constinit to i8*), i64 20, i1 false), !dbg !2824\l  ret void, !dbg !2825\l}"];
+}

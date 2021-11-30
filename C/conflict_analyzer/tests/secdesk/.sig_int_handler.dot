@@ -1,0 +1,47 @@
+digraph "CFG for 'sig_int_handler' function" {
+	label="CFG for 'sig_int_handler' function";
+
+	Node0x556851301b70 [shape=record,label="{%1:\l  %2 = alloca i32, align 4\l  %3 = alloca %struct.sigaction*, align 8\l  store i32 %0, i32* %2, align 4\l  call void @llvm.dbg.declare(metadata i32* %2, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  call void @llvm.dbg.declare(metadata %struct.sigaction** %3, metadata !2804,\l... metadata !DIExpression()), !dbg !2806\l  store %struct.sigaction* null, %struct.sigaction** %3, align 8, !dbg !2806\l  %4 = load i32, i32* %2, align 4, !dbg !2807\l  switch i32 %4, label %21 [\l    i32 10, label %5\l    i32 2, label %6\l    i32 15, label %11\l    i32 13, label %16\l  ], !dbg !2808\l|{<s0>def|<s1>10|<s2>2|<s3>15|<s4>13}}"];
+	Node0x556851301b70:s0 -> Node0x556851306090;
+	Node0x556851301b70:s1 -> Node0x556851305d70;
+	Node0x556851301b70:s2 -> Node0x556851305dc0;
+	Node0x556851301b70:s3 -> Node0x556851305eb0;
+	Node0x556851301b70:s4 -> Node0x556851305fa0;
+	Node0x556851305d70 [shape=record,label="{%5:\l5:                                                \l  store volatile i8 1, i8* @fio_signal_children_flag, align 1, !dbg !2809\l  store %struct.sigaction* @fio_old_sig_usr1, %struct.sigaction** %3, align 8,\l... !dbg !2811\l  br label %22, !dbg !2812\l}"];
+	Node0x556851305d70 -> Node0x5568513060e0;
+	Node0x556851305dc0 [shape=record,label="{%6:\l6:                                                \l  %7 = load %struct.sigaction*, %struct.sigaction** %3, align 8, !dbg !2813\l  %8 = icmp ne %struct.sigaction* %7, null, !dbg !2813\l  br i1 %8, label %10, label %9, !dbg !2815\l|{<s0>T|<s1>F}}"];
+	Node0x556851305dc0:s0 -> Node0x556851305e60;
+	Node0x556851305dc0:s1 -> Node0x556851305e10;
+	Node0x556851305e10 [shape=record,label="{%9:\l9:                                                \l  store %struct.sigaction* @fio_old_sig_int, %struct.sigaction** %3, align 8,\l... !dbg !2816\l  br label %10, !dbg !2817\l}"];
+	Node0x556851305e10 -> Node0x556851305e60;
+	Node0x556851305e60 [shape=record,label="{%10:\l10:                                               \l  br label %11, !dbg !2813\l}"];
+	Node0x556851305e60 -> Node0x556851305eb0;
+	Node0x556851305eb0 [shape=record,label="{%11:\l11:                                               \l  %12 = load %struct.sigaction*, %struct.sigaction** %3, align 8, !dbg !2818\l  %13 = icmp ne %struct.sigaction* %12, null, !dbg !2818\l  br i1 %13, label %15, label %14, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x556851305eb0:s0 -> Node0x556851305f50;
+	Node0x556851305eb0:s1 -> Node0x556851305f00;
+	Node0x556851305f00 [shape=record,label="{%14:\l14:                                               \l  store %struct.sigaction* @fio_old_sig_term, %struct.sigaction** %3, align 8,\l... !dbg !2821\l  br label %15, !dbg !2822\l}"];
+	Node0x556851305f00 -> Node0x556851305f50;
+	Node0x556851305f50 [shape=record,label="{%15:\l15:                                               \l  call void @fio_stop(), !dbg !2823\l  br label %22, !dbg !2824\l}"];
+	Node0x556851305f50 -> Node0x5568513060e0;
+	Node0x556851305fa0 [shape=record,label="{%16:\l16:                                               \l  %17 = load %struct.sigaction*, %struct.sigaction** %3, align 8, !dbg !2825\l  %18 = icmp ne %struct.sigaction* %17, null, !dbg !2825\l  br i1 %18, label %20, label %19, !dbg !2827\l|{<s0>T|<s1>F}}"];
+	Node0x556851305fa0:s0 -> Node0x556851306040;
+	Node0x556851305fa0:s1 -> Node0x556851305ff0;
+	Node0x556851305ff0 [shape=record,label="{%19:\l19:                                               \l  store %struct.sigaction* @fio_old_sig_pipe, %struct.sigaction** %3, align 8,\l... !dbg !2828\l  br label %20, !dbg !2829\l}"];
+	Node0x556851305ff0 -> Node0x556851306040;
+	Node0x556851306040 [shape=record,label="{%20:\l20:                                               \l  br label %21, !dbg !2825\l}"];
+	Node0x556851306040 -> Node0x556851306090;
+	Node0x556851306090 [shape=record,label="{%21:\l21:                                               \l  br label %22, !dbg !2830\l}"];
+	Node0x556851306090 -> Node0x5568513060e0;
+	Node0x5568513060e0 [shape=record,label="{%22:\l22:                                               \l  %23 = load %struct.sigaction*, %struct.sigaction** %3, align 8, !dbg !2831\l  %24 = icmp ne %struct.sigaction* %23, null, !dbg !2831\l  br i1 %24, label %25, label %43, !dbg !2833\l|{<s0>T|<s1>F}}"];
+	Node0x5568513060e0:s0 -> Node0x556851306130;
+	Node0x5568513060e0:s1 -> Node0x556851306220;
+	Node0x556851306130 [shape=record,label="{%25:\l25:                                               \l  %26 = load %struct.sigaction*, %struct.sigaction** %3, align 8, !dbg !2834\l  %27 = getelementptr inbounds %struct.sigaction, %struct.sigaction* %26, i32\l... 0, i32 0, !dbg !2835\l  %28 = bitcast %union.anon.0* %27 to void (i32)**, !dbg !2835\l  %29 = load void (i32)*, void (i32)** %28, align 8, !dbg !2835\l  %30 = icmp ne void (i32)* %29, inttoptr (i64 1 to void (i32)*), !dbg !2836\l  br i1 %30, label %31, label %43, !dbg !2837\l|{<s0>T|<s1>F}}"];
+	Node0x556851306130:s0 -> Node0x556851306180;
+	Node0x556851306130:s1 -> Node0x556851306220;
+	Node0x556851306180 [shape=record,label="{%31:\l31:                                               \l  %32 = load %struct.sigaction*, %struct.sigaction** %3, align 8, !dbg !2838\l  %33 = getelementptr inbounds %struct.sigaction, %struct.sigaction* %32, i32\l... 0, i32 0, !dbg !2839\l  %34 = bitcast %union.anon.0* %33 to void (i32)**, !dbg !2839\l  %35 = load void (i32)*, void (i32)** %34, align 8, !dbg !2839\l  %36 = icmp ne void (i32)* %35, null, !dbg !2840\l  br i1 %36, label %37, label %43, !dbg !2841\l|{<s0>T|<s1>F}}"];
+	Node0x556851306180:s0 -> Node0x5568513061d0;
+	Node0x556851306180:s1 -> Node0x556851306220;
+	Node0x5568513061d0 [shape=record,label="{%37:\l37:                                               \l  %38 = load %struct.sigaction*, %struct.sigaction** %3, align 8, !dbg !2842\l  %39 = getelementptr inbounds %struct.sigaction, %struct.sigaction* %38, i32\l... 0, i32 0, !dbg !2843\l  %40 = bitcast %union.anon.0* %39 to void (i32)**, !dbg !2843\l  %41 = load void (i32)*, void (i32)** %40, align 8, !dbg !2843\l  %42 = load i32, i32* %2, align 4, !dbg !2844\l  call void %41(i32 %42), !dbg !2842\l  br label %43, !dbg !2842\l}"];
+	Node0x5568513061d0 -> Node0x556851306220;
+	Node0x556851306220 [shape=record,label="{%43:\l43:                                               \l  ret void, !dbg !2845\l}"];
+}

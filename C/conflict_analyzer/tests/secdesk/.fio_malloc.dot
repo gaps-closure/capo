@@ -1,0 +1,17 @@
+digraph "CFG for 'fio_malloc' function" {
+	label="CFG for 'fio_malloc' function";
+
+	Node0x5568513eb240 [shape=record,label="{%1:\l  %2 = alloca i8*, align 8\l  %3 = alloca i64, align 8\l  %4 = alloca i8*, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %5 = load i64, i64* %3, align 8, !dbg !2806\l  %6 = icmp ne i64 %5, 0, !dbg !2806\l  br i1 %6, label %8, label %7, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x5568513eb240:s0 -> Node0x5568513eb900;
+	Node0x5568513eb240:s1 -> Node0x5568513eb8b0;
+	Node0x5568513eb8b0 [shape=record,label="{%7:\l7:                                                \l  store i8* bitcast (x86_fp80* @on_malloc_zero to i8*), i8** %2, align 8, !dbg\l... !2809\l  br label %29, !dbg !2809\l}"];
+	Node0x5568513eb8b0 -> Node0x5568513eb9f0;
+	Node0x5568513eb900 [shape=record,label="{%8:\l8:                                                \l  %9 = load i64, i64* %3, align 8, !dbg !2811\l  %10 = icmp uge i64 %9, 16384, !dbg !2813\l  br i1 %10, label %11, label %14, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x5568513eb900:s0 -> Node0x5568513eb950;
+	Node0x5568513eb900:s1 -> Node0x5568513eb9a0;
+	Node0x5568513eb950 [shape=record,label="{%11:\l11:                                               \l  %12 = load i64, i64* %3, align 8, !dbg !2815\l  %13 = call i8* @big_alloc(i64 %12), !dbg !2817\l  store i8* %13, i8** %2, align 8, !dbg !2818\l  br label %29, !dbg !2818\l}"];
+	Node0x5568513eb950 -> Node0x5568513eb9f0;
+	Node0x5568513eb9a0 [shape=record,label="{%14:\l14:                                               \l  %15 = load i64, i64* %3, align 8, !dbg !2819\l  %16 = lshr i64 %15, 4, !dbg !2820\l  %17 = load i64, i64* %3, align 8, !dbg !2821\l  %18 = and i64 %17, 15, !dbg !2822\l  %19 = icmp ne i64 %18, 0, !dbg !2823\l  %20 = xor i1 %19, true, !dbg !2823\l  %21 = xor i1 %20, true, !dbg !2824\l  %22 = zext i1 %21 to i32, !dbg !2824\l  %23 = sext i32 %22 to i64, !dbg !2825\l  %24 = add i64 %16, %23, !dbg !2826\l  store i64 %24, i64* %3, align 8, !dbg !2827\l  call void @arena_enter(), !dbg !2828\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2829, metadata\l... !DIExpression()), !dbg !2830\l  %25 = load i64, i64* %3, align 8, !dbg !2831\l  %26 = trunc i64 %25 to i16, !dbg !2831\l  %27 = call i8* @block_slice(i16 zeroext %26), !dbg !2832\l  store i8* %27, i8** %4, align 8, !dbg !2830\l  call void @arena_exit(), !dbg !2833\l  %28 = load i8*, i8** %4, align 8, !dbg !2834\l  store i8* %28, i8** %2, align 8, !dbg !2835\l  br label %29, !dbg !2835\l}"];
+	Node0x5568513eb9a0 -> Node0x5568513eb9f0;
+	Node0x5568513eb9f0 [shape=record,label="{%29:\l29:                                               \l  %30 = load i8*, i8** %2, align 8, !dbg !2836\l  ret i8* %30, !dbg !2836\l}"];
+}

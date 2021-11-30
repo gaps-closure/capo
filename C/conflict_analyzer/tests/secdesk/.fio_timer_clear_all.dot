@@ -1,0 +1,17 @@
+digraph "CFG for 'fio_timer_clear_all' function" {
+	label="CFG for 'fio_timer_clear_all' function";
+
+	Node0x55685169ccd0 [shape=record,label="{%0:\l  %1 = alloca %struct.fio_timer_s*, align 8\l  call void @fio_lock(i8* @fio_timer_lock), !dbg !2802\l  br label %2, !dbg !2803\l}"];
+	Node0x55685169ccd0 -> Node0x5568516a07d0;
+	Node0x5568516a07d0 [shape=record,label="{%2:\l2:                                                \l  %3 = call i32 @fio_ls_embd_any(%struct.fio_ls_embd_s* @fio_timers), !dbg\l... !2804\l  %4 = icmp ne i32 %3, 0, !dbg !2803\l  br i1 %4, label %5, label %24, !dbg !2803\l|{<s0>T|<s1>F}}"];
+	Node0x5568516a07d0:s0 -> Node0x5568516a0820;
+	Node0x5568516a07d0:s1 -> Node0x5568516a0910;
+	Node0x5568516a0820 [shape=record,label="{%5:\l5:                                                \l  call void @llvm.dbg.declare(metadata %struct.fio_timer_s** %1, metadata\l... !2805, metadata !DIExpression()), !dbg !2807\l  %6 = call %struct.fio_ls_embd_s* @fio_ls_embd_pop(%struct.fio_ls_embd_s*\l... @fio_timers), !dbg !2808\l  %7 = ptrtoint %struct.fio_ls_embd_s* %6 to i64, !dbg !2808\l  %8 = sub i64 %7, 0, !dbg !2808\l  %9 = inttoptr i64 %8 to %struct.fio_timer_s*, !dbg !2808\l  store %struct.fio_timer_s* %9, %struct.fio_timer_s** %1, align 8, !dbg !2807\l  %10 = load %struct.fio_timer_s*, %struct.fio_timer_s** %1, align 8, !dbg\l... !2809\l  %11 = getelementptr inbounds %struct.fio_timer_s, %struct.fio_timer_s* %10,\l... i32 0, i32 6, !dbg !2811\l  %12 = load void (i8*)*, void (i8*)** %11, align 8, !dbg !2811\l  %13 = icmp ne void (i8*)* %12, null, !dbg !2809\l  br i1 %13, label %14, label %21, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x5568516a0820:s0 -> Node0x5568516a0870;
+	Node0x5568516a0820:s1 -> Node0x5568516a08c0;
+	Node0x5568516a0870 [shape=record,label="{%14:\l14:                                               \l  %15 = load %struct.fio_timer_s*, %struct.fio_timer_s** %1, align 8, !dbg\l... !2813\l  %16 = getelementptr inbounds %struct.fio_timer_s, %struct.fio_timer_s* %15,\l... i32 0, i32 6, !dbg !2814\l  %17 = load void (i8*)*, void (i8*)** %16, align 8, !dbg !2814\l  %18 = load %struct.fio_timer_s*, %struct.fio_timer_s** %1, align 8, !dbg\l... !2815\l  %19 = getelementptr inbounds %struct.fio_timer_s, %struct.fio_timer_s* %18,\l... i32 0, i32 5, !dbg !2816\l  %20 = load i8*, i8** %19, align 8, !dbg !2816\l  call void %17(i8* %20), !dbg !2813\l  br label %21, !dbg !2813\l}"];
+	Node0x5568516a0870 -> Node0x5568516a08c0;
+	Node0x5568516a08c0 [shape=record,label="{%21:\l21:                                               \l  %22 = load %struct.fio_timer_s*, %struct.fio_timer_s** %1, align 8, !dbg\l... !2817\l  %23 = bitcast %struct.fio_timer_s* %22 to i8*, !dbg !2817\l  call void @free(i8* %23) #9, !dbg !2818\l  br label %2, !dbg !2803, !llvm.loop !2819\l}"];
+	Node0x5568516a08c0 -> Node0x5568516a07d0;
+	Node0x5568516a0910 [shape=record,label="{%24:\l24:                                               \l  %25 = call i32 @fio_unlock(i8* @fio_timer_lock), !dbg !2821\l  ret void, !dbg !2822\l}"];
+}

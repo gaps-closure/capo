@@ -1,0 +1,14 @@
+digraph "CFG for 'fio_defer_cycle' function" {
+	label="CFG for 'fio_defer_cycle' function";
+
+	Node0x5568512fd440 [shape=record,label="{%1:\l  %2 = alloca i8*, align 8\l  store i8* %0, i8** %2, align 8\l  call void @llvm.dbg.declare(metadata i8** %2, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  call void @fio_defer_on_thread_start(), !dbg !2806\l  br label %3, !dbg !2807\l}"];
+	Node0x5568512fd440 -> Node0x5568512fe8e0;
+	Node0x5568512fe8e0 [shape=record,label="{%3:\l3:                                                \l  call void @fio_defer_perform(), !dbg !2808\l  %4 = call signext i16 @fio_is_running(), !dbg !2812\l  %5 = icmp ne i16 %4, 0, !dbg !2812\l  br i1 %5, label %7, label %6, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x5568512fe8e0:s0 -> Node0x5568512fe980;
+	Node0x5568512fe8e0:s1 -> Node0x5568512fe930;
+	Node0x5568512fe930 [shape=record,label="{%6:\l6:                                                \l  br label %8, !dbg !2815\l}"];
+	Node0x5568512fe930 -> Node0x5568512fe9d0;
+	Node0x5568512fe980 [shape=record,label="{%7:\l7:                                                \l  call void @fio_defer_thread_wait(), !dbg !2816\l  br label %3, !dbg !2817, !llvm.loop !2818\l}"];
+	Node0x5568512fe980 -> Node0x5568512fe8e0;
+	Node0x5568512fe9d0 [shape=record,label="{%8:\l8:                                                \l  call void @fio_defer_on_thread_end(), !dbg !2821\l  %9 = load i8*, i8** %2, align 8, !dbg !2822\l  ret i8* %9, !dbg !2823\l}"];
+}

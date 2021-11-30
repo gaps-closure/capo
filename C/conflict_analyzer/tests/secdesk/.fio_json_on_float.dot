@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_json_on_float' function" {
+	label="CFG for 'fio_json_on_float' function";
+
+	Node0x556851ec24b0 [shape=record,label="{%2:\l  %3 = alloca %struct.json_parser_s*, align 8\l  %4 = alloca double, align 8\l  store %struct.json_parser_s* %0, %struct.json_parser_s** %3, align 8\l  call void @llvm.dbg.declare(metadata %struct.json_parser_s** %3, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  store double %1, double* %4, align 8\l  call void @llvm.dbg.declare(metadata double* %4, metadata !2807, metadata\l... !DIExpression()), !dbg !2808\l  %5 = load %struct.json_parser_s*, %struct.json_parser_s** %3, align 8, !dbg\l... !2809\l  %6 = bitcast %struct.json_parser_s* %5 to %struct.fiobj_json_parser_s*, !dbg\l... !2810\l  %7 = load double, double* %4, align 8, !dbg !2811\l  %8 = call i64 @fiobj_float_new(double %7), !dbg !2812\l  call void @fiobj_json_add2parser(%struct.fiobj_json_parser_s* %6, i64 %8),\l... !dbg !2813\l  ret void, !dbg !2814\l}"];
+}

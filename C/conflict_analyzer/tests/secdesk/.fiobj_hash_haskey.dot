@@ -1,0 +1,14 @@
+digraph "CFG for 'fiobj_hash_haskey' function" {
+	label="CFG for 'fiobj_hash_haskey' function";
+
+	Node0x556851e92cd0 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  %4 = alloca i64, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %1, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  %5 = load i64, i64* %3, align 8, !dbg !2808\l  %6 = icmp ne i64 %5, 0, !dbg !2808\l  br i1 %6, label %7, label %12, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x556851e92cd0:s0 -> Node0x556851e93f90;
+	Node0x556851e92cd0:s1 -> Node0x556851e94030;
+	Node0x556851e93f90 [shape=record,label="{%7:\l7:                                                \l  %8 = load i64, i64* %3, align 8, !dbg !2808\l  %9 = call i64 @fiobj_type_is.39(i64 %8, i8 zeroext 42), !dbg !2808\l  %10 = icmp ne i64 %9, 0, !dbg !2808\l  br i1 %10, label %11, label %12, !dbg !2811\l|{<s0>T|<s1>F}}"];
+	Node0x556851e93f90:s0 -> Node0x556851e93fe0;
+	Node0x556851e93f90:s1 -> Node0x556851e94030;
+	Node0x556851e93fe0 [shape=record,label="{%11:\l11:                                               \l  br label %13, !dbg !2811\l}"];
+	Node0x556851e93fe0 -> Node0x556851e94080;
+	Node0x556851e94030 [shape=record,label="{%12:\l12:                                               \l  call void @__assert_fail(i8* getelementptr inbounds ([42 x i8], [42 x i8]*\l... @.str.8.59, i64 0, i64 0), i8* getelementptr inbounds ([39 x i8], [39 x i8]*\l... @.str.3.41, i64 0, i64 0), i32 321, i8* getelementptr inbounds ([42 x i8],\l... [42 x i8]* @__PRETTY_FUNCTION__.fiobj_hash_haskey, i64 0, i64 0)) #10, !dbg\l... !2808\l  unreachable, !dbg !2808\l}"];
+	Node0x556851e94080 [shape=record,label="{%13:\l13:                                               \l  %14 = load i64, i64* %3, align 8, !dbg !2812\l  %15 = and i64 %14, -8, !dbg !2812\l  %16 = inttoptr i64 %15 to i8*, !dbg !2812\l  %17 = bitcast i8* %16 to %struct.fiobj_hash_s*, !dbg !2812\l  %18 = getelementptr inbounds %struct.fiobj_hash_s, %struct.fiobj_hash_s*\l... %17, i32 0, i32 1, !dbg !2813\l  %19 = load i64, i64* %4, align 8, !dbg !2814\l  %20 = call i64 @fiobj_obj2hash(i64 %19), !dbg !2815\l  %21 = load i64, i64* %4, align 8, !dbg !2816\l  %22 = call i64 @fio_hash___find(%struct.fio_hash___s* %18, i64 %20, i64\l... %21), !dbg !2817\l  %23 = icmp ne i64 %22, 0, !dbg !2818\l  %24 = zext i1 %23 to i32, !dbg !2818\l  ret i32 %24, !dbg !2819\l}"];
+}

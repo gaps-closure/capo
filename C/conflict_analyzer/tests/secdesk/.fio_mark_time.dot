@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_mark_time' function" {
+	label="CFG for 'fio_mark_time' function";
+
+	Node0x5568513cc650 [shape=record,label="{%0:\l  %1 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2802\l  %2 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %1, i32\l... 0, i32 0, !dbg !2803\l  %3 = call i32 @clock_gettime(i32 0, %struct.rlimit* %2) #9, !dbg !2804\l  ret void, !dbg !2805\l}"];
+}

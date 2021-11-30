@@ -1,0 +1,5 @@
+digraph "CFG for 'start_imageprocessor' function" {
+	label="CFG for 'start_imageprocessor' function";
+
+	Node0x55685253e5d0 [shape=record,label="{%0:\l  ret i32 0, !dbg !2804\l}"];
+}

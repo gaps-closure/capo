@@ -1,0 +1,133 @@
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @bar(i32 %0) #0 !dbg !7 {
+  %2 = alloca i32, align 4
+  store i32 %0, i32* %2, align 4
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !12, metadata !DIExpression()), !dbg !13
+  %3 = load i32, i32* %2, align 4, !dbg !14
+  %4 = add nsw i32 %3, 1, !dbg !15
+  ret i32 %4, !dbg !16
+}
+
+debug: 0x0
+Added: 0x55c8f6ce7278
+debug: 0x0
+Added: 0x55c8f6ce72f0
+debug: 0x55c8f6ce7458
+line number: 29
+Added: 0x55c8f6ce7400
+debug: 0x55c8f6ce74e8
+line number: 32
+Added: 0x55c8f6ce7498
+debug: 0x55c8f6ce7518
+line number: 32
+Added: 0x55c8f6cdf420
+debug: 0x55c8f6ce75a8
+line number: 32
+Added: 0x55c8f6ce7558
+Made tree node at adrs: 0x55c8f6ce1be0
+Parent tree node at adrs: 0x0
+Made tree node at adrs: 0x55c8f6cfb2b0
+Parent tree node at adrs: 0x0
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @foo() #0 !dbg !17 {
+  %1 = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata i32* %1, metadata !20, metadata !DIExpression()), !dbg !21
+  store i32 1, i32* %1, align 4, !dbg !21
+  %2 = load i32, i32* %1, align 4, !dbg !22
+  %3 = call i32 @bar(i32 %2), !dbg !23
+  ret i32 %3, !dbg !24
+}
+
+debug: 0x0
+Added: 0x55c8f6ce8418
+debug: 0x55c8f6ce8548
+line number: 36
+Added: 0x55c8f6ce84f0
+debug: 0x55c8f6ce8548
+line number: 36
+Added: 0x55c8f6ce85a0
+debug: 0x55c8f6ce8658
+line number: 37
+Added: 0x55c8f6ce8608
+debug: 0x55c8f6ce8708
+line number: 37
+Added: 0x55c8f6ce86b0
+debug: 0x55c8f6ce8798
+line number: 37
+Added: 0x55c8f6ce8748
+Made tree node at adrs: 0x55c8f6cfc800
+Parent tree node at adrs: 0x0
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !25 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !26, metadata !DIExpression()), !dbg !27
+  %3 = bitcast i32* %2 to i8*, !dbg !28
+  call void @llvm.var.annotation(i8* %3, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([109 x i8], [109 x i8]* @.str.1, i32 0, i32 0), i32 43), !dbg !28
+  %4 = call i32 @foo(), !dbg !29
+  store i32 %4, i32* %2, align 4, !dbg !27
+  %5 = load i32, i32* %2, align 4, !dbg !30
+  %6 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.3, i64 0, i64 0), i32 %5), !dbg !31
+  ret i32 0, !dbg !32
+}
+
+debug: 0x0
+Added: 0x55c8f6ce9498
+debug: 0x0
+Added: 0x55c8f6ce94f8
+debug: 0x0
+Added: 0x55c8f6ce9570
+debug: 0x55c8f6ce96a8
+line number: 43
+Added: 0x55c8f6ce9650
+debug: 0x55c8f6ce9738
+line number: 43
+Added: 0x55c8f6ce96e8
+debug: 0x55c8f6ce9738
+line number: 43
+Added: 0x55c8f6ce10f8
+debug: 0x55c8f6ce9768
+line number: 43
+Added: 0x55c8f6cdf398
+debug: 0x55c8f6ce96a8
+line number: 43
+Added: 0x55c8f6ce97c0
+debug: 0x55c8f6ce9878
+line number: 46
+Added: 0x55c8f6ce9828
+debug: 0x55c8f6ce98a8
+line number: 46
+Added: 0x55c8f6ce0128
+debug: 0x55c8f6ce9938
+line number: 47
+Added: 0x55c8f6ce98e8
+Made tree node at adrs: 0x55c8f6cfe4e0
+Parent tree node at adrs: 0x0
+i32 %0
+Checking for Global: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @bar(i32 %0) #0 !dbg !7 {
+  %2 = alloca i32, align 4
+  store i32 %0, i32* %2, align 4
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !12, metadata !DIExpression()), !dbg !13
+  %3 = load i32, i32* %2, align 4, !dbg !14
+  %4 = add nsw i32 %3, 1, !dbg !15
+  ret i32 %4, !dbg !16
+}
+
+func size: 3
+Finsh adding dependencies
+building PDG takes: 0
+PDG Node size: 27
+Warning, edge Dest idx became zero! 
+Source ID: 1 Source Node Type: FunctionEntry
+Dest ID: 4 Dest Node Type: Inst_FunCall
+Node: 4 added. 
+Warning, edge Dest idx became zero! 
+Source ID: 12 Source Node Type: FunctionEntry
+Dest ID: 14 Dest Node Type: Inst_FunCall
+Node: 14 added. 
+Warning, edge Dest idx became zero! 
+Source ID: 21 Source Node Type: FunctionEntry
+Dest ID: 25 Dest Node Type: Inst_FunCall
+Node: 25 added. 

@@ -1,0 +1,11 @@
+digraph "CFG for 'fiobj_str_compact' function" {
+	label="CFG for 'fiobj_str_compact' function";
+
+	Node0x5568520760b0 [shape=record,label="{%1:\l  %2 = alloca i64, align 8\l  store i64 %0, i64* %2, align 8\l  call void @llvm.dbg.declare(metadata i64* %2, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %3 = load i64, i64* %2, align 8, !dbg !2806\l  %4 = call i64 @fiobj_type_is.226(i64 %3, i8 zeroext 40), !dbg !2806\l  %5 = icmp ne i64 %4, 0, !dbg !2806\l  br i1 %5, label %6, label %7, !dbg !2809\l|{<s0>T|<s1>F}}"];
+	Node0x5568520760b0:s0 -> Node0x556852077560;
+	Node0x5568520760b0:s1 -> Node0x5568520775b0;
+	Node0x556852077560 [shape=record,label="{%6:\l6:                                                \l  br label %8, !dbg !2809\l}"];
+	Node0x556852077560 -> Node0x556852077600;
+	Node0x5568520775b0 [shape=record,label="{%7:\l7:                                                \l  call void @__assert_fail(i8* getelementptr inbounds ([35 x i8], [35 x i8]*\l... @.str.4.232, i64 0, i64 0), i8* getelementptr inbounds ([38 x i8], [38 x i8]*\l... @.str.5.233, i64 0, i64 0), i32 229, i8* getelementptr inbounds ([30 x i8],\l... [30 x i8]* @__PRETTY_FUNCTION__.fiobj_str_compact, i64 0, i64 0)) #10, !dbg\l... !2806\l  unreachable, !dbg !2806\l}"];
+	Node0x556852077600 [shape=record,label="{%8:\l8:                                                \l  %9 = load i64, i64* %2, align 8, !dbg !2810\l  %10 = and i64 %9, -8, !dbg !2810\l  %11 = inttoptr i64 %10 to i8*, !dbg !2810\l  %12 = bitcast i8* %11 to %struct.fiobj_str_s*, !dbg !2810\l  %13 = getelementptr inbounds %struct.fiobj_str_s, %struct.fiobj_str_s* %12,\l... i32 0, i32 2, !dbg !2811\l  call void @fio_str_compact(%struct.fio_str_s.63* %13), !dbg !2812\l  ret void, !dbg !2813\l}"];
+}

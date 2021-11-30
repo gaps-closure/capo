@@ -1,0 +1,10 @@
+digraph "CFG for 'fio_stop' function" {
+	label="CFG for 'fio_stop' function";
+
+	Node0x5568515a9da0 [shape=record,label="{%0:\l  %1 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2802\l  %2 = icmp ne %struct.fio_data_s* %1, null, !dbg !2802\l  br i1 %2, label %3, label %6, !dbg !2804\l|{<s0>T|<s1>F}}"];
+	Node0x5568515a9da0:s0 -> Node0x5568515a9df0;
+	Node0x5568515a9da0:s1 -> Node0x5568515a9e40;
+	Node0x5568515a9df0 [shape=record,label="{%3:\l3:                                                \l  %4 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2805\l  %5 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %4, i32\l... 0, i32 7, !dbg !2806\l  store volatile i8 0, i8* %5, align 1, !dbg !2807\l  br label %6, !dbg !2805\l}"];
+	Node0x5568515a9df0 -> Node0x5568515a9e40;
+	Node0x5568515a9e40 [shape=record,label="{%6:\l6:                                                \l  ret void, !dbg !2808\l}"];
+}

@@ -1,0 +1,20 @@
+Options selected:
+  file: argument-mismatch.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 4, [], 'ORANGE', {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['ORANGE']], 'codtaints': ['ORANGE'], 'rettaints': ['ORANGE', 'TAG_RESPONSE_FOO']}]}]
+['clebegin', 15, [], 'ORANGE']
+['cleend', 17, [], 'ORANGE']
+['clebegin', 22, [], 'PURPLE']
+['cleend', 24, [], 'PURPLE']
+Writing transformed file and cle mappings file
+
+real	0m0.236s
+user	0m0.201s
+sys	0m0.036s

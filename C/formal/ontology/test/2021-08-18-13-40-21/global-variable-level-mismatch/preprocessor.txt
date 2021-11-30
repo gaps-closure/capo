@@ -1,0 +1,20 @@
+Options selected:
+  file: global-variable-level-mismatch.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 4, [], 'ORANGE', {'level': 'orange'}]
+['clebegin', 6, [], 'ORANGE']
+['cleend', 8, [], 'ORANGE']
+['clebegin', 10, [], 'PURPLE']
+['cleend', 12, [], 'PURPLE']
+Writing transformed file and cle mappings file
+
+real	0m0.279s
+user	0m0.232s
+sys	0m0.047s

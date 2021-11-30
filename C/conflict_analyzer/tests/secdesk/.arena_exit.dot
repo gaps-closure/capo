@@ -1,0 +1,5 @@
+digraph "CFG for 'arena_exit' function" {
+	label="CFG for 'arena_exit' function";
+
+	Node0x556851402f20 [shape=record,label="{%0:\l  %1 = load %struct.arena_s*, %struct.arena_s** @arena_last_used, align 8,\l... !dbg !2802\l  %2 = getelementptr inbounds %struct.arena_s, %struct.arena_s* %1, i32 0, i32\l... 1, !dbg !2803\l  %3 = call i32 @fio_unlock(i8* %2), !dbg !2804\l  ret void, !dbg !2805\l}"];
+}

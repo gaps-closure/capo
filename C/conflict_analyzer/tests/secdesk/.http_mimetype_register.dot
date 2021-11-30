@@ -1,0 +1,26 @@
+digraph "CFG for 'http_mimetype_register' function" {
+	label="CFG for 'http_mimetype_register' function";
+
+	Node0x556852461020 [shape=record,label="{%3:\l  %4 = alloca i8*, align 8\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  %7 = alloca i64, align 8\l  %8 = alloca i64, align 8\l  %9 = alloca %struct.fio_str_info_s, align 8\l  %10 = alloca %struct.fio_str_info_s, align 8\l  store i8* %0, i8** %4, align 8\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %1, i64* %5, align 8\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i64 %2, i64* %6, align 8\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  call void @llvm.dbg.declare(metadata i64* %7, metadata !2810, metadata\l... !DIExpression()), !dbg !2811\l  %11 = load i8*, i8** %4, align 8, !dbg !2812\l  %12 = load i64, i64* %5, align 8, !dbg !2812\l  %13 = call i64 @fio_siphash13(i8* %11, i64 %12, i64 0, i64 0), !dbg !2812\l  store i64 %13, i64* %7, align 8, !dbg !2811\l  %14 = load i64, i64* %6, align 8, !dbg !2813\l  %15 = icmp eq i64 %14, 0, !dbg !2815\l  br i1 %15, label %16, label %19, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x556852461020:s0 -> Node0x5568524635a0;
+	Node0x556852461020:s1 -> Node0x5568524635f0;
+	Node0x5568524635a0 [shape=record,label="{%16:\l16:                                               \l  %17 = load i64, i64* %7, align 8, !dbg !2817\l  %18 = call i32 @fio_mime_set_remove(%struct.fio_mime_set_s*\l... @fio_http_mime_types, i64 %17, i64 0, i64* null), !dbg !2819\l  br label %44, !dbg !2820\l}"];
+	Node0x5568524635a0 -> Node0x556852463820;
+	Node0x5568524635f0 [shape=record,label="{%19:\l19:                                               \l  call void @llvm.dbg.declare(metadata i64* %8, metadata !2821, metadata\l... !DIExpression()), !dbg !2823\l  store i64 0, i64* %8, align 8, !dbg !2823\l  %20 = load i64, i64* %7, align 8, !dbg !2824\l  %21 = load i64, i64* %6, align 8, !dbg !2825\l  %22 = call i64 @fio_mime_set_overwrite(%struct.fio_mime_set_s*\l... @fio_http_mime_types, i64 %20, i64 %21, i64* %8), !dbg !2826\l  %23 = load i64, i64* %8, align 8, !dbg !2827\l  %24 = icmp ne i64 %23, 0, !dbg !2829\l  br i1 %24, label %25, label %42, !dbg !2830\l|{<s0>T|<s1>F}}"];
+	Node0x5568524635f0:s0 -> Node0x556852463640;
+	Node0x5568524635f0:s1 -> Node0x5568524637d0;
+	Node0x556852463640 [shape=record,label="{%25:\l25:                                               \l  br label %26, !dbg !2831\l}"];
+	Node0x556852463640 -> Node0x556852463690;
+	Node0x556852463690 [shape=record,label="{%26:\l26:                                               \l  %27 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2833\l  %28 = icmp sle i32 3, %27, !dbg !2833\l  br i1 %28, label %29, label %39, !dbg !2836\l|{<s0>T|<s1>F}}"];
+	Node0x556852463690:s0 -> Node0x5568524636e0;
+	Node0x556852463690:s1 -> Node0x556852463730;
+	Node0x5568524636e0 [shape=record,label="{%29:\l29:                                               \l  %30 = load i64, i64* %5, align 8, !dbg !2837\l  %31 = trunc i64 %30 to i32, !dbg !2837\l  %32 = load i8*, i8** %4, align 8, !dbg !2837\l  %33 = load i64, i64* %8, align 8, !dbg !2837\l  call void @fiobj_obj2cstr.412(%struct.fio_str_info_s* sret %9, i64 %33),\l... !dbg !2837\l  %34 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %9, i32 0, i32 2, !dbg !2837\l  %35 = load i8*, i8** %34, align 8, !dbg !2837\l  %36 = load i64, i64* %6, align 8, !dbg !2837\l  call void @fiobj_obj2cstr.412(%struct.fio_str_info_s* sret %10, i64 %36),\l... !dbg !2837\l  %37 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %10, i32 0, i32 2, !dbg !2837\l  %38 = load i8*, i8** %37, align 8, !dbg !2837\l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([50 x i8],\l... [50 x i8]* @.str.61.605, i64 0, i64 0), i32 %31, i8* %32, i8* %35, i8* %38),\l... !dbg !2837\l  br label %39, !dbg !2837\l}"];
+	Node0x5568524636e0 -> Node0x556852463730;
+	Node0x556852463730 [shape=record,label="{%39:\l39:                                               \l  br label %40, !dbg !2836\l}"];
+	Node0x556852463730 -> Node0x556852463780;
+	Node0x556852463780 [shape=record,label="{%40:\l40:                                               \l  %41 = load i64, i64* %8, align 8, !dbg !2839\l  call void @fiobj_free.403(i64 %41), !dbg !2840\l  br label %42, !dbg !2841\l}"];
+	Node0x556852463780 -> Node0x5568524637d0;
+	Node0x5568524637d0 [shape=record,label="{%42:\l42:                                               \l  %43 = load i64, i64* %6, align 8, !dbg !2842\l  call void @fiobj_free.403(i64 %43), !dbg !2843\l  br label %44\l}"];
+	Node0x5568524637d0 -> Node0x556852463820;
+	Node0x556852463820 [shape=record,label="{%44:\l44:                                               \l  ret void, !dbg !2844\l}"];
+}

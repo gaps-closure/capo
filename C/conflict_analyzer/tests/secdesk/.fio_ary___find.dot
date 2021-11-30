@@ -1,0 +1,29 @@
+digraph "CFG for 'fio_ary___find' function" {
+	label="CFG for 'fio_ary___find' function";
+
+	Node0x556851a7ebc0 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  %4 = alloca %struct.fio_ary___s*, align 8\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  %7 = alloca i64, align 8\l  %8 = alloca i64, align 8\l  store %struct.fio_ary___s* %0, %struct.fio_ary___s** %4, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_ary___s** %4, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  store i64 %1, i64* %5, align 8\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2807, metadata\l... !DIExpression()), !dbg !2808\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2809, metadata\l... !DIExpression()), !dbg !2811\l  %9 = load %struct.fio_ary___s*, %struct.fio_ary___s** %4, align 8, !dbg !2812\l  %10 = call i64 @fio_ary___count(%struct.fio_ary___s* %9), !dbg !2813\l  store i64 %10, i64* %6, align 8, !dbg !2811\l  %11 = load i64, i64* %6, align 8, !dbg !2814\l  %12 = icmp ne i64 %11, 0, !dbg !2814\l  br i1 %12, label %14, label %13, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x556851a7ebc0:s0 -> Node0x556851a7fe50;
+	Node0x556851a7ebc0:s1 -> Node0x556851a7fe00;
+	Node0x556851a7fe00 [shape=record,label="{%13:\l13:                                               \l  store i64 -1, i64* %3, align 8, !dbg !2817\l  br label %51, !dbg !2817\l}"];
+	Node0x556851a7fe00 -> Node0x556851a800d0;
+	Node0x556851a7fe50 [shape=record,label="{%14:\l14:                                               \l  call void @llvm.dbg.declare(metadata i64* %7, metadata !2819, metadata\l... !DIExpression()), !dbg !2820\l  %15 = load %struct.fio_ary___s*, %struct.fio_ary___s** %4, align 8, !dbg\l... !2821\l  %16 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %15,\l... i32 0, i32 0, !dbg !2822\l  %17 = load i64, i64* %16, align 8, !dbg !2822\l  store i64 %17, i64* %7, align 8, !dbg !2820\l  call void @llvm.dbg.declare(metadata i64* %8, metadata !2823, metadata\l... !DIExpression()), !dbg !2824\l  %18 = load %struct.fio_ary___s*, %struct.fio_ary___s** %4, align 8, !dbg\l... !2825\l  %19 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %18,\l... i32 0, i32 1, !dbg !2826\l  %20 = load i64, i64* %19, align 8, !dbg !2826\l  store i64 %20, i64* %8, align 8, !dbg !2824\l  br label %21, !dbg !2827\l}"];
+	Node0x556851a7fe50 -> Node0x556851a7fea0;
+	Node0x556851a7fea0 [shape=record,label="{%21:\l21:                                               \l  %22 = load i64, i64* %7, align 8, !dbg !2828\l  %23 = load i64, i64* %8, align 8, !dbg !2829\l  %24 = icmp ult i64 %22, %23, !dbg !2830\l  br i1 %24, label %25, label %35, !dbg !2831\l|{<s0>T|<s1>F}}"];
+	Node0x556851a7fea0:s0 -> Node0x556851a7fef0;
+	Node0x556851a7fea0:s1 -> Node0x556851a7ff40;
+	Node0x556851a7fef0 [shape=record,label="{%25:\l25:                                               \l  %26 = load i64, i64* %5, align 8, !dbg !2832\l  %27 = load %struct.fio_ary___s*, %struct.fio_ary___s** %4, align 8, !dbg\l... !2832\l  %28 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %27,\l... i32 0, i32 3, !dbg !2832\l  %29 = load i64*, i64** %28, align 8, !dbg !2832\l  %30 = load i64, i64* %7, align 8, !dbg !2832\l  %31 = getelementptr inbounds i64, i64* %29, i64 %30, !dbg !2832\l  %32 = load i64, i64* %31, align 8, !dbg !2832\l  %33 = icmp eq i64 %26, %32, !dbg !2832\l  %34 = xor i1 %33, true, !dbg !2833\l  br label %35\l}"];
+	Node0x556851a7fef0 -> Node0x556851a7ff40;
+	Node0x556851a7ff40 [shape=record,label="{%35:\l35:                                               \l  %36 = phi i1 [ false, %21 ], [ %34, %25 ], !dbg !2834\l  br i1 %36, label %37, label %40, !dbg !2827\l|{<s0>T|<s1>F}}"];
+	Node0x556851a7ff40:s0 -> Node0x556851a7ff90;
+	Node0x556851a7ff40:s1 -> Node0x556851a7ffe0;
+	Node0x556851a7ff90 [shape=record,label="{%37:\l37:                                               \l  %38 = load i64, i64* %7, align 8, !dbg !2835\l  %39 = add i64 %38, 1, !dbg !2835\l  store i64 %39, i64* %7, align 8, !dbg !2835\l  br label %21, !dbg !2827, !llvm.loop !2837\l}"];
+	Node0x556851a7ff90 -> Node0x556851a7fea0;
+	Node0x556851a7ffe0 [shape=record,label="{%40:\l40:                                               \l  %41 = load i64, i64* %7, align 8, !dbg !2839\l  %42 = load i64, i64* %8, align 8, !dbg !2841\l  %43 = icmp eq i64 %41, %42, !dbg !2842\l  br i1 %43, label %44, label %45, !dbg !2843\l|{<s0>T|<s1>F}}"];
+	Node0x556851a7ffe0:s0 -> Node0x556851a80030;
+	Node0x556851a7ffe0:s1 -> Node0x556851a80080;
+	Node0x556851a80030 [shape=record,label="{%44:\l44:                                               \l  store i64 -1, i64* %3, align 8, !dbg !2844\l  br label %51, !dbg !2844\l}"];
+	Node0x556851a80030 -> Node0x556851a800d0;
+	Node0x556851a80080 [shape=record,label="{%45:\l45:                                               \l  %46 = load i64, i64* %7, align 8, !dbg !2845\l  %47 = load %struct.fio_ary___s*, %struct.fio_ary___s** %4, align 8, !dbg\l... !2846\l  %48 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %47,\l... i32 0, i32 0, !dbg !2847\l  %49 = load i64, i64* %48, align 8, !dbg !2847\l  %50 = sub i64 %46, %49, !dbg !2848\l  store i64 %50, i64* %3, align 8, !dbg !2849\l  br label %51, !dbg !2849\l}"];
+	Node0x556851a80080 -> Node0x556851a800d0;
+	Node0x556851a800d0 [shape=record,label="{%51:\l51:                                               \l  %52 = load i64, i64* %3, align 8, !dbg !2850\l  ret i64 %52, !dbg !2850\l}"];
+}

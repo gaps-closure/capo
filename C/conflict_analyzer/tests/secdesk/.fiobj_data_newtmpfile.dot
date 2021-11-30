@@ -1,0 +1,12 @@
+digraph "CFG for 'fiobj_data_newtmpfile' function" {
+	label="CFG for 'fiobj_data_newtmpfile' function";
+
+	Node0x556851da2c00 [shape=record,label="{%0:\l  %1 = alloca i64, align 8\l  %2 = alloca i32, align 4\l  call void @llvm.dbg.declare(metadata i32* %2, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  %3 = call i32 @fio_tmpfile(), !dbg !2804\l  store i32 %3, i32* %2, align 4, !dbg !2803\l  %4 = load i32, i32* %2, align 4, !dbg !2805\l  %5 = icmp eq i32 %4, -1, !dbg !2807\l  br i1 %5, label %6, label %7, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x556851da2c00:s0 -> Node0x556851da42a0;
+	Node0x556851da2c00:s1 -> Node0x556851da42f0;
+	Node0x556851da42a0 [shape=record,label="{%6:\l6:                                                \l  store i64 0, i64* %1, align 8, !dbg !2809\l  br label %10, !dbg !2809\l}"];
+	Node0x556851da42a0 -> Node0x556851da4340;
+	Node0x556851da42f0 [shape=record,label="{%7:\l7:                                                \l  %8 = load i32, i32* %2, align 4, !dbg !2810\l  %9 = call i64 @fiobj_data_newfd(i32 %8), !dbg !2811\l  store i64 %9, i64* %1, align 8, !dbg !2812\l  br label %10, !dbg !2812\l}"];
+	Node0x556851da42f0 -> Node0x556851da4340;
+	Node0x556851da4340 [shape=record,label="{%10:\l10:                                               \l  %11 = load i64, i64* %1, align 8, !dbg !2813\l  ret i64 %11, !dbg !2813\l}"];
+}

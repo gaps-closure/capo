@@ -1,0 +1,28 @@
+PDGNode = [ 4, 6, ...]
+Inst_Br = 6..29;
+Beg_Inst_Br = 6;
+End_Inst_Br = 29;
+Inst_Other = {};
+...
+Inst = 6..42;
+FunctionEntry = 59..63;
+
+// e is an edge index, hasSource[e] gives node index
+constraint forall (e in ControlDep_call) hasDest[e] in FunctionEntry /\ ...
+
+// hasDest[e] >= Beg_Inst_Br /\ hasDest[e] <= End_Inst_Br
+
+
+// Data file size is (V+E)* sizeof(int)  + constant
+//
+// 0. Pick a convention for extrema including empty sets
+//    both extrema inclucsive, use 0..-1 for empty sets
+// 1. Use the .. notation 
+// 2. Write the types (Inst) also not just the subtypes (Inst_Br)
+// 3. Also print the start and end indices
+// 4. hasSource, hasDest, and hasFunction all should point to node indecices, not node IDs
+
+// 5. Alternative: instead of writing out .. only write indices and have minizinc compose the set
+// set of int: Inst_Br = {Beg_Inst_Br..End_Inst_Br};
+// how about empty sets?
+// set of int: Inst_Foo = {0..-1};

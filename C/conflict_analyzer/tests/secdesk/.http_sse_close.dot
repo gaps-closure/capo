@@ -1,0 +1,15 @@
+digraph "CFG for 'http_sse_close' function" {
+	label="CFG for 'http_sse_close' function";
+
+	Node0x5568523b6550 [shape=record,label="{%1:\l  %2 = alloca i32, align 4\l  %3 = alloca %struct.http_sse_s*, align 8\l  store %struct.http_sse_s* %0, %struct.http_sse_s** %3, align 8\l  call void @llvm.dbg.declare(metadata %struct.http_sse_s** %3, metadata\l... !2802, metadata !DIExpression()), !dbg !2803\l  %4 = load %struct.http_sse_s*, %struct.http_sse_s** %3, align 8, !dbg !2804\l  %5 = icmp ne %struct.http_sse_s* %4, null, !dbg !2804\l  br i1 %5, label %6, label %15, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x5568523b6550:s0 -> Node0x5568523b7710;
+	Node0x5568523b6550:s1 -> Node0x5568523b7760;
+	Node0x5568523b7710 [shape=record,label="{%6:\l6:                                                \l  %7 = load %struct.http_sse_s*, %struct.http_sse_s** %3, align 8, !dbg !2807\l  %8 = ptrtoint %struct.http_sse_s* %7 to i64, !dbg !2807\l  %9 = sub i64 %8, 0, !dbg !2807\l  %10 = inttoptr i64 %9 to %struct.http_sse_internal_s*, !dbg !2807\l  %11 = getelementptr inbounds %struct.http_sse_internal_s,\l... %struct.http_sse_internal_s* %10, i32 0, i32 1, !dbg !2808\l  %12 = load i64, i64* %11, align 8, !dbg !2808\l  %13 = call i32 @fio_is_closed(i64 %12), !dbg !2809\l  %14 = icmp ne i32 %13, 0, !dbg !2809\l  br i1 %14, label %15, label %16, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x5568523b7710:s0 -> Node0x5568523b7760;
+	Node0x5568523b7710:s1 -> Node0x5568523b77b0;
+	Node0x5568523b7760 [shape=record,label="{%15:\l15:                                               \l  store i32 -1, i32* %2, align 4, !dbg !2811\l  br label %27, !dbg !2811\l}"];
+	Node0x5568523b7760 -> Node0x5568523b7800;
+	Node0x5568523b77b0 [shape=record,label="{%16:\l16:                                               \l  %17 = load %struct.http_sse_s*, %struct.http_sse_s** %3, align 8, !dbg !2812\l  %18 = ptrtoint %struct.http_sse_s* %17 to i64, !dbg !2812\l  %19 = sub i64 %18, 0, !dbg !2812\l  %20 = inttoptr i64 %19 to %struct.http_sse_internal_s*, !dbg !2812\l  %21 = getelementptr inbounds %struct.http_sse_internal_s,\l... %struct.http_sse_internal_s* %20, i32 0, i32 2, !dbg !2813\l  %22 = load %struct.http_vtable_s*, %struct.http_vtable_s** %21, align 8,\l... !dbg !2813\l  %23 = getelementptr inbounds %struct.http_vtable_s, %struct.http_vtable_s*\l... %22, i32 0, i32 12, !dbg !2814\l  %24 = load i32 (%struct.http_sse_s*)*, i32 (%struct.http_sse_s*)** %23,\l... align 8, !dbg !2814\l  %25 = load %struct.http_sse_s*, %struct.http_sse_s** %3, align 8, !dbg !2815\l  %26 = call i32 %24(%struct.http_sse_s* %25), !dbg !2812\l  store i32 %26, i32* %2, align 4, !dbg !2816\l  br label %27, !dbg !2816\l}"];
+	Node0x5568523b77b0 -> Node0x5568523b7800;
+	Node0x5568523b7800 [shape=record,label="{%27:\l27:                                               \l  %28 = load i32, i32* %2, align 4, !dbg !2817\l  ret i32 %28, !dbg !2817\l}"];
+}

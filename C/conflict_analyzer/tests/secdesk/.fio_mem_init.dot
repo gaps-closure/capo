@@ -1,0 +1,30 @@
+digraph "CFG for 'fio_mem_init' function" {
+	label="CFG for 'fio_mem_init' function";
+
+	Node0x5568513c2010 [shape=record,label="{%0:\l  %1 = alloca i64, align 8\l  %2 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2802\l  %3 = icmp ne %struct.arena_s* %2, null, !dbg !2802\l  br i1 %3, label %4, label %5, !dbg !2804\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c2010:s0 -> Node0x5568513c2310;
+	Node0x5568513c2010:s1 -> Node0x5568513c5630;
+	Node0x5568513c2310 [shape=record,label="{%4:\l4:                                                \l  br label %31, !dbg !2805\l}"];
+	Node0x5568513c2310 -> Node0x5568513c5900;
+	Node0x5568513c5630 [shape=record,label="{%5:\l5:                                                \l  call void @llvm.dbg.declare(metadata i64* %1, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i64 0, i64* %1, align 8, !dbg !2807\l  %6 = call i64 @sysconf(i32 84) #9, !dbg !2808\l  store i64 %6, i64* %1, align 8, !dbg !2809\l  %7 = load i64, i64* %1, align 8, !dbg !2810\l  %8 = icmp sle i64 %7, 0, !dbg !2812\l  br i1 %8, label %9, label %10, !dbg !2813\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c5630:s0 -> Node0x5568513c5680;
+	Node0x5568513c5630:s1 -> Node0x5568513c56d0;
+	Node0x5568513c5680 [shape=record,label="{%9:\l9:                                                \l  store i64 8, i64* %1, align 8, !dbg !2814\l  br label %10, !dbg !2815\l}"];
+	Node0x5568513c5680 -> Node0x5568513c56d0;
+	Node0x5568513c56d0 [shape=record,label="{%10:\l10:                                               \l  %11 = load i64, i64* %1, align 8, !dbg !2816\l  store i64 %11, i64* getelementptr inbounds (%struct.anon.16,\l... %struct.anon.16* @memory, i32 0, i32 1), align 8, !dbg !2817\l  %12 = load i64, i64* %1, align 8, !dbg !2818\l  %13 = mul i64 16, %12, !dbg !2819\l  %14 = call i8* @big_alloc(i64 %13), !dbg !2820\l  %15 = bitcast i8* %14 to %struct.arena_s*, !dbg !2820\l  store %struct.arena_s* %15, %struct.arena_s** @arenas, align 8, !dbg !2821\l  %16 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2822\l  %17 = icmp ne %struct.arena_s* %16, null, !dbg !2822\l  br i1 %17, label %28, label %18, !dbg !2824\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c56d0:s0 -> Node0x5568513c58b0;
+	Node0x5568513c56d0:s1 -> Node0x5568513c5720;
+	Node0x5568513c5720 [shape=record,label="{%18:\l18:                                               \l  br label %19, !dbg !2825\l}"];
+	Node0x5568513c5720 -> Node0x5568513c5770;
+	Node0x5568513c5770 [shape=record,label="{%19:\l19:                                               \l  %20 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2827\l  %21 = icmp sle i32 1, %20, !dbg !2827\l  br i1 %21, label %22, label %23, !dbg !2830\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c5770:s0 -> Node0x5568513c57c0;
+	Node0x5568513c5770:s1 -> Node0x5568513c5810;
+	Node0x5568513c57c0 [shape=record,label="{%22:\l22:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([68 x i8],\l... [68 x i8]* @.str.89, i64 0, i64 0)), !dbg !2831\l  br label %23, !dbg !2831\l}"];
+	Node0x5568513c57c0 -> Node0x5568513c5810;
+	Node0x5568513c5810 [shape=record,label="{%23:\l23:                                               \l  br label %24, !dbg !2830\l}"];
+	Node0x5568513c5810 -> Node0x5568513c5860;
+	Node0x5568513c5860 [shape=record,label="{%24:\l24:                                               \l  %25 = call i32 @kill(i32 0, i32 2) #9, !dbg !2825\l  %26 = call i32* @__errno_location() #10, !dbg !2825\l  %27 = load i32, i32* %26, align 4, !dbg !2825\l  call void @exit(i32 %27) #11, !dbg !2825\l  unreachable, !dbg !2825\l}"];
+	Node0x5568513c58b0 [shape=record,label="{%28:\l28:                                               \l  %29 = call %struct.block_s* @block_new(), !dbg !2833\l  call void @block_free(%struct.block_s* %29), !dbg !2834\l  %30 = call i32 @pthread_atfork(void ()* null, void ()* null, void ()*\l... @fio_malloc_after_fork) #9, !dbg !2835\l  br label %31, !dbg !2836\l}"];
+	Node0x5568513c58b0 -> Node0x5568513c5900;
+	Node0x5568513c5900 [shape=record,label="{%31:\l31:                                               \l  ret void, !dbg !2836\l}"];
+}

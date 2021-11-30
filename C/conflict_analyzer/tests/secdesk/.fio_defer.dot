@@ -1,0 +1,18 @@
+digraph "CFG for 'fio_defer' function" {
+	label="CFG for 'fio_defer' function";
+
+	Node0x55685141bca0 [shape=record,label="{%3:\l  %4 = alloca i32, align 4\l  %5 = alloca void (i8*, i8*)*, align 8\l  %6 = alloca i8*, align 8\l  %7 = alloca i8*, align 8\l  %8 = alloca %struct.fio_defer_task_s, align 8\l  store void (i8*, i8*)* %0, void (i8*, i8*)** %5, align 8\l  call void @llvm.dbg.declare(metadata void (i8*, i8*)** %5, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  store i8* %1, i8** %6, align 8\l  call void @llvm.dbg.declare(metadata i8** %6, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i8* %2, i8** %7, align 8\l  call void @llvm.dbg.declare(metadata i8** %7, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  %9 = load void (i8*, i8*)*, void (i8*, i8*)** %5, align 8, !dbg !2810\l  %10 = icmp ne void (i8*, i8*)* %9, null, !dbg !2810\l  br i1 %10, label %12, label %11, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x55685141bca0:s0 -> Node0x5568513b6250;
+	Node0x55685141bca0:s1 -> Node0x5568513b6200;
+	Node0x5568513b6200 [shape=record,label="{%11:\l11:                                               \l  br label %21, !dbg !2813\l}"];
+	Node0x5568513b6200 -> Node0x5568513b6340;
+	Node0x5568513b6250 [shape=record,label="{%12:\l12:                                               \l  br label %13, !dbg !2814\l}"];
+	Node0x5568513b6250 -> Node0x5568513b62a0;
+	Node0x5568513b62a0 [shape=record,label="{%13:\l13:                                               \l  %14 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %8, i32 0, i32 0, !dbg !2815\l  %15 = load void (i8*, i8*)*, void (i8*, i8*)** %5, align 8, !dbg !2815\l  store void (i8*, i8*)* %15, void (i8*, i8*)** %14, align 8, !dbg !2815\l  %16 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %8, i32 0, i32 1, !dbg !2815\l  %17 = load i8*, i8** %6, align 8, !dbg !2815\l  store i8* %17, i8** %16, align 8, !dbg !2815\l  %18 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %8, i32 0, i32 2, !dbg !2815\l  %19 = load i8*, i8** %7, align 8, !dbg !2815\l  store i8* %19, i8** %18, align 8, !dbg !2815\l  call void @fio_defer_push_task_fn(%struct.fio_defer_task_s*\l... byval(%struct.fio_defer_task_s) align 8 %8, %struct.fio_task_queue_s*\l... @task_queue_normal), !dbg !2815\l  call void @fio_defer_thread_signal(), !dbg !2815\l  br label %20, !dbg !2815\l}"];
+	Node0x5568513b62a0 -> Node0x5568513b62f0;
+	Node0x5568513b62f0 [shape=record,label="{%20:\l20:                                               \l  store i32 0, i32* %4, align 4, !dbg !2817\l  br label %22, !dbg !2817\l}"];
+	Node0x5568513b62f0 -> Node0x5568513b6390;
+	Node0x5568513b6340 [shape=record,label="{%21:\l21:                                               \l  call void @llvm.dbg.label(metadata !2818), !dbg !2819\l  store i32 -1, i32* %4, align 4, !dbg !2820\l  br label %22, !dbg !2820\l}"];
+	Node0x5568513b6340 -> Node0x5568513b6390;
+	Node0x5568513b6390 [shape=record,label="{%22:\l22:                                               \l  %23 = load i32, i32* %4, align 4, !dbg !2821\l  ret i32 %23, !dbg !2821\l}"];
+}

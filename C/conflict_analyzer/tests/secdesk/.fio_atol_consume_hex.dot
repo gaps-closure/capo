@@ -1,0 +1,44 @@
+digraph "CFG for 'fio_atol_consume_hex' function" {
+	label="CFG for 'fio_atol_consume_hex' function";
+
+	Node0x55685159e860 [shape=record,label="{%1:\l  %2 = alloca i64, align 8\l  %3 = alloca i8**, align 8\l  %4 = alloca i64, align 8\l  %5 = alloca i64, align 8\l  %6 = alloca i8, align 1\l  store i8** %0, i8*** %3, align 8\l  call void @llvm.dbg.declare(metadata i8*** %3, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i64 0, i64* %4, align 8, !dbg !2807\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2808, metadata\l... !DIExpression()), !dbg !2810\l  store i64 -257, i64* %5, align 8, !dbg !2810\l  br label %7, !dbg !2811\l}"];
+	Node0x55685159e860 -> Node0x55685159fd70;
+	Node0x55685159fd70 [shape=record,label="{%7:\l7:                                                \l  %8 = load i64, i64* %4, align 8, !dbg !2812\l  %9 = icmp ule i64 %8, -257, !dbg !2815\l  br i1 %9, label %10, label %80, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x55685159fd70:s0 -> Node0x55685159fdc0;
+	Node0x55685159fd70:s1 -> Node0x5568515a01d0;
+	Node0x55685159fdc0 [shape=record,label="{%10:\l10:                                               \l  call void @llvm.dbg.declare(metadata i8* %6, metadata !2817, metadata\l... !DIExpression()), !dbg !2819\l  %11 = load i8**, i8*** %3, align 8, !dbg !2820\l  %12 = load i8*, i8** %11, align 8, !dbg !2822\l  %13 = load i8, i8* %12, align 1, !dbg !2823\l  %14 = sext i8 %13 to i32, !dbg !2823\l  %15 = icmp sge i32 %14, 48, !dbg !2824\l  br i1 %15, label %16, label %29, !dbg !2825\l|{<s0>T|<s1>F}}"];
+	Node0x55685159fdc0:s0 -> Node0x55685159fe10;
+	Node0x55685159fdc0:s1 -> Node0x55685159feb0;
+	Node0x55685159fe10 [shape=record,label="{%16:\l16:                                               \l  %17 = load i8**, i8*** %3, align 8, !dbg !2826\l  %18 = load i8*, i8** %17, align 8, !dbg !2827\l  %19 = load i8, i8* %18, align 1, !dbg !2828\l  %20 = sext i8 %19 to i32, !dbg !2828\l  %21 = icmp sle i32 %20, 57, !dbg !2829\l  br i1 %21, label %22, label %29, !dbg !2830\l|{<s0>T|<s1>F}}"];
+	Node0x55685159fe10:s0 -> Node0x55685159fe60;
+	Node0x55685159fe10:s1 -> Node0x55685159feb0;
+	Node0x55685159fe60 [shape=record,label="{%22:\l22:                                               \l  %23 = load i8**, i8*** %3, align 8, !dbg !2831\l  %24 = load i8*, i8** %23, align 8, !dbg !2832\l  %25 = load i8, i8* %24, align 1, !dbg !2833\l  %26 = sext i8 %25 to i32, !dbg !2833\l  %27 = sub nsw i32 %26, 48, !dbg !2834\l  %28 = trunc i32 %27 to i8, !dbg !2833\l  store i8 %28, i8* %6, align 1, !dbg !2835\l  br label %71, !dbg !2836\l}"];
+	Node0x55685159fe60 -> Node0x5568515a0180;
+	Node0x55685159feb0 [shape=record,label="{%29:\l29:                                               \l  %30 = load i8**, i8*** %3, align 8, !dbg !2837\l  %31 = load i8*, i8** %30, align 8, !dbg !2839\l  %32 = load i8, i8* %31, align 1, !dbg !2840\l  %33 = sext i8 %32 to i32, !dbg !2840\l  %34 = icmp sge i32 %33, 65, !dbg !2841\l  br i1 %34, label %35, label %48, !dbg !2842\l|{<s0>T|<s1>F}}"];
+	Node0x55685159feb0:s0 -> Node0x55685159ff00;
+	Node0x55685159feb0:s1 -> Node0x55685159ffa0;
+	Node0x55685159ff00 [shape=record,label="{%35:\l35:                                               \l  %36 = load i8**, i8*** %3, align 8, !dbg !2843\l  %37 = load i8*, i8** %36, align 8, !dbg !2844\l  %38 = load i8, i8* %37, align 1, !dbg !2845\l  %39 = sext i8 %38 to i32, !dbg !2845\l  %40 = icmp sle i32 %39, 70, !dbg !2846\l  br i1 %40, label %41, label %48, !dbg !2847\l|{<s0>T|<s1>F}}"];
+	Node0x55685159ff00:s0 -> Node0x55685159ff50;
+	Node0x55685159ff00:s1 -> Node0x55685159ffa0;
+	Node0x55685159ff50 [shape=record,label="{%41:\l41:                                               \l  %42 = load i8**, i8*** %3, align 8, !dbg !2848\l  %43 = load i8*, i8** %42, align 8, !dbg !2849\l  %44 = load i8, i8* %43, align 1, !dbg !2850\l  %45 = sext i8 %44 to i32, !dbg !2850\l  %46 = sub nsw i32 %45, 55, !dbg !2851\l  %47 = trunc i32 %46 to i8, !dbg !2850\l  store i8 %47, i8* %6, align 1, !dbg !2852\l  br label %70, !dbg !2853\l}"];
+	Node0x55685159ff50 -> Node0x5568515a0130;
+	Node0x55685159ffa0 [shape=record,label="{%48:\l48:                                               \l  %49 = load i8**, i8*** %3, align 8, !dbg !2854\l  %50 = load i8*, i8** %49, align 8, !dbg !2856\l  %51 = load i8, i8* %50, align 1, !dbg !2857\l  %52 = sext i8 %51 to i32, !dbg !2857\l  %53 = icmp sge i32 %52, 97, !dbg !2858\l  br i1 %53, label %54, label %67, !dbg !2859\l|{<s0>T|<s1>F}}"];
+	Node0x55685159ffa0:s0 -> Node0x55685159fff0;
+	Node0x55685159ffa0:s1 -> Node0x5568515a0090;
+	Node0x55685159fff0 [shape=record,label="{%54:\l54:                                               \l  %55 = load i8**, i8*** %3, align 8, !dbg !2860\l  %56 = load i8*, i8** %55, align 8, !dbg !2861\l  %57 = load i8, i8* %56, align 1, !dbg !2862\l  %58 = sext i8 %57 to i32, !dbg !2862\l  %59 = icmp sle i32 %58, 102, !dbg !2863\l  br i1 %59, label %60, label %67, !dbg !2864\l|{<s0>T|<s1>F}}"];
+	Node0x55685159fff0:s0 -> Node0x5568515a0040;
+	Node0x55685159fff0:s1 -> Node0x5568515a0090;
+	Node0x5568515a0040 [shape=record,label="{%60:\l60:                                               \l  %61 = load i8**, i8*** %3, align 8, !dbg !2865\l  %62 = load i8*, i8** %61, align 8, !dbg !2866\l  %63 = load i8, i8* %62, align 1, !dbg !2867\l  %64 = sext i8 %63 to i32, !dbg !2867\l  %65 = sub nsw i32 %64, 87, !dbg !2868\l  %66 = trunc i32 %65 to i8, !dbg !2867\l  store i8 %66, i8* %6, align 1, !dbg !2869\l  br label %69, !dbg !2870\l}"];
+	Node0x5568515a0040 -> Node0x5568515a00e0;
+	Node0x5568515a0090 [shape=record,label="{%67:\l67:                                               \l  %68 = load i64, i64* %4, align 8, !dbg !2871\l  store i64 %68, i64* %2, align 8, !dbg !2872\l  br label %82, !dbg !2872\l}"];
+	Node0x5568515a0090 -> Node0x5568515a0220;
+	Node0x5568515a00e0 [shape=record,label="{%69:\l69:                                               \l  br label %70\l}"];
+	Node0x5568515a00e0 -> Node0x5568515a0130;
+	Node0x5568515a0130 [shape=record,label="{%70:\l70:                                               \l  br label %71\l}"];
+	Node0x5568515a0130 -> Node0x5568515a0180;
+	Node0x5568515a0180 [shape=record,label="{%71:\l71:                                               \l  %72 = load i64, i64* %4, align 8, !dbg !2873\l  %73 = shl i64 %72, 4, !dbg !2874\l  %74 = load i8, i8* %6, align 1, !dbg !2875\l  %75 = zext i8 %74 to i64, !dbg !2875\l  %76 = or i64 %73, %75, !dbg !2876\l  store i64 %76, i64* %4, align 8, !dbg !2877\l  %77 = load i8**, i8*** %3, align 8, !dbg !2878\l  %78 = load i8*, i8** %77, align 8, !dbg !2879\l  %79 = getelementptr inbounds i8, i8* %78, i32 1, !dbg !2879\l  store i8* %79, i8** %77, align 8, !dbg !2879\l  br label %7, !dbg !2880, !llvm.loop !2881\l}"];
+	Node0x5568515a0180 -> Node0x55685159fd70;
+	Node0x5568515a01d0 [shape=record,label="{%80:\l80:                                               \l  %81 = load i64, i64* %4, align 8, !dbg !2883\l  store i64 %81, i64* %2, align 8, !dbg !2884\l  br label %82, !dbg !2884\l}"];
+	Node0x5568515a01d0 -> Node0x5568515a0220;
+	Node0x5568515a0220 [shape=record,label="{%82:\l82:                                               \l  %83 = load i64, i64* %2, align 8, !dbg !2885\l  ret i64 %83, !dbg !2885\l}"];
+}

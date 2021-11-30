@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_is_worker' function" {
+	label="CFG for 'fio_is_worker' function";
+
+	Node0x556851702a20 [shape=record,label="{%0:\l  %1 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2804\l  %2 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %1, i32\l... 0, i32 8, !dbg !2805\l  %3 = load i8, i8* %2, align 2, !dbg !2805\l  %4 = zext i8 %3 to i32, !dbg !2804\l  ret i32 %4, !dbg !2806\l}"];
+}

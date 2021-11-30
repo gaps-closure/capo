@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_pubsub_initialize' function" {
+	label="CFG for 'fio_pubsub_initialize' function";
+
+	Node0x5568513c7bc0 [shape=record,label="{%0:\l  call void @fio_cluster_init(), !dbg !2802\l  call void @fio_state_callback_add(i32 1, void (i8*)* @fio_listen2cluster,\l... i8* null), !dbg !2803\l  call void @fio_state_callback_add(i32 5, void (i8*)* @fio_accept_after_fork,\l... i8* null), !dbg !2804\l  call void @fio_state_callback_add(i32 4, void (i8*)* @fio_connect2cluster,\l... i8* null), !dbg !2805\l  call void @fio_state_callback_add(i32 9, void (i8*)* @fio_cluster_cleanup,\l... i8* null), !dbg !2806\l  call void @fio_state_callback_add(i32 12, void (i8*)* @fio_cluster_at_exit,\l... i8* null), !dbg !2807\l  ret void, !dbg !2808\l}"];
+}

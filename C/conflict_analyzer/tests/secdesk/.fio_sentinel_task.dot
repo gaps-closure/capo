@@ -1,0 +1,12 @@
+digraph "CFG for 'fio_sentinel_task' function" {
+	label="CFG for 'fio_sentinel_task' function";
+
+	Node0x55685174bd00 [shape=record,label="{%2:\l  %3 = alloca i8*, align 8\l  %4 = alloca i8*, align 8\l  %5 = alloca i8*, align 8\l  store i8* %0, i8** %3, align 8\l  call void @llvm.dbg.declare(metadata i8** %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store i8* %1, i8** %4, align 8\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %6 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2806\l  %7 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %6, i32\l... 0, i32 7, !dbg !2808\l  %8 = load volatile i8, i8* %7, align 1, !dbg !2808\l  %9 = icmp ne i8 %8, 0, !dbg !2806\l  br i1 %9, label %11, label %10, !dbg !2809\l|{<s0>T|<s1>F}}"];
+	Node0x55685174bd00:s0 -> Node0x55685174db60;
+	Node0x55685174bd00:s1 -> Node0x55685174db10;
+	Node0x55685174db10 [shape=record,label="{%10:\l10:                                               \l  br label %17, !dbg !2810\l}"];
+	Node0x55685174db10 -> Node0x55685174dbb0;
+	Node0x55685174db60 [shape=record,label="{%11:\l11:                                               \l  call void @fio_state_callback_force(i32 2), !dbg !2811\l  call void @fio_lock(i8* @fio_fork_lock), !dbg !2812\l  call void @llvm.dbg.declare(metadata i8** %5, metadata !2813, metadata\l... !DIExpression()), !dbg !2814\l  %12 = call i8* @fio_thread_new(i8* (i8*)* @fio_sentinel_worker_thread, i8*\l... @fio_fork_lock), !dbg !2815\l  store i8* %12, i8** %5, align 8, !dbg !2814\l  %13 = load i8*, i8** %5, align 8, !dbg !2816\l  call void @fio_thread_free(i8* %13), !dbg !2817\l  call void @fio_lock(i8* @fio_fork_lock), !dbg !2818\l  %14 = call i32 @fio_unlock(i8* @fio_fork_lock), !dbg !2819\l  call void @fio_state_callback_force(i32 3), !dbg !2820\l  call void @fio_state_callback_force(i32 5), !dbg !2821\l  %15 = load i8*, i8** %3, align 8, !dbg !2822\l  %16 = load i8*, i8** %4, align 8, !dbg !2823\l  br label %17, !dbg !2824\l}"];
+	Node0x55685174db60 -> Node0x55685174dbb0;
+	Node0x55685174dbb0 [shape=record,label="{%17:\l17:                                               \l  ret void, !dbg !2824\l}"];
+}

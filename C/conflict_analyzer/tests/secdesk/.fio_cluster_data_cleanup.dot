@@ -1,0 +1,25 @@
+digraph "CFG for 'fio_cluster_data_cleanup' function" {
+	label="CFG for 'fio_cluster_data_cleanup' function";
+
+	Node0x55685153ee10 [shape=record,label="{%1:\l  %2 = alloca i32, align 4\l  %3 = alloca i64, align 8\l  %4 = alloca %struct.fio_ls_s, align 8\l  store i32 %0, i32* %2, align 4\l  call void @llvm.dbg.declare(metadata i32* %2, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  %5 = load i32, i32* %2, align 4, !dbg !2804\l  %6 = icmp ne i32 %5, 0, !dbg !2804\l  br i1 %6, label %7, label %13, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x55685153ee10:s0 -> Node0x55685153ee60;
+	Node0x55685153ee10:s1 -> Node0x55685153ef00;
+	Node0x55685153ee60 [shape=record,label="{%7:\l7:                                                \l  %8 = load i8, i8* getelementptr inbounds (%struct.cluster_data_s,\l... %struct.cluster_data_s* @cluster_data, i32 0, i32 3, i64 0), align 1, !dbg\l... !2807\l  %9 = sext i8 %8 to i32, !dbg !2807\l  %10 = icmp ne i32 %9, 0, !dbg !2807\l  br i1 %10, label %11, label %13, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x55685153ee60:s0 -> Node0x55685153eeb0;
+	Node0x55685153ee60:s1 -> Node0x55685153ef00;
+	Node0x55685153eeb0 [shape=record,label="{%11:\l11:                                               \l  %12 = call i32 @unlink(i8* getelementptr inbounds (%struct.cluster_data_s,\l... %struct.cluster_data_s* @cluster_data, i32 0, i32 3, i64 0)) #9, !dbg !2809\l  br label %13, !dbg !2811\l}"];
+	Node0x55685153eeb0 -> Node0x55685153ef00;
+	Node0x55685153ef00 [shape=record,label="{%13:\l13:                                               \l  br label %14, !dbg !2812\l}"];
+	Node0x55685153ef00 -> Node0x55685153ef50;
+	Node0x55685153ef50 [shape=record,label="{%14:\l14:                                               \l  %15 = call i32 @fio_ls_any(%struct.fio_ls_s* getelementptr inbounds\l... (%struct.cluster_data_s, %struct.cluster_data_s* @cluster_data, i32 0, i32\l... 1)), !dbg !2813\l  %16 = icmp ne i32 %15, 0, !dbg !2812\l  br i1 %16, label %17, label %25, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x55685153ef50:s0 -> Node0x55685153efa0;
+	Node0x55685153ef50:s1 -> Node0x55685153f090;
+	Node0x55685153efa0 [shape=record,label="{%17:\l17:                                               \l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2814, metadata\l... !DIExpression()), !dbg !2816\l  %18 = call i8* @fio_ls_pop(%struct.fio_ls_s* getelementptr inbounds\l... (%struct.cluster_data_s, %struct.cluster_data_s* @cluster_data, i32 0, i32\l... 1)), !dbg !2817\l  %19 = ptrtoint i8* %18 to i64, !dbg !2818\l  store i64 %19, i64* %3, align 8, !dbg !2816\l  %20 = load i64, i64* %3, align 8, !dbg !2819\l  %21 = icmp sgt i64 %20, 0, !dbg !2821\l  br i1 %21, label %22, label %24, !dbg !2822\l|{<s0>T|<s1>F}}"];
+	Node0x55685153efa0:s0 -> Node0x55685153eff0;
+	Node0x55685153efa0:s1 -> Node0x55685153f040;
+	Node0x55685153eff0 [shape=record,label="{%22:\l22:                                               \l  %23 = load i64, i64* %3, align 8, !dbg !2823\l  call void @fio_close(i64 %23), !dbg !2825\l  br label %24, !dbg !2826\l}"];
+	Node0x55685153eff0 -> Node0x55685153f040;
+	Node0x55685153f040 [shape=record,label="{%24:\l24:                                               \l  br label %14, !dbg !2812, !llvm.loop !2827\l}"];
+	Node0x55685153f040 -> Node0x55685153ef50;
+	Node0x55685153f090 [shape=record,label="{%25:\l25:                                               \l  store i64 0, i64* getelementptr inbounds (%struct.cluster_data_s,\l... %struct.cluster_data_s* @cluster_data, i32 0, i32 0), align 8, !dbg !2829\l  store volatile i8 0, i8* getelementptr inbounds (%struct.cluster_data_s,\l... %struct.cluster_data_s* @cluster_data, i32 0, i32 2), align 8, !dbg !2830\l  %26 = getelementptr inbounds %struct.fio_ls_s, %struct.fio_ls_s* %4, i32 0,\l... i32 0, !dbg !2831\l  store %struct.fio_ls_s* getelementptr inbounds (%struct.cluster_data_s,\l... %struct.cluster_data_s* @cluster_data, i32 0, i32 1), %struct.fio_ls_s** %26,\l... align 8, !dbg !2831\l  %27 = getelementptr inbounds %struct.fio_ls_s, %struct.fio_ls_s* %4, i32 0,\l... i32 1, !dbg !2831\l  store %struct.fio_ls_s* getelementptr inbounds (%struct.cluster_data_s,\l... %struct.cluster_data_s* @cluster_data, i32 0, i32 1), %struct.fio_ls_s** %27,\l... align 8, !dbg !2831\l  %28 = getelementptr inbounds %struct.fio_ls_s, %struct.fio_ls_s* %4, i32 0,\l... i32 2, !dbg !2831\l  store i8* null, i8** %28, align 8, !dbg !2831\l  %29 = bitcast %struct.fio_ls_s* %4 to i8*, !dbg !2832\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 bitcast (%struct.fio_ls_s*\l... getelementptr inbounds (%struct.cluster_data_s, %struct.cluster_data_s*\l... @cluster_data, i32 0, i32 1) to i8*), i8* align 8 %29, i64 24, i1 false),\l... !dbg !2832\l  ret void, !dbg !2833\l}"];
+}

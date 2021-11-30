@@ -1,0 +1,5 @@
+digraph "CFG for 'http_lib_constructor' function" {
+	label="CFG for 'http_lib_constructor' function";
+
+	Node0x5568524768d0 [shape=record,label="{%0:\l  call void @fio_state_callback_add(i32 0, void (i8*)* @http_lib_init, i8*\l... null), !dbg !2802\l  call void @fio_state_callback_add(i32 12, void (i8*)* @http_lib_cleanup, i8*\l... null), !dbg !2803\l  ret void, !dbg !2804\l}"];
+}

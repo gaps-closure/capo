@@ -1,0 +1,14 @@
+digraph "CFG for 'fio_tls_dup' function" {
+	label="CFG for 'fio_tls_dup' function";
+
+	Node0x55685155a170 [shape=record,label="{%1:\l  %2 = alloca i8*, align 8\l  store i8* %0, i8** %2, align 8\l  call void @llvm.dbg.declare(metadata i8** %2, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  br label %3, !dbg !2804\l}"];
+	Node0x55685155a170 -> Node0x55685155c8e0;
+	Node0x55685155c8e0 [shape=record,label="{%3:\l3:                                                \l  %4 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2805\l  %5 = icmp sle i32 1, %4, !dbg !2805\l  br i1 %5, label %6, label %7, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x55685155c8e0:s0 -> Node0x55685155c930;
+	Node0x55685155c8e0:s1 -> Node0x55685155c980;
+	Node0x55685155c930 [shape=record,label="{%6:\l6:                                                \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([47 x i8],\l... [47 x i8]* @.str.31, i64 0, i64 0)), !dbg !2809\l  br label %7, !dbg !2809\l}"];
+	Node0x55685155c930 -> Node0x55685155c980;
+	Node0x55685155c980 [shape=record,label="{%7:\l7:                                                \l  br label %8, !dbg !2808\l}"];
+	Node0x55685155c980 -> Node0x55685155c9d0;
+	Node0x55685155c9d0 [shape=record,label="{%8:\l8:                                                \l  call void @exit(i32 -1) #10, !dbg !2811\l  unreachable, !dbg !2811\l}"];
+}

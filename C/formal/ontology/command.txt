@@ -1,0 +1,1 @@
+minizinc --solver findmus --subsolver Gecode --depth 3 --output-human ~/gaps/capo/formal/ontology/conflict_analyzer_constraints.mzn minizinc --solver findmus --subsolver Gecode --depth 3 --output-human ~/gaps/capo/formal/ontology/conflict_analyzer_constraints.mzn ~/gaps/capo/formal/ontology/conflict_variable_declerations.mzn *.mzn > findmus.txt > findmus.txt

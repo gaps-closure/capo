@@ -1,0 +1,26 @@
+Options selected:
+  file: multiple-taints-2.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 4, [], 'ORANGE', {'level': 'orange'}]
+['cledef', 5, [], 'ORANGE_SHAREABLE', {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}]
+['cledef', 12, [], 'XD_ORANGE', {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'argtaints': [], 'codtaints': ['ORANGE', 'ORANGE_SHAREABLE'], 'rettaints': ['ORANGE', 'ORANGE_SHAREABLE', 'TAG_RESPONSE_FOO']}]}]
+['clebegin', 24, [], 'ORANGE_SHAREABLE']
+['cleend', 26, [], 'ORANGE_SHAREABLE']
+['clebegin', 33, [], 'ORANGE']
+['cleend', 35, [], 'ORANGE']
+['clebegin', 41, [], 'XD_ORANGE']
+['cleend', 43, [], 'XD_ORANGE']
+['clebegin', 48, [], 'PURPLE']
+['cleend', 50, [], 'PURPLE']
+Writing transformed file and cle mappings file
+
+real	0m0.235s
+user	0m0.208s
+sys	0m0.028s

@@ -1,0 +1,14 @@
+digraph "CFG for 'fio_cluster_on_fail' function" {
+	label="CFG for 'fio_cluster_on_fail' function";
+
+	Node0x55685154c230 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  %4 = alloca i8*, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store i8* %1, i8** %4, align 8\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  br label %5, !dbg !2806\l}"];
+	Node0x55685154c230 -> Node0x55685154c310;
+	Node0x55685154c310 [shape=record,label="{%5:\l5:                                                \l  %6 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2807\l  %7 = icmp sle i32 1, %6, !dbg !2807\l  br i1 %7, label %8, label %9, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x55685154c310:s0 -> Node0x55685154c360;
+	Node0x55685154c310:s1 -> Node0x55685154c3b0;
+	Node0x55685154c360 [shape=record,label="{%8:\l8:                                                \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([51 x i8],\l... [51 x i8]* @.str.85, i64 0, i64 0)), !dbg !2811\l  br label %9, !dbg !2811\l}"];
+	Node0x55685154c360 -> Node0x55685154c3b0;
+	Node0x55685154c3b0 [shape=record,label="{%9:\l9:                                                \l  br label %10, !dbg !2810\l}"];
+	Node0x55685154c3b0 -> Node0x55685154c400;
+	Node0x55685154c400 [shape=record,label="{%10:\l10:                                               \l  call void @perror(i8* getelementptr inbounds ([13 x i8], [13 x i8]*\l... @.str.86, i64 0, i64 0)), !dbg !2813\l  %11 = call i32 @fio_parent_pid(), !dbg !2814\l  %12 = call i32 @kill(i32 %11, i32 2) #9, !dbg !2815\l  call void @fio_stop(), !dbg !2816\l  %13 = load i8*, i8** %4, align 8, !dbg !2817\l  %14 = load i64, i64* %3, align 8, !dbg !2818\l  ret void, !dbg !2819\l}"];
+}

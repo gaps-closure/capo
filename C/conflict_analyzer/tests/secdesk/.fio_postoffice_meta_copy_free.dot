@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_postoffice_meta_copy_free' function" {
+	label="CFG for 'fio_postoffice_meta_copy_free' function";
+
+	Node0x556851504c10 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_meta_ary_s*, align 8\l  store %struct.fio_meta_ary_s* %0, %struct.fio_meta_ary_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_meta_ary_s** %2, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  %3 = load %struct.fio_meta_ary_s*, %struct.fio_meta_ary_s** %2, align 8,\l... !dbg !2807\l  call void @fio_meta_ary_free(%struct.fio_meta_ary_s* %3), !dbg !2808\l  ret void, !dbg !2809\l}"];
+}

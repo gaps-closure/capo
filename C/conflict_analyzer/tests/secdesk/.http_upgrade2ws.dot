@@ -1,0 +1,42 @@
+digraph "CFG for 'http_upgrade2ws' function" {
+	label="CFG for 'http_upgrade2ws' function";
+
+	Node0x556852337350 [shape=record,label="{%2:\l  %3 = alloca i32, align 4\l  %4 = alloca %struct.http_s*, align 8\l  store %struct.http_s* %0, %struct.http_s** %4, align 8\l  call void @llvm.dbg.declare(metadata %struct.http_s** %4, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  call void @llvm.dbg.declare(metadata %struct.websocket_settings_s* %1,\l... metadata !2806, metadata !DIExpression()), !dbg !2807\l  %5 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2808\l  %6 = icmp ne %struct.http_s* %5, null, !dbg !2808\l  br i1 %6, label %14, label %7, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x556852337350:s0 -> Node0x5568523392e0;
+	Node0x556852337350:s1 -> Node0x556852339150;
+	Node0x556852339150 [shape=record,label="{%7:\l7:                                                \l  br label %8, !dbg !2811\l}"];
+	Node0x556852339150 -> Node0x5568523391a0;
+	Node0x5568523391a0 [shape=record,label="{%8:\l8:                                                \l  %9 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2813\l  %10 = icmp sle i32 2, %9, !dbg !2813\l  br i1 %10, label %11, label %12, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x5568523391a0:s0 -> Node0x5568523391f0;
+	Node0x5568523391a0:s1 -> Node0x556852339240;
+	Node0x5568523391f0 [shape=record,label="{%11:\l11:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([59 x i8],\l... [59 x i8]* @.str.29.549, i64 0, i64 0)), !dbg !2817\l  br label %12, !dbg !2817\l}"];
+	Node0x5568523391f0 -> Node0x556852339240;
+	Node0x556852339240 [shape=record,label="{%12:\l12:                                               \l  br label %13, !dbg !2816\l}"];
+	Node0x556852339240 -> Node0x556852339290;
+	Node0x556852339290 [shape=record,label="{%13:\l13:                                               \l  br label %43, !dbg !2819\l}"];
+	Node0x556852339290 -> Node0x5568523394c0;
+	Node0x5568523392e0 [shape=record,label="{%14:\l14:                                               \l  %15 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2820\l  %16 = icmp ne %struct.http_s* %15, null, !dbg !2820\l  br i1 %16, label %17, label %32, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x5568523392e0:s0 -> Node0x556852339330;
+	Node0x5568523392e0:s1 -> Node0x556852339420;
+	Node0x556852339330 [shape=record,label="{%17:\l17:                                               \l  %18 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2820\l  %19 = getelementptr inbounds %struct.http_s, %struct.http_s* %18, i32 0, i32\l... 2, !dbg !2820\l  %20 = load i64, i64* %19, align 8, !dbg !2820\l  %21 = icmp ne i64 %20, 0, !dbg !2820\l  br i1 %21, label %33, label %22, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x556852339330:s0 -> Node0x556852339470;
+	Node0x556852339330:s1 -> Node0x556852339380;
+	Node0x556852339380 [shape=record,label="{%22:\l22:                                               \l  %23 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2820\l  %24 = getelementptr inbounds %struct.http_s, %struct.http_s* %23, i32 0, i32\l... 3, !dbg !2820\l  %25 = load i64, i64* %24, align 8, !dbg !2820\l  %26 = icmp ne i64 %25, 0, !dbg !2820\l  br i1 %26, label %33, label %27, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x556852339380:s0 -> Node0x556852339470;
+	Node0x556852339380:s1 -> Node0x5568523393d0;
+	Node0x5568523393d0 [shape=record,label="{%27:\l27:                                               \l  %28 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2820\l  %29 = getelementptr inbounds %struct.http_s, %struct.http_s* %28, i32 0, i32\l... 5, !dbg !2820\l  %30 = load i64, i64* %29, align 8, !dbg !2820\l  %31 = icmp ne i64 %30, 0, !dbg !2820\l  br i1 %31, label %32, label %33, !dbg !2822\l|{<s0>T|<s1>F}}"];
+	Node0x5568523393d0:s0 -> Node0x556852339420;
+	Node0x5568523393d0:s1 -> Node0x556852339470;
+	Node0x556852339420 [shape=record,label="{%32:\l32:                                               \l  br label %43, !dbg !2823\l}"];
+	Node0x556852339420 -> Node0x5568523394c0;
+	Node0x556852339470 [shape=record,label="{%33:\l33:                                               \l  %34 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2824\l  %35 = getelementptr inbounds %struct.http_s, %struct.http_s* %34, i32 0, i32\l... 0, !dbg !2825\l  %36 = getelementptr inbounds %struct.anon.87, %struct.anon.87* %35, i32 0,\l... i32 0, !dbg !2826\l  %37 = load i8*, i8** %36, align 8, !dbg !2826\l  %38 = bitcast i8* %37 to %struct.http_vtable_s*, !dbg !2827\l  %39 = getelementptr inbounds %struct.http_vtable_s, %struct.http_vtable_s*\l... %38, i32 0, i32 5, !dbg !2828\l  %40 = load i32 (%struct.http_s*, %struct.websocket_settings_s*)*, i32\l... (%struct.http_s*, %struct.websocket_settings_s*)** %39, align 8, !dbg !2828\l  %41 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2829\l  %42 = call i32 %40(%struct.http_s* %41, %struct.websocket_settings_s* %1),\l... !dbg !2830\l  store i32 %42, i32* %3, align 4, !dbg !2831\l  br label %53, !dbg !2831\l}"];
+	Node0x556852339470 -> Node0x5568523395b0;
+	Node0x5568523394c0 [shape=record,label="{%43:\l43:                                               \l  call void @llvm.dbg.label(metadata !2832), !dbg !2833\l  %44 = getelementptr inbounds %struct.websocket_settings_s,\l... %struct.websocket_settings_s* %1, i32 0, i32 4, !dbg !2834\l  %45 = load void (i64, i8*)*, void (i64, i8*)** %44, align 8, !dbg !2834\l  %46 = icmp ne void (i64, i8*)* %45, null, !dbg !2836\l  br i1 %46, label %47, label %52, !dbg !2837\l|{<s0>T|<s1>F}}"];
+	Node0x5568523394c0:s0 -> Node0x556852339510;
+	Node0x5568523394c0:s1 -> Node0x556852339560;
+	Node0x556852339510 [shape=record,label="{%47:\l47:                                               \l  %48 = getelementptr inbounds %struct.websocket_settings_s,\l... %struct.websocket_settings_s* %1, i32 0, i32 4, !dbg !2838\l  %49 = load void (i64, i8*)*, void (i64, i8*)** %48, align 8, !dbg !2838\l  %50 = getelementptr inbounds %struct.websocket_settings_s,\l... %struct.websocket_settings_s* %1, i32 0, i32 5, !dbg !2839\l  %51 = load i8*, i8** %50, align 8, !dbg !2839\l  call void %49(i64 -1, i8* %51), !dbg !2840\l  br label %52, !dbg !2840\l}"];
+	Node0x556852339510 -> Node0x556852339560;
+	Node0x556852339560 [shape=record,label="{%52:\l52:                                               \l  store i32 -1, i32* %3, align 4, !dbg !2841\l  br label %53, !dbg !2841\l}"];
+	Node0x556852339560 -> Node0x5568523395b0;
+	Node0x5568523395b0 [shape=record,label="{%53:\l53:                                               \l  %54 = load i32, i32* %3, align 4, !dbg !2842\l  ret i32 %54, !dbg !2842\l}"];
+}

@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_defer_clear_queue' function" {
+	label="CFG for 'fio_defer_clear_queue' function";
+
+	Node0x5568516ed0b0 [shape=record,label="{%0:\l  call void @fio_defer_clear_tasks(), !dbg !2802\l  ret void, !dbg !2803\l}"];
+}

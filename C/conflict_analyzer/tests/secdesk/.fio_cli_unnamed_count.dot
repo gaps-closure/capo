@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_cli_unnamed_count' function" {
+	label="CFG for 'fio_cli_unnamed_count' function";
+
+	Node0x55685216ba30 [shape=record,label="{%0:\l  %1 = load i64, i64* @fio_unnamed_count, align 8, !dbg !2804\l  %2 = trunc i64 %1 to i32, !dbg !2805\l  ret i32 %2, !dbg !2806\l}"];
+}

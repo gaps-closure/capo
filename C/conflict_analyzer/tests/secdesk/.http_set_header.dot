@@ -1,0 +1,24 @@
+digraph "CFG for 'http_set_header' function" {
+	label="CFG for 'http_set_header' function";
+
+	Node0x556852279080 [shape=record,label="{%3:\l  %4 = alloca i32, align 4\l  %5 = alloca %struct.http_s*, align 8\l  %6 = alloca i64, align 8\l  %7 = alloca i64, align 8\l  store %struct.http_s* %0, %struct.http_s** %5, align 8\l  call void @llvm.dbg.declare(metadata %struct.http_s** %5, metadata !2802,\l... metadata !DIExpression()), !dbg !2803\l  store i64 %1, i64* %6, align 8\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %2, i64* %7, align 8\l  call void @llvm.dbg.declare(metadata i64* %7, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  %8 = load %struct.http_s*, %struct.http_s** %5, align 8, !dbg !2808\l  %9 = icmp ne %struct.http_s* %8, null, !dbg !2808\l  br i1 %9, label %10, label %28, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x556852279080:s0 -> Node0x5568522790d0;
+	Node0x556852279080:s1 -> Node0x556852279210;
+	Node0x5568522790d0 [shape=record,label="{%10:\l10:                                               \l  %11 = load %struct.http_s*, %struct.http_s** %5, align 8, !dbg !2808\l  %12 = getelementptr inbounds %struct.http_s, %struct.http_s* %11, i32 0, i32\l... 2, !dbg !2808\l  %13 = load i64, i64* %12, align 8, !dbg !2808\l  %14 = icmp ne i64 %13, 0, !dbg !2808\l  br i1 %14, label %25, label %15, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x5568522790d0:s0 -> Node0x5568522791c0;
+	Node0x5568522790d0:s1 -> Node0x556852279120;
+	Node0x556852279120 [shape=record,label="{%15:\l15:                                               \l  %16 = load %struct.http_s*, %struct.http_s** %5, align 8, !dbg !2808\l  %17 = getelementptr inbounds %struct.http_s, %struct.http_s* %16, i32 0, i32\l... 3, !dbg !2808\l  %18 = load i64, i64* %17, align 8, !dbg !2808\l  %19 = icmp ne i64 %18, 0, !dbg !2808\l  br i1 %19, label %25, label %20, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x556852279120:s0 -> Node0x5568522791c0;
+	Node0x556852279120:s1 -> Node0x556852279170;
+	Node0x556852279170 [shape=record,label="{%20:\l20:                                               \l  %21 = load %struct.http_s*, %struct.http_s** %5, align 8, !dbg !2808\l  %22 = getelementptr inbounds %struct.http_s, %struct.http_s* %21, i32 0, i32\l... 5, !dbg !2808\l  %23 = load i64, i64* %22, align 8, !dbg !2808\l  %24 = icmp ne i64 %23, 0, !dbg !2808\l  br i1 %24, label %28, label %25, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x556852279170:s0 -> Node0x556852279210;
+	Node0x556852279170:s1 -> Node0x5568522791c0;
+	Node0x5568522791c0 [shape=record,label="{%25:\l25:                                               \l  %26 = load i64, i64* %6, align 8, !dbg !2811\l  %27 = icmp ne i64 %26, 0, !dbg !2811\l  br i1 %27, label %30, label %28, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x5568522791c0:s0 -> Node0x556852279260;
+	Node0x5568522791c0:s1 -> Node0x556852279210;
+	Node0x556852279210 [shape=record,label="{%28:\l28:                                               \l  %29 = load i64, i64* %7, align 8, !dbg !2813\l  call void @fiobj_free.403(i64 %29), !dbg !2815\l  store i32 -1, i32* %4, align 4, !dbg !2816\l  br label %37, !dbg !2816\l}"];
+	Node0x556852279210 -> Node0x5568522792b0;
+	Node0x556852279260 [shape=record,label="{%30:\l30:                                               \l  %31 = load %struct.http_s*, %struct.http_s** %5, align 8, !dbg !2817\l  %32 = getelementptr inbounds %struct.http_s, %struct.http_s* %31, i32 0, i32\l... 0, !dbg !2818\l  %33 = getelementptr inbounds %struct.anon.87, %struct.anon.87* %32, i32 0,\l... i32 2, !dbg !2819\l  %34 = load i64, i64* %33, align 8, !dbg !2819\l  %35 = load i64, i64* %6, align 8, !dbg !2820\l  %36 = load i64, i64* %7, align 8, !dbg !2821\l  call void @set_header_add.404(i64 %34, i64 %35, i64 %36), !dbg !2822\l  store i32 0, i32* %4, align 4, !dbg !2823\l  br label %37, !dbg !2823\l}"];
+	Node0x556852279260 -> Node0x5568522792b0;
+	Node0x5568522792b0 [shape=record,label="{%37:\l37:                                               \l  %38 = load i32, i32* %4, align 4, !dbg !2824\l  ret i32 %38, !dbg !2824\l}"];
+}

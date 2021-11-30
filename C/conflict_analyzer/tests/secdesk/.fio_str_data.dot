@@ -1,0 +1,15 @@
+digraph "CFG for 'fio_str_data' function" {
+	label="CFG for 'fio_str_data' function";
+
+	Node0x55685202faa0 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_str_s.63*, align 8\l  store %struct.fio_str_s.63* %0, %struct.fio_str_s.63** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_str_s.63** %2, metadata\l... !2804, metadata !DIExpression()), !dbg !2805\l  %3 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %2, align 8, !dbg\l... !2806\l  %4 = getelementptr inbounds %struct.fio_str_s.63, %struct.fio_str_s.63* %3,\l... i32 0, i32 0, !dbg !2807\l  %5 = load i8, i8* %4, align 8, !dbg !2807\l  %6 = zext i8 %5 to i32, !dbg !2806\l  %7 = icmp ne i32 %6, 0, !dbg !2806\l  br i1 %7, label %13, label %8, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x55685202faa0:s0 -> Node0x5568516ba070;
+	Node0x55685202faa0:s1 -> Node0x5568516ba020;
+	Node0x5568516ba020 [shape=record,label="{%8:\l8:                                                \l  %9 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %2, align 8, !dbg\l... !2809\l  %10 = getelementptr inbounds %struct.fio_str_s.63, %struct.fio_str_s.63* %9,\l... i32 0, i32 6, !dbg !2810\l  %11 = load i8*, i8** %10, align 8, !dbg !2810\l  %12 = icmp ne i8* %11, null, !dbg !2809\l  br i1 %12, label %17, label %13, !dbg !2811\l|{<s0>T|<s1>F}}"];
+	Node0x5568516ba020:s0 -> Node0x5568516ba0c0;
+	Node0x5568516ba020:s1 -> Node0x5568516ba070;
+	Node0x5568516ba070 [shape=record,label="{%13:\l13:                                               \l  %14 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %2, align 8, !dbg\l... !2812\l  %15 = getelementptr inbounds %struct.fio_str_s.63, %struct.fio_str_s.63*\l... %14, i32 0, i32 1, !dbg !2812\l  %16 = getelementptr inbounds i8, i8* %15, i64 1, !dbg !2812\l  br label %21, !dbg !2811\l}"];
+	Node0x5568516ba070 -> Node0x5568516ba110;
+	Node0x5568516ba0c0 [shape=record,label="{%17:\l17:                                               \l  %18 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %2, align 8, !dbg\l... !2813\l  %19 = getelementptr inbounds %struct.fio_str_s.63, %struct.fio_str_s.63*\l... %18, i32 0, i32 6, !dbg !2814\l  %20 = load i8*, i8** %19, align 8, !dbg !2814\l  br label %21, !dbg !2811\l}"];
+	Node0x5568516ba0c0 -> Node0x5568516ba110;
+	Node0x5568516ba110 [shape=record,label="{%21:\l21:                                               \l  %22 = phi i8* [ %16, %13 ], [ %20, %17 ], !dbg !2811\l  ret i8* %22, !dbg !2815\l}"];
+}

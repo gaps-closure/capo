@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xml:base="cle"
+         xmlns="cle#">
+
+<owl:Ontology rdf:about="cle"/>
+
+<owl:ObjectProperty rdf:about="#hasLevel">
+  <rdfs:domain rdf:resource="#CLE_entry"/>
+  <rdfs:range rdf:resource="#Level"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasCDF">
+  <rdfs:domain rdf:resource="#CLE_entry"/>
+  <rdfs:range rdf:resource="#CrossDomainFlow"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasRemoteLevel">
+  <rdfs:domain rdf:resource="#CrossDomainFlow"/>
+  <rdfs:range rdf:resource="#Level"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasDirective">
+  <rdfs:domain rdf:resource="#CrossDomainFlow"/>
+  <rdfs:range rdf:resource="#GuardDirective"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasFunctTaints">
+  <rdfs:domain rdf:resource="#CrossDomainFlow"/>
+  <rdfs:range rdf:resource="#FuncTaints"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasTaints">
+  <rdfs:domain rdf:resource="#RetTaint"/>
+  <rdfs:domain rdf:resource="#BodyTaint"/>
+  <rdfs:domain rdf:resource="#ArgTaint"/>
+  <rdfs:range rdf:resource="#CLE_entry"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasRetTaint">
+  <rdfs:domain rdf:resource="#FuncTaints"/>
+  <rdfs:range rdf:resource="#RetTaint"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasBodyTaint">
+  <rdfs:domain rdf:resource="#FuncTaints"/>
+  <rdfs:range rdf:resource="#BodyTaint"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasArgTaint">
+  <rdfs:domain rdf:resource="#FuncTaints"/>
+  <rdfs:range rdf:resource="#ArgTaint"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasOperation">
+  <rdfs:domain rdf:resource="#GuardDirective"/>
+  <rdfs:range rdf:resource="#GuardOperation"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasGapsTag">
+  <rdfs:domain rdf:resource="#GuardDirective"/>
+  <rdfs:range rdf:resource="#GapsTag"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasOpArgs">
+  <rdfs:domain rdf:resource="#Redact"/>
+  <rdfs:range rdf:resource="#Symbol"/>
+</owl:ObjectProperty>
+
+<owl:DatatypeProperty rdf:about="#hasArgTaintIdx">
+  <rdfs:domain rdf:resource="#ArgTaint"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#hasOneway">
+  <rdfs:domain rdf:resource="#GuardDirective"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+</owl:DatatypeProperty>
+
+<owl:Class rdf:about="#Symbol">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Level">
+  <rdfs:subClassOf rdf:resource="#Symbol"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Enclave">
+  <rdfs:subClassOf rdf:resource="#Symbol"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Label">
+  <rdfs:subClassOf rdf:resource="#Symbol"/>
+</owl:Class>
+
+<owl:Class rdf:about="#CLE_entry">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#CrossDomainFlow">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#GuardDirective">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#FuncTaints">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#RetTaint">
+  <rdfs:subClassOf rdf:resource="#Label"/>
+</owl:Class>
+
+<owl:Class rdf:about="#BodyTaint">
+  <rdfs:subClassOf rdf:resource="#Label"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ArgTaint">
+  <rdfs:subClassOf rdf:resource="#Label"/>
+</owl:Class>
+
+<owl:Class rdf:about="#GapsTag">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#GuardOperation">
+  <rdfs:subClassOf rdf:resource="#Symbol"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Allow">
+  <rdfs:subClassOf rdf:resource="#GuardOperation"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Deny">
+  <rdfs:subClassOf rdf:resource="#GuardOperation"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Redact">
+  <rdfs:subClassOf rdf:resource="#GuardOperation"/>
+</owl:Class>
+
+
+</rdf:RDF>

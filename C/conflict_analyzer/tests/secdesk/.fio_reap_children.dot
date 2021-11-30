@@ -1,0 +1,14 @@
+digraph "CFG for 'fio_reap_children' function" {
+	label="CFG for 'fio_reap_children' function";
+
+	Node0x5568516df7e0 [shape=record,label="{%0:\l  %1 = alloca %struct.sigaction, align 8\l  call void @llvm.dbg.declare(metadata %struct.sigaction* %1, metadata !2802,\l... metadata !DIExpression()), !dbg !2803\l  %2 = load void (i32)*, void (i32)** getelementptr inbounds\l... (%struct.sigaction, %struct.sigaction* @fio_old_sig_chld, i32 0, i32 0, i32\l... 0), align 8, !dbg !2804\l  %3 = icmp ne void (i32)* %2, null, !dbg !2806\l  br i1 %3, label %4, label %5, !dbg !2807\l|{<s0>T|<s1>F}}"];
+	Node0x5568516df7e0:s0 -> Node0x5568516ffdd0;
+	Node0x5568516df7e0:s1 -> Node0x5568516ffe20;
+	Node0x5568516ffdd0 [shape=record,label="{%4:\l4:                                                \l  br label %17, !dbg !2808\l}"];
+	Node0x5568516ffdd0 -> Node0x5568516ffec0;
+	Node0x5568516ffe20 [shape=record,label="{%5:\l5:                                                \l  %6 = getelementptr inbounds %struct.sigaction, %struct.sigaction* %1, i32 0,\l... i32 0, !dbg !2809\l  %7 = bitcast %union.anon.0* %6 to void (i32)**, !dbg !2809\l  store void (i32)* @reap_child_handler, void (i32)** %7, align 8, !dbg !2810\l  %8 = getelementptr inbounds %struct.sigaction, %struct.sigaction* %1, i32 0,\l... i32 1, !dbg !2811\l  %9 = call i32 @sigemptyset(%struct.__sigset_t* %8) #9, !dbg !2812\l  %10 = getelementptr inbounds %struct.sigaction, %struct.sigaction* %1, i32\l... 0, i32 2, !dbg !2813\l  store i32 268435457, i32* %10, align 8, !dbg !2814\l  %11 = call i32 @sigaction(i32 17, %struct.sigaction* %1, %struct.sigaction*\l... @fio_old_sig_chld) #9, !dbg !2815\l  %12 = icmp eq i32 %11, -1, !dbg !2817\l  br i1 %12, label %13, label %17, !dbg !2818\l|{<s0>T|<s1>F}}"];
+	Node0x5568516ffe20:s0 -> Node0x5568516ffe70;
+	Node0x5568516ffe20:s1 -> Node0x5568516ffec0;
+	Node0x5568516ffe70 [shape=record,label="{%13:\l13:                                               \l  call void @perror(i8* getelementptr inbounds ([36 x i8], [36 x i8]* @.str.5,\l... i64 0, i64 0)), !dbg !2819\l  %14 = call i32 @kill(i32 0, i32 2) #9, !dbg !2821\l  %15 = call i32* @__errno_location() #10, !dbg !2822\l  %16 = load i32, i32* %15, align 4, !dbg !2822\l  call void @exit(i32 %16) #11, !dbg !2823\l  unreachable, !dbg !2823\l}"];
+	Node0x5568516ffec0 [shape=record,label="{%17:\l17:                                               \l  ret void, !dbg !2824\l}"];
+}

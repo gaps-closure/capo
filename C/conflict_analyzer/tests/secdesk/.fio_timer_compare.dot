@@ -1,0 +1,27 @@
+digraph "CFG for 'fio_timer_compare' function" {
+	label="CFG for 'fio_timer_compare' function";
+
+	Node0x5568516f4060 [shape=record,label="{%4:\l  %5 = alloca i32, align 4\l  %6 = alloca %struct.rlimit, align 8\l  %7 = alloca %struct.rlimit, align 8\l  %8 = bitcast %struct.rlimit* %6 to \{ i64, i64 \}*\l  %9 = getelementptr inbounds \{ i64, i64 \}, \{ i64, i64 \}* %8, i32 0, i32 0\l  store i64 %0, i64* %9, align 8\l  %10 = getelementptr inbounds \{ i64, i64 \}, \{ i64, i64 \}* %8, i32 0, i32 1\l  store i64 %1, i64* %10, align 8\l  %11 = bitcast %struct.rlimit* %7 to \{ i64, i64 \}*\l  %12 = getelementptr inbounds \{ i64, i64 \}, \{ i64, i64 \}* %11, i32 0, i32 0\l  store i64 %2, i64* %12, align 8\l  %13 = getelementptr inbounds \{ i64, i64 \}, \{ i64, i64 \}* %11, i32 0, i32 1\l  store i64 %3, i64* %13, align 8\l  call void @llvm.dbg.declare(metadata %struct.rlimit* %6, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  call void @llvm.dbg.declare(metadata %struct.rlimit* %7, metadata !2806,\l... metadata !DIExpression()), !dbg !2807\l  %14 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %6, i32 0, i32\l... 0, !dbg !2808\l  %15 = load i64, i64* %14, align 8, !dbg !2808\l  %16 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %7, i32 0, i32\l... 0, !dbg !2810\l  %17 = load i64, i64* %16, align 8, !dbg !2810\l  %18 = icmp eq i64 %15, %17, !dbg !2811\l  br i1 %18, label %19, label %34, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x5568516f4060:s0 -> Node0x5568516f67f0;
+	Node0x5568516f4060:s1 -> Node0x5568516df6a0;
+	Node0x5568516f67f0 [shape=record,label="{%19:\l19:                                               \l  %20 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %6, i32 0, i32\l... 1, !dbg !2813\l  %21 = load i64, i64* %20, align 8, !dbg !2813\l  %22 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %7, i32 0, i32\l... 1, !dbg !2816\l  %23 = load i64, i64* %22, align 8, !dbg !2816\l  %24 = icmp slt i64 %21, %23, !dbg !2817\l  br i1 %24, label %25, label %26, !dbg !2818\l|{<s0>T|<s1>F}}"];
+	Node0x5568516f67f0:s0 -> Node0x5568516df560;
+	Node0x5568516f67f0:s1 -> Node0x5568516df5b0;
+	Node0x5568516df560 [shape=record,label="{%25:\l25:                                               \l  store i32 1, i32* %5, align 4, !dbg !2819\l  br label %42, !dbg !2819\l}"];
+	Node0x5568516df560 -> Node0x5568516df790;
+	Node0x5568516df5b0 [shape=record,label="{%26:\l26:                                               \l  %27 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %6, i32 0, i32\l... 1, !dbg !2820\l  %28 = load i64, i64* %27, align 8, !dbg !2820\l  %29 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %7, i32 0, i32\l... 1, !dbg !2822\l  %30 = load i64, i64* %29, align 8, !dbg !2822\l  %31 = icmp sgt i64 %28, %30, !dbg !2823\l  br i1 %31, label %32, label %33, !dbg !2824\l|{<s0>T|<s1>F}}"];
+	Node0x5568516df5b0:s0 -> Node0x5568516df600;
+	Node0x5568516df5b0:s1 -> Node0x5568516df650;
+	Node0x5568516df600 [shape=record,label="{%32:\l32:                                               \l  store i32 -1, i32* %5, align 4, !dbg !2825\l  br label %42, !dbg !2825\l}"];
+	Node0x5568516df600 -> Node0x5568516df790;
+	Node0x5568516df650 [shape=record,label="{%33:\l33:                                               \l  store i32 0, i32* %5, align 4, !dbg !2826\l  br label %42, !dbg !2826\l}"];
+	Node0x5568516df650 -> Node0x5568516df790;
+	Node0x5568516df6a0 [shape=record,label="{%34:\l34:                                               \l  %35 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %6, i32 0, i32\l... 0, !dbg !2827\l  %36 = load i64, i64* %35, align 8, !dbg !2827\l  %37 = getelementptr inbounds %struct.rlimit, %struct.rlimit* %7, i32 0, i32\l... 0, !dbg !2829\l  %38 = load i64, i64* %37, align 8, !dbg !2829\l  %39 = icmp slt i64 %36, %38, !dbg !2830\l  br i1 %39, label %40, label %41, !dbg !2831\l|{<s0>T|<s1>F}}"];
+	Node0x5568516df6a0:s0 -> Node0x5568516df6f0;
+	Node0x5568516df6a0:s1 -> Node0x5568516df740;
+	Node0x5568516df6f0 [shape=record,label="{%40:\l40:                                               \l  store i32 1, i32* %5, align 4, !dbg !2832\l  br label %42, !dbg !2832\l}"];
+	Node0x5568516df6f0 -> Node0x5568516df790;
+	Node0x5568516df740 [shape=record,label="{%41:\l41:                                               \l  store i32 -1, i32* %5, align 4, !dbg !2833\l  br label %42, !dbg !2833\l}"];
+	Node0x5568516df740 -> Node0x5568516df790;
+	Node0x5568516df790 [shape=record,label="{%42:\l42:                                               \l  %43 = load i32, i32* %5, align 4, !dbg !2834\l  ret i32 %43, !dbg !2834\l}"];
+}

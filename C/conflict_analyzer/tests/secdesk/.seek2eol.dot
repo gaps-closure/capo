@@ -1,0 +1,17 @@
+digraph "CFG for 'seek2eol' function" {
+	label="CFG for 'seek2eol' function";
+
+	Node0x55685220cbd0 [shape=record,label="{%2:\l  %3 = alloca i8, align 1\l  %4 = alloca i8**, align 8\l  %5 = alloca i8*, align 8\l  store i8** %0, i8*** %4, align 8\l  call void @llvm.dbg.declare(metadata i8*** %4, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i8* %1, i8** %5, align 8\l  call void @llvm.dbg.declare(metadata i8** %5, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  %6 = load i8**, i8*** %4, align 8, !dbg !2810\l  %7 = load i8*, i8** %5, align 8, !dbg !2812\l  %8 = call zeroext i8 @seek2ch(i8** %6, i8* %7, i8 zeroext 10), !dbg !2813\l  %9 = icmp ne i8 %8, 0, !dbg !2813\l  br i1 %9, label %11, label %10, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x55685220cbd0:s0 -> Node0x55685220cd10;
+	Node0x55685220cbd0:s1 -> Node0x55685220ccc0;
+	Node0x55685220ccc0 [shape=record,label="{%10:\l10:                                               \l  store i8 0, i8* %3, align 1, !dbg !2815\l  br label %20, !dbg !2815\l}"];
+	Node0x55685220ccc0 -> Node0x55685220ce00;
+	Node0x55685220cd10 [shape=record,label="{%11:\l11:                                               \l  %12 = load i8**, i8*** %4, align 8, !dbg !2816\l  %13 = load i8*, i8** %12, align 8, !dbg !2818\l  %14 = getelementptr inbounds i8, i8* %13, i64 -1, !dbg !2819\l  %15 = load i8, i8* %14, align 1, !dbg !2819\l  %16 = zext i8 %15 to i32, !dbg !2819\l  %17 = icmp eq i32 %16, 13, !dbg !2820\l  br i1 %17, label %18, label %19, !dbg !2821\l|{<s0>T|<s1>F}}"];
+	Node0x55685220cd10:s0 -> Node0x55685220cd60;
+	Node0x55685220cd10:s1 -> Node0x55685220cdb0;
+	Node0x55685220cd60 [shape=record,label="{%18:\l18:                                               \l  store i8 2, i8* %3, align 1, !dbg !2822\l  br label %20, !dbg !2822\l}"];
+	Node0x55685220cd60 -> Node0x55685220ce00;
+	Node0x55685220cdb0 [shape=record,label="{%19:\l19:                                               \l  store i8 1, i8* %3, align 1, !dbg !2824\l  br label %20, !dbg !2824\l}"];
+	Node0x55685220cdb0 -> Node0x55685220ce00;
+	Node0x55685220ce00 [shape=record,label="{%20:\l20:                                               \l  %21 = load i8, i8* %3, align 1, !dbg !2825\l  ret i8 %21, !dbg !2825\l}"];
+}

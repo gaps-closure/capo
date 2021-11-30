@@ -1,0 +1,22 @@
+digraph "CFG for 'get_file' function" {
+	label="CFG for 'get_file' function";
+
+	Node0x55685256fe70 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  %4 = alloca i8*, align 8\l  %5 = alloca %struct.secinput*, align 8\l  %6 = alloca i8*, align 8\l  %7 = alloca %struct.fio_str_info_s, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store i8* %1, i8** %4, align 8\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  call void @llvm.dbg.declare(metadata %struct.secinput** %5, metadata !2806,\l... metadata !DIExpression()), !dbg !2816\l  %8 = load i8*, i8** %4, align 8, !dbg !2817\l  %9 = bitcast i8* %8 to %struct.secinput*, !dbg !2817\l  store %struct.secinput* %9, %struct.secinput** %5, align 8, !dbg !2816\l  %10 = load i64, i64* %3, align 8, !dbg !2818\l  %11 = icmp ne i64 %10, 0, !dbg !2818\l  br i1 %11, label %12, label %33, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x55685256fe70:s0 -> Node0x55685256fec0;
+	Node0x55685256fe70:s1 -> Node0x5568525700a0;
+	Node0x55685256fec0 [shape=record,label="{%12:\l12:                                               \l  call void @llvm.dbg.declare(metadata i8** %6, metadata !2821, metadata\l... !DIExpression()), !dbg !2823\l  %13 = call i64 @fiobj_hash_key_in_loop(), !dbg !2824\l  call void @fiobj_obj2cstr.1814(%struct.fio_str_info_s* sret %7, i64 %13),\l... !dbg !2825\l  %14 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %7, i32 0, i32 2, !dbg !2826\l  %15 = load i8*, i8** %14, align 8, !dbg !2826\l  store i8* %15, i8** %6, align 8, !dbg !2823\l  %16 = load i8*, i8** %6, align 8, !dbg !2827\l  %17 = call i32 @strcmp(i8* %16, i8* getelementptr inbounds ([5 x i8], [5 x\l... i8]* @.str.52.1835, i64 0, i64 0)) #10, !dbg !2829\l  %18 = icmp eq i32 %17, 0, !dbg !2830\l  br i1 %18, label %19, label %23, !dbg !2831\l|{<s0>T|<s1>F}}"];
+	Node0x55685256fec0:s0 -> Node0x55685256ff10;
+	Node0x55685256fec0:s1 -> Node0x55685256ff60;
+	Node0x55685256ff10 [shape=record,label="{%19:\l19:                                               \l  %20 = load i64, i64* %3, align 8, !dbg !2832\l  %21 = load %struct.secinput*, %struct.secinput** %5, align 8, !dbg !2834\l  %22 = getelementptr inbounds %struct.secinput, %struct.secinput* %21, i32 0,\l... i32 3, !dbg !2835\l  store i64 %20, i64* %22, align 8, !dbg !2836\l  br label %32, !dbg !2837\l}"];
+	Node0x55685256ff10 -> Node0x556852570050;
+	Node0x55685256ff60 [shape=record,label="{%23:\l23:                                               \l  %24 = load i8*, i8** %6, align 8, !dbg !2838\l  %25 = call i32 @strcmp(i8* %24, i8* getelementptr inbounds ([5 x i8], [5 x\l... i8]* @.str.53.1836, i64 0, i64 0)) #10, !dbg !2840\l  %26 = icmp eq i32 %25, 0, !dbg !2841\l  br i1 %26, label %27, label %31, !dbg !2842\l|{<s0>T|<s1>F}}"];
+	Node0x55685256ff60:s0 -> Node0x55685256ffb0;
+	Node0x55685256ff60:s1 -> Node0x556852570000;
+	Node0x55685256ffb0 [shape=record,label="{%27:\l27:                                               \l  %28 = load i64, i64* %3, align 8, !dbg !2843\l  %29 = load %struct.secinput*, %struct.secinput** %5, align 8, !dbg !2845\l  %30 = getelementptr inbounds %struct.secinput, %struct.secinput* %29, i32 0,\l... i32 4, !dbg !2846\l  store i64 %28, i64* %30, align 8, !dbg !2847\l  br label %31, !dbg !2848\l}"];
+	Node0x55685256ffb0 -> Node0x556852570000;
+	Node0x556852570000 [shape=record,label="{%31:\l31:                                               \l  br label %32\l}"];
+	Node0x556852570000 -> Node0x556852570050;
+	Node0x556852570050 [shape=record,label="{%32:\l32:                                               \l  br label %33, !dbg !2849\l}"];
+	Node0x556852570050 -> Node0x5568525700a0;
+	Node0x5568525700a0 [shape=record,label="{%33:\l33:                                               \l  ret i32 0, !dbg !2850\l}"];
+}

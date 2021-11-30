@@ -1,0 +1,25 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Unresolved Data Conflict",
+            "description": "Function 'foo' accesses global variables in different levels 'purple' and 'orange'",
+            "sources": [{
+                "file": "annotated/global-variable-level-mismatch.c",
+                "range": {
+                    "start": {
+                        "line": 14,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 18,
+                        "character": 1
+                    }
+                }
+            }],
+            "remedies": [
+                "Refactor function 'foo'"
+            ]
+        }
+    ]
+}

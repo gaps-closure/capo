@@ -1,0 +1,115 @@
+Domain assignments for globals:
+Domain assignments for functions:
+ FUNCTION : 76 -> purple_E::PURPLE
+ FUNCTION : 77 -> orange_E::ORANGE
+ FUNCTION : 78 -> purple_E::PURPLE
+ FUNCTION : 79 -> purple_E::XDLINKAGE_GET_EWMA
+ FUNCTION : 80 -> orange_E::ORANGE
+ FUNCTION : 81 -> orange_E::ORANGE
+Cross-domain cut:
+ XDCALL   : (4:ORANGE)--[orange_E]--||-->[purple_E]--(79:XDLINKAGE_GET_EWMA)
+Label and Enclave assignments to non-annotation nodes:
+ ASSIGN   : 1 Inst          [purple_E]::PURPLE
+ ASSIGN   : 2 Inst          [purple_E]::PURPLE
+ ASSIGN   : 3 Inst          [orange_E]::ORANGE
+ ASSIGN   : 4 Inst          [orange_E]::ORANGE
+ ASSIGN   : 5 Inst          [orange_E]::ORANGE
+ ASSIGN   : 6 Inst          [orange_E]::ORANGE
+ ASSIGN   : 7 Inst          [purple_E]::PURPLE
+ ASSIGN   : 8 Inst          [orange_E]::ORANGE
+ ASSIGN   : 9 Inst          [purple_E]::PURPLE
+ ASSIGN   : 10 Inst          [purple_E]::PURPLE_SHAREABLE
+ ASSIGN   : 11 Inst          [orange_E]::ORANGE
+ ASSIGN   : 12 Inst          [orange_E]::ORANGE
+ ASSIGN   : 13 Inst          [orange_E]::ORANGE
+ ASSIGN   : 14 Inst          [orange_E]::ORANGE
+ ASSIGN   : 15 Inst          [orange_E]::ORANGE
+ ASSIGN   : 16 Inst          [orange_E]::ORANGE
+ ASSIGN   : 17 Inst          [purple_E]::PURPLE
+ ASSIGN   : 18 Inst          [purple_E]::PURPLE
+ ASSIGN   : 19 Inst          [purple_E]::PURPLE
+ ASSIGN   : 20 Inst          [purple_E]::PURPLE
+ ASSIGN   : 21 Inst          [purple_E]::PURPLE
+ ASSIGN   : 22 Inst          [purple_E]::PURPLE
+ ASSIGN   : 23 Inst          [purple_E]::PURPLE
+ ASSIGN   : 24 Inst          [purple_E]::PURPLE
+ ASSIGN   : 25 Inst          [purple_E]::PURPLE
+ ASSIGN   : 26 Inst          [purple_E]::PURPLE
+ ASSIGN   : 27 Inst          [purple_E]::PURPLE
+ ASSIGN   : 28 Inst          [purple_E]::PURPLE
+ ASSIGN   : 29 Inst          [purple_E]::PURPLE
+ ASSIGN   : 30 Inst          [purple_E]::PURPLE
+ ASSIGN   : 31 Inst          [purple_E]::PURPLE
+ ASSIGN   : 32 Inst          [purple_E]::PURPLE
+ ASSIGN   : 33 Inst          [orange_E]::ORANGE
+ ASSIGN   : 34 Inst          [orange_E]::ORANGE
+ ASSIGN   : 35 Inst          [orange_E]::ORANGE
+ ASSIGN   : 36 Inst          [orange_E]::ORANGE
+ ASSIGN   : 37 Inst          [purple_E]::PURPLE
+ ASSIGN   : 38 Inst          [purple_E]::PURPLE
+ ASSIGN   : 39 Inst          [purple_E]::PURPLE
+ ASSIGN   : 40 Inst          [purple_E]::PURPLE
+ ASSIGN   : 41 Inst          [purple_E]::PURPLE
+ ASSIGN   : 42 Inst          [purple_E]::PURPLE
+ ASSIGN   : 43 Inst          [purple_E]::PURPLE
+ ASSIGN   : 44 Inst          [purple_E]::PURPLE
+ ASSIGN   : 45 Inst          [purple_E]::PURPLE
+ ASSIGN   : 46 Inst          [purple_E]::PURPLE_SHAREABLE
+ ASSIGN   : 47 Inst          [purple_E]::PURPLE_SHAREABLE
+ ASSIGN   : 48 Inst          [purple_E]::PURPLE_SHAREABLE
+ ASSIGN   : 49 Inst          [purple_E]::PURPLE
+ ASSIGN   : 50 Inst          [purple_E]::PURPLE
+ ASSIGN   : 51 Inst          [purple_E]::PURPLE
+ ASSIGN   : 52 Inst          [purple_E]::PURPLE
+ ASSIGN   : 53 Inst          [purple_E]::PURPLE
+ ASSIGN   : 54 Inst          [purple_E]::PURPLE
+ ASSIGN   : 55 Inst          [purple_E]::PURPLE
+ ASSIGN   : 56 Inst          [orange_E]::ORANGE
+ ASSIGN   : 57 Inst          [orange_E]::ORANGE
+ ASSIGN   : 58 Inst          [orange_E]::ORANGE
+ ASSIGN   : 59 Inst          [orange_E]::ORANGE
+ ASSIGN   : 60 Inst          [orange_E]::ORANGE
+ ASSIGN   : 61 Inst          [orange_E]::ORANGE
+ ASSIGN   : 62 Inst          [orange_E]::ORANGE
+ ASSIGN   : 63 Inst          [orange_E]::ORANGE
+ ASSIGN   : 64 Inst          [orange_E]::ORANGE
+ ASSIGN   : 65 Inst          [orange_E]::ORANGE
+ ASSIGN   : 66 Inst          [orange_E]::ORANGE
+ ASSIGN   : 67 Inst          [orange_E]::ORANGE
+ ASSIGN   : 68 Inst          [orange_E]::ORANGE
+ ASSIGN   : 69 Inst          [orange_E]::ORANGE
+ ASSIGN   : 70 Inst          [orange_E]::ORANGE
+ ASSIGN   : 71 Inst          [orange_E]::ORANGE
+ ASSIGN   : 72 Inst          [orange_E]::ORANGE
+ ASSIGN   : 73 VarNode       [purple_E]::PURPLE
+ ASSIGN   : 74 VarNode       [orange_E]::ORANGE
+ ASSIGN   : 75 VarNode       [purple_E]::PURPLE
+ ASSIGN   : 76 FunctionEntry [purple_E]::PURPLE
+ ASSIGN   : 77 FunctionEntry [orange_E]::ORANGE
+ ASSIGN   : 78 FunctionEntry [purple_E]::PURPLE
+ ASSIGN   : 79 FunctionEntry [purple_E]::XDLINKAGE_GET_EWMA
+ ASSIGN   : 80 FunctionEntry [orange_E]::ORANGE
+ ASSIGN   : 81 FunctionEntry [orange_E]::ORANGE
+ ASSIGN   : 82 Param         [purple_E]::PURPLE
+ ASSIGN   : 83 Param         [purple_E]::PURPLE
+ ASSIGN   : 84 Param         [purple_E]::PURPLE
+ ASSIGN   : 85 Param         [purple_E]::PURPLE
+ ASSIGN   : 86 Param         [purple_E]::PURPLE
+ ASSIGN   : 87 Param         [purple_E]::PURPLE
+ ASSIGN   : 88 Param         [purple_E]::PURPLE
+ ASSIGN   : 89 Param         [purple_E]::PURPLE
+ ASSIGN   : 90 Param         [purple_E]::PURPLE
+ ASSIGN   : 91 Param         [purple_E]::PURPLE
+ ASSIGN   : 92 Param         [purple_E]::PURPLE
+ ASSIGN   : 93 Param         [purple_E]::PURPLE_SHAREABLE
+ ASSIGN   : 94 Annotation    [nullEnclave]::nullCleLabel
+ ASSIGN   : 95 Annotation    [nullEnclave]::nullCleLabel
+ ASSIGN   : 96 Annotation    [nullEnclave]::nullCleLabel
+ ASSIGN   : 97 Annotation    [nullEnclave]::nullCleLabel
+ ASSIGN   : 98 Annotation    [nullEnclave]::nullCleLabel
+----------
+==========
+
+real	0m0.264s
+user	0m0.216s
+sys	0m0.054s

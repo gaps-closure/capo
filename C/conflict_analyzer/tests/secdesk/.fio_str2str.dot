@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_str2str' function" {
+	label="CFG for 'fio_str2str' function";
+
+	Node0x55685202db40 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  store i64 %1, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  %4 = load i64, i64* %3, align 8, !dbg !2804\l  call void @fiobj_str_get_cstr(%struct.fio_str_info_s* sret %0, i64 %4), !dbg\l... !2805\l  ret void, !dbg !2806\l}"];
+}

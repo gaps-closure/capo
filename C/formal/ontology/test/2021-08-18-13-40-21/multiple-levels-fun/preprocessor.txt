@@ -1,0 +1,20 @@
+Options selected:
+  file: multiple-levels-fun.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 4, [], 'ORANGE', {'level': 'orange'}]
+['clebegin', 7, [], 'PURPLE']
+['cleend', 9, [], 'PURPLE']
+['clebegin', 11, [], 'ORANGE']
+['cleend', 13, [], 'ORANGE']
+Writing transformed file and cle mappings file
+
+real	0m0.227s
+user	0m0.184s
+sys	0m0.044s

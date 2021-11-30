@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_defer_on_fork' function" {
+	label="CFG for 'fio_defer_on_fork' function";
+
+	Node0x5568516a3340 [shape=record,label="{%0:\l  store volatile i8 0, i8* getelementptr inbounds (%struct.fio_task_queue_s,\l... %struct.fio_task_queue_s* @task_queue_normal, i32 0, i32 0), align 8, !dbg\l... !2802\l  store volatile i8 0, i8* getelementptr inbounds (%struct.fio_task_queue_s,\l... %struct.fio_task_queue_s* @task_queue_urgent, i32 0, i32 0), align 8, !dbg\l... !2803\l  ret void, !dbg !2804\l}"];
+}

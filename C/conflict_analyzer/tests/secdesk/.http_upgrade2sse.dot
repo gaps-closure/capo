@@ -1,0 +1,26 @@
+digraph "CFG for 'http_upgrade2sse' function" {
+	label="CFG for 'http_upgrade2sse' function";
+
+	Node0x5568523b2f40 [shape=record,label="{%2:\l  %3 = alloca i32, align 4\l  %4 = alloca %struct.http_s*, align 8\l  store %struct.http_s* %0, %struct.http_s** %4, align 8\l  call void @llvm.dbg.declare(metadata %struct.http_s** %4, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  call void @llvm.dbg.declare(metadata %struct.http_sse_s* %1, metadata !2806,\l... metadata !DIExpression()), !dbg !2807\l  %5 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2808\l  %6 = icmp ne %struct.http_s* %5, null, !dbg !2808\l  br i1 %6, label %7, label %22, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x5568523b2f40:s0 -> Node0x5568523b2f90;
+	Node0x5568523b2f40:s1 -> Node0x5568523b3080;
+	Node0x5568523b2f90 [shape=record,label="{%7:\l7:                                                \l  %8 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2808\l  %9 = getelementptr inbounds %struct.http_s, %struct.http_s* %8, i32 0, i32\l... 2, !dbg !2808\l  %10 = load i64, i64* %9, align 8, !dbg !2808\l  %11 = icmp ne i64 %10, 0, !dbg !2808\l  br i1 %11, label %30, label %12, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x5568523b2f90:s0 -> Node0x5568523b3170;
+	Node0x5568523b2f90:s1 -> Node0x5568523b2fe0;
+	Node0x5568523b2fe0 [shape=record,label="{%12:\l12:                                               \l  %13 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2808\l  %14 = getelementptr inbounds %struct.http_s, %struct.http_s* %13, i32 0, i32\l... 3, !dbg !2808\l  %15 = load i64, i64* %14, align 8, !dbg !2808\l  %16 = icmp ne i64 %15, 0, !dbg !2808\l  br i1 %16, label %30, label %17, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x5568523b2fe0:s0 -> Node0x5568523b3170;
+	Node0x5568523b2fe0:s1 -> Node0x5568523b3030;
+	Node0x5568523b3030 [shape=record,label="{%17:\l17:                                               \l  %18 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2808\l  %19 = getelementptr inbounds %struct.http_s, %struct.http_s* %18, i32 0, i32\l... 5, !dbg !2808\l  %20 = load i64, i64* %19, align 8, !dbg !2808\l  %21 = icmp ne i64 %20, 0, !dbg !2808\l  br i1 %21, label %22, label %30, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x5568523b3030:s0 -> Node0x5568523b3080;
+	Node0x5568523b3030:s1 -> Node0x5568523b3170;
+	Node0x5568523b3080 [shape=record,label="{%22:\l22:                                               \l  %23 = getelementptr inbounds %struct.http_sse_s, %struct.http_sse_s* %1, i32\l... 0, i32 3, !dbg !2811\l  %24 = load void (%struct.http_sse_s*)*, void (%struct.http_sse_s*)** %23,\l... align 8, !dbg !2811\l  %25 = icmp ne void (%struct.http_sse_s*)* %24, null, !dbg !2814\l  br i1 %25, label %26, label %29, !dbg !2815\l|{<s0>T|<s1>F}}"];
+	Node0x5568523b3080:s0 -> Node0x5568523b30d0;
+	Node0x5568523b3080:s1 -> Node0x5568523b3120;
+	Node0x5568523b30d0 [shape=record,label="{%26:\l26:                                               \l  %27 = getelementptr inbounds %struct.http_sse_s, %struct.http_sse_s* %1, i32\l... 0, i32 3, !dbg !2816\l  %28 = load void (%struct.http_sse_s*)*, void (%struct.http_sse_s*)** %27,\l... align 8, !dbg !2816\l  call void %28(%struct.http_sse_s* %1), !dbg !2817\l  br label %29, !dbg !2817\l}"];
+	Node0x5568523b30d0 -> Node0x5568523b3120;
+	Node0x5568523b3120 [shape=record,label="{%29:\l29:                                               \l  store i32 -1, i32* %3, align 4, !dbg !2818\l  br label %40, !dbg !2818\l}"];
+	Node0x5568523b3120 -> Node0x5568523b31c0;
+	Node0x5568523b3170 [shape=record,label="{%30:\l30:                                               \l  %31 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2819\l  %32 = getelementptr inbounds %struct.http_s, %struct.http_s* %31, i32 0, i32\l... 0, !dbg !2820\l  %33 = getelementptr inbounds %struct.anon.87, %struct.anon.87* %32, i32 0,\l... i32 0, !dbg !2821\l  %34 = load i8*, i8** %33, align 8, !dbg !2821\l  %35 = bitcast i8* %34 to %struct.http_vtable_s*, !dbg !2822\l  %36 = getelementptr inbounds %struct.http_vtable_s, %struct.http_vtable_s*\l... %35, i32 0, i32 10, !dbg !2823\l  %37 = load i32 (%struct.http_s*, %struct.http_sse_s*)*, i32\l... (%struct.http_s*, %struct.http_sse_s*)** %36, align 8, !dbg !2823\l  %38 = load %struct.http_s*, %struct.http_s** %4, align 8, !dbg !2824\l  %39 = call i32 %37(%struct.http_s* %38, %struct.http_sse_s* %1), !dbg !2825\l  store i32 %39, i32* %3, align 4, !dbg !2826\l  br label %40, !dbg !2826\l}"];
+	Node0x5568523b3170 -> Node0x5568523b31c0;
+	Node0x5568523b31c0 [shape=record,label="{%40:\l40:                                               \l  %41 = load i32, i32* %3, align 4, !dbg !2827\l  ret i32 %41, !dbg !2827\l}"];
+}

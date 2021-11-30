@@ -1,0 +1,10 @@
+digraph "CFG for 'fio_is_master' function" {
+	label="CFG for 'fio_is_master' function";
+
+	Node0x55685169a8e0 [shape=record,label="{%0:\l  %1 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2804\l  %2 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %1, i32\l... 0, i32 8, !dbg !2805\l  %3 = load i8, i8* %2, align 2, !dbg !2805\l  %4 = zext i8 %3 to i32, !dbg !2804\l  %5 = icmp eq i32 %4, 0, !dbg !2806\l  br i1 %5, label %12, label %6, !dbg !2807\l|{<s0>T|<s1>F}}"];
+	Node0x55685169a8e0:s0 -> Node0x55685169c1a0;
+	Node0x55685169a8e0:s1 -> Node0x55685169c150;
+	Node0x55685169c150 [shape=record,label="{%6:\l6:                                                \l  %7 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2808\l  %8 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %7, i32\l... 0, i32 4, !dbg !2809\l  %9 = load i16, i16* %8, align 8, !dbg !2809\l  %10 = zext i16 %9 to i32, !dbg !2808\l  %11 = icmp eq i32 %10, 1, !dbg !2810\l  br label %12, !dbg !2807\l}"];
+	Node0x55685169c150 -> Node0x55685169c1a0;
+	Node0x55685169c1a0 [shape=record,label="{%12:\l12:                                               \l  %13 = phi i1 [ true, %0 ], [ %11, %6 ]\l  %14 = zext i1 %13 to i32, !dbg !2807\l  ret i32 %14, !dbg !2811\l}"];
+}

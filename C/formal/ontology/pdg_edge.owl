@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xml:base="pdg_edge"
+         xmlns="pdg_edge#">
+
+<owl:Ontology rdf:about="pdg_edge"/>
+
+<owl:Class rdf:about="#PDGEdge">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ControlDep">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ControlDep_CallInv">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ControlDep_CallRet">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ControlDep_Entry">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ControlDep_Br">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ControlDep_Other">
+  <rdfs:subClassOf rdf:resource="#ControlDep"/>
+</owl:Class>
+
+<owl:Class rdf:about="#DataDepEdge">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#DataDepEdge_DefUse">
+  <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#DataDepEdge_RAW">
+  <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#DataDepEdge_Ret">
+  <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#DataDepEdge_Alias">
+  <rdfs:subClassOf rdf:resource="#DataDepEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter_In">
+  <rdfs:subClassOf rdf:resource="#Parameter"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter_Out">
+  <rdfs:subClassOf rdf:resource="#Parameter"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Parameter_Field">
+  <rdfs:subClassOf rdf:resource="#Parameter"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno">
+  <rdfs:subClassOf rdf:resource="#PDGEdge"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno_Global">
+  <rdfs:subClassOf rdf:resource="#Anno"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno_Var">
+  <rdfs:subClassOf rdf:resource="#Anno"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Anno_Other">
+  <rdfs:subClassOf rdf:resource="#Anno"/>
+</owl:Class>
+
+
+</rdf:RDF>

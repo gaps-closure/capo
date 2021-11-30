@@ -1,0 +1,14 @@
+digraph "CFG for 'fio_tls_alpn_add' function" {
+	label="CFG for 'fio_tls_alpn_add' function";
+
+	Node0x556852171880 [shape=record,label="{%5:\l  %6 = alloca %struct.fio_tls_s*, align 8\l  %7 = alloca i8*, align 8\l  %8 = alloca void (i64, i8*, i8*)*, align 8\l  %9 = alloca i8*, align 8\l  %10 = alloca void (i8*)*, align 8\l  store %struct.fio_tls_s* %0, %struct.fio_tls_s** %6, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_tls_s** %6, metadata !2883,\l... metadata !DIExpression()), !dbg !2884\l  store i8* %1, i8** %7, align 8\l  call void @llvm.dbg.declare(metadata i8** %7, metadata !2885, metadata\l... !DIExpression()), !dbg !2886\l  store void (i64, i8*, i8*)* %2, void (i64, i8*, i8*)** %8, align 8\l  call void @llvm.dbg.declare(metadata void (i64, i8*, i8*)** %8, metadata\l... !2887, metadata !DIExpression()), !dbg !2888\l  store i8* %3, i8** %9, align 8\l  call void @llvm.dbg.declare(metadata i8** %9, metadata !2889, metadata\l... !DIExpression()), !dbg !2890\l  store void (i8*)* %4, void (i8*)** %10, align 8\l  call void @llvm.dbg.declare(metadata void (i8*)** %10, metadata !2891,\l... metadata !DIExpression()), !dbg !2892\l  br label %11, !dbg !2893\l}"];
+	Node0x556852171880 -> Node0x556852173770;
+	Node0x556852173770 [shape=record,label="{%11:\l11:                                               \l  %12 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2894\l  %13 = icmp sle i32 1, %12, !dbg !2894\l  br i1 %13, label %14, label %15, !dbg !2897\l|{<s0>T|<s1>F}}"];
+	Node0x556852173770:s0 -> Node0x5568521737c0;
+	Node0x556852173770:s1 -> Node0x556852173810;
+	Node0x5568521737c0 [shape=record,label="{%14:\l14:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([47 x i8],\l... [47 x i8]* @.str.2.288, i64 0, i64 0)), !dbg !2898\l  br label %15, !dbg !2898\l}"];
+	Node0x5568521737c0 -> Node0x556852173810;
+	Node0x556852173810 [shape=record,label="{%15:\l15:                                               \l  br label %16, !dbg !2897\l}"];
+	Node0x556852173810 -> Node0x556852173860;
+	Node0x556852173860 [shape=record,label="{%16:\l16:                                               \l  call void @exit(i32 -1) #10, !dbg !2893\l  unreachable, !dbg !2893\l}"];
+}

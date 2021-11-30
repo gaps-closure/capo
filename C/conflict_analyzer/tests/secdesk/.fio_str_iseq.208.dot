@@ -1,0 +1,25 @@
+digraph "CFG for 'fio_str_iseq.208' function" {
+	label="CFG for 'fio_str_iseq.208' function";
+
+	Node0x5568516beab0 [shape=record,label="{%2:\l  %3 = alloca i32, align 4\l  %4 = alloca %struct.fio_str_s.63*, align 8\l  %5 = alloca %struct.fio_str_s.63*, align 8\l  %6 = alloca %struct.fio_str_info_s, align 8\l  %7 = alloca %struct.fio_str_info_s, align 8\l  store %struct.fio_str_s.63* %0, %struct.fio_str_s.63** %4, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_str_s.63** %4, metadata\l... !2806, metadata !DIExpression()), !dbg !2807\l  store %struct.fio_str_s.63* %1, %struct.fio_str_s.63** %5, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_str_s.63** %5, metadata\l... !2808, metadata !DIExpression()), !dbg !2809\l  %8 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %4, align 8, !dbg\l... !2810\l  %9 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %5, align 8, !dbg\l... !2812\l  %10 = icmp eq %struct.fio_str_s.63* %8, %9, !dbg !2813\l  br i1 %10, label %11, label %12, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x5568516beab0:s0 -> Node0x5568516beb00;
+	Node0x5568516beab0:s1 -> Node0x5568516beb50;
+	Node0x5568516beb00 [shape=record,label="{%11:\l11:                                               \l  store i32 1, i32* %3, align 4, !dbg !2815\l  br label %40, !dbg !2815\l}"];
+	Node0x5568516beb00 -> Node0x5568516bed30;
+	Node0x5568516beb50 [shape=record,label="{%12:\l12:                                               \l  %13 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %4, align 8, !dbg\l... !2816\l  %14 = icmp ne %struct.fio_str_s.63* %13, null, !dbg !2816\l  br i1 %14, label %15, label %18, !dbg !2818\l|{<s0>T|<s1>F}}"];
+	Node0x5568516beb50:s0 -> Node0x5568516beba0;
+	Node0x5568516beb50:s1 -> Node0x5568516bebf0;
+	Node0x5568516beba0 [shape=record,label="{%15:\l15:                                               \l  %16 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %5, align 8, !dbg\l... !2819\l  %17 = icmp ne %struct.fio_str_s.63* %16, null, !dbg !2819\l  br i1 %17, label %19, label %18, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x5568516beba0:s0 -> Node0x5568516bec40;
+	Node0x5568516beba0:s1 -> Node0x5568516bebf0;
+	Node0x5568516bebf0 [shape=record,label="{%18:\l18:                                               \l  store i32 0, i32* %3, align 4, !dbg !2821\l  br label %40, !dbg !2821\l}"];
+	Node0x5568516bebf0 -> Node0x5568516bed30;
+	Node0x5568516bec40 [shape=record,label="{%19:\l19:                                               \l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %6, metadata\l... !2822, metadata !DIExpression()), !dbg !2823\l  %20 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %4, align 8, !dbg\l... !2824\l  call void @fio_str_info.207(%struct.fio_str_info_s* sret %6,\l... %struct.fio_str_s.63* %20), !dbg !2825\l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %7, metadata\l... !2826, metadata !DIExpression()), !dbg !2827\l  %21 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %5, align 8, !dbg\l... !2828\l  call void @fio_str_info.207(%struct.fio_str_info_s* sret %7,\l... %struct.fio_str_s.63* %21), !dbg !2829\l  %22 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %6, i32 0, i32 1, !dbg !2830\l  %23 = load i64, i64* %22, align 8, !dbg !2830\l  %24 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %7, i32 0, i32 1, !dbg !2831\l  %25 = load i64, i64* %24, align 8, !dbg !2831\l  %26 = icmp eq i64 %23, %25, !dbg !2832\l  br i1 %26, label %27, label %37, !dbg !2833\l|{<s0>T|<s1>F}}"];
+	Node0x5568516bec40:s0 -> Node0x5568516bec90;
+	Node0x5568516bec40:s1 -> Node0x5568516bece0;
+	Node0x5568516bec90 [shape=record,label="{%27:\l27:                                               \l  %28 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %6, i32 0, i32 2, !dbg !2834\l  %29 = load i8*, i8** %28, align 8, !dbg !2834\l  %30 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %7, i32 0, i32 2, !dbg !2835\l  %31 = load i8*, i8** %30, align 8, !dbg !2835\l  %32 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %6, i32 0, i32 1, !dbg !2836\l  %33 = load i64, i64* %32, align 8, !dbg !2836\l  %34 = call i32 @memcmp(i8* %29, i8* %31, i64 %33) #10, !dbg !2837\l  %35 = icmp ne i32 %34, 0, !dbg !2838\l  %36 = xor i1 %35, true, !dbg !2838\l  br label %37\l}"];
+	Node0x5568516bec90 -> Node0x5568516bece0;
+	Node0x5568516bece0 [shape=record,label="{%37:\l37:                                               \l  %38 = phi i1 [ false, %19 ], [ %36, %27 ], !dbg !2839\l  %39 = zext i1 %38 to i32, !dbg !2833\l  store i32 %39, i32* %3, align 4, !dbg !2840\l  br label %40, !dbg !2840\l}"];
+	Node0x5568516bece0 -> Node0x5568516bed30;
+	Node0x5568516bed30 [shape=record,label="{%40:\l40:                                               \l  %41 = load i32, i32* %3, align 4, !dbg !2841\l  ret i32 %41, !dbg !2841\l}"];
+}

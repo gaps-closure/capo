@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_ls_embd_shift' function" {
+	label="CFG for 'fio_ls_embd_shift' function";
+
+	Node0x5568513e6780 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_ls_embd_s*, align 8\l  store %struct.fio_ls_embd_s* %0, %struct.fio_ls_embd_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_ls_embd_s** %2, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  %3 = load %struct.fio_ls_embd_s*, %struct.fio_ls_embd_s** %2, align 8, !dbg\l... !2807\l  %4 = getelementptr inbounds %struct.fio_ls_embd_s, %struct.fio_ls_embd_s*\l... %3, i32 0, i32 1, !dbg !2808\l  %5 = load %struct.fio_ls_embd_s*, %struct.fio_ls_embd_s** %4, align 8, !dbg\l... !2808\l  %6 = call %struct.fio_ls_embd_s* @fio_ls_embd_remove(%struct.fio_ls_embd_s*\l... %5), !dbg !2809\l  ret %struct.fio_ls_embd_s* %6, !dbg !2810\l}"];
+}

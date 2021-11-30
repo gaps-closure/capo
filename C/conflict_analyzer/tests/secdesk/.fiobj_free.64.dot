@@ -1,0 +1,31 @@
+digraph "CFG for 'fiobj_free.64' function" {
+	label="CFG for 'fiobj_free.64' function";
+
+	Node0x556851eb32e0 [shape=record,label="{%1:\l  %2 = alloca i64, align 8\l  %3 = alloca i32, align 4\l  %4 = alloca i32, align 4\l  store i64 %0, i64* %2, align 8\l  call void @llvm.dbg.declare(metadata i64* %2, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %5 = load i64, i64* %2, align 8, !dbg !2806\l  %6 = icmp ne i64 %5, 0, !dbg !2806\l  br i1 %6, label %7, label %15, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x556851eb32e0:s0 -> Node0x556851eb5140;
+	Node0x556851eb32e0:s1 -> Node0x556851eb51e0;
+	Node0x556851eb5140 [shape=record,label="{%7:\l7:                                                \l  %8 = load i64, i64* %2, align 8, !dbg !2806\l  %9 = and i64 %8, 1, !dbg !2806\l  %10 = icmp eq i64 %9, 0, !dbg !2806\l  br i1 %10, label %11, label %15, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x556851eb5140:s0 -> Node0x556851eb5190;
+	Node0x556851eb5140:s1 -> Node0x556851eb51e0;
+	Node0x556851eb5190 [shape=record,label="{%11:\l11:                                               \l  %12 = load i64, i64* %2, align 8, !dbg !2806\l  %13 = and i64 %12, 6, !dbg !2806\l  %14 = icmp ne i64 %13, 6, !dbg !2806\l  br i1 %14, label %16, label %15, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x556851eb5190:s0 -> Node0x556851eb5230;
+	Node0x556851eb5190:s1 -> Node0x556851eb51e0;
+	Node0x556851eb51e0 [shape=record,label="{%15:\l15:                                               \l  br label %50, !dbg !2809\l}"];
+	Node0x556851eb51e0 -> Node0x556851eb5410;
+	Node0x556851eb5230 [shape=record,label="{%16:\l16:                                               \l  %17 = load i64, i64* %2, align 8, !dbg !2810\l  %18 = and i64 %17, -8, !dbg !2810\l  %19 = inttoptr i64 %18 to i8*, !dbg !2810\l  %20 = bitcast i8* %19 to %struct.fiobj_object_header_s*, !dbg !2810\l  %21 = getelementptr inbounds %struct.fiobj_object_header_s,\l... %struct.fiobj_object_header_s* %20, i32 0, i32 1, !dbg !2810\l  store i32 1, i32* %3, align 4, !dbg !2810\l  %22 = load i32, i32* %3, align 4, !dbg !2810\l  %23 = atomicrmw sub i32* %21, i32 %22 seq_cst, !dbg !2810\l  %24 = sub i32 %23, %22, !dbg !2810\l  store i32 %24, i32* %4, align 4, !dbg !2810\l  %25 = load i32, i32* %4, align 4, !dbg !2810\l  %26 = icmp ne i32 %25, 0, !dbg !2810\l  br i1 %26, label %27, label %28, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x556851eb5230:s0 -> Node0x556851eb5280;
+	Node0x556851eb5230:s1 -> Node0x556851eb52d0;
+	Node0x556851eb5280 [shape=record,label="{%27:\l27:                                               \l  br label %50, !dbg !2813\l}"];
+	Node0x556851eb5280 -> Node0x556851eb5410;
+	Node0x556851eb52d0 [shape=record,label="{%28:\l28:                                               \l  %29 = load i64, i64* %2, align 8, !dbg !2814\l  %30 = call %struct.fiobj_object_vtable_s* @fiobj_type_vtable.65(i64 %29),\l... !dbg !2814\l  %31 = getelementptr inbounds %struct.fiobj_object_vtable_s,\l... %struct.fiobj_object_vtable_s* %30, i32 0, i32 5, !dbg !2816\l  %32 = load i64 (i64, i64, i32 (i64, i8*)*, i8*)*, i64 (i64, i64, i32 (i64,\l... i8*)*, i8*)** %31, align 8, !dbg !2816\l  %33 = icmp ne i64 (i64, i64, i32 (i64, i8*)*, i8*)* %32, null, !dbg !2814\l  br i1 %33, label %34, label %44, !dbg !2817\l|{<s0>T|<s1>F}}"];
+	Node0x556851eb52d0:s0 -> Node0x556851eb5320;
+	Node0x556851eb52d0:s1 -> Node0x556851eb53c0;
+	Node0x556851eb5320 [shape=record,label="{%34:\l34:                                               \l  %35 = load i64, i64* %2, align 8, !dbg !2818\l  %36 = call %struct.fiobj_object_vtable_s* @fiobj_type_vtable.65(i64 %35),\l... !dbg !2818\l  %37 = getelementptr inbounds %struct.fiobj_object_vtable_s,\l... %struct.fiobj_object_vtable_s* %36, i32 0, i32 2, !dbg !2819\l  %38 = load i64 (i64)*, i64 (i64)** %37, align 8, !dbg !2819\l  %39 = load i64, i64* %2, align 8, !dbg !2820\l  %40 = call i64 %38(i64 %39), !dbg !2818\l  %41 = icmp ne i64 %40, 0, !dbg !2818\l  br i1 %41, label %42, label %44, !dbg !2821\l|{<s0>T|<s1>F}}"];
+	Node0x556851eb5320:s0 -> Node0x556851eb5370;
+	Node0x556851eb5320:s1 -> Node0x556851eb53c0;
+	Node0x556851eb5370 [shape=record,label="{%42:\l42:                                               \l  %43 = load i64, i64* %2, align 8, !dbg !2822\l  call void @fiobj_free_complex_object(i64 %43), !dbg !2823\l  br label %50, !dbg !2823\l}"];
+	Node0x556851eb5370 -> Node0x556851eb5410;
+	Node0x556851eb53c0 [shape=record,label="{%44:\l44:                                               \l  %45 = load i64, i64* %2, align 8, !dbg !2824\l  %46 = call %struct.fiobj_object_vtable_s* @fiobj_type_vtable.65(i64 %45),\l... !dbg !2824\l  %47 = getelementptr inbounds %struct.fiobj_object_vtable_s,\l... %struct.fiobj_object_vtable_s* %46, i32 0, i32 1, !dbg !2825\l  %48 = load void (i64, void (i64, i8*)*, i8*)*, void (i64, void (i64, i8*)*,\l... i8*)** %47, align 8, !dbg !2825\l  %49 = load i64, i64* %2, align 8, !dbg !2826\l  call void %48(i64 %49, void (i64, i8*)* null, i8* null), !dbg !2824\l  br label %50\l}"];
+	Node0x556851eb53c0 -> Node0x556851eb5410;
+	Node0x556851eb5410 [shape=record,label="{%50:\l50:                                               \l  ret void, !dbg !2827\l}"];
+}

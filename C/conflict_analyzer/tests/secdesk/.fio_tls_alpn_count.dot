@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_tls_alpn_count' function" {
+	label="CFG for 'fio_tls_alpn_count' function";
+
+	Node0x556851553e70 [shape=record,label="{%1:\l  %2 = alloca i8*, align 8\l  store i8* %0, i8** %2, align 8\l  call void @llvm.dbg.declare(metadata i8** %2, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  ret i64 0, !dbg !2806\l}"];
+}

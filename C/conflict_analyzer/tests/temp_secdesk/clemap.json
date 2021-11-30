@@ -1,0 +1,107 @@
+[
+  {
+    "cle-label": "ORANGE",
+    "cle-json": {
+      "level": "orange"
+    }
+  },
+  {
+    "cle-label": "EMBEDDING_SHAREABLE",
+    "cle-json": {
+      "level": "orange",
+      "cdf": [
+        {
+          "remotelevel": "purple",
+          "direction": "egress",
+          "guarddirective": {
+            "operation": "allow"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "PURPLE",
+    "cle-json": {
+      "level": "purple"
+    }
+  },
+  {
+    "cle-label": "XDLINKAGE_RECOGNIZE",
+    "cle-json": {
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [
+            [
+              "TAG_REQUEST_RECOGNIZE"
+            ]
+          ],
+          "codtaints": [
+            "PURPLE"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_RECOGNIZE"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "XDLINKAGE_START_RECOGNIZER",
+    "cle-json": {
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [
+            [
+              "TAG_REQUEST_START_RECOGNIZER"
+            ]
+          ],
+          "codtaints": [
+            "PURPLE"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_START_RECOGNIZER"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "XDLINKAGE_STOP_RECOGNIZER",
+    "cle-json": {
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [
+            [
+              "TAG_REQUEST_STOP_RECOGNIZER"
+            ]
+          ],
+          "codtaints": [
+            "PURPLE"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_STOP_RECOGNIZER"
+          ]
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,56 @@
+
+# ===============  cle class decelerations  =============== 
+Symbol          : Thing 
+Level           : Symbol 
+Enclave         : Symbol 
+Label           : Symbol 
+ 
+
+CLE_entry	    : Thing 
+CrossDomainFlow : Thing  
+GuardDirective	: Thing 
+FuncTaints	    : Thing 
+RetTaint        : Label 
+BodyTaint       : Label 
+ArgTaint        : Label 
+GapsTag	        : Thing 
+GuardOperation  : Symbol 
+Allow           : GuardOperation 
+Deny            : GuardOperation 
+Redact          : GuardOperation 
+
+hasLevel        : CLE_entry         >> Level 
+
+hasCDF          : CLE_entry         >> CrossDomainFlow  
+
+hasRemoteLevel  : CrossDomainFlow   >> Level 
+
+hasDirective    : CrossDomainFlow   >> GuardDirective 
+
+hasFunctTaints  : CrossDomainFlow   >> FuncTaints	 
+
+hasTaints	    : RetTaint          >> CLE_entry 
+
+hasTaints	    : BodyTaint         >> CLE_entry 
+
+hasTaints	    : ArgTaint          >> CLE_entry 
+
+hasArgTaintIdx	: ArgTaint          >> int 
+
+hasRetTaint     : FuncTaints        >> RetTaint 
+
+hasBodyTaint    : FuncTaints        >> BodyTaint 
+
+hasArgTaint     : FuncTaints        >> ArgTaint 
+
+hasOperation	: GuardDirective    >> GuardOperation 
+
+hasOneway	    : GuardDirective    >> bool 
+
+hasGapsTag	    : GuardDirective    >> GapsTag 
+
+hasOpArgs       : Redact            >> Symbol 
+
+
+
+ 

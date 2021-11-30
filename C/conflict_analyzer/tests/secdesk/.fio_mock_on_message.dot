@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_mock_on_message' function" {
+	label="CFG for 'fio_mock_on_message' function";
+
+	Node0x5568515ec290 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_msg_s*, align 8\l  store %struct.fio_msg_s* %0, %struct.fio_msg_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_s** %2, metadata !2802,\l... metadata !DIExpression()), !dbg !2803\l  %3 = load %struct.fio_msg_s*, %struct.fio_msg_s** %2, align 8, !dbg !2804\l  ret void, !dbg !2805\l}"];
+}

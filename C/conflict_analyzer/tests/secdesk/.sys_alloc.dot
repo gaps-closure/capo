@@ -1,0 +1,34 @@
+digraph "CFG for 'sys_alloc' function" {
+	label="CFG for 'sys_alloc' function";
+
+	Node0x55685140d150 [shape=record,label="{%2:\l  %3 = alloca i8*, align 8\l  %4 = alloca i64, align 8\l  %5 = alloca i8, align 1\l  %6 = alloca i8*, align 8\l  %7 = alloca i64, align 8\l  store i64 %0, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2801, metadata\l... !DIExpression()), !dbg !2802\l  store i8 %1, i8* %5, align 1\l  call void @llvm.dbg.declare(metadata i8* %5, metadata !2803, metadata\l... !DIExpression()), !dbg !2804\l  call void @llvm.dbg.declare(metadata i8** %6, metadata !2805, metadata\l... !DIExpression()), !dbg !2806\l  %8 = load i8*, i8** @sys_alloc.next_alloc, align 8, !dbg !2807\l  %9 = load i64, i64* %4, align 8, !dbg !2808\l  %10 = call i8* @mmap(i8* %8, i64 %9, i32 3, i32 34, i32 -1, i64 0) #9, !dbg\l... !2809\l  store i8* %10, i8** %6, align 8, !dbg !2810\l  %11 = load i8*, i8** %6, align 8, !dbg !2811\l  %12 = icmp eq i8* %11, inttoptr (i64 -1 to i8*), !dbg !2813\l  br i1 %12, label %13, label %14, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x55685140d150:s0 -> Node0x55685140e640;
+	Node0x55685140d150:s1 -> Node0x55685140e690;
+	Node0x55685140e640 [shape=record,label="{%13:\l13:                                               \l  store i8* null, i8** %3, align 8, !dbg !2815\l  br label %73, !dbg !2815\l}"];
+	Node0x55685140e640 -> Node0x55685140e9b0;
+	Node0x55685140e690 [shape=record,label="{%14:\l14:                                               \l  %15 = load i8*, i8** %6, align 8, !dbg !2816\l  %16 = ptrtoint i8* %15 to i64, !dbg !2818\l  %17 = and i64 %16, 32767, !dbg !2819\l  %18 = icmp ne i64 %17, 0, !dbg !2819\l  br i1 %18, label %19, label %54, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x55685140e690:s0 -> Node0x55685140e6e0;
+	Node0x55685140e690:s1 -> Node0x55685140e870;
+	Node0x55685140e6e0 [shape=record,label="{%19:\l19:                                               \l  %20 = load i8*, i8** %6, align 8, !dbg !2821\l  %21 = load i64, i64* %4, align 8, !dbg !2823\l  %22 = call i32 @munmap(i8* %20, i64 %21) #9, !dbg !2824\l  %23 = load i64, i64* %4, align 8, !dbg !2825\l  %24 = add i64 %23, 32768, !dbg !2826\l  %25 = call i8* @mmap(i8* null, i64 %24, i32 3, i32 34, i32 -1, i64 0) #9,\l... !dbg !2827\l  store i8* %25, i8** %6, align 8, !dbg !2828\l  %26 = load i8*, i8** %6, align 8, !dbg !2829\l  %27 = icmp eq i8* %26, inttoptr (i64 -1 to i8*), !dbg !2831\l  br i1 %27, label %28, label %29, !dbg !2832\l|{<s0>T|<s1>F}}"];
+	Node0x55685140e6e0:s0 -> Node0x55685140e730;
+	Node0x55685140e6e0:s1 -> Node0x55685140e780;
+	Node0x55685140e730 [shape=record,label="{%28:\l28:                                               \l  store i8* null, i8** %3, align 8, !dbg !2833\l  br label %73, !dbg !2833\l}"];
+	Node0x55685140e730 -> Node0x55685140e9b0;
+	Node0x55685140e780 [shape=record,label="{%29:\l29:                                               \l  call void @llvm.dbg.declare(metadata i64* %7, metadata !2835, metadata\l... !DIExpression()), !dbg !2837\l  %30 = load i8*, i8** %6, align 8, !dbg !2838\l  %31 = ptrtoint i8* %30 to i64, !dbg !2839\l  %32 = and i64 %31, 32767, !dbg !2840\l  %33 = sub i64 32768, %32, !dbg !2841\l  store i64 %33, i64* %7, align 8, !dbg !2837\l  %34 = load i64, i64* %7, align 8, !dbg !2842\l  %35 = icmp ne i64 %34, 0, !dbg !2842\l  br i1 %35, label %36, label %45, !dbg !2844\l|{<s0>T|<s1>F}}"];
+	Node0x55685140e780:s0 -> Node0x55685140e7d0;
+	Node0x55685140e780:s1 -> Node0x55685140e820;
+	Node0x55685140e7d0 [shape=record,label="{%36:\l36:                                               \l  %37 = load i8*, i8** %6, align 8, !dbg !2845\l  %38 = load i64, i64* %7, align 8, !dbg !2847\l  %39 = call i32 @munmap(i8* %37, i64 %38) #9, !dbg !2848\l  %40 = load i8*, i8** %6, align 8, !dbg !2849\l  %41 = ptrtoint i8* %40 to i64, !dbg !2850\l  %42 = load i64, i64* %7, align 8, !dbg !2851\l  %43 = add i64 %41, %42, !dbg !2852\l  %44 = inttoptr i64 %43 to i8*, !dbg !2853\l  store i8* %44, i8** %6, align 8, !dbg !2854\l  br label %45, !dbg !2855\l}"];
+	Node0x55685140e7d0 -> Node0x55685140e820;
+	Node0x55685140e820 [shape=record,label="{%45:\l45:                                               \l  %46 = load i8*, i8** %6, align 8, !dbg !2856\l  %47 = ptrtoint i8* %46 to i64, !dbg !2857\l  %48 = load i64, i64* %4, align 8, !dbg !2858\l  %49 = add i64 %47, %48, !dbg !2859\l  %50 = inttoptr i64 %49 to i8*, !dbg !2860\l  %51 = load i64, i64* %7, align 8, !dbg !2861\l  %52 = sub i64 32768, %51, !dbg !2862\l  %53 = call i32 @munmap(i8* %50, i64 %52) #9, !dbg !2863\l  br label %54, !dbg !2864\l}"];
+	Node0x55685140e820 -> Node0x55685140e870;
+	Node0x55685140e870 [shape=record,label="{%54:\l54:                                               \l  %55 = load i8, i8* %5, align 1, !dbg !2865\l  %56 = zext i8 %55 to i32, !dbg !2865\l  %57 = icmp eq i32 %56, 0, !dbg !2867\l  br i1 %57, label %58, label %63, !dbg !2868\l|{<s0>T|<s1>F}}"];
+	Node0x55685140e870:s0 -> Node0x55685140e8c0;
+	Node0x55685140e870:s1 -> Node0x55685140e910;
+	Node0x55685140e8c0 [shape=record,label="{%58:\l58:                                               \l  %59 = load i8*, i8** %6, align 8, !dbg !2869\l  %60 = ptrtoint i8* %59 to i64, !dbg !2870\l  %61 = add i64 %60, 8388608, !dbg !2871\l  %62 = inttoptr i64 %61 to i8*, !dbg !2872\l  store i8* %62, i8** @sys_alloc.next_alloc, align 8, !dbg !2873\l  br label %71, !dbg !2874\l}"];
+	Node0x55685140e8c0 -> Node0x55685140e960;
+	Node0x55685140e910 [shape=record,label="{%63:\l63:                                               \l  %64 = load i8*, i8** %6, align 8, !dbg !2875\l  %65 = ptrtoint i8* %64 to i64, !dbg !2876\l  %66 = load i8, i8* %5, align 1, !dbg !2877\l  %67 = zext i8 %66 to i64, !dbg !2877\l  %68 = mul i64 %67, 1073741824, !dbg !2878\l  %69 = add i64 %65, %68, !dbg !2879\l  %70 = inttoptr i64 %69 to i8*, !dbg !2880\l  store i8* %70, i8** @sys_alloc.next_alloc, align 8, !dbg !2881\l  br label %71\l}"];
+	Node0x55685140e910 -> Node0x55685140e960;
+	Node0x55685140e960 [shape=record,label="{%71:\l71:                                               \l  %72 = load i8*, i8** %6, align 8, !dbg !2882\l  store i8* %72, i8** %3, align 8, !dbg !2883\l  br label %73, !dbg !2883\l}"];
+	Node0x55685140e960 -> Node0x55685140e9b0;
+	Node0x55685140e9b0 [shape=record,label="{%73:\l73:                                               \l  %74 = load i8*, i8** %3, align 8, !dbg !2884\l  ret i8* %74, !dbg !2884\l}"];
+}

@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_tmpfile' function" {
+	label="CFG for 'fio_tmpfile' function";
+
+	Node0x556851d85800 [shape=record,label="{%0:\l  %1 = alloca i32, align 4\l  %2 = alloca [31 x i8], align 16\l  call void @llvm.dbg.declare(metadata i32* %1, metadata !2805, metadata\l... !DIExpression()), !dbg !2806\l  store i32 0, i32* %1, align 4, !dbg !2806\l  call void @llvm.dbg.declare(metadata [31 x i8]* %2, metadata !2807, metadata\l... !DIExpression()), !dbg !2813\l  %3 = bitcast [31 x i8]* %2 to i8*, !dbg !2813\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 16 %3, i8* align 16\l... getelementptr inbounds ([31 x i8], [31 x i8]*\l... @__const.fio_tmpfile.name_template, i32 0, i32 0), i64 31, i1 false), !dbg\l... !2813\l  %4 = getelementptr inbounds [31 x i8], [31 x i8]* %2, i64 0, i64 0, !dbg\l... !2814\l  %5 = call i32 @mkstemp(i8* %4), !dbg !2815\l  store i32 %5, i32* %1, align 4, !dbg !2816\l  %6 = load i32, i32* %1, align 4, !dbg !2817\l  ret i32 %6, !dbg !2818\l}"];
+}

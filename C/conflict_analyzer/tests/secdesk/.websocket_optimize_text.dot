@@ -1,0 +1,5 @@
+digraph "CFG for 'websocket_optimize_text' function" {
+	label="CFG for 'websocket_optimize_text' function";
+
+	Node0x556851ee1cc0 [shape=record,label="{%4:\l  %5 = alloca i8, align 1\l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %1, metadata\l... !2823, metadata !DIExpression()), !dbg !2824\l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %2, metadata\l... !2825, metadata !DIExpression()), !dbg !2826\l  store i8 %3, i8* %5, align 1\l  call void @llvm.dbg.declare(metadata i8* %5, metadata !2827, metadata\l... !DIExpression()), !dbg !2828\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_metadata_s* %0,\l... metadata !2829, metadata !DIExpression()), !dbg !2830\l  call void @websocket_optimize(%struct.fio_msg_metadata_s* sret %0,\l... %struct.fio_str_info_s* byval(%struct.fio_str_info_s) align 8 %2, i8 zeroext\l... 1), !dbg !2831\l  %6 = getelementptr inbounds %struct.fio_msg_metadata_s,\l... %struct.fio_msg_metadata_s* %0, i32 0, i32 0, !dbg !2832\l  store i64 -33, i64* %6, align 8, !dbg !2833\l  ret void, !dbg !2834\l}"];
+}

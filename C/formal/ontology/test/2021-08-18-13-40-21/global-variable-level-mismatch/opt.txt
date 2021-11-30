@@ -1,0 +1,102 @@
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @foo() #0 !dbg !13 {
+  %1 = load i32, i32* @a, align 4, !dbg !16
+  %2 = add nsw i32 %1, 1, !dbg !16
+  store i32 %2, i32* @a, align 4, !dbg !16
+  %3 = load i32, i32* @b, align 4, !dbg !17
+  %4 = add nsw i32 %3, 1, !dbg !17
+  store i32 %4, i32* @b, align 4, !dbg !17
+  %5 = load i32, i32* @a, align 4, !dbg !18
+  %6 = load i32, i32* @b, align 4, !dbg !19
+  %7 = add nsw i32 %5, %6, !dbg !20
+  ret i32 %7, !dbg !21
+}
+
+debug: 0x55a209934b08
+line number: 19
+Added: 0x55a209934ab8
+debug: 0x55a209934b08
+line number: 19
+Added: 0x55a2099132f0
+debug: 0x55a209934b08
+line number: 19
+Added: 0x55a209935380
+debug: 0x55a209935438
+line number: 20
+Added: 0x55a2099353e8
+debug: 0x55a209935438
+line number: 20
+Added: 0x55a209913260
+debug: 0x55a209935438
+line number: 20
+Added: 0x55a209935490
+debug: 0x55a209935548
+line number: 21
+Added: 0x55a2099354f8
+debug: 0x55a2099355d8
+line number: 21
+Added: 0x55a209935588
+debug: 0x55a209935608
+line number: 21
+Added: 0x55a2099131f0
+debug: 0x55a209935698
+line number: 21
+Added: 0x55a209935648
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main(i32 %0, i8** %1) #0 !dbg !22 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i8**, align 8
+  store i32 0, i32* %3, align 4
+  store i32 %0, i32* %4, align 4
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !28, metadata !DIExpression()), !dbg !29
+  store i8** %1, i8*** %5, align 8
+  call void @llvm.dbg.declare(metadata i8*** %5, metadata !30, metadata !DIExpression()), !dbg !31
+  %6 = call i32 @foo(), !dbg !32
+  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.3, i64 0, i64 0), i32 %6), !dbg !33
+  ret i32 0, !dbg !34
+}
+
+debug: 0x0
+Added: 0x55a2099365b8
+debug: 0x0
+Added: 0x55a209936618
+debug: 0x0
+Added: 0x55a209936678
+debug: 0x0
+Added: 0x55a2099366f0
+debug: 0x0
+Added: 0x55a209936770
+debug: 0x55a2099368a8
+line number: 24
+Added: 0x55a209936850
+debug: 0x0
+Added: 0x55a209936900
+debug: 0x55a209936a68
+line number: 24
+Added: 0x55a209936a10
+debug: 0x55a209936b08
+line number: 25
+Added: 0x55a209936aa8
+debug: 0x55a209936b38
+line number: 25
+Added: 0x55a20992d048
+debug: 0x55a209936bc8
+line number: 26
+Added: 0x55a209936b78
+Checking for Global: @a = dso_local global i32 1, align 4, !dbg !0
+Checking for Global: @b = dso_local global i32 1, align 4, !dbg !6
+func size: 2
+Finsh adding dependencies
+building PDG takes: 0
+PDG Node size: 26
+BCÀŞ5b0$JY¾fMû´_Q€L!u!#‘AÈI29’„%‹b€EB’B¤28K
+2RˆHpÄ!#D‡ŒA’dÈ± CFˆ É2R„*(*1|°\‘ ÅÈ‰ 2"H	 d…“"¤„“"ã„¡LŠŒ„¤Lhs`@`ÉA#•$tH"¥R@Ñ* F©<‚#…sN¢U‰,½9PQÄ&øÿÿÿÿp	( ˆqxy‡rz`‡|hyx‡zpr(rhrH{Hr(‡6˜‡xzhs€‡6h‡p tÌ!ØaÊ È!æ!ÄÊ¡è!ÒÚ`ÂØasv˜‡rs‡ph‡rhxx‡tpz(yÂØ Ø¡æaÚä¡Æ!æ¡ÚÀà¡Âsv˜‡rˆvHwhv(‡svh{(‡q ‡w‡6¸‡t z@ÂŞ¡ÒÁÌaÚÀà¡Ú!èsv˜‡rwx‡6P‡zhxhzq`‡r˜ÀÂæ¡ÂŞ¡Ü!ÜaÚÀà¡Ú!èsv˜‡rwx‡6˜‡t8w(rh}(yx‡yhs€‡6h‡p tÌ!ØaÊ ÜáÚ€ä!àÒÁÎ¡Ú!èsv˜‡rˆy ‡p‡uhx‡w ‡rzxyhq¨s0‡r‡6˜‡tĞ‡rğ è!äáÊÚ`à¡|À;h; € ‡p‡s(zhs(‡p ‡z‡r˜`Æğ€ÖÀğaäÖ ÚØ`æaÊÖ`æ¡ä€Öğà¢ÜaÂÁÊ¡ÌÚ ÂĞ0‡p`‡y(€¨‡y(‡6˜‡w0zhs`‡wzÌ!ØaÊØ ÿÿÿÿ?@uôÁuşÿÿÿ ÆáäAÊaèò¡äáêÁÈ¡È¡È!ì!È¡Ú`âAè¡ÌÚ ÂĞ0‡p`‡y(€ ‡t˜‡pv(‡6 ‡pHvhƒqv`‡yÌ!ØaÊ ÌAÂ¡Ê¡àáÒÁè¡äv`€`‡r˜‡yhx‡r‡t˜‡rhs€‡vrÌ!ØaÊ ÜáÚ ÜÁæ¡ÌÚ ÂĞ0‡p`‡y(€p‡whww˜‡60xhƒvz@ÀÂæ¡ÂŞ¡æ!ÎÁÊÚ@ÊAŞaÚÀà¡Ú!èsv˜‡rwx‡6 yx€‡tp‡shƒvz@ÀÂæ¡bè!ÆaÚäáè¡ÆŞAÚ@êÁÌ¡ä¡æ!ô¡<zy8‡r ‡6x¨ğÀÚÀè è!äáÊÚÀÊ!è¡ä¡æXƒqÀ<`ƒ50|˜y`ƒ5h‡vÀ6Xƒy˜‡r`ƒ5˜‡y(9`ƒ5À<¸€¨w˜‡p0‡rhs€‡6h‡p tÌ!ØaÊ êaÊ¡æáÌÚÀØáÂsv˜‡rI‚`B L0|À;ø; ƒ6¨wXwx‡{p‡6`‡tp‡zÀ‡68w¨‡¦PmĞzPmrpp s z0rĞğ wz0r s mrpr v@z`tĞé`t v@m`xzr€màx q`z0r v@m0q x°¢av°‡vpƒv(zrz¥„	!CFŠ	![8Ôä;$ ‚Ø!Ä04	@À©0ŠÁI€€ vHK0°CbŒax € €’d”Aãb…MpHõC@C*9  €RÙD ÀÊ€ $6ÎÈ2˜LŒ	&GÆC%@ctÕNĞ£²…CM¾@cÔ]ÓÒ££C‰¬ dŒPêˆˆ€h¨£0 "A
+	('¥d†:‚" "P¤°wbZ(ÔL 
+¡Ê±“3€Äáf=ˆC8„ÃŒB€yxs˜qæíô€3BÂÁÎ¡f0=ˆC8„ƒÌ=ÈC=Œ=ÌxŒtp{yH‡ppzpvx‡p ‡Ììá0n0ãğğP3ÄŞ!Ø!Âaf0‰;¼ƒ;ĞC9´<¼ƒ<„;Ìğv`{h7h‡rh7€‡p‡p`v(vøvx‡w€‡_‡q‡r˜‡y˜,îğîàõÀì0bÈ¡ä¡Ì¡ä¡ÜaÊ!ÄÊaÖC9ÈC9˜C9ÈC9¸Ã8”C8ˆ;”Ã/¼ƒ<ü‚;Ô;°ÃÇi‡pX‡rpƒthx`‡t‡t ‡ÎSîòPäã@á ìP3 (ÜÁÂAÒ!ÜÜàäáêfQ8°C:œƒ;ÌP$v`{h7`‡wxx˜QLôğP3jÊaè!ŞÁ~ä¡Ì!ğaT…ƒ8ÌÃ;°C=ĞC9üÂ<äC;ˆÃ;°ÃŒÅ
+‡y˜‡w‡tz(r˜\ãìÀåPó0#ÁÒAäáØáŞfH;°ƒ=´ƒ„Ã8ŒC9ÌÃ<¸Á9ÈÃ;Ô<ÌH´qv`q‡qX‡ÛÆì`íàğ å0å öPnã0å0óàéàäPø0CáÚ!æ¡ğÊaèaFÔÙÃ8„;°Ã/ØC:ÌC:ˆC:°C:ĞC>y yrH Cˆ	r2H #Œ‘‘ÑD (d<12B!£˜01…8ÀC0¤out.c/home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/global-variable-level-mismatchclang version 10.0.1 (https://github.com/gaps-closure/llvm-project.git 4954dd8b02af91d5e8d4815824208b6004f667a8)bintaDwarf VersionDebug Info Versionwchar_size#À6‚p#@7‚x#À2SD 90SD !0Ô0ÒLpÂ@00]`LDMÀCÍ TÖ<@0Ã Ëƒ43N²Ì2˜ \ØØìÚ\ÈÄÎ\ÆêF	 ŒØØìÚ\ÚŞÈêØÊ\ÌØÂÎæF°LK…Í®Í%¬Ìn”`2€2 ©
+r(‡w€zXp˜C=¸Ã8°C9ĞÃ‚æÆ¡èAÂÁæ!è!ŞÁ4ã`çPá ä@á çPôÑÌ<¤ƒ;œ;”= ƒ<”C8Ãa 'A<
+"GÈQÄfoo«¤CêI	@ €	6Ø&B>ô1cPL†T 0aaÀ„@3ex€ÁÀ°ÁL4`Ìã…3Ey€B3Eåx°ÁŒAQÄ[ a PA,”G(uH‘…Añ0"GÈQAmaincharargcargv«¤Cê	3@‰`€=@À¢xÄ€EğŒ(#ƒM„”0.Âà“0,€q‰` ad À! ƒ	V3°ŒÂL,£0ñ)C5Ã„pÀˆÁ€ PÿÿÿÿÀ4cP`NÀ°0bp T×ÿÿÿÿÃÿÿÿÿÓŒAma#‚`Ğ|3E&…Œ‚ÕÁŒA‘a{ÍÚ[!1 Â(q 2"„şˆpjes” L/LXX`{“À//ÿÿÿÿ$22ÿÿÿÿ$66ÿÿÿÿ,FFÿÿÿÿ$ÿÿÿÿ˜ÿÿÿÿ«ÿÿÿÿÿÿÿÿ³ÿÿÿÿ»ÿÿÿÿÿÿÿÿ]4”£a.str.str.1b.str.2.str.3llvm.global.annotationsfoomainllvm.dbg.declareprintf10.0.1 4954dd8b02af91d5e8d4815824208b6004f667a8x86_64-unknown-linux-gnuout.c.L.strllvm.metadata.L.str.1.L.str.2.L.str.3
+real	0m0.017s
+user	0m0.013s
+sys	0m0.004s

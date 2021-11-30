@@ -1,0 +1,12 @@
+digraph "CFG for 'fio_str_freeze' function" {
+	label="CFG for 'fio_str_freeze' function";
+
+	Node0x55685206fc60 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_str_s.63*, align 8\l  store %struct.fio_str_s.63* %0, %struct.fio_str_s.63** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_str_s.63** %2, metadata\l... !2804, metadata !DIExpression()), !dbg !2805\l  %3 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %2, align 8, !dbg\l... !2806\l  %4 = icmp ne %struct.fio_str_s.63* %3, null, !dbg !2806\l  br i1 %4, label %6, label %5, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x55685206fc60:s0 -> Node0x55685206fd60;
+	Node0x55685206fc60:s1 -> Node0x55685206fd10;
+	Node0x55685206fd10 [shape=record,label="{%5:\l5:                                                \l  br label %9, !dbg !2809\l}"];
+	Node0x55685206fd10 -> Node0x55685206fdb0;
+	Node0x55685206fd60 [shape=record,label="{%6:\l6:                                                \l  %7 = load %struct.fio_str_s.63*, %struct.fio_str_s.63** %2, align 8, !dbg\l... !2810\l  %8 = getelementptr inbounds %struct.fio_str_s.63, %struct.fio_str_s.63* %7,\l... i32 0, i32 1, !dbg !2811\l  store i8 1, i8* %8, align 1, !dbg !2812\l  br label %9, !dbg !2813\l}"];
+	Node0x55685206fd60 -> Node0x55685206fdb0;
+	Node0x55685206fdb0 [shape=record,label="{%9:\l9:                                                \l  ret void, !dbg !2813\l}"];
+}

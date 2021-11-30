@@ -1,0 +1,5 @@
+digraph "CFG for 'fiobj_mustache_new' function" {
+	label="CFG for 'fiobj_mustache_new' function";
+
+	Node0x556851fc3140 [shape=record,label="{%1:\l  call void @llvm.dbg.declare(metadata %struct.mustache_load_args_s* %0,\l... metadata !2814, metadata !DIExpression()), !dbg !2815\l  %2 = call %struct.mustache_s* @mustache_load(%struct.mustache_load_args_s*\l... byval(%struct.mustache_load_args_s) align 8 %0), !dbg !2816\l  ret %struct.mustache_s* %2, !dbg !2817\l}"];
+}

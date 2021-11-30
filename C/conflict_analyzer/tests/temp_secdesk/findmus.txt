@@ -1,0 +1,3 @@
+FznSubProblem:	hard cons: 1	soft cons: 0	leaves: 1	branches: 0	Built tree in 0.07478 seconds.
+Background is not satisfiable, exiting. Try using --soft-defines.
+

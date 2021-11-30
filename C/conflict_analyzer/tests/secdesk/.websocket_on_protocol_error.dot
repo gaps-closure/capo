@@ -1,0 +1,5 @@
+digraph "CFG for 'websocket_on_protocol_error' function" {
+	label="CFG for 'websocket_on_protocol_error' function";
+
+	Node0x5568525b6de0 [shape=record,label="{%1:\l  %2 = alloca i8*, align 8\l  %3 = alloca %struct.ws_s*, align 8\l  store i8* %0, i8** %2, align 8\l  call void @llvm.dbg.declare(metadata i8** %2, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  call void @llvm.dbg.declare(metadata %struct.ws_s** %3, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  %4 = load i8*, i8** %2, align 8, !dbg !2806\l  %5 = bitcast i8* %4 to %struct.ws_s*, !dbg !2806\l  store %struct.ws_s* %5, %struct.ws_s** %3, align 8, !dbg !2805\l  %6 = load %struct.ws_s*, %struct.ws_s** %3, align 8, !dbg !2807\l  %7 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %6, i32 0, i32 1,\l... !dbg !2808\l  %8 = load i64, i64* %7, align 8, !dbg !2808\l  call void @fio_close(i64 %8), !dbg !2809\l  ret void, !dbg !2810\l}"];
+}

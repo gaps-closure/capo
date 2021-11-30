@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_ls_pop' function" {
+	label="CFG for 'fio_ls_pop' function";
+
+	Node0x55685153f0e0 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_ls_s*, align 8\l  store %struct.fio_ls_s* %0, %struct.fio_ls_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_ls_s** %2, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  %3 = load %struct.fio_ls_s*, %struct.fio_ls_s** %2, align 8, !dbg !2806\l  %4 = getelementptr inbounds %struct.fio_ls_s, %struct.fio_ls_s* %3, i32 0,\l... i32 0, !dbg !2807\l  %5 = load %struct.fio_ls_s*, %struct.fio_ls_s** %4, align 8, !dbg !2807\l  %6 = call i8* @fio_ls_remove(%struct.fio_ls_s* %5), !dbg !2808\l  ret i8* %6, !dbg !2809\l}"];
+}

@@ -1,0 +1,19 @@
+digraph "CFG for 'fio_malloc_after_fork' function" {
+	label="CFG for 'fio_malloc_after_fork' function";
+
+	Node0x556851697d20 [shape=record,label="{%0:\l  %1 = alloca i64, align 8\l  store %struct.arena_s* null, %struct.arena_s** @arena_last_used, align 8,\l... !dbg !2802\l  %2 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2803\l  %3 = icmp ne %struct.arena_s* %2, null, !dbg !2803\l  br i1 %3, label %5, label %4, !dbg !2805\l|{<s0>T|<s1>F}}"];
+	Node0x556851697d20:s0 -> Node0x5568516991d0;
+	Node0x556851697d20:s1 -> Node0x556851699180;
+	Node0x556851699180 [shape=record,label="{%4:\l4:                                                \l  br label %18, !dbg !2806\l}"];
+	Node0x556851699180 -> Node0x556851699310;
+	Node0x5568516991d0 [shape=record,label="{%5:\l5:                                                \l  store volatile i8 0, i8* getelementptr inbounds (%struct.anon.16,\l... %struct.anon.16* @memory, i32 0, i32 2), align 8, !dbg !2808\l  store i8 1, i8* getelementptr inbounds (%struct.anon.16, %struct.anon.16*\l... @memory, i32 0, i32 3), align 1, !dbg !2809\l  call void @llvm.dbg.declare(metadata i64* %1, metadata !2810, metadata\l... !DIExpression()), !dbg !2812\l  store i64 0, i64* %1, align 8, !dbg !2812\l  br label %6, !dbg !2813\l}"];
+	Node0x5568516991d0 -> Node0x556851699220;
+	Node0x556851699220 [shape=record,label="{%6:\l6:                                                \l  %7 = load i64, i64* %1, align 8, !dbg !2814\l  %8 = load i64, i64* getelementptr inbounds (%struct.anon.16,\l... %struct.anon.16* @memory, i32 0, i32 1), align 8, !dbg !2816\l  %9 = icmp ult i64 %7, %8, !dbg !2817\l  br i1 %9, label %10, label %18, !dbg !2818\l|{<s0>T|<s1>F}}"];
+	Node0x556851699220:s0 -> Node0x556851699270;
+	Node0x556851699220:s1 -> Node0x556851699310;
+	Node0x556851699270 [shape=record,label="{%10:\l10:                                               \l  %11 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2819\l  %12 = load i64, i64* %1, align 8, !dbg !2821\l  %13 = getelementptr inbounds %struct.arena_s, %struct.arena_s* %11, i64 %12,\l... !dbg !2819\l  %14 = getelementptr inbounds %struct.arena_s, %struct.arena_s* %13, i32 0,\l... i32 1, !dbg !2822\l  store volatile i8 0, i8* %14, align 8, !dbg !2823\l  br label %15, !dbg !2824\l}"];
+	Node0x556851699270 -> Node0x5568516992c0;
+	Node0x5568516992c0 [shape=record,label="{%15:\l15:                                               \l  %16 = load i64, i64* %1, align 8, !dbg !2825\l  %17 = add i64 %16, 1, !dbg !2825\l  store i64 %17, i64* %1, align 8, !dbg !2825\l  br label %6, !dbg !2826, !llvm.loop !2827\l}"];
+	Node0x5568516992c0 -> Node0x556851699220;
+	Node0x556851699310 [shape=record,label="{%18:\l18:                                               \l  ret void, !dbg !2829\l}"];
+}

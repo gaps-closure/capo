@@ -1,0 +1,25 @@
+3
+['nullLevel', 'orange', 'purple']
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'rettaints': ['ORANGE', 'TAG_RESPONSE_FOO']}]}}
+Found remote level: purple
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'rettaints': ['ORANGE', 'TAG_RESPONSE_FOO']}]}}
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'ORANGE_cdf_0']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+Num Function CDFs: 0
+Num CLE Labels: 6
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f108ee49280>, {'cleLabel': ['nullCleLabel', 'PURPLE', 'ORANGE', 'TAG_RESPONSE_FOO', 'orangeDFLT', 'purpleDFLT'], 'cdf': ['nullCdf', 'ORANGE_cdf_0'], 'remotelevel': ['None_remotelevel_0'], 'direction': ['None_direction_0'], 'operation': ['None_operation_0']})
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f108ed5b5e0>, {'hasLabelLevel': ['nullLevel', 'purple', 'orange', 'nullLevel', 'orange', 'purple'], 'isFunctionAnnotation': ['false', 'false', 'false', 'false', 'false', 'false'], 'fromCleLabel': ['nullCleLabel', 'ORANGE'], 'hasRemotelevel': ['nullLevel', 'purple'], 'hasDirection': ['nullDirection', 'egress'], 'hasGuardOperation': ['nullGuardOperation', 'allow'], 'isOneway': ['false', 'false'], 'hasfunctaints': ['false'], 'hasargtaints': [[['None']]], 'hascodtaints': [['None']], 'hasrettaints': [['None']], 'hasARCtaints': [], 'cdfForRemoteLevel': [['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'ORANGE_cdf_0'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf']], 'hasRettaints': [], 'hasCodtaints': [], 'hasArgtaints': []})
+
+real	0m0.049s
+user	0m0.045s
+sys	0m0.004s

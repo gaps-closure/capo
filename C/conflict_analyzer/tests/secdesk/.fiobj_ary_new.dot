@@ -1,0 +1,5 @@
+digraph "CFG for 'fiobj_ary_new' function" {
+	label="CFG for 'fiobj_ary_new' function";
+
+	Node0x556851a513a0 [shape=record,label="{%0:\l  %1 = call i64 @fiobj_ary_alloc(i64 0), !dbg !2802\l  ret i64 %1, !dbg !2803\l}"];
+}

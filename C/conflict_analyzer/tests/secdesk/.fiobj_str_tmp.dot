@@ -1,0 +1,5 @@
+digraph "CFG for 'fiobj_str_tmp' function" {
+	label="CFG for 'fiobj_str_tmp' function";
+
+	Node0x556852066eb0 [shape=record,label="{%0:\l  %1 = alloca %struct.fio_str_info_s, align 8\l  store i8 0, i8* getelementptr inbounds (%struct.fiobj_str_s,\l... %struct.fiobj_str_s* @fiobj_str_tmp.tmp, i32 0, i32 2, i32 1), align 1, !dbg\l... !2801\l  call void @fio_str_resize.218(%struct.fio_str_info_s* sret %1,\l... %struct.fio_str_s.63* getelementptr inbounds (%struct.fiobj_str_s,\l... %struct.fiobj_str_s* @fiobj_str_tmp.tmp, i32 0, i32 2), i64 0), !dbg !2802\l  ret i64 or (i64 ptrtoint (%struct.fiobj_str_s* @fiobj_str_tmp.tmp to i64),\l... i64 2), !dbg !2803\l}"];
+}

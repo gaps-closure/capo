@@ -1,0 +1,7 @@
+FznSubProblem:	hard cons: 618	soft cons: 356	leaves: 356	branches: 398	Built tree in 0.07456 seconds.
+Error: Model is Satisfiable
+
+
+real	0m0.555s
+user	0m0.402s
+sys	0m0.158s

@@ -1,0 +1,26 @@
+digraph "CFG for 'fiobj_obj2num' function" {
+	label="CFG for 'fiobj_obj2num' function";
+
+	Node0x556852387970 [shape=record,label="{%1:\l  %2 = alloca i64, align 8\l  %3 = alloca i64, align 8\l  %4 = alloca i64, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  %5 = load i64, i64* %3, align 8, !dbg !2804\l  %6 = and i64 %5, 1, !dbg !2806\l  %7 = icmp ne i64 %6, 0, !dbg !2806\l  br i1 %7, label %8, label %19, !dbg !2807\l|{<s0>T|<s1>F}}"];
+	Node0x556852387970:s0 -> Node0x5568523892a0;
+	Node0x556852387970:s1 -> Node0x5568523892f0;
+	Node0x5568523892a0 [shape=record,label="{%8:\l8:                                                \l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2808, metadata\l... !DIExpression()), !dbg !2811\l  %9 = load i64, i64* %3, align 8, !dbg !2812\l  %10 = and i64 %9, -9223372036854775808, !dbg !2813\l  %11 = icmp ne i64 %10, 0, !dbg !2814\l  %12 = zext i1 %11 to i64, !dbg !2814\l  %13 = select i1 %11, i64 -4611686018427387904, i64 0, !dbg !2814\l  store i64 %13, i64* %4, align 8, !dbg !2811\l  %14 = load i64, i64* %3, align 8, !dbg !2815\l  %15 = and i64 %14, 9223372036854775807, !dbg !2816\l  %16 = lshr i64 %15, 1, !dbg !2817\l  %17 = load i64, i64* %4, align 8, !dbg !2818\l  %18 = or i64 %16, %17, !dbg !2819\l  store i64 %18, i64* %2, align 8, !dbg !2820\l  br label %45, !dbg !2820\l}"];
+	Node0x5568523892a0 -> Node0x5568523894d0;
+	Node0x5568523892f0 [shape=record,label="{%19:\l19:                                               \l  %20 = load i64, i64* %3, align 8, !dbg !2821\l  %21 = icmp ne i64 %20, 0, !dbg !2821\l  br i1 %21, label %22, label %33, !dbg !2823\l|{<s0>T|<s1>F}}"];
+	Node0x5568523892f0:s0 -> Node0x556852389340;
+	Node0x5568523892f0:s1 -> Node0x556852389430;
+	Node0x556852389340 [shape=record,label="{%22:\l22:                                               \l  %23 = load i64, i64* %3, align 8, !dbg !2824\l  %24 = icmp ne i64 %23, 0, !dbg !2824\l  br i1 %24, label %25, label %33, !dbg !2824\l|{<s0>T|<s1>F}}"];
+	Node0x556852389340:s0 -> Node0x556852389390;
+	Node0x556852389340:s1 -> Node0x556852389430;
+	Node0x556852389390 [shape=record,label="{%25:\l25:                                               \l  %26 = load i64, i64* %3, align 8, !dbg !2824\l  %27 = and i64 %26, 1, !dbg !2824\l  %28 = icmp eq i64 %27, 0, !dbg !2824\l  br i1 %28, label %29, label %33, !dbg !2824\l|{<s0>T|<s1>F}}"];
+	Node0x556852389390:s0 -> Node0x5568523893e0;
+	Node0x556852389390:s1 -> Node0x556852389430;
+	Node0x5568523893e0 [shape=record,label="{%29:\l29:                                               \l  %30 = load i64, i64* %3, align 8, !dbg !2824\l  %31 = and i64 %30, 6, !dbg !2824\l  %32 = icmp ne i64 %31, 6, !dbg !2824\l  br i1 %32, label %38, label %33, !dbg !2825\l|{<s0>T|<s1>F}}"];
+	Node0x5568523893e0:s0 -> Node0x556852389480;
+	Node0x5568523893e0:s1 -> Node0x556852389430;
+	Node0x556852389430 [shape=record,label="{%33:\l33:                                               \l  %34 = load i64, i64* %3, align 8, !dbg !2826\l  %35 = icmp eq i64 %34, 22, !dbg !2827\l  %36 = zext i1 %35 to i32, !dbg !2827\l  %37 = sext i32 %36 to i64, !dbg !2826\l  store i64 %37, i64* %2, align 8, !dbg !2828\l  br label %45, !dbg !2828\l}"];
+	Node0x556852389430 -> Node0x5568523894d0;
+	Node0x556852389480 [shape=record,label="{%38:\l38:                                               \l  %39 = load i64, i64* %3, align 8, !dbg !2829\l  %40 = call %struct.fiobj_object_vtable_s* @fiobj_type_vtable.410(i64 %39),\l... !dbg !2829\l  %41 = getelementptr inbounds %struct.fiobj_object_vtable_s,\l... %struct.fiobj_object_vtable_s* %40, i32 0, i32 7, !dbg !2830\l  %42 = load i64 (i64)*, i64 (i64)** %41, align 8, !dbg !2830\l  %43 = load i64, i64* %3, align 8, !dbg !2831\l  %44 = call i64 %42(i64 %43), !dbg !2829\l  store i64 %44, i64* %2, align 8, !dbg !2832\l  br label %45, !dbg !2832\l}"];
+	Node0x556852389480 -> Node0x5568523894d0;
+	Node0x5568523894d0 [shape=record,label="{%45:\l45:                                               \l  %46 = load i64, i64* %2, align 8, !dbg !2833\l  ret i64 %46, !dbg !2833\l}"];
+}

@@ -1,0 +1,48 @@
+digraph "CFG for 'initialize_cli' function" {
+	label="CFG for 'initialize_cli' function";
+
+	Node0x55685254d370 [shape=record,label="{%2:\l  %3 = alloca i32, align 4\l  %4 = alloca i8**, align 8\l  %5 = alloca [27 x i8*], align 8\l  %6 = alloca i8*, align 8\l  %7 = alloca i8*, align 8\l  %8 = alloca i8*, align 8\l  %9 = alloca i8*, align 8\l  store i32 %0, i32* %3, align 4\l  call void @llvm.dbg.declare(metadata i32* %3, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i8** %1, i8*** %4, align 8\l  call void @llvm.dbg.declare(metadata i8*** %4, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  %10 = load i32, i32* %3, align 4, !dbg !2808\l  %11 = load i8**, i8*** %4, align 8, !dbg !2808\l  %12 = getelementptr inbounds [27 x i8*], [27 x i8*]* %5, i64 0, i64 0, !dbg\l... !2808\l  %13 = bitcast [27 x i8*]* %5 to i8*, !dbg !2808\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %13, i8* align 8 bitcast\l... ([27 x i8*]* @constinit.1841 to i8*), i64 216, i1 false), !dbg !2808\l  %14 = getelementptr inbounds [27 x i8*], [27 x i8*]* %5, i64 0, i64 0, !dbg\l... !2808\l  call void @fio_cli_start(i32 %10, i8** %11, i32 0, i32 0, i8* null, i8**\l... %14), !dbg !2808\l  %15 = call i8* @fio_cli_get(i8* getelementptr inbounds ([3 x i8], [3 x i8]*\l... @.str.3.1805, i64 0, i64 0)), !dbg !2809\l  %16 = icmp ne i8* %15, null, !dbg !2809\l  br i1 %16, label %25, label %17, !dbg !2811\l|{<s0>T|<s1>F}}"];
+	Node0x55685254d370:s0 -> Node0x556852550330;
+	Node0x55685254d370:s1 -> Node0x556852550240;
+	Node0x556852550240 [shape=record,label="{%17:\l17:                                               \l  call void @llvm.dbg.declare(metadata i8** %6, metadata !2812, metadata\l... !DIExpression()), !dbg !2814\l  %18 = call i8* @getenv(i8* getelementptr inbounds ([8 x i8], [8 x i8]*\l... @.str.27.1842, i64 0, i64 0)) #9, !dbg !2815\l  store i8* %18, i8** %6, align 8, !dbg !2814\l  %19 = load i8*, i8** %6, align 8, !dbg !2816\l  %20 = icmp ne i8* %19, null, !dbg !2816\l  br i1 %20, label %21, label %24, !dbg !2818\l|{<s0>T|<s1>F}}"];
+	Node0x556852550240:s0 -> Node0x556852550290;
+	Node0x556852550240:s1 -> Node0x5568525502e0;
+	Node0x556852550290 [shape=record,label="{%21:\l21:                                               \l  %22 = load i8*, i8** %6, align 8, !dbg !2819\l  call void @fio_cli_set(i8* getelementptr inbounds ([3 x i8], [3 x i8]*\l... @.str.3.1805, i64 0, i64 0), i8* %22), !dbg !2821\l  %23 = load i8*, i8** %6, align 8, !dbg !2822\l  call void @fio_cli_set(i8* getelementptr inbounds ([6 x i8], [6 x i8]*\l... @.str.28.1843, i64 0, i64 0), i8* %23), !dbg !2823\l  br label %24, !dbg !2824\l}"];
+	Node0x556852550290 -> Node0x5568525502e0;
+	Node0x5568525502e0 [shape=record,label="{%24:\l24:                                               \l  br label %25, !dbg !2825\l}"];
+	Node0x5568525502e0 -> Node0x556852550330;
+	Node0x556852550330 [shape=record,label="{%25:\l25:                                               \l  %26 = call i8* @fio_cli_get(i8* getelementptr inbounds ([3 x i8], [3 x i8]*\l... @.str.2.1804, i64 0, i64 0)), !dbg !2826\l  %27 = icmp ne i8* %26, null, !dbg !2826\l  br i1 %27, label %39, label %28, !dbg !2828\l|{<s0>T|<s1>F}}"];
+	Node0x556852550330:s0 -> Node0x5568525504c0;
+	Node0x556852550330:s1 -> Node0x556852550380;
+	Node0x556852550380 [shape=record,label="{%28:\l28:                                               \l  call void @llvm.dbg.declare(metadata i8** %7, metadata !2829, metadata\l... !DIExpression()), !dbg !2831\l  %29 = call i8* @getenv(i8* getelementptr inbounds ([5 x i8], [5 x i8]*\l... @.str.29.1844, i64 0, i64 0)) #9, !dbg !2832\l  store i8* %29, i8** %7, align 8, !dbg !2831\l  %30 = load i8*, i8** %7, align 8, !dbg !2833\l  %31 = icmp ne i8* %30, null, !dbg !2833\l  br i1 %31, label %36, label %32, !dbg !2835\l|{<s0>T|<s1>F}}"];
+	Node0x556852550380:s0 -> Node0x556852550470;
+	Node0x556852550380:s1 -> Node0x5568525503d0;
+	Node0x5568525503d0 [shape=record,label="{%32:\l32:                                               \l  %33 = call i8* @fio_cli_get(i8* getelementptr inbounds ([3 x i8], [3 x i8]*\l... @.str.3.1805, i64 0, i64 0)), !dbg !2836\l  %34 = icmp ne i8* %33, null, !dbg !2836\l  br i1 %34, label %36, label %35, !dbg !2837\l|{<s0>T|<s1>F}}"];
+	Node0x5568525503d0:s0 -> Node0x556852550470;
+	Node0x5568525503d0:s1 -> Node0x556852550420;
+	Node0x556852550420 [shape=record,label="{%35:\l35:                                               \l  store i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.30.1845, i64 0,\l... i64 0), i8** %7, align 8, !dbg !2838\l  br label %36, !dbg !2839\l}"];
+	Node0x556852550420 -> Node0x556852550470;
+	Node0x556852550470 [shape=record,label="{%36:\l36:                                               \l  %37 = load i8*, i8** %7, align 8, !dbg !2840\l  call void @fio_cli_set(i8* getelementptr inbounds ([3 x i8], [3 x i8]*\l... @.str.2.1804, i64 0, i64 0), i8* %37), !dbg !2841\l  %38 = load i8*, i8** %7, align 8, !dbg !2842\l  call void @fio_cli_set(i8* getelementptr inbounds ([6 x i8], [6 x i8]*\l... @.str.31.1846, i64 0, i64 0), i8* %38), !dbg !2843\l  br label %39, !dbg !2844\l}"];
+	Node0x556852550470 -> Node0x5568525504c0;
+	Node0x5568525504c0 [shape=record,label="{%39:\l39:                                               \l  %40 = call i8* @fio_cli_get(i8* getelementptr inbounds ([5 x i8], [5 x i8]*\l... @.str.4.1806, i64 0, i64 0)), !dbg !2845\l  %41 = icmp ne i8* %40, null, !dbg !2845\l  br i1 %41, label %50, label %42, !dbg !2847\l|{<s0>T|<s1>F}}"];
+	Node0x5568525504c0:s0 -> Node0x556852550600;
+	Node0x5568525504c0:s1 -> Node0x556852550510;
+	Node0x556852550510 [shape=record,label="{%42:\l42:                                               \l  call void @llvm.dbg.declare(metadata i8** %8, metadata !2848, metadata\l... !DIExpression()), !dbg !2850\l  %43 = call i8* @getenv(i8* getelementptr inbounds ([19 x i8], [19 x i8]*\l... @.str.32.1847, i64 0, i64 0)) #9, !dbg !2851\l  store i8* %43, i8** %8, align 8, !dbg !2850\l  %44 = load i8*, i8** %8, align 8, !dbg !2852\l  %45 = icmp ne i8* %44, null, !dbg !2852\l  br i1 %45, label %46, label %49, !dbg !2854\l|{<s0>T|<s1>F}}"];
+	Node0x556852550510:s0 -> Node0x556852550560;
+	Node0x556852550510:s1 -> Node0x5568525505b0;
+	Node0x556852550560 [shape=record,label="{%46:\l46:                                               \l  %47 = load i8*, i8** %8, align 8, !dbg !2855\l  call void @fio_cli_set(i8* getelementptr inbounds ([8 x i8], [8 x i8]*\l... @.str.33.1848, i64 0, i64 0), i8* %47), !dbg !2857\l  %48 = load i8*, i8** %8, align 8, !dbg !2858\l  call void @fio_cli_set(i8* getelementptr inbounds ([5 x i8], [5 x i8]*\l... @.str.4.1806, i64 0, i64 0), i8* %48), !dbg !2859\l  br label %49, !dbg !2860\l}"];
+	Node0x556852550560 -> Node0x5568525505b0;
+	Node0x5568525505b0 [shape=record,label="{%49:\l49:                                               \l  br label %50, !dbg !2861\l}"];
+	Node0x5568525505b0 -> Node0x556852550600;
+	Node0x556852550600 [shape=record,label="{%50:\l50:                                               \l  %51 = call i8* @fio_cli_get(i8* getelementptr inbounds ([4 x i8], [4 x i8]*\l... @.str.9.1811, i64 0, i64 0)), !dbg !2862\l  %52 = icmp ne i8* %51, null, !dbg !2862\l  br i1 %52, label %61, label %53, !dbg !2864\l|{<s0>T|<s1>F}}"];
+	Node0x556852550600:s0 -> Node0x556852550740;
+	Node0x556852550600:s1 -> Node0x556852550650;
+	Node0x556852550650 [shape=record,label="{%53:\l53:                                               \l  call void @llvm.dbg.declare(metadata i8** %9, metadata !2865, metadata\l... !DIExpression()), !dbg !2867\l  %54 = call i8* @getenv(i8* getelementptr inbounds ([6 x i8], [6 x i8]*\l... @.str.34.1849, i64 0, i64 0)) #9, !dbg !2868\l  store i8* %54, i8** %9, align 8, !dbg !2867\l  %55 = load i8*, i8** %9, align 8, !dbg !2869\l  %56 = icmp ne i8* %55, null, !dbg !2869\l  br i1 %56, label %58, label %57, !dbg !2871\l|{<s0>T|<s1>F}}"];
+	Node0x556852550650:s0 -> Node0x5568525506f0;
+	Node0x556852550650:s1 -> Node0x5568525506a0;
+	Node0x5568525506a0 [shape=record,label="{%57:\l57:                                               \l  store i8* getelementptr inbounds ([16 x i8], [16 x i8]* @.str.35.1850, i64\l... 0, i64 0), i8** %9, align 8, !dbg !2872\l  br label %58, !dbg !2873\l}"];
+	Node0x5568525506a0 -> Node0x5568525506f0;
+	Node0x5568525506f0 [shape=record,label="{%58:\l58:                                               \l  %59 = load i8*, i8** %9, align 8, !dbg !2874\l  call void @fio_cli_set(i8* getelementptr inbounds ([10 x i8], [10 x i8]*\l... @.str.36.1851, i64 0, i64 0), i8* %59), !dbg !2875\l  %60 = load i8*, i8** %9, align 8, !dbg !2876\l  call void @fio_cli_set(i8* getelementptr inbounds ([4 x i8], [4 x i8]*\l... @.str.9.1811, i64 0, i64 0), i8* %60), !dbg !2877\l  br label %61, !dbg !2878\l}"];
+	Node0x5568525506f0 -> Node0x556852550740;
+	Node0x556852550740 [shape=record,label="{%61:\l61:                                               \l  ret void, !dbg !2879\l}"];
+}

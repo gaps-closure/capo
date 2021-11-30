@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_fork' function" {
+	label="CFG for 'fio_fork' function";
+
+	Node0x5568516e7580 [shape=record,label="{%0:\l  %1 = call i32 @fork() #9, !dbg !2804\l  ret i32 %1, !dbg !2805\l}"];
+}

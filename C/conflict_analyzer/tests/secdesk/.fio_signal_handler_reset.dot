@@ -1,0 +1,17 @@
+digraph "CFG for 'fio_signal_handler_reset' function" {
+	label="CFG for 'fio_signal_handler_reset' function";
+
+	Node0x5568517013c0 [shape=record,label="{%0:\l  %1 = alloca %struct.sigaction, align 8\l  call void @llvm.dbg.declare(metadata %struct.sigaction* %1, metadata !2802,\l... metadata !DIExpression()), !dbg !2803\l  %2 = load volatile i8, i8* @fio_signal_set_flag, align 1, !dbg !2804\l  %3 = icmp ne i8 %2, 0, !dbg !2804\l  br i1 %3, label %4, label %5, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x5568517013c0:s0 -> Node0x556851702890;
+	Node0x5568517013c0:s1 -> Node0x5568517028e0;
+	Node0x556851702890 [shape=record,label="{%4:\l4:                                                \l  br label %17, !dbg !2807\l}"];
+	Node0x556851702890 -> Node0x5568517029d0;
+	Node0x5568517028e0 [shape=record,label="{%5:\l5:                                                \l  %6 = call i32 @fio_unlock(i8* @fio_signal_set_flag), !dbg !2808\l  %7 = bitcast %struct.sigaction* %1 to i8*, !dbg !2809\l  call void @llvm.memset.p0i8.i64(i8* align 8 %7, i8 0, i64 152, i1 false),\l... !dbg !2809\l  %8 = call i32 @sigaction(i32 2, %struct.sigaction* @fio_old_sig_int,\l... %struct.sigaction* %1) #9, !dbg !2810\l  %9 = call i32 @sigaction(i32 15, %struct.sigaction* @fio_old_sig_term,\l... %struct.sigaction* %1) #9, !dbg !2811\l  %10 = call i32 @sigaction(i32 13, %struct.sigaction* @fio_old_sig_pipe,\l... %struct.sigaction* %1) #9, !dbg !2812\l  %11 = load void (i32)*, void (i32)** getelementptr inbounds\l... (%struct.sigaction, %struct.sigaction* @fio_old_sig_chld, i32 0, i32 0, i32\l... 0), align 8, !dbg !2813\l  %12 = icmp ne void (i32)* %11, null, !dbg !2815\l  br i1 %12, label %13, label %15, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x5568517028e0:s0 -> Node0x556851702930;
+	Node0x5568517028e0:s1 -> Node0x556851702980;
+	Node0x556851702930 [shape=record,label="{%13:\l13:                                               \l  %14 = call i32 @sigaction(i32 17, %struct.sigaction* @fio_old_sig_chld,\l... %struct.sigaction* %1) #9, !dbg !2817\l  br label %15, !dbg !2817\l}"];
+	Node0x556851702930 -> Node0x556851702980;
+	Node0x556851702980 [shape=record,label="{%15:\l15:                                               \l  %16 = call i32 @sigaction(i32 10, %struct.sigaction* @fio_old_sig_usr1,\l... %struct.sigaction* %1) #9, !dbg !2818\l  call void @llvm.memset.p0i8.i64(i8* align 8 bitcast (%struct.sigaction*\l... @fio_old_sig_usr1 to i8*), i8 0, i64 152, i1 false), !dbg !2819\l  call void @llvm.memset.p0i8.i64(i8* align 8 bitcast (%struct.sigaction*\l... @fio_old_sig_int to i8*), i8 0, i64 152, i1 false), !dbg !2820\l  call void @llvm.memset.p0i8.i64(i8* align 8 bitcast (%struct.sigaction*\l... @fio_old_sig_term to i8*), i8 0, i64 152, i1 false), !dbg !2821\l  call void @llvm.memset.p0i8.i64(i8* align 8 bitcast (%struct.sigaction*\l... @fio_old_sig_pipe to i8*), i8 0, i64 152, i1 false), !dbg !2822\l  call void @llvm.memset.p0i8.i64(i8* align 8 bitcast (%struct.sigaction*\l... @fio_old_sig_chld to i8*), i8 0, i64 152, i1 false), !dbg !2823\l  br label %17, !dbg !2824\l}"];
+	Node0x556851702980 -> Node0x5568517029d0;
+	Node0x5568517029d0 [shape=record,label="{%17:\l17:                                               \l  ret void, !dbg !2824\l}"];
+}

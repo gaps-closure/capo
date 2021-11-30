@@ -1,0 +1,19 @@
+digraph "CFG for 'fiobj_hash_set' function" {
+	label="CFG for 'fiobj_hash_set' function";
+
+	Node0x556851e626a0 [shape=record,label="{%3:\l  %4 = alloca i64, align 8\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  store i64 %0, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %1, i64* %5, align 8\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i64 %2, i64* %6, align 8\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  %7 = load i64, i64* %4, align 8, !dbg !2810\l  %8 = icmp ne i64 %7, 0, !dbg !2810\l  br i1 %8, label %9, label %14, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x556851e626a0:s0 -> Node0x556851e635a0;
+	Node0x556851e626a0:s1 -> Node0x556851e63640;
+	Node0x556851e635a0 [shape=record,label="{%9:\l9:                                                \l  %10 = load i64, i64* %4, align 8, !dbg !2810\l  %11 = call i64 @fiobj_type_is.39(i64 %10, i8 zeroext 42), !dbg !2810\l  %12 = icmp ne i64 %11, 0, !dbg !2810\l  br i1 %12, label %13, label %14, !dbg !2813\l|{<s0>T|<s1>F}}"];
+	Node0x556851e635a0:s0 -> Node0x556851e635f0;
+	Node0x556851e635a0:s1 -> Node0x556851e63640;
+	Node0x556851e635f0 [shape=record,label="{%13:\l13:                                               \l  br label %15, !dbg !2813\l}"];
+	Node0x556851e635f0 -> Node0x556851e63690;
+	Node0x556851e63640 [shape=record,label="{%14:\l14:                                               \l  call void @__assert_fail(i8* getelementptr inbounds ([42 x i8], [42 x i8]*\l... @.str.8.59, i64 0, i64 0), i8* getelementptr inbounds ([39 x i8], [39 x i8]*\l... @.str.3.41, i64 0, i64 0), i32 200, i8* getelementptr inbounds ([40 x i8],\l... [40 x i8]* @__PRETTY_FUNCTION__.fiobj_hash_set, i64 0, i64 0)) #10, !dbg !2810\l  unreachable, !dbg !2810\l}"];
+	Node0x556851e63690 [shape=record,label="{%15:\l15:                                               \l  %16 = load i64, i64* %5, align 8, !dbg !2814\l  %17 = call i64 @fiobj_type_is.39(i64 %16, i8 zeroext 40), !dbg !2814\l  %18 = icmp ne i64 %17, 0, !dbg !2814\l  br i1 %18, label %19, label %21, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x556851e63690:s0 -> Node0x556851e636e0;
+	Node0x556851e63690:s1 -> Node0x556851e63730;
+	Node0x556851e636e0 [shape=record,label="{%19:\l19:                                               \l  %20 = load i64, i64* %5, align 8, !dbg !2817\l  call void @fiobj_str_freeze(i64 %20), !dbg !2818\l  br label %21, !dbg !2818\l}"];
+	Node0x556851e636e0 -> Node0x556851e63730;
+	Node0x556851e63730 [shape=record,label="{%21:\l21:                                               \l  %22 = load i64, i64* %4, align 8, !dbg !2819\l  %23 = and i64 %22, -8, !dbg !2819\l  %24 = inttoptr i64 %23 to i8*, !dbg !2819\l  %25 = bitcast i8* %24 to %struct.fiobj_hash_s*, !dbg !2819\l  %26 = getelementptr inbounds %struct.fiobj_hash_s, %struct.fiobj_hash_s*\l... %25, i32 0, i32 1, !dbg !2820\l  %27 = load i64, i64* %5, align 8, !dbg !2821\l  %28 = call i64 @fiobj_obj2hash(i64 %27), !dbg !2822\l  %29 = load i64, i64* %5, align 8, !dbg !2823\l  %30 = load i64, i64* %6, align 8, !dbg !2824\l  call void @fio_hash___insert(%struct.fio_hash___s* %26, i64 %28, i64 %29,\l... i64 %30, i64* null), !dbg !2825\l  %31 = load i64, i64* %6, align 8, !dbg !2826\l  call void @fiobj_free.45(i64 %31), !dbg !2827\l  ret i32 0, !dbg !2828\l}"];
+}

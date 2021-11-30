@@ -1,0 +1,35 @@
+digraph "CFG for 'fiobj_obj2cstr' function" {
+	label="CFG for 'fiobj_obj2cstr' function";
+
+	Node0x556851e75940 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  store i64 %1, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  %4 = load i64, i64* %3, align 8, !dbg !2804\l  %5 = icmp ne i64 %4, 0, !dbg !2804\l  br i1 %5, label %8, label %6, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x556851e75940:s0 -> Node0x556851e76b20;
+	Node0x556851e75940:s1 -> Node0x556851e76ad0;
+	Node0x556851e76ad0 [shape=record,label="{%6:\l6:                                                \l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %0, metadata\l... !2807, metadata !DIExpression()), !dbg !2809\l  %7 = bitcast %struct.fio_str_info_s* %0 to i8*, !dbg !2809\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %7, i8* align 8 bitcast\l... (%struct.fio_str_info_s* @__const.fiobj_obj2cstr.ret to i8*), i64 24, i1\l... false), !dbg !2809\l  br label %37, !dbg !2810\l}"];
+	Node0x556851e76ad0 -> Node0x556851e76e40;
+	Node0x556851e76b20 [shape=record,label="{%8:\l8:                                                \l  %9 = load i64, i64* %3, align 8, !dbg !2811\l  %10 = and i64 %9, 1, !dbg !2813\l  %11 = icmp ne i64 %10, 0, !dbg !2813\l  br i1 %11, label %12, label %15, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x556851e76b20:s0 -> Node0x556851e76b70;
+	Node0x556851e76b20:s1 -> Node0x556851e76bc0;
+	Node0x556851e76b70 [shape=record,label="{%12:\l12:                                               \l  %13 = load i64, i64* %3, align 8, !dbg !2815\l  %14 = ashr i64 %13, 1, !dbg !2816\l  call void @fio_ltocstr(%struct.fio_str_info_s* sret %0, i64 %14), !dbg !2817\l  br label %37, !dbg !2818\l}"];
+	Node0x556851e76b70 -> Node0x556851e76e40;
+	Node0x556851e76bc0 [shape=record,label="{%15:\l15:                                               \l  %16 = load i64, i64* %3, align 8, !dbg !2819\l  %17 = and i64 %16, 6, !dbg !2821\l  %18 = icmp eq i64 %17, 6, !dbg !2822\l  br i1 %18, label %19, label %31, !dbg !2823\l|{<s0>T|<s1>F}}"];
+	Node0x556851e76bc0:s0 -> Node0x556851e76c10;
+	Node0x556851e76bc0:s1 -> Node0x556851e76df0;
+	Node0x556851e76c10 [shape=record,label="{%19:\l19:                                               \l  %20 = load i64, i64* %3, align 8, !dbg !2824\l  %21 = trunc i64 %20 to i8, !dbg !2826\l  %22 = zext i8 %21 to i32, !dbg !2826\l  switch i32 %22, label %29 [\l    i32 6, label %23\l    i32 38, label %25\l    i32 22, label %27\l  ], !dbg !2827\l|{<s0>def|<s1>6|<s2>38|<s3>22}}"];
+	Node0x556851e76c10:s0 -> Node0x556851e76d50;
+	Node0x556851e76c10:s1 -> Node0x556851e76c60;
+	Node0x556851e76c10:s2 -> Node0x556851e76cb0;
+	Node0x556851e76c10:s3 -> Node0x556851e76d00;
+	Node0x556851e76c60 [shape=record,label="{%23:\l23:                                               \l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %0, metadata\l... !2828, metadata !DIExpression()), !dbg !2831\l  %24 = bitcast %struct.fio_str_info_s* %0 to i8*, !dbg !2831\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %24, i8* align 8 bitcast\l... (%struct.fio_str_info_s* @__const.fiobj_obj2cstr.ret.13 to i8*), i64 24, i1\l... false), !dbg !2831\l  br label %37, !dbg !2832\l}"];
+	Node0x556851e76c60 -> Node0x556851e76e40;
+	Node0x556851e76cb0 [shape=record,label="{%25:\l25:                                               \l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %0, metadata\l... !2833, metadata !DIExpression()), !dbg !2835\l  %26 = bitcast %struct.fio_str_info_s* %0 to i8*, !dbg !2835\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %26, i8* align 8 bitcast\l... (%struct.fio_str_info_s* @__const.fiobj_obj2cstr.ret.15 to i8*), i64 24, i1\l... false), !dbg !2835\l  br label %37, !dbg !2836\l}"];
+	Node0x556851e76cb0 -> Node0x556851e76e40;
+	Node0x556851e76d00 [shape=record,label="{%27:\l27:                                               \l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %0, metadata\l... !2837, metadata !DIExpression()), !dbg !2839\l  %28 = bitcast %struct.fio_str_info_s* %0 to i8*, !dbg !2839\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %28, i8* align 8 bitcast\l... (%struct.fio_str_info_s* @__const.fiobj_obj2cstr.ret.17 to i8*), i64 24, i1\l... false), !dbg !2839\l  br label %37, !dbg !2840\l}"];
+	Node0x556851e76d00 -> Node0x556851e76e40;
+	Node0x556851e76d50 [shape=record,label="{%29:\l29:                                               \l  br label %30, !dbg !2841\l}"];
+	Node0x556851e76d50 -> Node0x556851e76da0;
+	Node0x556851e76da0 [shape=record,label="{%30:\l30:                                               \l  br label %31, !dbg !2842\l}"];
+	Node0x556851e76da0 -> Node0x556851e76df0;
+	Node0x556851e76df0 [shape=record,label="{%31:\l31:                                               \l  %32 = load i64, i64* %3, align 8, !dbg !2843\l  %33 = call %struct.fiobj_object_vtable_s* @fiobj_type_vtable.46(i64 %32),\l... !dbg !2843\l  %34 = getelementptr inbounds %struct.fiobj_object_vtable_s,\l... %struct.fiobj_object_vtable_s* %33, i32 0, i32 6, !dbg !2844\l  %35 = load void (%struct.fio_str_info_s*, i64)*, void\l... (%struct.fio_str_info_s*, i64)** %34, align 8, !dbg !2844\l  %36 = load i64, i64* %3, align 8, !dbg !2845\l  call void %35(%struct.fio_str_info_s* sret %0, i64 %36), !dbg !2843\l  br label %37, !dbg !2846\l}"];
+	Node0x556851e76df0 -> Node0x556851e76e40;
+	Node0x556851e76e40 [shape=record,label="{%37:\l37:                                               \l  ret void, !dbg !2847\l}"];
+}

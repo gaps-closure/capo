@@ -1,0 +1,18 @@
+digraph "CFG for 'fio_packet_alloc' function" {
+	label="CFG for 'fio_packet_alloc' function";
+
+	Node0x5568514be1a0 [shape=record,label="{%0:\l  %1 = alloca %struct.fio_packet_s*, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_packet_s** %1, metadata\l... !2804, metadata !DIExpression()), !dbg !2805\l  %2 = call noalias i8* @fio_malloc(i64 48), !dbg !2806\l  %3 = ptrtoint i8* %2 to i64, !dbg !2806\l  %4 = and i64 %3, 15, !dbg !2806\l  %5 = icmp eq i64 %4, 0, !dbg !2806\l  call void @llvm.assume(i1 %5), !dbg !2806\l  %6 = bitcast i8* %2 to %struct.fio_packet_s*, !dbg !2806\l  store %struct.fio_packet_s* %6, %struct.fio_packet_s** %1, align 8, !dbg\l... !2805\l  %7 = load %struct.fio_packet_s*, %struct.fio_packet_s** %1, align 8, !dbg\l... !2807\l  %8 = icmp ne %struct.fio_packet_s* %7, null, !dbg !2807\l  br i1 %8, label %19, label %9, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x5568514be1a0:s0 -> Node0x5568514be3c0;
+	Node0x5568514be1a0:s1 -> Node0x5568514be230;
+	Node0x5568514be230 [shape=record,label="{%9:\l9:                                                \l  br label %10, !dbg !2811\l}"];
+	Node0x5568514be230 -> Node0x5568514be280;
+	Node0x5568514be280 [shape=record,label="{%10:\l10:                                               \l  %11 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2813\l  %12 = icmp sle i32 1, %11, !dbg !2813\l  br i1 %12, label %13, label %14, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x5568514be280:s0 -> Node0x5568514be2d0;
+	Node0x5568514be280:s1 -> Node0x5568514be320;
+	Node0x5568514be2d0 [shape=record,label="{%13:\l13:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([67 x i8],\l... [67 x i8]* @.str.51, i64 0, i64 0)), !dbg !2817\l  br label %14, !dbg !2817\l}"];
+	Node0x5568514be2d0 -> Node0x5568514be320;
+	Node0x5568514be320 [shape=record,label="{%14:\l14:                                               \l  br label %15, !dbg !2816\l}"];
+	Node0x5568514be320 -> Node0x5568514be370;
+	Node0x5568514be370 [shape=record,label="{%15:\l15:                                               \l  %16 = call i32 @kill(i32 0, i32 2) #9, !dbg !2811\l  %17 = call i32* @__errno_location() #10, !dbg !2811\l  %18 = load i32, i32* %17, align 4, !dbg !2811\l  call void @exit(i32 %18) #11, !dbg !2811\l  unreachable, !dbg !2811\l}"];
+	Node0x5568514be3c0 [shape=record,label="{%19:\l19:                                               \l  %20 = load %struct.fio_packet_s*, %struct.fio_packet_s** %1, align 8, !dbg\l... !2819\l  ret %struct.fio_packet_s* %20, !dbg !2820\l}"];
+}

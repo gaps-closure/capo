@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_last_tick' function" {
+	label="CFG for 'fio_last_tick' function";
+
+	Node0x5568516afef0 [shape=record,label="{%0:\l  %1 = alloca %struct.rlimit, align 8\l  %2 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2804\l  %3 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %2, i32\l... 0, i32 0, !dbg !2805\l  %4 = bitcast %struct.rlimit* %1 to i8*, !dbg !2805\l  %5 = bitcast %struct.rlimit* %3 to i8*, !dbg !2805\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %4, i8* align 8 %5, i64 16,\l... i1 false), !dbg !2805\l  %6 = bitcast %struct.rlimit* %1 to \{ i64, i64 \}*, !dbg !2806\l  %7 = load \{ i64, i64 \}, \{ i64, i64 \}* %6, align 8, !dbg !2806\l  ret \{ i64, i64 \} %7, !dbg !2806\l}"];
+}

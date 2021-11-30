@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_json_on_true' function" {
+	label="CFG for 'fio_json_on_true' function";
+
+	Node0x556851ec0b20 [shape=record,label="{%1:\l  %2 = alloca %struct.json_parser_s*, align 8\l  store %struct.json_parser_s* %0, %struct.json_parser_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.json_parser_s** %2, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  %3 = load %struct.json_parser_s*, %struct.json_parser_s** %2, align 8, !dbg\l... !2807\l  %4 = bitcast %struct.json_parser_s* %3 to %struct.fiobj_json_parser_s*, !dbg\l... !2808\l  %5 = call i64 @fiobj_true.68(), !dbg !2809\l  call void @fiobj_json_add2parser(%struct.fiobj_json_parser_s* %4, i64 %5),\l... !dbg !2810\l  ret void, !dbg !2811\l}"];
+}

@@ -1,0 +1,5 @@
+digraph "CFG for 'websocket_uuid' function" {
+	label="CFG for 'websocket_uuid' function";
+
+	Node0x556852651870 [shape=record,label="{%1:\l  %2 = alloca %struct.ws_s*, align 8\l  store %struct.ws_s* %0, %struct.ws_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.ws_s** %2, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  %3 = load %struct.ws_s*, %struct.ws_s** %2, align 8, !dbg !2806\l  %4 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %3, i32 0, i32 1,\l... !dbg !2807\l  %5 = load i64, i64* %4, align 8, !dbg !2807\l  ret i64 %5, !dbg !2808\l}"];
+}

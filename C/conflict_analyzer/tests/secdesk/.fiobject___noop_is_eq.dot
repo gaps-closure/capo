@@ -1,0 +1,5 @@
+digraph "CFG for 'fiobject___noop_is_eq' function" {
+	label="CFG for 'fiobject___noop_is_eq' function";
+
+	Node0x556851e1d440 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  %4 = alloca i64, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store i64 %1, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %5 = load i64, i64* %3, align 8, !dbg !2806\l  %6 = load i64, i64* %4, align 8, !dbg !2807\l  ret i64 0, !dbg !2808\l}"];
+}

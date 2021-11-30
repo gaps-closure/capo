@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_ct_if2' function" {
+	label="CFG for 'fio_ct_if2' function";
+
+	Node0x556851471fe0 [shape=record,label="{%3:\l  %4 = alloca i64, align 8\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  store i64 %0, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %1, i64* %5, align 8\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i64 %2, i64* %6, align 8\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  %7 = load i64, i64* %4, align 8, !dbg !2810\l  %8 = call i64 @fio_ct_true(i64 %7), !dbg !2811\l  %9 = trunc i64 %8 to i8, !dbg !2811\l  %10 = load i64, i64* %5, align 8, !dbg !2812\l  %11 = load i64, i64* %6, align 8, !dbg !2813\l  %12 = call i64 @fio_ct_if(i8 zeroext %9, i64 %10, i64 %11), !dbg !2814\l  ret i64 %12, !dbg !2815\l}"];
+}

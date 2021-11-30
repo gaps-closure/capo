@@ -1,0 +1,32 @@
+digraph "CFG for 'fio_flush_all' function" {
+	label="CFG for 'fio_flush_all' function";
+
+	Node0x5568515638f0 [shape=record,label="{%0:\l  %1 = alloca i64, align 8\l  %2 = alloca i64, align 8\l  %3 = alloca i64, align 8\l  %4 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2803\l  %5 = icmp ne %struct.fio_data_s* %4, null, !dbg !2803\l  br i1 %5, label %7, label %6, !dbg !2805\l|{<s0>T|<s1>F}}"];
+	Node0x5568515638f0:s0 -> Node0x556851565260;
+	Node0x5568515638f0:s1 -> Node0x556851565210;
+	Node0x556851565210 [shape=record,label="{%6:\l6:                                                \l  store i64 0, i64* %1, align 8, !dbg !2806\l  br label %54, !dbg !2806\l}"];
+	Node0x556851565210 -> Node0x556851565530;
+	Node0x556851565260 [shape=record,label="{%7:\l7:                                                \l  call void @llvm.dbg.declare(metadata i64* %2, metadata !2807, metadata\l... !DIExpression()), !dbg !2808\l  store i64 0, i64* %2, align 8, !dbg !2808\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2809, metadata\l... !DIExpression()), !dbg !2811\l  store i64 0, i64* %3, align 8, !dbg !2811\l  br label %8, !dbg !2812\l}"];
+	Node0x556851565260 -> Node0x5568515652b0;
+	Node0x5568515652b0 [shape=record,label="{%8:\l8:                                                \l  %9 = load i64, i64* %3, align 8, !dbg !2813\l  %10 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2815\l  %11 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %10,\l... i32 0, i32 10, !dbg !2816\l  %12 = load i32, i32* %11, align 8, !dbg !2816\l  %13 = zext i32 %12 to i64, !dbg !2815\l  %14 = icmp ule i64 %9, %13, !dbg !2817\l  br i1 %14, label %15, label %52, !dbg !2818\l|{<s0>T|<s1>F}}"];
+	Node0x5568515652b0:s0 -> Node0x556851565300;
+	Node0x5568515652b0:s1 -> Node0x5568515654e0;
+	Node0x556851565300 [shape=record,label="{%15:\l15:                                               \l  %16 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2819\l  %17 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %16,\l... i32 0, i32 12, !dbg !2819\l  %18 = load i64, i64* %3, align 8, !dbg !2819\l  %19 = getelementptr inbounds [0 x %struct.fio_fd_data_s], [0 x\l... %struct.fio_fd_data_s]* %17, i64 0, i64 %18, !dbg !2819\l  %20 = getelementptr inbounds %struct.fio_fd_data_s, %struct.fio_fd_data_s*\l... %19, i32 0, i32 11, !dbg !2822\l  %21 = load i8, i8* %20, align 1, !dbg !2822\l  %22 = zext i8 %21 to i32, !dbg !2819\l  %23 = icmp ne i32 %22, 0, !dbg !2819\l  br i1 %23, label %32, label %24, !dbg !2823\l|{<s0>T|<s1>F}}"];
+	Node0x556851565300:s0 -> Node0x5568515653a0;
+	Node0x556851565300:s1 -> Node0x556851565350;
+	Node0x556851565350 [shape=record,label="{%24:\l24:                                               \l  %25 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2824\l  %26 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %25,\l... i32 0, i32 12, !dbg !2824\l  %27 = load i64, i64* %3, align 8, !dbg !2824\l  %28 = getelementptr inbounds [0 x %struct.fio_fd_data_s], [0 x\l... %struct.fio_fd_data_s]* %26, i64 0, i64 %27, !dbg !2824\l  %29 = getelementptr inbounds %struct.fio_fd_data_s, %struct.fio_fd_data_s*\l... %28, i32 0, i32 0, !dbg !2825\l  %30 = load %struct.fio_packet_s*, %struct.fio_packet_s** %29, align 8, !dbg\l... !2825\l  %31 = icmp ne %struct.fio_packet_s* %30, null, !dbg !2824\l  br i1 %31, label %32, label %48, !dbg !2826\l|{<s0>T|<s1>F}}"];
+	Node0x556851565350:s0 -> Node0x5568515653a0;
+	Node0x556851565350:s1 -> Node0x556851565440;
+	Node0x5568515653a0 [shape=record,label="{%32:\l32:                                               \l  %33 = load i64, i64* %3, align 8, !dbg !2827\l  %34 = shl i64 %33, 8, !dbg !2827\l  %35 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2827\l  %36 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %35,\l... i32 0, i32 12, !dbg !2827\l  %37 = load i64, i64* %3, align 8, !dbg !2827\l  %38 = getelementptr inbounds [0 x %struct.fio_fd_data_s], [0 x\l... %struct.fio_fd_data_s]* %36, i64 0, i64 %37, !dbg !2827\l  %39 = getelementptr inbounds %struct.fio_fd_data_s, %struct.fio_fd_data_s*\l... %38, i32 0, i32 9, !dbg !2827\l  %40 = load i8, i8* %39, align 1, !dbg !2827\l  %41 = zext i8 %40 to i64, !dbg !2827\l  %42 = or i64 %34, %41, !dbg !2827\l  %43 = call i64 @fio_flush(i64 %42), !dbg !2828\l  %44 = icmp sgt i64 %43, 0, !dbg !2829\l  br i1 %44, label %45, label %48, !dbg !2830\l|{<s0>T|<s1>F}}"];
+	Node0x5568515653a0:s0 -> Node0x5568515653f0;
+	Node0x5568515653a0:s1 -> Node0x556851565440;
+	Node0x5568515653f0 [shape=record,label="{%45:\l45:                                               \l  %46 = load i64, i64* %2, align 8, !dbg !2831\l  %47 = add i64 %46, 1, !dbg !2831\l  store i64 %47, i64* %2, align 8, !dbg !2831\l  br label %48, !dbg !2831\l}"];
+	Node0x5568515653f0 -> Node0x556851565440;
+	Node0x556851565440 [shape=record,label="{%48:\l48:                                               \l  br label %49, !dbg !2832\l}"];
+	Node0x556851565440 -> Node0x556851565490;
+	Node0x556851565490 [shape=record,label="{%49:\l49:                                               \l  %50 = load i64, i64* %3, align 8, !dbg !2833\l  %51 = add i64 %50, 1, !dbg !2833\l  store i64 %51, i64* %3, align 8, !dbg !2833\l  br label %8, !dbg !2834, !llvm.loop !2835\l}"];
+	Node0x556851565490 -> Node0x5568515652b0;
+	Node0x5568515654e0 [shape=record,label="{%52:\l52:                                               \l  %53 = load i64, i64* %2, align 8, !dbg !2837\l  store i64 %53, i64* %1, align 8, !dbg !2838\l  br label %54, !dbg !2838\l}"];
+	Node0x5568515654e0 -> Node0x556851565530;
+	Node0x556851565530 [shape=record,label="{%54:\l54:                                               \l  %55 = load i64, i64* %1, align 8, !dbg !2839\l  ret i64 %55, !dbg !2839\l}"];
+}

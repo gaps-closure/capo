@@ -1,0 +1,10 @@
+digraph "CFG for 'on_ready' function" {
+	label="CFG for 'on_ready' function";
+
+	Node0x55685259d630 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  %4 = alloca %struct.fio_protocol_s*, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store %struct.fio_protocol_s* %1, %struct.fio_protocol_s** %4, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_protocol_s** %4, metadata\l... !2804, metadata !DIExpression()), !dbg !2805\l  %5 = load i64, i64* %3, align 8, !dbg !2806\l  %6 = load %struct.fio_protocol_s*, %struct.fio_protocol_s** %4, align 8,\l... !dbg !2807\l  %7 = bitcast %struct.fio_protocol_s* %6 to %struct.ws_s*, !dbg !2809\l  %8 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %7, i32 0, i32 4,\l... !dbg !2809\l  %9 = load void (%struct.ws_s*)*, void (%struct.ws_s*)** %8, align 8, !dbg\l... !2809\l  %10 = icmp ne void (%struct.ws_s*)* %9, null, !dbg !2810\l  br i1 %10, label %11, label %18, !dbg !2811\l|{<s0>T|<s1>F}}"];
+	Node0x55685259d630:s0 -> Node0x5568525a38e0;
+	Node0x55685259d630:s1 -> Node0x5568525a3930;
+	Node0x5568525a38e0 [shape=record,label="{%11:\l11:                                               \l  %12 = load %struct.fio_protocol_s*, %struct.fio_protocol_s** %4, align 8,\l... !dbg !2812\l  %13 = bitcast %struct.fio_protocol_s* %12 to %struct.ws_s*, !dbg !2813\l  %14 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %13, i32 0, i32 4,\l... !dbg !2813\l  %15 = load void (%struct.ws_s*)*, void (%struct.ws_s*)** %14, align 8, !dbg\l... !2813\l  %16 = load %struct.fio_protocol_s*, %struct.fio_protocol_s** %4, align 8,\l... !dbg !2814\l  %17 = bitcast %struct.fio_protocol_s* %16 to %struct.ws_s*, !dbg !2815\l  call void %15(%struct.ws_s* %17), !dbg !2816\l  br label %18, !dbg !2816\l}"];
+	Node0x5568525a38e0 -> Node0x5568525a3930;
+	Node0x5568525a3930 [shape=record,label="{%18:\l18:                                               \l  ret void, !dbg !2817\l}"];
+}

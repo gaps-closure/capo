@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_reschedule_thread.1878' function" {
+	label="CFG for 'fio_reschedule_thread.1878' function";
+
+	Node0x556852598080 [shape=record,label="{%0:\l  %1 = alloca %struct.rlimit, align 8\l  call void @llvm.dbg.declare(metadata %struct.rlimit* %1, metadata !2802,\l... metadata !DIExpression()), !dbg !2808\l  %2 = bitcast %struct.rlimit* %1 to i8*, !dbg !2808\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %2, i8* align 8 bitcast\l... (%struct.rlimit* @__const.fio_reschedule_thread.tm.1879 to i8*), i64 16, i1\l... false), !dbg !2808\l  %3 = call i32 @nanosleep(%struct.rlimit* %1, %struct.rlimit* null), !dbg\l... !2809\l  ret void, !dbg !2810\l}"];
+}

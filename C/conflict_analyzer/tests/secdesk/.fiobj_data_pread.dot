@@ -1,0 +1,23 @@
+digraph "CFG for 'fiobj_data_pread' function" {
+	label="CFG for 'fiobj_data_pread' function";
+
+	Node0x556851d740b0 [shape=record,label="{%4:\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  %7 = alloca i64, align 8\l  store i64 %1, i64* %5, align 8\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %2, i64* %6, align 8\l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i64 %3, i64* %7, align 8\l  call void @llvm.dbg.declare(metadata i64* %7, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  %8 = load i64, i64* %5, align 8, !dbg !2810\l  %9 = icmp ne i64 %8, 0, !dbg !2810\l  br i1 %9, label %10, label %14, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x556851d740b0:s0 -> Node0x556851d74100;
+	Node0x556851d740b0:s1 -> Node0x556851d74150;
+	Node0x556851d74100 [shape=record,label="{%10:\l10:                                               \l  %11 = load i64, i64* %5, align 8, !dbg !2813\l  %12 = call i64 @fiobj_type_is.17(i64 %11, i8 zeroext 43), !dbg !2813\l  %13 = icmp ne i64 %12, 0, !dbg !2813\l  br i1 %13, label %19, label %14, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x556851d74100:s0 -> Node0x556851d741a0;
+	Node0x556851d74100:s1 -> Node0x556851d74150;
+	Node0x556851d74150 [shape=record,label="{%14:\l14:                                               \l  %15 = call i32* @__errno_location() #10, !dbg !2815\l  store i32 14, i32* %15, align 4, !dbg !2817\l  %16 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %0, i32 0, i32 0, !dbg !2818\l  store i64 0, i64* %16, align 8, !dbg !2818\l  %17 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %0, i32 0, i32 1, !dbg !2818\l  store i64 0, i64* %17, align 8, !dbg !2818\l  %18 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %0, i32 0, i32 2, !dbg !2818\l  store i8* null, i8** %18, align 8, !dbg !2818\l  br label %37, !dbg !2819\l}"];
+	Node0x556851d74150 -> Node0x556851d742e0;
+	Node0x556851d741a0 [shape=record,label="{%19:\l19:                                               \l  %20 = call i32* @__errno_location() #10, !dbg !2820\l  store i32 0, i32* %20, align 4, !dbg !2821\l  %21 = load i64, i64* %5, align 8, !dbg !2822\l  %22 = inttoptr i64 %21 to %struct.fiobj_data_s*, !dbg !2822\l  %23 = getelementptr inbounds %struct.fiobj_data_s, %struct.fiobj_data_s*\l... %22, i32 0, i32 6, !dbg !2823\l  %24 = load i32, i32* %23, align 8, !dbg !2823\l  switch i32 %24, label %33 [\l    i32 -1, label %25\l    i32 -2, label %29\l  ], !dbg !2824\l|{<s0>def|<s1>-1|<s2>-2}}"];
+	Node0x556851d741a0:s0 -> Node0x556851d74290;
+	Node0x556851d741a0:s1 -> Node0x556851d741f0;
+	Node0x556851d741a0:s2 -> Node0x556851d74240;
+	Node0x556851d741f0 [shape=record,label="{%25:\l25:                                               \l  %26 = load i64, i64* %5, align 8, !dbg !2825\l  %27 = load i64, i64* %6, align 8, !dbg !2827\l  %28 = load i64, i64* %7, align 8, !dbg !2828\l  call void @fiobj_data_pread_str(%struct.fio_str_info_s* sret %0, i64 %26,\l... i64 %27, i64 %28), !dbg !2829\l  br label %37, !dbg !2830\l}"];
+	Node0x556851d741f0 -> Node0x556851d742e0;
+	Node0x556851d74240 [shape=record,label="{%29:\l29:                                               \l  %30 = load i64, i64* %5, align 8, !dbg !2831\l  %31 = load i64, i64* %6, align 8, !dbg !2832\l  %32 = load i64, i64* %7, align 8, !dbg !2833\l  call void @fiobj_data_pread_slice(%struct.fio_str_info_s* sret %0, i64 %30,\l... i64 %31, i64 %32), !dbg !2834\l  br label %37, !dbg !2835\l}"];
+	Node0x556851d74240 -> Node0x556851d742e0;
+	Node0x556851d74290 [shape=record,label="{%33:\l33:                                               \l  %34 = load i64, i64* %5, align 8, !dbg !2836\l  %35 = load i64, i64* %6, align 8, !dbg !2837\l  %36 = load i64, i64* %7, align 8, !dbg !2838\l  call void @fiobj_data_pread_file(%struct.fio_str_info_s* sret %0, i64 %34,\l... i64 %35, i64 %36), !dbg !2839\l  br label %37, !dbg !2840\l}"];
+	Node0x556851d74290 -> Node0x556851d742e0;
+	Node0x556851d742e0 [shape=record,label="{%37:\l37:                                               \l  ret void, !dbg !2841\l}"];
+}

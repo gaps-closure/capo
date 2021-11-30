@@ -1,0 +1,31 @@
+digraph "CFG for 'fio_send2cluster' function" {
+	label="CFG for 'fio_send2cluster' function";
+
+	Node0x55685180c4c0 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_msg_internal_s*, align 8\l  store %struct.fio_msg_internal_s* %0, %struct.fio_msg_internal_s** %2, align\l... 8\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_internal_s** %2,\l... metadata !2804, metadata !DIExpression()), !dbg !2805\l  %3 = call signext i16 @fio_is_running(), !dbg !2806\l  %4 = icmp ne i16 %3, 0, !dbg !2806\l  br i1 %4, label %12, label %5, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x55685180c4c0:s0 -> Node0x5568518104b0;
+	Node0x55685180c4c0:s1 -> Node0x556851810320;
+	Node0x556851810320 [shape=record,label="{%5:\l5:                                                \l  br label %6, !dbg !2809\l}"];
+	Node0x556851810320 -> Node0x556851810370;
+	Node0x556851810370 [shape=record,label="{%6:\l6:                                                \l  %7 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2811\l  %8 = icmp sle i32 2, %7, !dbg !2811\l  br i1 %8, label %9, label %10, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x556851810370:s0 -> Node0x5568518103c0;
+	Node0x556851810370:s1 -> Node0x556851810410;
+	Node0x5568518103c0 [shape=record,label="{%9:\l9:                                                \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([54 x i8],\l... [54 x i8]* @.str.88, i64 0, i64 0)), !dbg !2815\l  br label %10, !dbg !2815\l}"];
+	Node0x5568518103c0 -> Node0x556851810410;
+	Node0x556851810410 [shape=record,label="{%10:\l10:                                               \l  br label %11, !dbg !2814\l}"];
+	Node0x556851810410 -> Node0x556851810460;
+	Node0x556851810460 [shape=record,label="{%11:\l11:                                               \l  br label %30, !dbg !2817\l}"];
+	Node0x556851810460 -> Node0x556851810640;
+	Node0x5568518104b0 [shape=record,label="{%12:\l12:                                               \l  %13 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8,\l... !dbg !2818\l  %14 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %13,\l... i32 0, i32 4, !dbg !2820\l  %15 = load i16, i16* %14, align 8, !dbg !2820\l  %16 = zext i16 %15 to i32, !dbg !2818\l  %17 = icmp eq i32 %16, 1, !dbg !2821\l  br i1 %17, label %18, label %19, !dbg !2822\l|{<s0>T|<s1>F}}"];
+	Node0x5568518104b0:s0 -> Node0x556851810500;
+	Node0x5568518104b0:s1 -> Node0x556851810550;
+	Node0x556851810500 [shape=record,label="{%18:\l18:                                               \l  br label %30, !dbg !2823\l}"];
+	Node0x556851810500 -> Node0x556851810640;
+	Node0x556851810550 [shape=record,label="{%19:\l19:                                               \l  %20 = call i32 @fio_is_master(), !dbg !2825\l  %21 = icmp ne i32 %20, 0, !dbg !2825\l  br i1 %21, label %22, label %26, !dbg !2827\l|{<s0>T|<s1>F}}"];
+	Node0x556851810550:s0 -> Node0x5568518105a0;
+	Node0x556851810550:s1 -> Node0x5568518105f0;
+	Node0x5568518105a0 [shape=record,label="{%22:\l22:                                               \l  %23 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2828\l  %24 = call %struct.fio_msg_internal_s*\l... @fio_msg_internal_dup(%struct.fio_msg_internal_s* %23), !dbg !2830\l  %25 = bitcast %struct.fio_msg_internal_s* %24 to i8*, !dbg !2830\l  call void @fio_cluster_server_sender(i8* %25, i64 -1), !dbg !2831\l  br label %30, !dbg !2832\l}"];
+	Node0x5568518105a0 -> Node0x556851810640;
+	Node0x5568518105f0 [shape=record,label="{%26:\l26:                                               \l  %27 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2833\l  %28 = call %struct.fio_msg_internal_s*\l... @fio_msg_internal_dup(%struct.fio_msg_internal_s* %27), !dbg !2835\l  %29 = bitcast %struct.fio_msg_internal_s* %28 to i8*, !dbg !2835\l  call void @fio_cluster_client_sender(i8* %29, i64 -1), !dbg !2836\l  br label %30\l}"];
+	Node0x5568518105f0 -> Node0x556851810640;
+	Node0x556851810640 [shape=record,label="{%30:\l30:                                               \l  ret void, !dbg !2837\l}"];
+}

@@ -1,0 +1,5 @@
+digraph "CFG for 'mock_on_ev' function" {
+	label="CFG for 'mock_on_ev' function";
+
+	Node0x55685156a860 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  %4 = alloca %struct.fio_protocol_s*, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store %struct.fio_protocol_s* %1, %struct.fio_protocol_s** %4, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_protocol_s** %4, metadata\l... !2804, metadata !DIExpression()), !dbg !2805\l  %5 = load i64, i64* %3, align 8, !dbg !2806\l  %6 = load %struct.fio_protocol_s*, %struct.fio_protocol_s** %4, align 8,\l... !dbg !2807\l  ret void, !dbg !2808\l}"];
+}

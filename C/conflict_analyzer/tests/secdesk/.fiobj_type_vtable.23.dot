@@ -1,0 +1,33 @@
+digraph "CFG for 'fiobj_type_vtable.23' function" {
+	label="CFG for 'fiobj_type_vtable.23' function";
+
+	Node0x556851df5910 [shape=record,label="{%1:\l  %2 = alloca %struct.fiobj_object_vtable_s*, align 8\l  %3 = alloca i64, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2828, metadata\l... !DIExpression()), !dbg !2829\l  %4 = load i64, i64* %3, align 8, !dbg !2830\l  %5 = call zeroext i8 @fiobj_type.25(i64 %4), !dbg !2830\l  %6 = zext i8 %5 to i32, !dbg !2830\l  switch i32 %6, label %14 [\l    i32 1, label %7\l    i32 39, label %8\l    i32 40, label %9\l    i32 41, label %10\l    i32 42, label %11\l    i32 43, label %12\l    i32 6, label %13\l    i32 22, label %13\l    i32 38, label %13\l    i32 44, label %13\l  ], !dbg !2831\l|{<s0>def|<s1>1|<s2>39|<s3>40|<s4>41|<s5>42|<s6>43|<s7>6|<s8>22|<s9>38|<s10>44}}"];
+	Node0x556851df5910:s0 -> Node0x556851dfb240;
+	Node0x556851df5910:s1 -> Node0x556851dfb010;
+	Node0x556851df5910:s2 -> Node0x556851dfb060;
+	Node0x556851df5910:s3 -> Node0x556851dfb0b0;
+	Node0x556851df5910:s4 -> Node0x556851dfb100;
+	Node0x556851df5910:s5 -> Node0x556851dfb150;
+	Node0x556851df5910:s6 -> Node0x556851dfb1a0;
+	Node0x556851df5910:s7 -> Node0x556851dfb1f0;
+	Node0x556851df5910:s8 -> Node0x556851dfb1f0;
+	Node0x556851df5910:s9 -> Node0x556851dfb1f0;
+	Node0x556851df5910:s10 -> Node0x556851dfb1f0;
+	Node0x556851dfb010 [shape=record,label="{%7:\l7:                                                \l  store %struct.fiobj_object_vtable_s* @FIOBJECT_VTABLE_NUMBER,\l... %struct.fiobj_object_vtable_s** %2, align 8, !dbg !2832\l  br label %15, !dbg !2832\l}"];
+	Node0x556851dfb010 -> Node0x556851dfb290;
+	Node0x556851dfb060 [shape=record,label="{%8:\l8:                                                \l  store %struct.fiobj_object_vtable_s* @FIOBJECT_VTABLE_FLOAT,\l... %struct.fiobj_object_vtable_s** %2, align 8, !dbg !2834\l  br label %15, !dbg !2834\l}"];
+	Node0x556851dfb060 -> Node0x556851dfb290;
+	Node0x556851dfb0b0 [shape=record,label="{%9:\l9:                                                \l  store %struct.fiobj_object_vtable_s* @FIOBJECT_VTABLE_STRING,\l... %struct.fiobj_object_vtable_s** %2, align 8, !dbg !2835\l  br label %15, !dbg !2835\l}"];
+	Node0x556851dfb0b0 -> Node0x556851dfb290;
+	Node0x556851dfb100 [shape=record,label="{%10:\l10:                                               \l  store %struct.fiobj_object_vtable_s* @FIOBJECT_VTABLE_ARRAY,\l... %struct.fiobj_object_vtable_s** %2, align 8, !dbg !2836\l  br label %15, !dbg !2836\l}"];
+	Node0x556851dfb100 -> Node0x556851dfb290;
+	Node0x556851dfb150 [shape=record,label="{%11:\l11:                                               \l  store %struct.fiobj_object_vtable_s* @FIOBJECT_VTABLE_HASH,\l... %struct.fiobj_object_vtable_s** %2, align 8, !dbg !2837\l  br label %15, !dbg !2837\l}"];
+	Node0x556851dfb150 -> Node0x556851dfb290;
+	Node0x556851dfb1a0 [shape=record,label="{%12:\l12:                                               \l  store %struct.fiobj_object_vtable_s* @FIOBJECT_VTABLE_DATA,\l... %struct.fiobj_object_vtable_s** %2, align 8, !dbg !2838\l  br label %15, !dbg !2838\l}"];
+	Node0x556851dfb1a0 -> Node0x556851dfb290;
+	Node0x556851dfb1f0 [shape=record,label="{%13:\l13:                                               \l  store %struct.fiobj_object_vtable_s* null, %struct.fiobj_object_vtable_s**\l... %2, align 8, !dbg !2839\l  br label %15, !dbg !2839\l}"];
+	Node0x556851dfb1f0 -> Node0x556851dfb290;
+	Node0x556851dfb240 [shape=record,label="{%14:\l14:                                               \l  store %struct.fiobj_object_vtable_s* null, %struct.fiobj_object_vtable_s**\l... %2, align 8, !dbg !2840\l  br label %15, !dbg !2840\l}"];
+	Node0x556851dfb240 -> Node0x556851dfb290;
+	Node0x556851dfb290 [shape=record,label="{%15:\l15:                                               \l  %16 = load %struct.fiobj_object_vtable_s*, %struct.fiobj_object_vtable_s**\l... %2, align 8, !dbg !2841\l  ret %struct.fiobj_object_vtable_s* %16, !dbg !2841\l}"];
+}

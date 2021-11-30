@@ -1,0 +1,10 @@
+digraph "CFG for 'fio_atol_skip_test' function" {
+	label="CFG for 'fio_atol_skip_test' function";
+
+	Node0x5568515a8b10 [shape=record,label="{%2:\l  %3 = alloca i8**, align 8\l  %4 = alloca i8, align 1\l  store i8** %0, i8*** %3, align 8\l  call void @llvm.dbg.declare(metadata i8*** %3, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i8 %1, i8* %4, align 1\l  call void @llvm.dbg.declare(metadata i8* %4, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  %5 = load i8**, i8*** %3, align 8, !dbg !2808\l  %6 = load i8*, i8** %5, align 8, !dbg !2809\l  %7 = load i8, i8* %6, align 1, !dbg !2810\l  %8 = sext i8 %7 to i32, !dbg !2810\l  %9 = icmp sge i32 %8, 48, !dbg !2811\l  br i1 %9, label %10, label %19, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x5568515a8b10:s0 -> Node0x5568515a8bc0;
+	Node0x5568515a8b10:s1 -> Node0x5568515a8c10;
+	Node0x5568515a8bc0 [shape=record,label="{%10:\l10:                                               \l  %11 = load i8**, i8*** %3, align 8, !dbg !2813\l  %12 = load i8*, i8** %11, align 8, !dbg !2814\l  %13 = load i8, i8* %12, align 1, !dbg !2815\l  %14 = sext i8 %13 to i32, !dbg !2815\l  %15 = load i8, i8* %4, align 1, !dbg !2816\l  %16 = zext i8 %15 to i32, !dbg !2816\l  %17 = add nsw i32 48, %16, !dbg !2817\l  %18 = icmp slt i32 %14, %17, !dbg !2818\l  br label %19\l}"];
+	Node0x5568515a8bc0 -> Node0x5568515a8c10;
+	Node0x5568515a8c10 [shape=record,label="{%19:\l19:                                               \l  %20 = phi i1 [ false, %2 ], [ %18, %10 ], !dbg !2819\l  %21 = zext i1 %20 to i32, !dbg !2812\l  %22 = trunc i32 %21 to i8, !dbg !2820\l  ret i8 %22, !dbg !2821\l}"];
+}

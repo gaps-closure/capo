@@ -1,0 +1,25 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Argument Mismatch",
+            "description": "Label 'ORANGE' expects 'foo' to have 1 argument.",
+            "sources": [{
+                "file": "annotated/argtaint-mismatch.c",
+                "range": {
+                    "start": {
+                        "line": 15,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 17,
+                        "character": 22
+                    }
+                }
+            }],
+            "remedies": [
+                "Remove argtaint in label definition for 'ORANGE'"
+            ]
+        }
+    ]
+}

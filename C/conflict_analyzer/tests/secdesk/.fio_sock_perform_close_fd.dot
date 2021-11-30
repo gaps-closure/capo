@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_sock_perform_close_fd' function" {
+	label="CFG for 'fio_sock_perform_close_fd' function";
+
+	Node0x5568514c8a80 [shape=record,label="{%1:\l  %2 = alloca i64, align 8\l  store i64 %0, i64* %2, align 8\l  call void @llvm.dbg.declare(metadata i64* %2, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %3 = load i64, i64* %2, align 8, !dbg !2806\l  %4 = trunc i64 %3 to i32, !dbg !2806\l  %5 = call i32 @close(i32 %4), !dbg !2807\l  ret void, !dbg !2808\l}"];
+}

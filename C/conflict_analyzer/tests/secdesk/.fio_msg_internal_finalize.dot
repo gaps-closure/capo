@@ -1,0 +1,15 @@
+digraph "CFG for 'fio_msg_internal_finalize' function" {
+	label="CFG for 'fio_msg_internal_finalize' function";
+
+	Node0x5568515e5170 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_msg_internal_s*, align 8\l  store %struct.fio_msg_internal_s* %0, %struct.fio_msg_internal_s** %2, align\l... 8\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_internal_s** %2,\l... metadata !2804, metadata !DIExpression()), !dbg !2805\l  %3 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2806\l  %4 = getelementptr inbounds %struct.fio_msg_internal_s,\l... %struct.fio_msg_internal_s* %3, i32 0, i32 0, !dbg !2808\l  %5 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %4, i32 0, i32 1, !dbg !2809\l  %6 = load i64, i64* %5, align 8, !dbg !2809\l  %7 = icmp ne i64 %6, 0, !dbg !2806\l  br i1 %7, label %12, label %8, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x5568515e5170:s0 -> Node0x5568515e5270;
+	Node0x5568515e5170:s1 -> Node0x5568515e5220;
+	Node0x5568515e5220 [shape=record,label="{%8:\l8:                                                \l  %9 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2811\l  %10 = getelementptr inbounds %struct.fio_msg_internal_s,\l... %struct.fio_msg_internal_s* %9, i32 0, i32 0, !dbg !2812\l  %11 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %10, i32 0, i32 2, !dbg !2813\l  store i8* null, i8** %11, align 8, !dbg !2814\l  br label %12, !dbg !2811\l}"];
+	Node0x5568515e5220 -> Node0x5568515e5270;
+	Node0x5568515e5270 [shape=record,label="{%12:\l12:                                               \l  %13 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2815\l  %14 = getelementptr inbounds %struct.fio_msg_internal_s,\l... %struct.fio_msg_internal_s* %13, i32 0, i32 1, !dbg !2817\l  %15 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %14, i32 0, i32 1, !dbg !2818\l  %16 = load i64, i64* %15, align 8, !dbg !2818\l  %17 = icmp ne i64 %16, 0, !dbg !2815\l  br i1 %17, label %22, label %18, !dbg !2819\l|{<s0>T|<s1>F}}"];
+	Node0x5568515e5270:s0 -> Node0x5568515e5310;
+	Node0x5568515e5270:s1 -> Node0x5568515e52c0;
+	Node0x5568515e52c0 [shape=record,label="{%18:\l18:                                               \l  %19 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2820\l  %20 = getelementptr inbounds %struct.fio_msg_internal_s,\l... %struct.fio_msg_internal_s* %19, i32 0, i32 1, !dbg !2821\l  %21 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %20, i32 0, i32 2, !dbg !2822\l  store i8* null, i8** %21, align 8, !dbg !2823\l  br label %22, !dbg !2820\l}"];
+	Node0x5568515e52c0 -> Node0x5568515e5310;
+	Node0x5568515e5310 [shape=record,label="{%22:\l22:                                               \l  ret void, !dbg !2824\l}"];
+}

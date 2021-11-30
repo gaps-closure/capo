@@ -1,0 +1,30 @@
+3
+['nullLevel', 'orange', 'purple']
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['ORANGE']], 'codtaints': ['ORANGE'], 'rettaints': ['ORANGE', 'TAG_RESPONSE_FOO']}]}}
+Found remote level: purple
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['ORANGE']], 'codtaints': ['ORANGE'], 'rettaints': ['ORANGE', 'TAG_RESPONSE_FOO']}]}}
+[['ORANGE']]
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'ORANGE_cdf_0']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+Num Function CDFs: 1
+Num CLE Labels: 6
+['false', 'false', 'true', 'true', 'false', 'false']
+['false', 'false', 'true', 'false', 'false', 'false']
+[['false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false']]
+['false', 'false', 'true', 'true', 'false', 'false']
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f00e2f8a280>, {'cleLabel': ['nullCleLabel', 'PURPLE', 'ORANGE', 'TAG_RESPONSE_FOO', 'orangeDFLT', 'purpleDFLT'], 'cdf': ['nullCdf', 'ORANGE_cdf_0'], 'remotelevel': ['None_remotelevel_0'], 'direction': ['None_direction_0'], 'operation': ['None_operation_0']})
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f00e2e9c5e0>, {'hasLabelLevel': ['nullLevel', 'purple', 'orange', 'nullLevel', 'orange', 'purple'], 'isFunctionAnnotation': ['false', 'false', 'true', 'false', 'false', 'false'], 'fromCleLabel': ['nullCleLabel', 'ORANGE'], 'hasRemotelevel': ['nullLevel', 'purple'], 'hasDirection': ['nullDirection', 'egress'], 'hasGuardOperation': ['nullGuardOperation', 'allow'], 'isOneway': ['false', 'false'], 'hasfunctaints': ['false'], 'hasargtaints': [[['None']]], 'hascodtaints': [['None']], 'hasrettaints': [['None']], 'hasARCtaints': [['false', 'false', 'true', 'true', 'false', 'false']], 'cdfForRemoteLevel': [['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'ORANGE_cdf_0'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf']], 'hasCodtaints': [['false', 'false', 'true', 'false', 'false', 'false']], 'hasRettaints': [['false', 'false', 'true', 'true', 'false', 'false']], 'hasArgtaints': [[['false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false']]]})
+
+real	0m0.047s
+user	0m0.032s
+sys	0m0.016s

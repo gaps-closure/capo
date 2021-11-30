@@ -1,0 +1,23 @@
+Options selected:
+  file: warning-direct-assignment.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 4, [], 'ORANGE', {'level': 'orange'}]
+['cledef', 5, [], 'XD_FOO', {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}, 'argtaints': [], 'codtaints': ['ORANGE'], 'rettaints': ['ORANGE', 'TAG_RESPONSE_FOO']}]}]
+['clebegin', 16, [], 'XD_FOO']
+['cleend', 18, [], 'XD_FOO']
+['clebegin', 20, [], 'ORANGE']
+['cleend', 22, [], 'ORANGE']
+['clebegin', 27, [], 'PURPLE']
+['cleend', 29, [], 'PURPLE']
+Writing transformed file and cle mappings file
+
+real	0m0.235s
+user	0m0.220s
+sys	0m0.016s

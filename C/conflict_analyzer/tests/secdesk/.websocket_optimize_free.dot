@@ -1,0 +1,5 @@
+digraph "CFG for 'websocket_optimize_free' function" {
+	label="CFG for 'websocket_optimize_free' function";
+
+	Node0x556851ee5fb0 [shape=record,label="{%2:\l  %3 = alloca %struct.fio_msg_s*, align 8\l  %4 = alloca i8*, align 8\l  store %struct.fio_msg_s* %0, %struct.fio_msg_s** %3, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_s** %3, metadata !2814,\l... metadata !DIExpression()), !dbg !2815\l  store i8* %1, i8** %4, align 8\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2816, metadata\l... !DIExpression()), !dbg !2817\l  %5 = load i8*, i8** %4, align 8, !dbg !2818\l  %6 = ptrtoint i8* %5 to i64, !dbg !2819\l  call void @fiobj_free.1871(i64 %6), !dbg !2820\l  %7 = load %struct.fio_msg_s*, %struct.fio_msg_s** %3, align 8, !dbg !2821\l  ret void, !dbg !2822\l}"];
+}

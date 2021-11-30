@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_ls_embd_unshift' function" {
+	label="CFG for 'fio_ls_embd_unshift' function";
+
+	Node0x5568513eba40 [shape=record,label="{%2:\l  %3 = alloca %struct.fio_ls_embd_s*, align 8\l  %4 = alloca %struct.fio_ls_embd_s*, align 8\l  store %struct.fio_ls_embd_s* %0, %struct.fio_ls_embd_s** %3, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_ls_embd_s** %3, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  store %struct.fio_ls_embd_s* %1, %struct.fio_ls_embd_s** %4, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_ls_embd_s** %4, metadata\l... !2807, metadata !DIExpression()), !dbg !2808\l  %5 = load %struct.fio_ls_embd_s*, %struct.fio_ls_embd_s** %3, align 8, !dbg\l... !2809\l  %6 = getelementptr inbounds %struct.fio_ls_embd_s, %struct.fio_ls_embd_s*\l... %5, i32 0, i32 1, !dbg !2810\l  %7 = load %struct.fio_ls_embd_s*, %struct.fio_ls_embd_s** %6, align 8, !dbg\l... !2810\l  %8 = load %struct.fio_ls_embd_s*, %struct.fio_ls_embd_s** %4, align 8, !dbg\l... !2811\l  call void @fio_ls_embd_push(%struct.fio_ls_embd_s* %7,\l... %struct.fio_ls_embd_s* %8), !dbg !2812\l  ret void, !dbg !2813\l}"];
+}

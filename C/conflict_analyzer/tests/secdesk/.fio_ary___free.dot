@@ -1,0 +1,19 @@
+digraph "CFG for 'fio_ary___free' function" {
+	label="CFG for 'fio_ary___free' function";
+
+	Node0x556851a50ff0 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_ary___s*, align 8\l  %3 = alloca i64, align 8\l  %4 = alloca i64, align 8\l  %5 = alloca %struct.fio_ary___s, align 8\l  store %struct.fio_ary___s* %0, %struct.fio_ary___s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_ary___s** %2, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  %6 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg !2807\l  %7 = icmp ne %struct.fio_ary___s* %6, null, !dbg !2807\l  br i1 %7, label %8, label %33, !dbg !2809\l|{<s0>T|<s1>F}}"];
+	Node0x556851a50ff0:s0 -> Node0x556851a511c0;
+	Node0x556851a50ff0:s1 -> Node0x556851a51350;
+	Node0x556851a511c0 [shape=record,label="{%8:\l8:                                                \l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2810, metadata\l... !DIExpression()), !dbg !2813\l  %9 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg !2814\l  %10 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %9,\l... i32 0, i32 1, !dbg !2815\l  %11 = load i64, i64* %10, align 8, !dbg !2815\l  store i64 %11, i64* %3, align 8, !dbg !2813\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2816, metadata\l... !DIExpression()), !dbg !2818\l  %12 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg\l... !2819\l  %13 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %12,\l... i32 0, i32 0, !dbg !2820\l  %14 = load i64, i64* %13, align 8, !dbg !2820\l  store i64 %14, i64* %4, align 8, !dbg !2818\l  br label %15, !dbg !2821\l}"];
+	Node0x556851a511c0 -> Node0x556851a51210;
+	Node0x556851a51210 [shape=record,label="{%15:\l15:                                               \l  %16 = load i64, i64* %4, align 8, !dbg !2822\l  %17 = load i64, i64* %3, align 8, !dbg !2824\l  %18 = icmp ult i64 %16, %17, !dbg !2825\l  br i1 %18, label %19, label %23, !dbg !2826\l|{<s0>T|<s1>F}}"];
+	Node0x556851a51210:s0 -> Node0x556851a51260;
+	Node0x556851a51210:s1 -> Node0x556851a51300;
+	Node0x556851a51260 [shape=record,label="{%19:\l19:                                               \l  br label %20, !dbg !2827\l}"];
+	Node0x556851a51260 -> Node0x556851a512b0;
+	Node0x556851a512b0 [shape=record,label="{%20:\l20:                                               \l  %21 = load i64, i64* %4, align 8, !dbg !2829\l  %22 = add i64 %21, 1, !dbg !2829\l  store i64 %22, i64* %4, align 8, !dbg !2829\l  br label %15, !dbg !2830, !llvm.loop !2831\l}"];
+	Node0x556851a512b0 -> Node0x556851a51210;
+	Node0x556851a51300 [shape=record,label="{%23:\l23:                                               \l  %24 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg\l... !2833\l  %25 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %24,\l... i32 0, i32 3, !dbg !2833\l  %26 = load i64*, i64** %25, align 8, !dbg !2833\l  %27 = bitcast i64* %26 to i8*, !dbg !2833\l  call void @fio_free(i8* %27), !dbg !2833\l  %28 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg\l... !2834\l  %29 = bitcast %struct.fio_ary___s* %5 to i8*, !dbg !2835\l  call void @llvm.memset.p0i8.i64(i8* align 8 %29, i8 0, i64 32, i1 false),\l... !dbg !2835\l  %30 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %5,\l... i32 0, i32 2, !dbg !2836\l  store i64 0, i64* %30, align 8, !dbg !2836\l  %31 = bitcast %struct.fio_ary___s* %28 to i8*, !dbg !2835\l  %32 = bitcast %struct.fio_ary___s* %5 to i8*, !dbg !2835\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %31, i8* align 8 %32, i64\l... 32, i1 false), !dbg !2835\l  br label %33, !dbg !2837\l}"];
+	Node0x556851a51300 -> Node0x556851a51350;
+	Node0x556851a51350 [shape=record,label="{%33:\l33:                                               \l  ret void, !dbg !2838\l}"];
+}

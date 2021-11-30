@@ -1,0 +1,21 @@
+digraph "CFG for 'fiobj_ary_remove' function" {
+	label="CFG for 'fiobj_ary_remove' function";
+
+	Node0x556851a82e30 [shape=record,label="{%2:\l  %3 = alloca i32, align 4\l  %4 = alloca i64, align 8\l  %5 = alloca i64, align 8\l  %6 = alloca i64, align 8\l  store i64 %0, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i64 %1, i64* %5, align 8\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  %7 = load i64, i64* %4, align 8, !dbg !2808\l  %8 = icmp ne i64 %7, 0, !dbg !2808\l  br i1 %8, label %9, label %14, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x556851a82e30:s0 -> Node0x556851a82e80;
+	Node0x556851a82e30:s1 -> Node0x556851a82f20;
+	Node0x556851a82e80 [shape=record,label="{%9:\l9:                                                \l  %10 = load i64, i64* %4, align 8, !dbg !2808\l  %11 = call i64 @fiobj_type_is(i64 %10, i8 zeroext 41), !dbg !2808\l  %12 = icmp ne i64 %11, 0, !dbg !2808\l  br i1 %12, label %13, label %14, !dbg !2811\l|{<s0>T|<s1>F}}"];
+	Node0x556851a82e80:s0 -> Node0x556851a82ed0;
+	Node0x556851a82e80:s1 -> Node0x556851a82f20;
+	Node0x556851a82ed0 [shape=record,label="{%13:\l13:                                               \l  br label %15, !dbg !2811\l}"];
+	Node0x556851a82ed0 -> Node0x556851a82f70;
+	Node0x556851a82f20 [shape=record,label="{%14:\l14:                                               \l  call void @__assert_fail(i8* getelementptr inbounds ([41 x i8], [41 x i8]*\l... @.str.5.6, i64 0, i64 0), i8* getelementptr inbounds ([38 x i8], [38 x i8]*\l... @.str.3.3, i64 0, i64 0), i32 214, i8* getelementptr inbounds ([37 x i8], [37\l... x i8]* @__PRETTY_FUNCTION__.fiobj_ary_remove, i64 0, i64 0)) #10, !dbg !2808\l  unreachable, !dbg !2808\l}"];
+	Node0x556851a82f70 [shape=record,label="{%15:\l15:                                               \l  call void @llvm.dbg.declare(metadata i64* %6, metadata !2812, metadata\l... !DIExpression()), !dbg !2813\l  store i64 0, i64* %6, align 8, !dbg !2813\l  %16 = load i64, i64* %4, align 8, !dbg !2814\l  %17 = inttoptr i64 %16 to %struct.fiobj_ary_s*, !dbg !2814\l  %18 = getelementptr inbounds %struct.fiobj_ary_s, %struct.fiobj_ary_s* %17,\l... i32 0, i32 1, !dbg !2816\l  %19 = load i64, i64* %5, align 8, !dbg !2817\l  %20 = call i32 @fio_ary___remove(%struct.fio_ary___s* %18, i64 %19, i64*\l... %6), !dbg !2818\l  %21 = icmp ne i32 %20, 0, !dbg !2818\l  br i1 %21, label %22, label %23, !dbg !2819\l|{<s0>T|<s1>F}}"];
+	Node0x556851a82f70:s0 -> Node0x556851a82fc0;
+	Node0x556851a82f70:s1 -> Node0x556851a83010;
+	Node0x556851a82fc0 [shape=record,label="{%22:\l22:                                               \l  store i32 -1, i32* %3, align 4, !dbg !2820\l  br label %25, !dbg !2820\l}"];
+	Node0x556851a82fc0 -> Node0x556851a83060;
+	Node0x556851a83010 [shape=record,label="{%23:\l23:                                               \l  %24 = load i64, i64* %6, align 8, !dbg !2822\l  call void @fiobj_free(i64 %24), !dbg !2823\l  store i32 0, i32* %3, align 4, !dbg !2824\l  br label %25, !dbg !2824\l}"];
+	Node0x556851a83010 -> Node0x556851a83060;
+	Node0x556851a83060 [shape=record,label="{%25:\l25:                                               \l  %26 = load i32, i32* %3, align 4, !dbg !2825\l  ret i32 %26, !dbg !2825\l}"];
+}

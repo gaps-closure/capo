@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_mime_set_capa' function" {
+	label="CFG for 'fio_mime_set_capa' function";
+
+	Node0x556852475470 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_mime_set_s*, align 8\l  store %struct.fio_mime_set_s* %0, %struct.fio_mime_set_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_mime_set_s** %2, metadata\l... !2806, metadata !DIExpression()), !dbg !2807\l  %3 = load %struct.fio_mime_set_s*, %struct.fio_mime_set_s** %2, align 8,\l... !dbg !2808\l  %4 = getelementptr inbounds %struct.fio_mime_set_s, %struct.fio_mime_set_s*\l... %3, i32 0, i32 1, !dbg !2809\l  %5 = load i64, i64* %4, align 8, !dbg !2809\l  ret i64 %5, !dbg !2810\l}"];
+}

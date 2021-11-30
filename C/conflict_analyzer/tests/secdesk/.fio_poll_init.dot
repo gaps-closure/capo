@@ -1,0 +1,43 @@
+digraph "CFG for 'fio_poll_init' function" {
+	label="CFG for 'fio_poll_init' function";
+
+	Node0x5568513c5950 [shape=record,label="{%0:\l  %1 = alloca i32, align 4\l  %2 = alloca i32, align 4\l  %3 = alloca %struct.epoll_event, align 1\l  call void @fio_poll_close(), !dbg !2802\l  call void @llvm.dbg.declare(metadata i32* %1, metadata !2803, metadata\l... !DIExpression()), !dbg !2805\l  store i32 0, i32* %1, align 4, !dbg !2805\l  br label %4, !dbg !2806\l}"];
+	Node0x5568513c5950 -> Node0x5568513c7670;
+	Node0x5568513c7670 [shape=record,label="{%4:\l4:                                                \l  %5 = load i32, i32* %1, align 4, !dbg !2807\l  %6 = icmp slt i32 %5, 3, !dbg !2809\l  br i1 %6, label %7, label %22, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c7670:s0 -> Node0x5568513c76c0;
+	Node0x5568513c7670:s1 -> Node0x5568513c7800;
+	Node0x5568513c76c0 [shape=record,label="{%7:\l7:                                                \l  %8 = call i32 @epoll_create1(i32 524288) #9, !dbg !2811\l  %9 = load i32, i32* %1, align 4, !dbg !2813\l  %10 = sext i32 %9 to i64, !dbg !2814\l  %11 = getelementptr inbounds [3 x i32], [3 x i32]* @evio_fd, i64 0, i64 %10,\l... !dbg !2814\l  store i32 %8, i32* %11, align 4, !dbg !2815\l  %12 = load i32, i32* %1, align 4, !dbg !2816\l  %13 = sext i32 %12 to i64, !dbg !2818\l  %14 = getelementptr inbounds [3 x i32], [3 x i32]* @evio_fd, i64 0, i64 %13,\l... !dbg !2818\l  %15 = load i32, i32* %14, align 4, !dbg !2818\l  %16 = icmp eq i32 %15, -1, !dbg !2819\l  br i1 %16, label %17, label %18, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c76c0:s0 -> Node0x5568513c7710;
+	Node0x5568513c76c0:s1 -> Node0x5568513c7760;
+	Node0x5568513c7710 [shape=record,label="{%17:\l17:                                               \l  br label %47, !dbg !2821\l}"];
+	Node0x5568513c7710 -> Node0x5568513c7a30;
+	Node0x5568513c7760 [shape=record,label="{%18:\l18:                                               \l  br label %19, !dbg !2822\l}"];
+	Node0x5568513c7760 -> Node0x5568513c77b0;
+	Node0x5568513c77b0 [shape=record,label="{%19:\l19:                                               \l  %20 = load i32, i32* %1, align 4, !dbg !2823\l  %21 = add nsw i32 %20, 1, !dbg !2823\l  store i32 %21, i32* %1, align 4, !dbg !2823\l  br label %4, !dbg !2824, !llvm.loop !2825\l}"];
+	Node0x5568513c77b0 -> Node0x5568513c7670;
+	Node0x5568513c7800 [shape=record,label="{%22:\l22:                                               \l  call void @llvm.dbg.declare(metadata i32* %2, metadata !2827, metadata\l... !DIExpression()), !dbg !2829\l  store i32 1, i32* %2, align 4, !dbg !2829\l  br label %23, !dbg !2830\l}"];
+	Node0x5568513c7800 -> Node0x5568513c7850;
+	Node0x5568513c7850 [shape=record,label="{%23:\l23:                                               \l  %24 = load i32, i32* %2, align 4, !dbg !2831\l  %25 = icmp slt i32 %24, 3, !dbg !2833\l  br i1 %25, label %26, label %46, !dbg !2834\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c7850:s0 -> Node0x5568513c78a0;
+	Node0x5568513c7850:s1 -> Node0x5568513c79e0;
+	Node0x5568513c78a0 [shape=record,label="{%26:\l26:                                               \l  call void @llvm.dbg.declare(metadata %struct.epoll_event* %3, metadata\l... !2835, metadata !DIExpression()), !dbg !2848\l  %27 = getelementptr inbounds %struct.epoll_event, %struct.epoll_event* %3,\l... i32 0, i32 0, !dbg !2849\l  store i32 5, i32* %27, align 1, !dbg !2849\l  %28 = getelementptr inbounds %struct.epoll_event, %struct.epoll_event* %3,\l... i32 0, i32 1, !dbg !2849\l  %29 = bitcast %union.anon* %28 to i32*, !dbg !2850\l  %30 = load i32, i32* %2, align 4, !dbg !2851\l  %31 = sext i32 %30 to i64, !dbg !2852\l  %32 = getelementptr inbounds [3 x i32], [3 x i32]* @evio_fd, i64 0, i64 %31,\l... !dbg !2852\l  %33 = load i32, i32* %32, align 4, !dbg !2852\l  store i32 %33, i32* %29, align 1, !dbg !2850\l  %34 = load i32, i32* getelementptr inbounds ([3 x i32], [3 x i32]* @evio_fd,\l... i64 0, i64 0), align 4, !dbg !2853\l  %35 = load i32, i32* %2, align 4, !dbg !2855\l  %36 = sext i32 %35 to i64, !dbg !2856\l  %37 = getelementptr inbounds [3 x i32], [3 x i32]* @evio_fd, i64 0, i64 %36,\l... !dbg !2856\l  %38 = load i32, i32* %37, align 4, !dbg !2856\l  %39 = call i32 @epoll_ctl(i32 %34, i32 1, i32 %38, %struct.epoll_event* %3)\l... #9, !dbg !2857\l  %40 = icmp eq i32 %39, -1, !dbg !2858\l  br i1 %40, label %41, label %42, !dbg !2859\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c78a0:s0 -> Node0x5568513c78f0;
+	Node0x5568513c78a0:s1 -> Node0x5568513c7940;
+	Node0x5568513c78f0 [shape=record,label="{%41:\l41:                                               \l  br label %47, !dbg !2860\l}"];
+	Node0x5568513c78f0 -> Node0x5568513c7a30;
+	Node0x5568513c7940 [shape=record,label="{%42:\l42:                                               \l  br label %43, !dbg !2861\l}"];
+	Node0x5568513c7940 -> Node0x5568513c7990;
+	Node0x5568513c7990 [shape=record,label="{%43:\l43:                                               \l  %44 = load i32, i32* %2, align 4, !dbg !2862\l  %45 = add nsw i32 %44, 1, !dbg !2862\l  store i32 %45, i32* %2, align 4, !dbg !2862\l  br label %23, !dbg !2863, !llvm.loop !2864\l}"];
+	Node0x5568513c7990 -> Node0x5568513c7850;
+	Node0x5568513c79e0 [shape=record,label="{%46:\l46:                                               \l  ret void, !dbg !2866\l}"];
+	Node0x5568513c7a30 [shape=record,label="{%47:\l47:                                               \l  call void @llvm.dbg.label(metadata !2867), !dbg !2868\l  br label %48, !dbg !2869\l}"];
+	Node0x5568513c7a30 -> Node0x5568513c7a80;
+	Node0x5568513c7a80 [shape=record,label="{%48:\l48:                                               \l  %49 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2870\l  %50 = icmp sle i32 1, %49, !dbg !2870\l  br i1 %50, label %51, label %52, !dbg !2873\l|{<s0>T|<s1>F}}"];
+	Node0x5568513c7a80:s0 -> Node0x5568513c7ad0;
+	Node0x5568513c7a80:s1 -> Node0x5568513c7b20;
+	Node0x5568513c7ad0 [shape=record,label="{%51:\l51:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([34 x i8],\l... [34 x i8]* @.str.52, i64 0, i64 0)), !dbg !2874\l  br label %52, !dbg !2874\l}"];
+	Node0x5568513c7ad0 -> Node0x5568513c7b20;
+	Node0x5568513c7b20 [shape=record,label="{%52:\l52:                                               \l  br label %53, !dbg !2873\l}"];
+	Node0x5568513c7b20 -> Node0x5568513c7b70;
+	Node0x5568513c7b70 [shape=record,label="{%53:\l53:                                               \l  call void @fio_poll_close(), !dbg !2876\l  %54 = call i32* @__errno_location() #10, !dbg !2877\l  %55 = load i32, i32* %54, align 4, !dbg !2877\l  call void @exit(i32 %55) #11, !dbg !2878\l  unreachable, !dbg !2878\l}"];
+}

@@ -1,0 +1,5 @@
+digraph "CFG for 'h1_reset' function" {
+	label="CFG for 'h1_reset' function";
+
+	Node0x5568522277b0 [shape=record,label="{%1:\l  %2 = alloca %struct.http1pr_s*, align 8\l  store %struct.http1pr_s* %0, %struct.http1pr_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.http1pr_s** %2, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  %3 = load %struct.http1pr_s*, %struct.http1pr_s** %2, align 8, !dbg !2806\l  %4 = getelementptr inbounds %struct.http1pr_s, %struct.http1pr_s* %3, i32 0,\l... i32 5, !dbg !2807\l  store i64 0, i64* %4, align 8, !dbg !2808\l  ret void, !dbg !2809\l}"];
+}

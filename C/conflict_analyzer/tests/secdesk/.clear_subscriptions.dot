@@ -1,0 +1,12 @@
+digraph "CFG for 'clear_subscriptions' function" {
+	label="CFG for 'clear_subscriptions' function";
+
+	Node0x556852590920 [shape=record,label="{%1:\l  %2 = alloca %struct.ws_s*, align 8\l  store %struct.ws_s* %0, %struct.ws_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.ws_s** %2, metadata !2802,\l... metadata !DIExpression()), !dbg !2803\l  %3 = load %struct.ws_s*, %struct.ws_s** %2, align 8, !dbg !2804\l  %4 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %3, i32 0, i32 10,\l... !dbg !2805\l  call void @fio_lock.1872(i8* %4), !dbg !2806\l  br label %5, !dbg !2807\l}"];
+	Node0x556852590920 -> Node0x556852592970;
+	Node0x556852592970 [shape=record,label="{%5:\l5:                                                \l  %6 = load %struct.ws_s*, %struct.ws_s** %2, align 8, !dbg !2808\l  %7 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %6, i32 0, i32 9,\l... !dbg !2809\l  %8 = call i32 @fio_ls_any.1873(%struct.fio_ls_s* %7), !dbg !2810\l  %9 = icmp ne i32 %8, 0, !dbg !2807\l  br i1 %9, label %10, label %15, !dbg !2807\l|{<s0>T|<s1>F}}"];
+	Node0x556852592970:s0 -> Node0x5568525929c0;
+	Node0x556852592970:s1 -> Node0x556852592a10;
+	Node0x5568525929c0 [shape=record,label="{%10:\l10:                                               \l  %11 = load %struct.ws_s*, %struct.ws_s** %2, align 8, !dbg !2811\l  %12 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %11, i32 0, i32 9,\l... !dbg !2813\l  %13 = call i8* @fio_ls_pop.1874(%struct.fio_ls_s* %12), !dbg !2814\l  %14 = bitcast i8* %13 to %struct.subscription_s*, !dbg !2814\l  call void @fio_unsubscribe(%struct.subscription_s* %14), !dbg !2815\l  br label %5, !dbg !2807, !llvm.loop !2816\l}"];
+	Node0x5568525929c0 -> Node0x556852592970;
+	Node0x556852592a10 [shape=record,label="{%15:\l15:                                               \l  %16 = load %struct.ws_s*, %struct.ws_s** %2, align 8, !dbg !2818\l  %17 = getelementptr inbounds %struct.ws_s, %struct.ws_s* %16, i32 0, i32 10,\l... !dbg !2819\l  %18 = call i32 @fio_unlock.1875(i8* %17), !dbg !2820\l  ret void, !dbg !2821\l}"];
+}

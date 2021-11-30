@@ -1,0 +1,12 @@
+digraph "CFG for 'fio_cluster_signal_children' function" {
+	label="CFG for 'fio_cluster_signal_children' function";
+
+	Node0x5568517608c0 [shape=record,label="{%0:\l  %1 = alloca %struct.fio_str_info_s, align 8\l  %2 = alloca %struct.fio_str_info_s, align 8\l  %3 = call i32 @fio_parent_pid(), !dbg !2802\l  %4 = call i32 @getpid() #9, !dbg !2804\l  %5 = icmp ne i32 %3, %4, !dbg !2805\l  br i1 %5, label %6, label %7, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x5568517608c0:s0 -> Node0x556851761c40;
+	Node0x5568517608c0:s1 -> Node0x556851761c90;
+	Node0x556851761c40 [shape=record,label="{%6:\l6:                                                \l  call void @fio_stop(), !dbg !2807\l  br label %16, !dbg !2809\l}"];
+	Node0x556851761c40 -> Node0x556851761ce0;
+	Node0x556851761c90 [shape=record,label="{%7:\l7:                                                \l  %8 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %1, i32 0, i32 0, !dbg !2810\l  store i64 0, i64* %8, align 8, !dbg !2810\l  %9 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %1, i32 0, i32 1, !dbg !2810\l  store i64 0, i64* %9, align 8, !dbg !2810\l  %10 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %1, i32 0, i32 2, !dbg !2810\l  store i8* null, i8** %10, align 8, !dbg !2810\l  %11 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %2, i32 0, i32 0, !dbg !2811\l  store i64 0, i64* %11, align 8, !dbg !2811\l  %12 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %2, i32 0, i32 1, !dbg !2811\l  store i64 0, i64* %12, align 8, !dbg !2811\l  %13 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %2, i32 0, i32 2, !dbg !2811\l  store i8* null, i8** %13, align 8, !dbg !2811\l  %14 = call %struct.fio_msg_internal_s* @fio_msg_internal_create(i32 0, i32\l... 8, %struct.fio_str_info_s* byval(%struct.fio_str_info_s) align 8 %1,\l... %struct.fio_str_info_s* byval(%struct.fio_str_info_s) align 8 %2, i8 signext\l... 0, i8 signext 1), !dbg !2812\l  %15 = bitcast %struct.fio_msg_internal_s* %14 to i8*, !dbg !2812\l  call void @fio_cluster_server_sender(i8* %15, i64 -1), !dbg !2813\l  br label %16, !dbg !2814\l}"];
+	Node0x556851761c90 -> Node0x556851761ce0;
+	Node0x556851761ce0 [shape=record,label="{%16:\l16:                                               \l  ret void, !dbg !2814\l}"];
+}

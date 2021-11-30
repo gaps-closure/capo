@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_msg_internal_dup' function" {
+	label="CFG for 'fio_msg_internal_dup' function";
+
+	Node0x5568514a6e70 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_msg_internal_s*, align 8\l  %3 = alloca i64, align 8\l  %4 = alloca i64, align 8\l  store %struct.fio_msg_internal_s* %0, %struct.fio_msg_internal_s** %2, align\l... 8\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_internal_s** %2,\l... metadata !2804, metadata !DIExpression()), !dbg !2805\l  %5 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2806\l  %6 = getelementptr inbounds %struct.fio_msg_internal_s,\l... %struct.fio_msg_internal_s* %5, i32 0, i32 2, !dbg !2806\l  store i64 1, i64* %3, align 8, !dbg !2806\l  %7 = load i64, i64* %3, align 8, !dbg !2806\l  %8 = atomicrmw add i64* %6, i64 %7 seq_cst, !dbg !2806\l  %9 = add i64 %8, %7, !dbg !2806\l  store i64 %9, i64* %4, align 8, !dbg !2806\l  %10 = load i64, i64* %4, align 8, !dbg !2806\l  %11 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %2,\l... align 8, !dbg !2807\l  ret %struct.fio_msg_internal_s* %11, !dbg !2808\l}"];
+}

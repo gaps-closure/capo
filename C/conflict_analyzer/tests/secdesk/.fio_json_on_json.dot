@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_json_on_json' function" {
+	label="CFG for 'fio_json_on_json' function";
+
+	Node0x556851ec3750 [shape=record,label="{%1:\l  %2 = alloca %struct.json_parser_s*, align 8\l  store %struct.json_parser_s* %0, %struct.json_parser_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.json_parser_s** %2, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  %3 = load %struct.json_parser_s*, %struct.json_parser_s** %2, align 8, !dbg\l... !2807\l  ret void, !dbg !2808\l}"];
+}

@@ -1,0 +1,31 @@
+digraph "CFG for 'http_on_server_protocol_http1' function" {
+	label="CFG for 'http_on_server_protocol_http1' function";
+
+	Node0x55685234cd30 [shape=record,label="{%3:\l  %4 = alloca i64, align 8\l  %5 = alloca i8*, align 8\l  %6 = alloca i8*, align 8\l  %7 = alloca %struct.fio_protocol_s*, align 8\l  store i64 %0, i64* %4, align 8\l  call void @llvm.dbg.declare(metadata i64* %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  store i8* %1, i8** %5, align 8\l  call void @llvm.dbg.declare(metadata i8** %5, metadata !2806, metadata\l... !DIExpression()), !dbg !2807\l  store i8* %2, i8** %6, align 8\l  call void @llvm.dbg.declare(metadata i8** %6, metadata !2808, metadata\l... !DIExpression()), !dbg !2809\l  %8 = load i64, i64* %4, align 8, !dbg !2810\l  %9 = load i8*, i8** %5, align 8, !dbg !2811\l  %10 = bitcast i8* %9 to %struct.http_settings_s*, !dbg !2812\l  %11 = getelementptr inbounds %struct.http_settings_s,\l... %struct.http_settings_s* %10, i32 0, i32 15, !dbg !2813\l  %12 = load i8, i8* %11, align 8, !dbg !2813\l  call void @fio_timeout_set(i64 %8, i8 zeroext %12), !dbg !2814\l  %13 = load i64, i64* %4, align 8, !dbg !2815\l  %14 = lshr i64 %13, 8, !dbg !2815\l  %15 = trunc i64 %14 to i32, !dbg !2815\l  %16 = sext i32 %15 to i64, !dbg !2815\l  %17 = load i8*, i8** %5, align 8, !dbg !2817\l  %18 = bitcast i8* %17 to %struct.http_settings_s*, !dbg !2818\l  %19 = getelementptr inbounds %struct.http_settings_s,\l... %struct.http_settings_s* %18, i32 0, i32 9, !dbg !2819\l  %20 = load i64, i64* %19, align 8, !dbg !2819\l  %21 = icmp sge i64 %16, %20, !dbg !2820\l  br i1 %21, label %22, label %38, !dbg !2821\l|{<s0>T|<s1>F}}"];
+	Node0x55685234cd30:s0 -> Node0x556852356430;
+	Node0x55685234cd30:s1 -> Node0x556852356660;
+	Node0x556852356430 [shape=record,label="{%22:\l22:                                               \l  %23 = load i8, i8* @fio_http_at_capa, align 1, !dbg !2822\l  %24 = icmp ne i8 %23, 0, !dbg !2822\l  br i1 %24, label %32, label %25, !dbg !2825\l|{<s0>T|<s1>F}}"];
+	Node0x556852356430:s0 -> Node0x556852356610;
+	Node0x556852356430:s1 -> Node0x556852356480;
+	Node0x556852356480 [shape=record,label="{%25:\l25:                                               \l  br label %26, !dbg !2826\l}"];
+	Node0x556852356480 -> Node0x5568523564d0;
+	Node0x5568523564d0 [shape=record,label="{%26:\l26:                                               \l  %27 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2827\l  %28 = icmp sle i32 3, %27, !dbg !2827\l  br i1 %28, label %29, label %30, !dbg !2830\l|{<s0>T|<s1>F}}"];
+	Node0x5568523564d0:s0 -> Node0x556852356520;
+	Node0x5568523564d0:s1 -> Node0x556852356570;
+	Node0x556852356520 [shape=record,label="{%29:\l29:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([33 x i8],\l... [33 x i8]* @.str.134.552, i64 0, i64 0)), !dbg !2831\l  br label %30, !dbg !2831\l}"];
+	Node0x556852356520 -> Node0x556852356570;
+	Node0x556852356570 [shape=record,label="{%30:\l30:                                               \l  br label %31, !dbg !2830\l}"];
+	Node0x556852356570 -> Node0x5568523565c0;
+	Node0x5568523565c0 [shape=record,label="{%31:\l31:                                               \l  br label %32, !dbg !2830\l}"];
+	Node0x5568523565c0 -> Node0x556852356610;
+	Node0x556852356610 [shape=record,label="{%32:\l32:                                               \l  store i8 1, i8* @fio_http_at_capa, align 1, !dbg !2833\l  %33 = load i64, i64* %4, align 8, !dbg !2834\l  %34 = load i8*, i8** %5, align 8, !dbg !2835\l  %35 = bitcast i8* %34 to %struct.http_settings_s*, !dbg !2835\l  %36 = call i32 @http_send_error2(i64 %33, i64 503, %struct.http_settings_s*\l... %35), !dbg !2836\l  %37 = load i64, i64* %4, align 8, !dbg !2837\l  call void @fio_close(i64 %37), !dbg !2838\l  br label %49, !dbg !2839\l}"];
+	Node0x556852356610 -> Node0x556852356750;
+	Node0x556852356660 [shape=record,label="{%38:\l38:                                               \l  store i8 0, i8* @fio_http_at_capa, align 1, !dbg !2840\l  call void @llvm.dbg.declare(metadata %struct.fio_protocol_s** %7, metadata\l... !2841, metadata !DIExpression()), !dbg !2842\l  %39 = load i64, i64* %4, align 8, !dbg !2843\l  %40 = load i8*, i8** %5, align 8, !dbg !2844\l  %41 = bitcast i8* %40 to %struct.http_settings_s*, !dbg !2844\l  %42 = call %struct.fio_protocol_s* @http1_new(i64 %39,\l... %struct.http_settings_s* %41, i8* null, i64 0), !dbg !2845\l  store %struct.fio_protocol_s* %42, %struct.fio_protocol_s** %7, align 8,\l... !dbg !2842\l  %43 = load %struct.fio_protocol_s*, %struct.fio_protocol_s** %7, align 8,\l... !dbg !2846\l  %44 = icmp ne %struct.fio_protocol_s* %43, null, !dbg !2846\l  br i1 %44, label %47, label %45, !dbg !2848\l|{<s0>T|<s1>F}}"];
+	Node0x556852356660:s0 -> Node0x556852356700;
+	Node0x556852356660:s1 -> Node0x5568523566b0;
+	Node0x5568523566b0 [shape=record,label="{%45:\l45:                                               \l  %46 = load i64, i64* %4, align 8, !dbg !2849\l  call void @fio_close(i64 %46), !dbg !2850\l  br label %47, !dbg !2850\l}"];
+	Node0x5568523566b0 -> Node0x556852356700;
+	Node0x556852356700 [shape=record,label="{%47:\l47:                                               \l  %48 = load i8*, i8** %6, align 8, !dbg !2851\l  br label %49, !dbg !2852\l}"];
+	Node0x556852356700 -> Node0x556852356750;
+	Node0x556852356750 [shape=record,label="{%49:\l49:                                               \l  ret void, !dbg !2852\l}"];
+}

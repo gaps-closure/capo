@@ -1,0 +1,25 @@
+{
+    "result": "Conflict",
+    "conflicts": [
+        {
+            "name": "Unresolved Data Conflict",
+            "description": "Label 'ORANGE' has a different level than label 'PURPLE'. Single functions cannot have multiple levels.",
+            "sources": [{
+                "file": "annotated/multiple-levels-fun.c",
+                "range": {
+                    "start": {
+                        "line": 11,
+                        "character": 1
+                    },
+                    "end": {
+                        "line": 13,
+                        "character": 22
+                    }
+                }
+            }],
+            "remedies": [
+                "Remove label 'ORANGE'"
+            ]
+        }
+    ]
+}

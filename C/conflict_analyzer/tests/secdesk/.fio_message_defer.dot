@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_message_defer' function" {
+	label="CFG for 'fio_message_defer' function";
+
+	Node0x556851806ab0 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_msg_s*, align 8\l  %3 = alloca %struct.fio_msg_client_s*, align 8\l  store %struct.fio_msg_s* %0, %struct.fio_msg_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_s** %2, metadata !2802,\l... metadata !DIExpression()), !dbg !2803\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_client_s** %3, metadata\l... !2804, metadata !DIExpression()), !dbg !2805\l  %4 = load %struct.fio_msg_s*, %struct.fio_msg_s** %2, align 8, !dbg !2806\l  %5 = bitcast %struct.fio_msg_s* %4 to %struct.fio_msg_client_s*, !dbg !2807\l  store %struct.fio_msg_client_s* %5, %struct.fio_msg_client_s** %3, align 8,\l... !dbg !2805\l  %6 = load %struct.fio_msg_client_s*, %struct.fio_msg_client_s** %3, align 8,\l... !dbg !2808\l  %7 = getelementptr inbounds %struct.fio_msg_client_s,\l... %struct.fio_msg_client_s* %6, i32 0, i32 1, !dbg !2809\l  store i64 1, i64* %7, align 8, !dbg !2810\l  ret void, !dbg !2811\l}"];
+}

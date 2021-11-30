@@ -1,0 +1,84 @@
+[
+  {
+    "cle-label": "PURPLE",
+    "cle-json": {
+      "level": "purple"
+    }
+  },
+  {
+    "cle-label": "PURPLE_SHAREABLE",
+    "cle-json": {
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "XDLINKAGE_VALID_ARRAY",
+    "cle-json": {
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [
+            [
+              "TAG_REQUEST_ARRAY_COMPUTATION"
+            ]
+          ],
+          "codtaints": [
+            "PURPLE",
+            "PURPLE_SHAREABLE"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_ARRAY_COMPUTATION"
+          ]
+        },
+        {
+          "remotelevel": "purple",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [
+            [
+              "TAG_REQUEST_ARRAY_COMPUTATION"
+            ]
+          ],
+          "codtaints": [
+            "PURPLE",
+            "PURPLE_SHAREABLE"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_ARRAY_COMPUTATION"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "ORANGE",
+    "cle-json": {
+      "level": "orange",
+      "cdf": [
+        {
+          "remotelevel": "purple",
+          "direction": "egress",
+          "guarddirective": {
+            "operation": "allow"
+          }
+        }
+      ]
+    }
+  }
+]

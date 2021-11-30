@@ -1,0 +1,114 @@
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @foo() #0 !dbg !2 {
+  %1 = load i32, i32* @foo.x, align 4, !dbg !17
+  ret i32 %1, !dbg !18
+}
+
+debug: 0x55a130ce2938
+line number: 27
+Added: 0x55a130ce2ab8
+debug: 0x55a130ce2b68
+line number: 27
+Added: 0x55a130ce2b18
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @bar() #0 !dbg !12 {
+  %1 = load i32, i32* @bar.x, align 4, !dbg !19
+  %2 = call i32 @foo(), !dbg !20
+  %3 = add nsw i32 %1, %2, !dbg !21
+  %4 = load i32, i32* @bar.x, align 4, !dbg !22
+  %5 = add nsw i32 %4, %3, !dbg !22
+  store i32 %5, i32* @bar.x, align 4, !dbg !22
+  %6 = load i32, i32* @bar.x, align 4, !dbg !23
+  ret i32 %6, !dbg !24
+}
+
+debug: 0x55a130ce2e58
+line number: 36
+Added: 0x55a130ce2e08
+debug: 0x55a130ce2e88
+line number: 36
+Added: 0x55a130cc0308
+debug: 0x55a130ce2eb8
+line number: 36
+Added: 0x55a130cc02b0
+debug: 0x55a130ce2f48
+line number: 36
+Added: 0x55a130ce2ef8
+debug: 0x55a130ce2f48
+line number: 36
+Added: 0x55a130cc0240
+debug: 0x55a130ce2f48
+line number: 36
+Added: 0x55a130ce2fa0
+debug: 0x55a130ce3058
+line number: 37
+Added: 0x55a130ce3008
+debug: 0x55a130ce30e8
+line number: 37
+Added: 0x55a130ce3098
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main(i32 %0, i8** %1) #0 !dbg !25 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i8**, align 8
+  store i32 0, i32* %3, align 4
+  store i32 %0, i32* %4, align 4
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !31, metadata !DIExpression()), !dbg !32
+  store i8** %1, i8*** %5, align 8
+  call void @llvm.dbg.declare(metadata i8*** %5, metadata !33, metadata !DIExpression()), !dbg !34
+  %6 = call i32 @bar(), !dbg !35
+  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.4, i64 0, i64 0), i32 %6), !dbg !36
+  ret i32 0, !dbg !37
+}
+
+debug: 0x0
+Added: 0x55a130ce3ca8
+debug: 0x0
+Added: 0x55a130ce3d08
+debug: 0x0
+Added: 0x55a130ce3d68
+debug: 0x0
+Added: 0x55a130ce3de0
+debug: 0x0
+Added: 0x55a130ce3e60
+debug: 0x55a130ce3f98
+line number: 40
+Added: 0x55a130ce3f40
+debug: 0x0
+Added: 0x55a130ce3ff0
+debug: 0x55a130ce4158
+line number: 40
+Added: 0x55a130ce4100
+debug: 0x55a130ce41f8
+line number: 41
+Added: 0x55a130ce4198
+debug: 0x55a130ce4228
+line number: 41
+Added: 0x55a130cda118
+debug: 0x55a130ce42b8
+line number: 42
+Added: 0x55a130ce4268
+Checking for Global: @foo.x = internal global i32 0, align 4, !dbg !0
+Checking for Global: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @foo() #0 !dbg !2 {
+  %1 = load i32, i32* @foo.x, align 4, !dbg !17
+  ret i32 %1, !dbg !18
+}
+
+Checking for Global: @bar.x = internal global i32 1, align 4, !dbg !10
+func size: 3
+Finsh adding dependencies
+building PDG takes: 0
+PDG Node size: 27
+BC¿ﬁ5b0$JYæfM˚¥_QÄL!è!Å#ëA»I29íÑ%ãbÄEBíB§28K
+2RàHpƒ!#DáåAíd»± CFà …2RÑ*(*ê1|∞\ë ≈»â 2"H	 dÖì"§Ñì"„Ñ°êLäåÑ§Lhs`@`é…A#ï$tH"•r@—*†F©<Ç#ÖêsN¢Uâ,Ω9PQƒ&¯ˇˇˇˇp	( àqxyêárz`á|hyxázpr(rhrH{Hr(á6òáxêzhsÄá6háp†tÃ!ÿa  »!Ê!ƒÅ °Ë!“Å⁄`¬Åÿasvòársêáphárhxxátpz(y¬Åÿ ÿ°Êa⁄‰°∆!Ê°⁄¿‡°¬ÅsvòáràvHwhv(ásvh{(áq†áwêá6∏át z@¬ﬁ°“¡Ãa⁄¿‡°⁄!Ësvòárwxá6Pázhxhzq`árò¿¬ÅÊ°¬ﬁ°‹!‹a⁄¿‡°⁄!Ësvòárwxá6òát8w(rh}(yxáyhsÄá6háp†tÃ!ÿa  ‹·⁄Ä‰!‡“¡Œ°⁄!Ësvòárày†ápáuhxêáw†árzxyhq®s0árêá6òát–ár Ë!‰· Å⁄`‡°|¿;h;†Ä†ápêás(zhs(áp†ázêárò`∆Ä÷¿a‰Å÷†⁄ÿ`Êa Å÷`Ê°‰Ä÷‡¢‹a¬¡ °Ã⁄†¬Å–0áp`áy(Ä®áy(á6òáw0zhs`áwzÃ!ÿa ÿ†ˇˇˇˇ?@uÙ¡u˛ˇˇˇ ∆·‰A aËÅÚ°‰·Í¡»°»°»!Ï!»°⁄`‚AË°Ã⁄†¬Å–0áp`áy(Ä átòápv(á6†ápHvhÉqv`áyÃ!ÿa  ÃA¬° °‡·“¡Ë°‰v`Ä`áròáyhxêárátòárhsÄávrÃ!ÿa  ‹·⁄ ‹¡Ê°Ã⁄†¬Å–0áp`áy(Äpáwhwwòá60xhÉvz@¿¬ÅÊ°¬ﬁ°Ê!Œ¡ Å⁄@ Aﬁa⁄¿‡°⁄!Ësvòárwxá6†yxÄátpáshÉvz@¿¬ÅÊ°bË!∆a⁄‰·Ë°∆ÅﬁA⁄@Í¡Ã°‰°Ê!Ù°<zy8ár†á6x®¿⁄¿Ë Ë!‰· Å⁄¿ !Ë°‰°ÊXÉq¿<`É50|òy`É5háv¿6XÉyòár`É5òáy(9`É5¿<∏Ä®wòáp0árhsÄá6háp†tÃ!ÿa  Ía °Ê·ÃÅ⁄¿ÿ·¬ÅsvòárIÇ`B L0|¿;¯;†É6®wXwxá{pá6`átpáz¿á68w®á¶Pm–zPmrpp†s z0r– wz0r†s mrpr†v@z`t–È`t†v@m`xzrÄm‡x†q`z0r†v@m0q x∞¢av∞ávpÉv(zrz•Ñ	!CFä	![8‘‰;$†gÇÿ!ƒ0<	@¿)1äJÄÄ†vHè1Q∞C™
+@êÜ (Äíf√îAÏê¿¿8*	Ç†…≈
+b 8§ÍÉ° Ä(Ä!(@©FÅÄ 
+`Hu
+ÄPC™[0, Äêÿ PXr !2òLêå	&G∆C#4÷@WÌ=*[8‘‰4÷àªˇCQ%@cç‘]”“££Câ¨†dÜ:"†Í(hÄÜ@¡êBÇ™¨ãí≠CÍàhÄÜ@ëêB"”¨çím ÍàhÄÜ@	ëB¢Û¨è(áB(Ç2±ì3Äƒ·f=àC8Ñ√åBÄyxsòqÊÌÙÄ3B¬¡Œ°f0=àC8ÑÉÃ=»C=å=Ãxåtp{yHáppzpvxáp áÃÏê·0n0„P3ƒﬁ!ÿ!¬af0â;ºÉ;–C9¥<ºÉ<Ñ;Ãv`{h7hárh7Äápêáp`v(v¯vxáwÄá_áqáròáyòÅ,ÓÓ‡ı¿Ï0b»°‰°Ã°‰°‹a !ƒÅ a÷êC9»C9òC9»C9∏√8îC8à;î√/ºÉ<¸Ç;‘;∞√«iápXárpÉthx`átát†áŒSÓÚP‰ê„@· ÏP3 (‹¡¬A“!‹Å‹‡‰·ÍfQ8∞C:úÉ;ÃP$v`{h7`áwxxòQLÙêP3j aË!ﬁ¡~‰°Ã!aTÖÉ8Ã√;∞C=–C9¸¬<‰C;à√;∞√å≈
+áyòáwátz(ròÅ\„Ï¿ÂPÛ0#¡“A‰·ÿ·ﬁfH;∞É=¥ÉÑ√8åC9Ã√<∏¡9»√;‘<ÃH¥qv`qáqXá€∆Ï`Ì‡ Â0Â ˆPn„0Â0Û‡È‡‰P¯0C·⁄!Ê° aËaF‘Ÿ√8Ñ;∞√/ÿC:ÃC:àC:∞C:–C>y ÑrH Cà	r2H #Ååëë—D†(d<12Béê!£®01E/¿√0C#)out.c/home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/warning-direct-assignmentclang version 10.0.1 (https://github.com/gaps-closure/llvm-project.git 4954dd8b02af91d5e8d4815824208b6004f667a8)barintxfooDwarf VersionDebug Info Versionwchar_size#Äå c0Çê¡P#@4ïtTPyù @Ä≥1dUlA¿T“Q@%uÄÃ∆íTÿ5L5hÄ0PÃLS0]S]3X6œêA@Ãl3¿3¬Ã04â3√(Ã¡ #Å	 ÖçÕÆÕÖLÏÃe¨nî` àçÕÆÕ•Ìç¨é≠Ã≈å-Ïlnî°ÛæTÿÿÏ⁄\“» ‹ËF	¿`»`Äk»` ©
+r(áwÄzXpòC=∏√8∞C9–√ÇÊ∆°ËA¬¡Ê!Ë!ﬁ¡4„`ÁP· ‰@· ÁPÙ—Ã<§É;ú;î=†É<îC8ê√a 	ô3≈∆H∞¡åA±ƒ[ a â3(åÇAÛÕd‡@ÄB30PÄ1cPê¡L√ƒ0a–Ä1cPî¿3Eƒ[‡a QA,îG(uàë°AÜÒ0"G»êQAmaincharargcargv´§£†BÉ5@@Ñˆå¿¢xŒÄE†(ÜmKÉMÑ®0.ÃÄ*4ÿófP§ÅÑ`&3ç¬LD£0Ò)¿∞!0bp î¬5cP†Åc0l@åÇ%ˇˇˇˇ?◊åAÅõ¿àÄ 4d0cP§Åd0b` ñ¡åAëÉ¿ä¡åA°É@@[†!1 PÑÅ(åIq 2"Ñôò@jÄ
+øeÖî(]/LXXêå§==ˇˇˇˇ$@@ˇˇˇˇ$CCˇˇˇˇ$GGˇˇˇˇ,WWˇˇˇˇ$ˇˇˇˇ©ˇˇˇˇº	ˇˇˇˇƒˇˇˇˇˇˇˇˇÃˇˇˇˇ‘ ˇˇˇˇ&&ˇˇˇˇØØØØØ]:îºfoo.x.str.str.1.str.2bar.x.str.3.str.4llvm.global.annotationsfoobarmainllvm.dbg.declareprintf10.0.1 4954dd8b02af91d5e8d4815824208b6004f667a8x86_64-unknown-linux-gnuout.c.L.strllvm.metadata.L.str.1.L.str.2.L.str.3.L.str.4
+real	0m0.018s
+user	0m0.013s
+sys	0m0.004s

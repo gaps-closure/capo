@@ -1,0 +1,37 @@
+3
+['nullLevel', 'orange', 'purple']
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'XDLINKAGE_GET_EWMA', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}}
+Found remote level: orange
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+Found remote level: purple
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'XDLINKAGE_GET_EWMA', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}}
+[['TAG_REQUEST_GET_EWMA']]
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'XDLINKAGE_GET_EWMA_cdf_0', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'ORANGE_cdf_0']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+Num Function CDFs: 1
+Num CLE Labels: 8
+['false', 'false', 'false', 'true', 'false', 'false', 'false', 'false']
+['false', 'true', 'false', 'false', 'false', 'false', 'false', 'false']
+[['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]
+['false', 'true', 'true', 'true', 'true', 'false', 'false', 'false']
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7fe19a626280>, {'cleLabel': ['nullCleLabel', 'PURPLE', 'XDLINKAGE_GET_EWMA', 'TAG_RESPONSE_GET_EWMA', 'TAG_REQUEST_GET_EWMA', 'ORANGE', 'orangeDFLT', 'purpleDFLT'], 'cdf': ['nullCdf', 'XDLINKAGE_GET_EWMA_cdf_0', 'ORANGE_cdf_0'], 'remotelevel': ['None_remotelevel_0'], 'direction': ['None_direction_0'], 'operation': ['None_operation_0']})
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7fe19a5395e0>, {'hasLabelLevel': ['nullLevel', 'purple', 'purple', 'nullLevel', 'nullLevel', 'orange', 'orange', 'purple'], 'isFunctionAnnotation': ['false', 'false', 'true', 'false', 'false', 'false', 'false', 'false'], 'fromCleLabel': ['nullCleLabel', 'XDLINKAGE_GET_EWMA', 'ORANGE'], 'hasRemotelevel': ['nullLevel', 'orange', 'purple'], 'hasDirection': ['nullDirection', 'bidirectional', 'egress'], 'hasGuardOperation': ['nullGuardOperation', 'allow', 'allow'], 'isOneway': ['false', 'false', 'false'], 'hasfunctaints': ['false'], 'hasargtaints': [[['None']]], 'hascodtaints': [['None']], 'hasrettaints': [['None']], 'hasARCtaints': [['false', 'true', 'true', 'true', 'true', 'false', 'false', 'false']], 'cdfForRemoteLevel': [['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'XDLINKAGE_GET_EWMA_cdf_0', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'ORANGE_cdf_0'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf']], 'hasCodtaints': [['false', 'true', 'false', 'false', 'false', 'false', 'false', 'false']], 'hasRettaints': [['false', 'false', 'false', 'true', 'false', 'false', 'false', 'false']], 'hasArgtaints': [[['false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]]})
+
+real	0m0.047s
+user	0m0.036s
+sys	0m0.012s

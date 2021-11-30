@@ -1,0 +1,17 @@
+Options selected:
+  file: /home/bflin/gaps/build.test/apps/conflicts/tests/empty-arg-taints/empty-arg-taints.c
+  clang_args: -x,c++,-stdlib=libc++
+  annotation_style: naive
+  tool_chain: clang
+  schema: ../../cle-spec/schema/cle-schema.json
+  liberal: True
+Skipping CLE schema verification
+Transformed Tree:
+['cledef', 3, [], 'PURPLE', {'level': 'purple'}]
+['cledef', 4, [], 'XD_BAR', {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [[]], 'codtaints': [], 'rettaints': []}, {'remotelevel': 'purple', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE', 'PURPLE_SHAREABLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}]
+['cledef', 20, [], 'ORANGE', {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}]
+['clebegin', 27, [], 'XD_BAR']
+['cleend', 29, [], 'XD_BAR']
+['clebegin', 39, [], 'ORANGE']
+['cleend', 41, [], 'ORANGE']
+Writing transformed file and cle mappings file

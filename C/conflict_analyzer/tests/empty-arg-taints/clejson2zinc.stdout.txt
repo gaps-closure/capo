@@ -1,0 +1,42 @@
+3
+['nullLevel', 'orange', 'purple']
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'XD_BAR', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [[]], 'codtaints': [], 'rettaints': []}, {'remotelevel': 'purple', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE', 'PURPLE_SHAREABLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}}
+Found remote level: orange
+Found remote level: purple
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+Found remote level: purple
+ENTRY
+{'cle-label': 'PURPLE', 'cle-json': {'level': 'purple'}}
+ENTRY
+{'cle-label': 'XD_BAR', 'cle-json': {'level': 'purple', 'cdf': [{'remotelevel': 'orange', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [[]], 'codtaints': [], 'rettaints': []}, {'remotelevel': 'purple', 'direction': 'bidirectional', 'guarddirective': {'operation': 'allow'}, 'argtaints': [['TAG_REQUEST_GET_EWMA']], 'codtaints': ['PURPLE', 'PURPLE_SHAREABLE'], 'rettaints': ['TAG_RESPONSE_GET_EWMA']}]}}
+[[]]
+[['TAG_REQUEST_GET_EWMA']]
+ENTRY
+{'cle-label': 'ORANGE', 'cle-json': {'level': 'orange', 'cdf': [{'remotelevel': 'purple', 'direction': 'egress', 'guarddirective': {'operation': 'allow'}}]}}
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'XD_BAR_cdf_0', 'XD_BAR_cdf_1']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'ORANGE_cdf_0']
+['nullCdf', 'nullCdf', 'nullCdf']
+['nullCdf', 'nullCdf', 'nullCdf']
+Num Function CDFs: 2
+Num CLE Labels: 9
+['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']
+['false', 'false', 'false', 'true', 'false', 'false', 'false', 'false', 'false']
+['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']
+['false', 'true', 'false', 'false', 'true', 'false', 'false', 'false', 'false']
+[[], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]
+[['false', 'false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]
+hasArgtaints has incorrect dimensions
+[]
+[]
+hasARCtaints has incorrect dimensions
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f44fcf530d0>, {'cleLabel': ['nullCleLabel', 'PURPLE', 'XD_BAR', 'TAG_RESPONSE_GET_EWMA', 'PURPLE_SHAREABLE', 'TAG_REQUEST_GET_EWMA', 'ORANGE', 'orangeDFLT', 'purpleDFLT'], 'cdf': ['nullCdf', 'XD_BAR_cdf_0', 'XD_BAR_cdf_1', 'ORANGE_cdf_0'], 'remotelevel': ['None_remotelevel_0'], 'direction': ['None_direction_0'], 'operation': ['None_operation_0']})
+defaultdict(<function compute_zinc.<locals>.<lambda> at 0x7f44fcfb2430>, {'hasLabelLevel': ['nullLevel', 'purple', 'purple', 'nullLevel', 'nullLevel', 'nullLevel', 'orange', 'orange', 'purple'], 'isFunctionAnnotation': ['false', 'false', 'true', 'false', 'false', 'false', 'false', 'false', 'false'], 'fromCleLabel': ['nullCleLabel', 'XD_BAR', 'XD_BAR', 'ORANGE'], 'hasRemotelevel': ['nullLevel', 'orange', 'purple', 'purple'], 'hasDirection': ['nullDirection', 'bidirectional', 'bidirectional', 'egress'], 'hasGuardOperation': ['nullGuardOperation', 'allow', 'allow', 'allow'], 'isOneway': ['false', 'false', 'false', 'false'], 'hasARCtaints': [[], []], 'cdfForRemoteLevel': [['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'XD_BAR_cdf_0', 'XD_BAR_cdf_1'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'ORANGE_cdf_0'], ['nullCdf', 'nullCdf', 'nullCdf'], ['nullCdf', 'nullCdf', 'nullCdf']], 'hasCodtaints': [['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'true', 'false', 'false', 'true', 'false', 'false', 'false', 'false']], 'hasRettaints': [['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'true', 'false', 'false', 'false', 'false', 'false']], 'hasArgtaints': [[[], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']], [['false', 'false', 'false', 'false', 'false', 'true', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false'], ['false', 'false', 'false', 'false', 'false', 'false', 'false', 'false', 'false']]], 'hasargtaints': [], 'hasrettaints': [], 'hascodtaints': []})

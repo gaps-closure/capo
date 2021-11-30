@@ -1,0 +1,21 @@
+digraph "CFG for 'fio_detect_cpu_cores' function" {
+	label="CFG for 'fio_detect_cpu_cores' function";
+
+	Node0x55685170e720 [shape=record,label="{%0:\l  %1 = alloca i64, align 8\l  %2 = alloca i64, align 8\l  call void @llvm.dbg.declare(metadata i64* %2, metadata !2803, metadata\l... !DIExpression()), !dbg !2804\l  store i64 0, i64* %2, align 8, !dbg !2804\l  %3 = call i64 @sysconf(i32 84) #9, !dbg !2805\l  store i64 %3, i64* %2, align 8, !dbg !2806\l  %4 = load i64, i64* %2, align 8, !dbg !2807\l  %5 = icmp slt i64 %4, 0, !dbg !2809\l  br i1 %5, label %6, label %13, !dbg !2810\l|{<s0>T|<s1>F}}"];
+	Node0x55685170e720:s0 -> Node0x55685170e770;
+	Node0x55685170e720:s1 -> Node0x55685170e900;
+	Node0x55685170e770 [shape=record,label="{%6:\l6:                                                \l  br label %7, !dbg !2811\l}"];
+	Node0x55685170e770 -> Node0x55685170e7c0;
+	Node0x55685170e7c0 [shape=record,label="{%7:\l7:                                                \l  %8 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2813\l  %9 = icmp sle i32 3, %8, !dbg !2813\l  br i1 %9, label %10, label %11, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x55685170e7c0:s0 -> Node0x55685170e810;
+	Node0x55685170e7c0:s1 -> Node0x55685170e860;
+	Node0x55685170e810 [shape=record,label="{%10:\l10:                                               \l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([47 x i8],\l... [47 x i8]* @.str.49, i64 0, i64 0)), !dbg !2817\l  br label %11, !dbg !2817\l}"];
+	Node0x55685170e810 -> Node0x55685170e860;
+	Node0x55685170e860 [shape=record,label="{%11:\l11:                                               \l  br label %12, !dbg !2816\l}"];
+	Node0x55685170e860 -> Node0x55685170e8b0;
+	Node0x55685170e8b0 [shape=record,label="{%12:\l12:                                               \l  store i64 0, i64* %1, align 8, !dbg !2819\l  br label %15, !dbg !2819\l}"];
+	Node0x55685170e8b0 -> Node0x55685170e950;
+	Node0x55685170e900 [shape=record,label="{%13:\l13:                                               \l  %14 = load i64, i64* %2, align 8, !dbg !2820\l  store i64 %14, i64* %1, align 8, !dbg !2821\l  br label %15, !dbg !2821\l}"];
+	Node0x55685170e900 -> Node0x55685170e950;
+	Node0x55685170e950 [shape=record,label="{%15:\l15:                                               \l  %16 = load i64, i64* %1, align 8, !dbg !2822\l  ret i64 %16, !dbg !2822\l}"];
+}

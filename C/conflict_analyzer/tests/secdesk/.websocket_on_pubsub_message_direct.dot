@@ -1,0 +1,5 @@
+digraph "CFG for 'websocket_on_pubsub_message_direct' function" {
+	label="CFG for 'websocket_on_pubsub_message_direct' function";
+
+	Node0x556851eef930 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_msg_s*, align 8\l  store %struct.fio_msg_s* %0, %struct.fio_msg_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_msg_s** %2, metadata !2814,\l... metadata !DIExpression()), !dbg !2815\l  %3 = load %struct.fio_msg_s*, %struct.fio_msg_s** %2, align 8, !dbg !2816\l  call void @websocket_on_pubsub_message_direct_internal(%struct.fio_msg_s*\l... %3, i8 zeroext 2), !dbg !2817\l  ret void, !dbg !2818\l}"];
+}

@@ -1,0 +1,94 @@
+ 
+
+
+# ===============  pdg class decelerations  =============== 
+
+PDG                 : Thing
+
+# ===============  pdg nodes  =============== 
+
+ 
+PDGNode                 : Thing
+
+Inst                    : PDGNode
+Inst_FunCall            : Inst
+Inst_Ret                : Inst
+Inst_Br                 : Inst
+Inst_Other              : Inst
+
+VarNode	                : PDGNode
+VarNode_StaticGlobal	: VarNode 
+VarNode_StaticModule    : VarNode 
+VarNode_StaticFunction	: VarNode 
+VarNode_StaticOther     : VarNode 
+
+FunctionEntry           : PDGNode 
+
+Param                   : PDGNode 
+Param_FormalIn	        : Param 
+Param_FormalOut	        : Param 
+Param_ActualIn	        : Param 
+Param_ActualOut	        : Param
+
+Annotation              : PDGNode  
+Annotation_Var          : Annotation
+Annotation_Global       : Annotation
+Annotation_Other        : Annotation 
+
+# ===============  pdg edges  =============== 
+
+PDGEdge	                : Thing 
+
+ControlDep	            : PDGEdge 
+ControlDep_CallInv      : ControlDep 
+ControlDep_CallRet      : ControlDep 
+ControlDep_Entry        : ControlDep 
+ControlDep_Br           : ControlDep 
+ControlDep_Other        : ControlDep
+ 
+
+DataDepEdge	            : PDGEdge 
+DataDepEdge_DefUse	    : DataDepEdge 
+DataDepEdge_RAW	        : DataDepEdge 
+DataDepEdge_Ret	        : DataDepEdge 
+DataDepEdge_Alias	    : DataDepEdge 
+
+
+Parameter               : PDGEdge
+Parameter_In	        : Parameter 
+Parameter_Out	        : Parameter 
+Parameter_Field	        : Parameter 
+
+Anno                    : PDGEdge
+Anno_Global             : Anno
+Anno_Var                : Anno
+Anno_Other              : Anno
+
+
+ 
+
+ 
+
+# ===============  cle class decelerations  =============== 
+
+ 
+
+CLE_entry	    : Thing 
+CrossDomainFlow : Thing  
+GuardDirective	: Thing 
+FuncTaints	    : Thing 
+RetTaint        : Label 
+BodyTaint       : Label 
+ArgTaint        : Label 
+GapsTag	        : Thing 
+GuardOperation  : Symbol 
+Allow           : GuardOperation 
+Deny            : GuardOperation 
+Redact          : GuardOperation 
+
+
+CLEAnnotation   : Annotation 
+VarAnnotation   : CLEAnnotation 
+FuncAnnotation  : CLEAnnotation 
+
+ 

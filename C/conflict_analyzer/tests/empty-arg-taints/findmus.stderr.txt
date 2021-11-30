@@ -1,0 +1,9 @@
+
+MiniZinc: evaluation error: 
+  /home/bflin/gaps/build.test/apps/conflicts/closure/capo/conflict_analyzer/constraints/experimental-sep9/conflict_variable_declarations.mzn:207:
+  in variable declaration for 'hasARCtaints'
+  /home/bflin/gaps/build.test/apps/conflicts/test-runs/2021-09-13-15-43-11/empty-arg-taints/cle_instance.mzn:33:
+  in call 'array2d'
+  mismatch in array dimensions
+
+

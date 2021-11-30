@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_cli_end' function" {
+	label="CFG for 'fio_cli_end' function";
+
+	Node0x55685189b3a0 [shape=record,label="{%0:\l  call void @fio_cli_hash_free(%struct.fio_cli_hash_s* @fio_values), !dbg !2802\l  call void @fio_cli_hash_free(%struct.fio_cli_hash_s* @fio_aliases), !dbg\l... !2803\l  store i64 0, i64* @fio_unnamed_count, align 8, !dbg !2804\l  ret void, !dbg !2805\l}"];
+}

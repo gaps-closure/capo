@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_f2i' function" {
+	label="CFG for 'fio_f2i' function";
+
+	Node0x55685201a8d0 [shape=record,label="{%1:\l  %2 = alloca i64, align 8\l  store i64 %0, i64* %2, align 8\l  call void @llvm.dbg.declare(metadata i64* %2, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  %3 = load i64, i64* %2, align 8, !dbg !2804\l  %4 = and i64 %3, -8, !dbg !2804\l  %5 = inttoptr i64 %4 to i8*, !dbg !2804\l  %6 = bitcast i8* %5 to %struct.fiobj_float_s*, !dbg !2804\l  %7 = getelementptr inbounds %struct.fiobj_float_s, %struct.fiobj_float_s*\l... %6, i32 0, i32 1, !dbg !2805\l  %8 = load double, double* %7, align 8, !dbg !2805\l  %9 = fpext double %8 to x86_fp80, !dbg !2804\l  %10 = call x86_fp80 @llvm.floor.f80(x86_fp80 %9), !dbg !2806\l  %11 = fptosi x86_fp80 %10 to i64, !dbg !2807\l  ret i64 %11, !dbg !2808\l}"];
+}

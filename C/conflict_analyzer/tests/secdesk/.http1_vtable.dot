@@ -1,0 +1,5 @@
+digraph "CFG for 'http1_vtable' function" {
+	label="CFG for 'http1_vtable' function";
+
+	Node0x5568521e5650 [shape=record,label="{%0:\l  ret i8* bitcast (%struct.http_vtable_s* @HTTP1_VTABLE to i8*), !dbg !2804\l}"];
+}

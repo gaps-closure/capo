@@ -1,0 +1,5 @@
+digraph "CFG for 'fiobj_hash_key_in_loop' function" {
+	label="CFG for 'fiobj_hash_key_in_loop' function";
+
+	Node0x556851e5aac0 [shape=record,label="{%0:\l  %1 = load i64, i64* @each_at_key, align 8, !dbg !2802\l  ret i64 %1, !dbg !2803\l}"];
+}

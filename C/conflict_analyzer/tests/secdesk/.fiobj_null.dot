@@ -1,0 +1,5 @@
+digraph "CFG for 'fiobj_null' function" {
+	label="CFG for 'fiobj_null' function";
+
+	Node0x556851a50ce0 [shape=record,label="{%0:\l  ret i64 6, !dbg !2802\l}"];
+}

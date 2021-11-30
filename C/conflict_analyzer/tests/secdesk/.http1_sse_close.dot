@@ -1,0 +1,5 @@
+digraph "CFG for 'http1_sse_close' function" {
+	label="CFG for 'http1_sse_close' function";
+
+	Node0x55685218f4f0 [shape=record,label="{%1:\l  %2 = alloca %struct.http_sse_s*, align 8\l  store %struct.http_sse_s* %0, %struct.http_sse_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.http_sse_s** %2, metadata\l... !2802, metadata !DIExpression()), !dbg !2803\l  %3 = load %struct.http_sse_s*, %struct.http_sse_s** %2, align 8, !dbg !2804\l  %4 = bitcast %struct.http_sse_s* %3 to %struct.http_sse_internal_s*, !dbg\l... !2805\l  %5 = getelementptr inbounds %struct.http_sse_internal_s,\l... %struct.http_sse_internal_s* %4, i32 0, i32 1, !dbg !2805\l  %6 = load i64, i64* %5, align 8, !dbg !2805\l  call void @fio_close(i64 %6), !dbg !2806\l  ret i32 0, !dbg !2807\l}"];
+}

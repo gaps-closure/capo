@@ -1,0 +1,46 @@
+digraph "CFG for 'http1_consume_header' function" {
+	label="CFG for 'http1_consume_header' function";
+
+	Node0x5568522132e0 [shape=record,label="{%3:\l  %4 = alloca i32, align 4\l  %5 = alloca %struct.http1_parser_s*, align 8\l  %6 = alloca i8*, align 8\l  %7 = alloca i8*, align 8\l  %8 = alloca i8*, align 8\l  %9 = alloca i8*, align 8\l  %10 = alloca i8*, align 8\l  store %struct.http1_parser_s* %0, %struct.http1_parser_s** %5, align 8\l  call void @llvm.dbg.declare(metadata %struct.http1_parser_s** %5, metadata\l... !2805, metadata !DIExpression()), !dbg !2806\l  store i8* %1, i8** %6, align 8\l  call void @llvm.dbg.declare(metadata i8** %6, metadata !2807, metadata\l... !DIExpression()), !dbg !2808\l  store i8* %2, i8** %7, align 8\l  call void @llvm.dbg.declare(metadata i8** %7, metadata !2809, metadata\l... !DIExpression()), !dbg !2810\l  call void @llvm.dbg.declare(metadata i8** %8, metadata !2811, metadata\l... !DIExpression()), !dbg !2812\l  %11 = load i8*, i8** %6, align 8, !dbg !2813\l  store i8* %11, i8** %8, align 8, !dbg !2812\l  %12 = load i8*, i8** %7, align 8, !dbg !2814\l  %13 = call zeroext i8 @seek2ch(i8** %8, i8* %12, i8 zeroext 58), !dbg !2816\l  %14 = icmp ne i8 %13, 0, !dbg !2816\l  br i1 %14, label %16, label %15, !dbg !2817\l|{<s0>T|<s1>F}}"];
+	Node0x5568522132e0:s0 -> Node0x55685221d9d0;
+	Node0x5568522132e0:s1 -> Node0x55685221d980;
+	Node0x55685221d980 [shape=record,label="{%15:\l15:                                               \l  store i32 -1, i32* %4, align 4, !dbg !2818\l  br label %83, !dbg !2818\l}"];
+	Node0x55685221d980 -> Node0x55685221de80;
+	Node0x55685221d9d0 [shape=record,label="{%16:\l16:                                               \l  %17 = load i8*, i8** %8, align 8, !dbg !2819\l  %18 = getelementptr inbounds i8, i8* %17, i64 -1, !dbg !2819\l  %19 = load i8, i8* %18, align 1, !dbg !2819\l  %20 = zext i8 %19 to i32, !dbg !2819\l  %21 = icmp eq i32 %20, 32, !dbg !2821\l  br i1 %21, label %28, label %22, !dbg !2822\l|{<s0>T|<s1>F}}"];
+	Node0x55685221d9d0:s0 -> Node0x55685221da70;
+	Node0x55685221d9d0:s1 -> Node0x55685221da20;
+	Node0x55685221da20 [shape=record,label="{%22:\l22:                                               \l  %23 = load i8*, i8** %8, align 8, !dbg !2823\l  %24 = getelementptr inbounds i8, i8* %23, i64 -1, !dbg !2823\l  %25 = load i8, i8* %24, align 1, !dbg !2823\l  %26 = zext i8 %25 to i32, !dbg !2823\l  %27 = icmp eq i32 %26, 9, !dbg !2824\l  br i1 %27, label %28, label %29, !dbg !2825\l|{<s0>T|<s1>F}}"];
+	Node0x55685221da20:s0 -> Node0x55685221da70;
+	Node0x55685221da20:s1 -> Node0x55685221dac0;
+	Node0x55685221da70 [shape=record,label="{%28:\l28:                                               \l  store i32 -1, i32* %4, align 4, !dbg !2826\l  br label %83, !dbg !2826\l}"];
+	Node0x55685221da70 -> Node0x55685221de80;
+	Node0x55685221dac0 [shape=record,label="{%29:\l29:                                               \l  call void @llvm.dbg.declare(metadata i8** %9, metadata !2827, metadata\l... !DIExpression()), !dbg !2829\l  %30 = load i8*, i8** %6, align 8, !dbg !2830\l  store i8* %30, i8** %9, align 8, !dbg !2829\l  br label %31, !dbg !2831\l}"];
+	Node0x55685221dac0 -> Node0x55685221db10;
+	Node0x55685221db10 [shape=record,label="{%31:\l31:                                               \l  %32 = load i8*, i8** %9, align 8, !dbg !2832\l  %33 = load i8*, i8** %8, align 8, !dbg !2834\l  %34 = icmp ult i8* %32, %33, !dbg !2835\l  br i1 %34, label %35, label %43, !dbg !2836\l|{<s0>T|<s1>F}}"];
+	Node0x55685221db10:s0 -> Node0x55685221db60;
+	Node0x55685221db10:s1 -> Node0x55685221dc00;
+	Node0x55685221db60 [shape=record,label="{%35:\l35:                                               \l  %36 = load i8*, i8** %9, align 8, !dbg !2837\l  %37 = load i8, i8* %36, align 1, !dbg !2839\l  %38 = call zeroext i8 @http_tolower(i8 zeroext %37), !dbg !2840\l  %39 = load i8*, i8** %9, align 8, !dbg !2841\l  store i8 %38, i8* %39, align 1, !dbg !2842\l  br label %40, !dbg !2843\l}"];
+	Node0x55685221db60 -> Node0x55685221dbb0;
+	Node0x55685221dbb0 [shape=record,label="{%40:\l40:                                               \l  %41 = load i8*, i8** %9, align 8, !dbg !2844\l  %42 = getelementptr inbounds i8, i8* %41, i32 1, !dbg !2844\l  store i8* %42, i8** %9, align 8, !dbg !2844\l  br label %31, !dbg !2845, !llvm.loop !2846\l}"];
+	Node0x55685221dbb0 -> Node0x55685221db10;
+	Node0x55685221dc00 [shape=record,label="{%43:\l43:                                               \l  call void @llvm.dbg.declare(metadata i8** %10, metadata !2848, metadata\l... !DIExpression()), !dbg !2849\l  %44 = load i8*, i8** %8, align 8, !dbg !2850\l  %45 = getelementptr inbounds i8, i8* %44, i64 1, !dbg !2851\l  store i8* %45, i8** %10, align 8, !dbg !2849\l  br label %46, !dbg !2852\l}"];
+	Node0x55685221dc00 -> Node0x55685221dc50;
+	Node0x55685221dc50 [shape=record,label="{%46:\l46:                                               \l  %47 = load i8*, i8** %10, align 8, !dbg !2853\l  %48 = load i8*, i8** %7, align 8, !dbg !2854\l  %49 = icmp ult i8* %47, %48, !dbg !2855\l  br i1 %49, label %50, label %64, !dbg !2856\l|{<s0>T|<s1>F}}"];
+	Node0x55685221dc50:s0 -> Node0x55685221dca0;
+	Node0x55685221dc50:s1 -> Node0x55685221dd90;
+	Node0x55685221dca0 [shape=record,label="{%50:\l50:                                               \l  %51 = load i8*, i8** %10, align 8, !dbg !2857\l  %52 = getelementptr inbounds i8, i8* %51, i64 0, !dbg !2857\l  %53 = load i8, i8* %52, align 1, !dbg !2857\l  %54 = zext i8 %53 to i32, !dbg !2857\l  %55 = icmp eq i32 %54, 32, !dbg !2858\l  br i1 %55, label %62, label %56, !dbg !2859\l|{<s0>T|<s1>F}}"];
+	Node0x55685221dca0:s0 -> Node0x55685221dd40;
+	Node0x55685221dca0:s1 -> Node0x55685221dcf0;
+	Node0x55685221dcf0 [shape=record,label="{%56:\l56:                                               \l  %57 = load i8*, i8** %10, align 8, !dbg !2860\l  %58 = getelementptr inbounds i8, i8* %57, i64 0, !dbg !2860\l  %59 = load i8, i8* %58, align 1, !dbg !2860\l  %60 = zext i8 %59 to i32, !dbg !2860\l  %61 = icmp eq i32 %60, 9, !dbg !2861\l  br label %62, !dbg !2859\l}"];
+	Node0x55685221dcf0 -> Node0x55685221dd40;
+	Node0x55685221dd40 [shape=record,label="{%62:\l62:                                               \l  %63 = phi i1 [ true, %50 ], [ %61, %56 ]\l  br label %64\l}"];
+	Node0x55685221dd40 -> Node0x55685221dd90;
+	Node0x55685221dd90 [shape=record,label="{%64:\l64:                                               \l  %65 = phi i1 [ false, %46 ], [ %63, %62 ], !dbg !2862\l  br i1 %65, label %66, label %69, !dbg !2852\l|{<s0>T|<s1>F}}"];
+	Node0x55685221dd90:s0 -> Node0x55685221dde0;
+	Node0x55685221dd90:s1 -> Node0x55685221de30;
+	Node0x55685221dde0 [shape=record,label="{%66:\l66:                                               \l  %67 = load i8*, i8** %10, align 8, !dbg !2863\l  %68 = getelementptr inbounds i8, i8* %67, i32 1, !dbg !2863\l  store i8* %68, i8** %10, align 8, !dbg !2863\l  br label %46, !dbg !2852, !llvm.loop !2865\l}"];
+	Node0x55685221dde0 -> Node0x55685221dc50;
+	Node0x55685221de30 [shape=record,label="{%69:\l69:                                               \l  %70 = load %struct.http1_parser_s*, %struct.http1_parser_s** %5, align 8,\l... !dbg !2867\l  %71 = getelementptr inbounds %struct.http1_parser_s, %struct.http1_parser_s*\l... %70, i32 0, i32 0, !dbg !2868\l  %72 = getelementptr inbounds\l... %struct.http1_parser_protected_read_only_state_s,\l... %struct.http1_parser_protected_read_only_state_s* %71, i32 0, i32 1, !dbg\l... !2869\l  %73 = load i64, i64* %72, align 8, !dbg !2869\l  %74 = icmp ne i64 %73, 0, !dbg !2867\l  %75 = zext i1 %74 to i64, !dbg !2867\l  %76 = select i1 %74, i32 (%struct.http1_parser_s*, i8*, i8*, i8*, i8*)*\l... @http1_consume_header_trailer, i32 (%struct.http1_parser_s*, i8*, i8*, i8*,\l... i8*)* @http1_consume_header_top, !dbg !2867\l  %77 = load %struct.http1_parser_s*, %struct.http1_parser_s** %5, align 8,\l... !dbg !2870\l  %78 = load i8*, i8** %6, align 8, !dbg !2871\l  %79 = load i8*, i8** %8, align 8, !dbg !2872\l  %80 = load i8*, i8** %10, align 8, !dbg !2873\l  %81 = load i8*, i8** %7, align 8, !dbg !2874\l  %82 = call i32 %76(%struct.http1_parser_s* %77, i8* %78, i8* %79, i8* %80,\l... i8* %81), !dbg !2875\l  store i32 %82, i32* %4, align 4, !dbg !2876\l  br label %83, !dbg !2876\l}"];
+	Node0x55685221de30 -> Node0x55685221de80;
+	Node0x55685221de80 [shape=record,label="{%83:\l83:                                               \l  %84 = load i32, i32* %4, align 4, !dbg !2877\l  ret i32 %84, !dbg !2877\l}"];
+}

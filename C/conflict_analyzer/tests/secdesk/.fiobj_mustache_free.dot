@@ -1,0 +1,5 @@
+digraph "CFG for 'fiobj_mustache_free' function" {
+	label="CFG for 'fiobj_mustache_free' function";
+
+	Node0x556851fc80d0 [shape=record,label="{%1:\l  %2 = alloca %struct.mustache_s*, align 8\l  store %struct.mustache_s* %0, %struct.mustache_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.mustache_s** %2, metadata\l... !2804, metadata !DIExpression()), !dbg !2805\l  %3 = load %struct.mustache_s*, %struct.mustache_s** %2, align 8, !dbg !2806\l  call void @mustache_free(%struct.mustache_s* %3), !dbg !2807\l  ret void, !dbg !2808\l}"];
+}

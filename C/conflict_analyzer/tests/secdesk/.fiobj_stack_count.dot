@@ -1,0 +1,12 @@
+digraph "CFG for 'fiobj_stack_count' function" {
+	label="CFG for 'fiobj_stack_count' function";
+
+	Node0x556851e03ea0 [shape=record,label="{%1:\l  %2 = alloca %struct.fio_ary___s*, align 8\l  store %struct.fio_ary___s* %0, %struct.fio_ary___s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.fio_ary___s** %2, metadata\l... !2812, metadata !DIExpression()), !dbg !2813\l  %3 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg !2814\l  %4 = icmp ne %struct.fio_ary___s* %3, null, !dbg !2814\l  br i1 %4, label %5, label %13, !dbg !2814\l|{<s0>T|<s1>F}}"];
+	Node0x556851e03ea0:s0 -> Node0x556851e05ea0;
+	Node0x556851e03ea0:s1 -> Node0x556851e05ef0;
+	Node0x556851e05ea0 [shape=record,label="{%5:\l5:                                                \l  %6 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg !2815\l  %7 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %6,\l... i32 0, i32 1, !dbg !2816\l  %8 = load i64, i64* %7, align 8, !dbg !2816\l  %9 = load %struct.fio_ary___s*, %struct.fio_ary___s** %2, align 8, !dbg !2817\l  %10 = getelementptr inbounds %struct.fio_ary___s, %struct.fio_ary___s* %9,\l... i32 0, i32 0, !dbg !2818\l  %11 = load i64, i64* %10, align 8, !dbg !2818\l  %12 = sub i64 %8, %11, !dbg !2819\l  br label %14, !dbg !2814\l}"];
+	Node0x556851e05ea0 -> Node0x556851e05f40;
+	Node0x556851e05ef0 [shape=record,label="{%13:\l13:                                               \l  br label %14, !dbg !2814\l}"];
+	Node0x556851e05ef0 -> Node0x556851e05f40;
+	Node0x556851e05f40 [shape=record,label="{%14:\l14:                                               \l  %15 = phi i64 [ %12, %5 ], [ 0, %13 ], !dbg !2814\l  ret i64 %15, !dbg !2820\l}"];
+}

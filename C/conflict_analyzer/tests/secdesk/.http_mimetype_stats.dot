@@ -1,0 +1,14 @@
+digraph "CFG for 'http_mimetype_stats' function" {
+	label="CFG for 'http_mimetype_stats' function";
+
+	Node0x556852473fc0 [shape=record,label="{%0:\l  br label %1, !dbg !2802\l}"];
+	Node0x556852473fc0 -> Node0x556852474bc0;
+	Node0x556852474bc0 [shape=record,label="{%1:\l1:                                                \l  %2 = load i32, i32* @FIO_LOG_LEVEL, align 4, !dbg !2803\l  %3 = icmp sle i32 5, %2, !dbg !2803\l  br i1 %3, label %4, label %7, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x556852474bc0:s0 -> Node0x556852474c10;
+	Node0x556852474bc0:s1 -> Node0x556852474c60;
+	Node0x556852474c10 [shape=record,label="{%4:\l4:                                                \l  %5 = call i64 @fio_mime_set_count(%struct.fio_mime_set_s*\l... @fio_http_mime_types), !dbg !2807\l  %6 = call i64 @fio_mime_set_capa(%struct.fio_mime_set_s*\l... @fio_http_mime_types), !dbg !2807\l  call void (i8*, ...) @FIO_LOG2STDERR(i8* getelementptr inbounds ([92 x i8],\l... [92 x i8]* @.str.62.606, i64 0, i64 0), i64 %5, i64 %6), !dbg !2807\l  br label %7, !dbg !2807\l}"];
+	Node0x556852474c10 -> Node0x556852474c60;
+	Node0x556852474c60 [shape=record,label="{%7:\l7:                                                \l  br label %8, !dbg !2806\l}"];
+	Node0x556852474c60 -> Node0x556852474cb0;
+	Node0x556852474cb0 [shape=record,label="{%8:\l8:                                                \l  ret void, !dbg !2809\l}"];
+}

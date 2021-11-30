@@ -1,0 +1,16 @@
+digraph "CFG for 'fio_cycle_unwind' function" {
+	label="CFG for 'fio_cycle_unwind' function";
+
+	Node0x556851760640 [shape=record,label="{%2:\l  %3 = alloca i8*, align 8\l  %4 = alloca i8*, align 8\l  %5 = alloca %struct.fio_defer_task_s, align 8\l  store i8* %0, i8** %3, align 8\l  call void @llvm.dbg.declare(metadata i8** %3, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  store i8* %1, i8** %4, align 8\l  call void @llvm.dbg.declare(metadata i8** %4, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %6 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2806\l  %7 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %6, i32\l... 0, i32 2, !dbg !2808\l  %8 = load i32, i32* %7, align 4, !dbg !2808\l  %9 = icmp ne i32 %8, 0, !dbg !2806\l  br i1 %9, label %10, label %18, !dbg !2809\l|{<s0>T|<s1>F}}"];
+	Node0x556851760640:s0 -> Node0x556851760730;
+	Node0x556851760640:s1 -> Node0x556851760820;
+	Node0x556851760730 [shape=record,label="{%10:\l10:                                               \l  call void @fio_cycle_schedule_events(), !dbg !2810\l  br label %11, !dbg !2812\l}"];
+	Node0x556851760730 -> Node0x556851760780;
+	Node0x556851760780 [shape=record,label="{%11:\l11:                                               \l  %12 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %5, i32 0, i32 0, !dbg !2813\l  store void (i8*, i8*)* @fio_cycle_unwind, void (i8*, i8*)** %12, align 8,\l... !dbg !2813\l  %13 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %5, i32 0, i32 1, !dbg !2813\l  %14 = load i8*, i8** %3, align 8, !dbg !2813\l  store i8* %14, i8** %13, align 8, !dbg !2813\l  %15 = getelementptr inbounds %struct.fio_defer_task_s,\l... %struct.fio_defer_task_s* %5, i32 0, i32 2, !dbg !2813\l  %16 = load i8*, i8** %4, align 8, !dbg !2813\l  store i8* %16, i8** %15, align 8, !dbg !2813\l  call void @fio_defer_push_task_fn(%struct.fio_defer_task_s*\l... byval(%struct.fio_defer_task_s) align 8 %5, %struct.fio_task_queue_s*\l... @task_queue_normal), !dbg !2813\l  call void @fio_defer_thread_signal(), !dbg !2813\l  br label %17, !dbg !2813\l}"];
+	Node0x556851760780 -> Node0x5568517607d0;
+	Node0x5568517607d0 [shape=record,label="{%17:\l17:                                               \l  br label %19, !dbg !2815\l}"];
+	Node0x5568517607d0 -> Node0x556851760870;
+	Node0x556851760820 [shape=record,label="{%18:\l18:                                               \l  call void @fio_stop(), !dbg !2816\l  br label %19, !dbg !2817\l}"];
+	Node0x556851760820 -> Node0x556851760870;
+	Node0x556851760870 [shape=record,label="{%19:\l19:                                               \l  ret void, !dbg !2818\l}"];
+}

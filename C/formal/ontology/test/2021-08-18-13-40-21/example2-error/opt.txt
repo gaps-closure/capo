@@ -1,0 +1,353 @@
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @calc_ewma(double %0, double %1) #0 !dbg !2 {
+  %3 = alloca double, align 8
+  %4 = alloca double, align 8
+  %5 = alloca double, align 8
+  store double %0, double* %3, align 8
+  call void @llvm.dbg.declare(metadata double* %3, metadata !22, metadata !DIExpression()), !dbg !23
+  store double %1, double* %4, align 8
+  call void @llvm.dbg.declare(metadata double* %4, metadata !24, metadata !DIExpression()), !dbg !25
+  call void @llvm.dbg.declare(metadata double* %5, metadata !26, metadata !DIExpression()), !dbg !28
+  store double 2.500000e-01, double* %5, align 8, !dbg !28
+  %6 = load double, double* %3, align 8, !dbg !29
+  %7 = load double, double* %4, align 8, !dbg !30
+  %8 = fadd double %6, %7, !dbg !31
+  %9 = fmul double 2.500000e-01, %8, !dbg !32
+  %10 = load double, double* @calc_ewma.c, align 8, !dbg !33
+  %11 = fmul double 7.500000e-01, %10, !dbg !34
+  %12 = fadd double %9, %11, !dbg !35
+  store double %12, double* @calc_ewma.c, align 8, !dbg !36
+  %13 = load double, double* @calc_ewma.c, align 8, !dbg !37
+  ret double %13, !dbg !38
+}
+
+debug: 0x0
+Added: 0x55f9e4073598
+debug: 0x0
+Added: 0x55f9e40735f8
+debug: 0x0
+Added: 0x55f9e4073658
+debug: 0x0
+Added: 0x55f9e40736d0
+debug: 0x55f9e40737d8
+line number: 22
+Added: 0x55f9e4073780
+debug: 0x0
+Added: 0x55f9e4073830
+debug: 0x55f9e4073998
+line number: 22
+Added: 0x55f9e4073940
+debug: 0x55f9e4073ad8
+line number: 23
+Added: 0x55f9e4073a80
+debug: 0x55f9e4073ad8
+line number: 23
+Added: 0x55f9e4073b30
+debug: 0x55f9e4073be8
+line number: 25
+Added: 0x55f9e4073b98
+debug: 0x55f9e4073c78
+line number: 25
+Added: 0x55f9e4073c28
+debug: 0x55f9e4073ca8
+line number: 25
+Added: 0x55f9e404e370
+debug: 0x55f9e4073d48
+line number: 25
+Added: 0x55f9e4073d00
+debug: 0x55f9e4073dd8
+line number: 25
+Added: 0x55f9e4073d88
+debug: 0x55f9e4073e78
+line number: 25
+Added: 0x55f9e4073e30
+debug: 0x55f9e4073f18
+line number: 25
+Added: 0x55f9e4073ed0
+debug: 0x55f9e4073fc8
+line number: 25
+Added: 0x55f9e4073f70
+debug: 0x55f9e4074058
+line number: 26
+Added: 0x55f9e4074008
+debug: 0x55f9e40740e8
+line number: 26
+Added: 0x55f9e4074098
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @get_a() #0 !dbg !12 {
+  %1 = load double, double* @get_a.a, align 8, !dbg !39
+  %2 = fadd double %1, 1.000000e+00, !dbg !39
+  store double %2, double* @get_a.a, align 8, !dbg !39
+  %3 = load double, double* @get_a.a, align 8, !dbg !40
+  ret double %3, !dbg !41
+}
+
+debug: 0x55f9e4074388
+line number: 35
+Added: 0x55f9e4074338
+debug: 0x55f9e4074388
+line number: 35
+Added: 0x55f9e40743e0
+debug: 0x55f9e4074388
+line number: 35
+Added: 0x55f9e4074450
+debug: 0x55f9e4074508
+line number: 36
+Added: 0x55f9e40744b8
+debug: 0x55f9e4074598
+line number: 36
+Added: 0x55f9e4074548
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @get_b() #0 !dbg !17 {
+  %1 = load double, double* @get_b.b, align 8, !dbg !42
+  %2 = load double, double* @get_b.b, align 8, !dbg !43
+  %3 = fadd double %2, %1, !dbg !43
+  store double %3, double* @get_b.b, align 8, !dbg !43
+  %4 = load double, double* @get_b.b, align 8, !dbg !44
+  ret double %4, !dbg !45
+}
+
+debug: 0x55f9e4074678
+line number: 45
+Added: 0x55f9e4074628
+debug: 0x55f9e4074708
+line number: 45
+Added: 0x55f9e40746b8
+debug: 0x55f9e4074708
+line number: 45
+Added: 0x55f9e4074760
+debug: 0x55f9e4074708
+line number: 45
+Added: 0x55f9e40747d0
+debug: 0x55f9e4074888
+line number: 46
+Added: 0x55f9e4074838
+debug: 0x55f9e4074918
+line number: 46
+Added: 0x55f9e40748c8
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @get_ewma(double %0) #0 !dbg !46 {
+  %2 = alloca double, align 8
+  %3 = alloca double, align 8
+  store double %0, double* %2, align 8
+  call void @llvm.dbg.declare(metadata double* %2, metadata !49, metadata !DIExpression()), !dbg !50
+  call void @llvm.dbg.declare(metadata double* %3, metadata !51, metadata !DIExpression()), !dbg !52
+  %4 = call double @get_b(), !dbg !53
+  store double %4, double* %3, align 8, !dbg !52
+  %5 = load double, double* %2, align 8, !dbg !54
+  %6 = load double, double* %3, align 8, !dbg !55
+  %7 = call double @calc_ewma(double %5, double %6), !dbg !56
+  ret double %7, !dbg !57
+}
+
+debug: 0x0
+Added: 0x55f9e4074d58
+debug: 0x0
+Added: 0x55f9e4074db8
+debug: 0x0
+Added: 0x55f9e4074e30
+debug: 0x55f9e4074f38
+line number: 51
+Added: 0x55f9e4074ee0
+debug: 0x55f9e4075078
+line number: 54
+Added: 0x55f9e4075020
+debug: 0x55f9e4075118
+line number: 54
+Added: 0x55f9e40750b8
+debug: 0x55f9e4075078
+line number: 54
+Added: 0x55f9e4075170
+debug: 0x55f9e4075228
+line number: 55
+Added: 0x55f9e40751d8
+debug: 0x55f9e40752b8
+line number: 55
+Added: 0x55f9e4075268
+debug: 0x55f9e40752e8
+line number: 55
+Added: 0x55f9e4068858
+debug: 0x55f9e4075378
+line number: 55
+Added: 0x55f9e4075328
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @ewma_main() #0 !dbg !58 {
+  %1 = alloca double, align 8
+  %2 = alloca double, align 8
+  %3 = alloca double, align 8
+  %4 = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata double* %1, metadata !62, metadata !DIExpression()), !dbg !63
+  call void @llvm.dbg.declare(metadata double* %2, metadata !64, metadata !DIExpression()), !dbg !65
+  call void @llvm.dbg.declare(metadata double* %3, metadata !66, metadata !DIExpression()), !dbg !67
+  %5 = bitcast double* %3 to i8*, !dbg !68
+  call void @llvm.var.annotation(i8* %5, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i32 0, i32 0), i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.1, i32 0, i32 0), i32 63), !dbg !68
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !69, metadata !DIExpression()), !dbg !71
+  store i32 0, i32* %4, align 4, !dbg !71
+  br label %6, !dbg !72
+
+6:                                                ; preds = %15, %0
+  %7 = load i32, i32* %4, align 4, !dbg !73
+  %8 = icmp slt i32 %7, 10, !dbg !75
+  br i1 %8, label %9, label %18, !dbg !76
+
+9:                                                ; preds = %6
+  %10 = call double @get_a(), !dbg !77
+  store double %10, double* %1, align 8, !dbg !79
+  %11 = load double, double* %1, align 8, !dbg !80
+  %12 = call double @get_ewma(double %11), !dbg !81
+  store double %12, double* %3, align 8, !dbg !82
+  %13 = load double, double* %3, align 8, !dbg !83
+  %14 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.4, i64 0, i64 0), double %13), !dbg !84
+  br label %15, !dbg !85
+
+15:                                               ; preds = %9
+  %16 = load i32, i32* %4, align 4, !dbg !86
+  %17 = add nsw i32 %16, 1, !dbg !86
+  store i32 %17, i32* %4, align 4, !dbg !86
+  br label %6, !dbg !87, !llvm.loop !88
+
+18:                                               ; preds = %6
+  ret i32 0, !dbg !90
+}
+
+debug: 0x0
+Added: 0x55f9e4075d18
+debug: 0x0
+Added: 0x55f9e4075d78
+debug: 0x0
+Added: 0x55f9e4075dd8
+debug: 0x0
+Added: 0x55f9e4075e38
+debug: 0x55f9e4075ac8
+line number: 59
+Added: 0x55f9e4075ee0
+debug: 0x55f9e4075fe8
+line number: 60
+Added: 0x55f9e4075f90
+debug: 0x55f9e4076128
+line number: 63
+Added: 0x55f9e40760d0
+debug: 0x55f9e40761b8
+line number: 63
+Added: 0x55f9e4076168
+debug: 0x55f9e40761b8
+line number: 63
+Added: 0x55f9e4069898
+debug: 0x55f9e40762f8
+line number: 66
+Added: 0x55f9e40762a0
+debug: 0x55f9e40762f8
+line number: 66
+Added: 0x55f9e4076350
+debug: 0x55f9e4076408
+line number: 66
+Added: 0x55f9e40763b8
+debug: 0x55f9e4076498
+line number: 66
+Added: 0x55f9e4076448
+debug: 0x55f9e4076538
+line number: 66
+Added: 0x55f9e40764f0
+debug: 0x55f9e40759a8
+line number: 66
+Added: 0x55f9e40765a8
+debug: 0x55f9e4076668
+line number: 67
+Added: 0x55f9e4076608
+debug: 0x55f9e4076718
+line number: 67
+Added: 0x55f9e40766c0
+debug: 0x55f9e40767a8
+line number: 68
+Added: 0x55f9e4076758
+debug: 0x55f9e4076858
+line number: 68
+Added: 0x55f9e4076800
+debug: 0x55f9e4076908
+line number: 68
+Added: 0x55f9e40768b0
+debug: 0x55f9e4076998
+line number: 69
+Added: 0x55f9e4076948
+debug: 0x55f9e4076a68
+line number: 69
+Added: 0x55f9e4076a08
+debug: 0x55f9e4076af8
+line number: 70
+Added: 0x55f9e4076aa8
+debug: 0x55f9e4076b88
+line number: 66
+Added: 0x55f9e4076b38
+debug: 0x55f9e4076b88
+line number: 66
+Added: 0x55f9e4076be0
+debug: 0x55f9e4076b88
+line number: 66
+Added: 0x55f9e4076c50
+debug: 0x55f9e4076d08
+line number: 66
+Added: 0x55f9e4076cb8
+debug: 0x55f9e4076d98
+line number: 71
+Added: 0x55f9e4076d48
+Checking for Function: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !91 {
+  %1 = alloca i32, align 4
+  store i32 0, i32* %1, align 4
+  %2 = call i32 @ewma_main(), !dbg !92
+  ret i32 %2, !dbg !93
+}
+
+debug: 0x0
+Added: 0x55f9e40780c8
+debug: 0x0
+Added: 0x55f9e4078140
+debug: 0x55f9e40753a8
+line number: 75
+Added: 0x55f9e40781a8
+debug: 0x55f9e4078268
+line number: 75
+Added: 0x55f9e4078218
+double %0
+double %1
+double %0
+Checking for Global: @get_a.a = internal global double 0.000000e+00, align 8, !dbg !10
+Checking for Global: @get_b.b = internal global double 1.000000e+00, align 8, !dbg !15
+Checking for Global: ; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @get_ewma(double %0) #0 !dbg !46 {
+  %2 = alloca double, align 8
+  %3 = alloca double, align 8
+  store double %0, double* %2, align 8
+  call void @llvm.dbg.declare(metadata double* %2, metadata !49, metadata !DIExpression()), !dbg !50
+  call void @llvm.dbg.declare(metadata double* %3, metadata !51, metadata !DIExpression()), !dbg !52
+  %4 = call double @get_b(), !dbg !53
+  store double %4, double* %3, align 8, !dbg !52
+  %5 = load double, double* %2, align 8, !dbg !54
+  %6 = load double, double* %3, align 8, !dbg !55
+  %7 = call double @calc_ewma(double %5, double %6), !dbg !56
+  ret double %7, !dbg !57
+}
+
+func size: 6
+Finsh adding dependencies
+building PDG takes: 0
+PDG Node size: 83
+BCÀÞ5b0$JY¾fMû´_Q€L!ä!#‘AÈI29’„%‹b€EB’BÄ28K
+2bˆHpÄ!#D‡ŒA’dÈ± CFˆ É2b„*(*1|°\‘ ÆÈ‰ 2"ˆ	 d…#¤„#ã„¡LŒŒ„ÄLÁsH4¤@ENt$@		s``ˆeY˜hÈ)Bš¦‰¨d+CZ)¤eYâªÀ,ä30GÌ€QÄ&øÿÿÿÿp	( ˆqxy‡rz`‡|hyx‡zpr(rhrH{Hr(‡6˜‡xzhs€‡6h‡p tÌ!ØaÊ È!æ!ÄÊ¡è!ÒÚ`ÂØasv˜‡rs‡ph‡rhxx‡tpz(yÂØ Ø¡æaÚä¡Æ!æ¡ÚÀà¡Âsv˜‡rˆvHwhv(‡svh{(‡q ‡w‡6¸‡t z@ÂÞ¡ÒÁÌaÚÀà¡Ú!èsv˜‡rwx‡6P‡zhxhzq`‡r˜ÀÂæ¡ÂÞ¡Ü!ÜaÚÀà¡Ú!èsv˜‡rwx‡6˜‡t8w(rh}(yx‡yhs€‡6h‡p tÌ!ØaÊ ÜáÚ€ä!àÒÁÎ¡Ú!èsv˜‡rˆy ‡p‡uhx‡w ‡rzxyhq¨s0‡r‡6˜‡tÐ‡rð è!äáÊÚ`à¡|À;h; € ‡p‡s(zhs(‡p ‡z‡r˜`Æð€ÖÀðaäÖ ÚØ`æaÊÖ`æ¡ä€Öðà¢ÜaÂÁÊ¡ÌÚ ÂÐ0‡p`‡y(€¨‡y(‡6˜‡w0zhs`‡wzÌ!ØaÊØ ÿÿÿÿ?@uôÁcøÿÿÿÿ€>Ø .ÄÿÿÿÿÄ8¼ƒ<ÈC9Œ=°C>´<¼C=¸9”9´9¤ƒ=¤9”CÌC<È=´9ÀC´C8Ð:æì0åäóâÀåÐôéÀm0áÀì0€9„;ÌC9„9ÈC8´C9´<¼C:¸=”ƒ<áÀììPó0mòPãóPm`ðÐá@€9„;ÌC9„;¼C¤ƒ;˜Ã<´9ÀC´C8Ð:æì0åîðmàáàóÐæmÐá@è˜C8°Ã<”@¸Ã;´Á<¤Ã9¸C9CèC9ÈÃ;ÌC˜<´A;„= `áÀóPáïÐô áðîpmÐá@è˜C8°Ã<”@Ì=„Ã8¬CÀƒ<¼=”Ã8ÐÃ;ÈCˆC=˜ƒ9”ƒ<´Á<¤ƒ>”€Aá çPôÐãõàØAØ=„ƒ<œC9ÐC˜C9„=Ôƒ<”Ã<k0ø€l°æ€ó l°íÐøÀk0óPl°ó0å l°ø€wõàóæPm`ðÐíô€€9„;ÌC9D=ÌC9´Á<¼ƒ9ÐC˜;¼C8Ð`áÀóPI‚`B L†	0|À;ø; ƒ6¨wXwx‡{p‡6`‡tp‡zÀ‡68w¨‡¦PmÐzPmrpp s z0rÐð wz0r s mrpr v@z`tÐé`t v@m`xzr€màx q`z0r v@m0q x°¢av°‡vpƒv(zrz¥„	!CFŠ	![8Ôä;$`„i ‚Ø!- L,ÀI"†J€€`vH–QU°Câ@° X€ÒÃp%@@°;¤40ŽK€€`vHo`$C–Á°æÂ48¤b… €X€!U-@À©Ê¡° `H¥…@°Cªw@0€RÝC¢@,À
+$&€`†T3ax@0¤Ê	B €X‰…É	²@(2˜LŒ	&GÆCFhX]µô¨ØÂ¡&_ `ŒAAù aÔ]ÓÒ£c¥¸+Å“Ô@ï½ö÷`S£D‡’YA‹m@Ì-C!0£uÆÀhŒFLQƒD¶q-¶ÁPÇ@ŒÆhÄ5H| Òb›5uˆÁhŒFL™QƒÄHr%98x¢IL9B”A	±“3€Äáf=ˆC8„ÃŒB€yxs˜qæíô€3BÂÁÎ¡f0=ˆC8„ƒÌ=ÈC=Œ=ÌxŒtp{yH‡ppzpvx‡p ‡Ììá0n0ãððP3ÄÞ!Ø!Âaf0‰;¼ƒ;ÐC9´<¼ƒ<„;Ìðv`{h7h‡rh7€‡p‡p`v(vøvx‡w€‡_‡q‡r˜‡y˜,îðîàõÀì0bÈ¡ä¡Ì¡ä¡ÜaÊ!ÄÊaÖC9ÈC9˜C9ÈC9¸Ã8”C8ˆ;”Ã/¼ƒ<ü‚;Ô;°ÃÇi‡pX‡rpƒthx`‡t‡t ‡ÎSîòPäã@á ìP3 (ÜÁÂAÒ!ÜÜàäáêfQ8°C:œƒ;ÌP$v`{h7`‡wxx˜QLôðP3jÊaè!ÞÁ~ä¡Ì!ðaT…ƒ8ÌÃ;°C=ÐC9üÂ<äC;ˆÃ;°ÃŒÅ
+‡y˜‡w‡tz(r˜\ãìÀåPó0#ÁÒAäáØáÞfH;°ƒ=´ƒ„Ã8ŒC9ÌÃ<¸Á9ÈÃ;Ô<ÌH´qv`q‡qX‡ÛÆì`íàð å0å öPnã0å0óàéàäPø0CáÚ!æ¡ðÊaèaFÔÙÃ8„;°Ã/ØC:ÌC:ˆC:°C:ÐC>y ªrH Cˆ	r2H #Œ‘‘ÑD (d<12BŽ!£Aa…,ÀCaE¤Áout.c/home/bflin/gaps/build/apps/conflicts/test-runs/2021-08-18-13-40-21/example2-errorclang version 10.0.1 (https://github.com/gaps-closure/llvm-project.git 4954dd8b02af91d5e8d4815824208b6004f667a8)get_bdoublebget_aacalc_ewmacDwarf VersionDebug Info Versionwchar_sizexyintæn0‚À Á“#ŒŒ 0k0‚À°ÁTÒÑ@wfpx0SXÐ©SIGw]g€ÌÆt`@AÀTÒÑ%@g¡ ˆpàÀlL¡)@‡‘A0Ô0Ýx0€0PÌLS°}S}Sp}3`b0ÏA
+ÌÁL„”0Ã@d@3pÀC´H3CÍ0T4C0ÌsdP3m0!nÜˆˆˆKƒHJøJ¸d¡ ˜çtàb b`™'#	Ê…Í®Í…LìÌe¬n”`ËˆÍ®Í¥í¬Ž­ÌÅŒ-ìln”Ò@Rac³ksI#+s£%Xƒ!ƒ¾!ƒ!À`È` €0©
+r(‡w€zXp˜C=¸Ã8°C9ÐÃ‚æÆ¡èAÂÁæ!è!ÞÁ4ã`çPá ä@á çPôÑÌ<¤ƒ;œ;”= ƒ<”C8Ãa TA,Œ€ ‚ ‚ ýc ‚ ‚ ¨ÿñ0"GÈQDalphaãAC:‹—šÑYd À¢02€q‰ ÁAwÍ„ &L‚93Ã¤00l@
+3Ã¤0l@Œ‚¥aÍV¦À°!0bp ”üÿÿÿÿ0X3…5Œ‚¥þÿÿÿ?ÖŒAqEAA™1(2H2cPd”'0cPd’‡2cPd„™1(²3Ðà’@fŠ¬4¸!€ƒ"»46 ö  €ƒ"+4 =ÈŒA¡)l0cPhƒ1[ a ±@fŠ1(0¸ ƒ	`Ø€pƒ€&r€Ìd `°ÁŒAA1[à!1†a ¥@fŠ6@, 5ÈŒAÑ…0alÀ„@lƒÂ6˜1(Ü`°  [ !1†¨a BA<"GÈQget_ewma«¤£ƒ ›ƒ9˜@„6d@›`\"ÄÓÍ0.âàéì€˜ n0AÞ3Ã¤00l@
+Ã„0ÀˆÁ€ Pf°ÿÿÿÿCÿÿÿÿÒŒA1XÀˆÁ€ Pf ÿÿÿÿÿÿÿÿÒŒAaJÀˆ€ Xd0cPØ0l@Ìv ÄÐƒâ¨82cPÜ0b` ÁŒAqJÀ3Åq1[a –E,Ä”_QÐ8@ËPG¢cðcðñ0("GÈQ„	ewma_mainewmai«¤£ƒ Óƒ7Ð<˜UsÐ‰Â0«è …aVÔA'
+ÞŠáø Æ%Â8ÝãažŽÈ€q‰0qÐý0.è@:QhtH Cˆ	%
+s(S˜À!ˆƒ	B „`&`@3Ã¤00l@
+3Ã¤0Á0l0
+#‚`@­þÿÿÿþÿÿÿ?\3Å(s#‚`@­Áýÿÿÿýÿÿÿ?\3(s#‚`@­ýÿÿÿüÿÿÿ?\3Å(s),;cPüÁ00b€ Ü›–L#‚`@±ýÿÿÿüÿÿÿ?`3…(0tÃ„ÀÀ„0KÌ¢€ÐÀŒƒB¢:€á† AƒƒB¦:€Yf
+QèFÁÀjƒƒb;€a	`Æ …Ã€€Ì¤PÙŒ‚ÖÁŒAA
+ŒÀ°0cP‚b@@fŠR ìFÁÀc&˜1(J¡°˜%f
+Sì(aÆŒA!
+ZLÃÄÀ„0KÌ¢0ÔlÌ§0ÌÄ[@¶šda A<	"GÈQmain«¤£ƒ S…7P<3Ã£0l@ÔŒ‚3Å*(qÌ«0ÄÄ[q 2"„	ç¸Ð{€ÓØ°~€¯qœe£” /LXXÌä€L	L	ÿÿÿÿ$UUÿÿÿÿ,eeÿÿÿÿ$jjÿÿÿÿ$ooÿÿÿÿ$w	w	ÿÿÿÿ$€€ÿÿÿÿ,““ÿÿÿÿ$™™ÿÿÿÿ$ÿÿÿÿÿÿÿÿéÿÿÿÿüÿÿÿÿÿÿÿÿ#ÿÿÿÿ)ÿÿÿÿ/ÿÿÿÿ55ÿÿÿÿïïïïï]J”<calc_ewma.cget_a.a.str.str.1get_b.b.str.2.str.3.str.4llvm.global.annotationscalc_ewmallvm.dbg.declareget_aget_bget_ewmaewma_mainllvm.var.annotationprintfmain10.0.1 4954dd8b02af91d5e8d4815824208b6004f667a8x86_64-unknown-linux-gnuout.c.L.strllvm.metadata.L.str.1.L.str.2.L.str.3.L.str.4
+real	0m0.034s
+user	0m0.025s
+sys	0m0.008s

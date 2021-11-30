@@ -1,0 +1,47 @@
+digraph "CFG for 'arena_lock' function" {
+	label="CFG for 'arena_lock' function";
+
+	Node0x556851412720 [shape=record,label="{%1:\l  %2 = alloca %struct.arena_s*, align 8\l  %3 = alloca %struct.arena_s*, align 8\l  %4 = alloca %struct.arena_s*, align 8\l  %5 = alloca i64, align 8\l  store %struct.arena_s* %0, %struct.arena_s** %3, align 8\l  call void @llvm.dbg.declare(metadata %struct.arena_s** %3, metadata !2804,\l... metadata !DIExpression()), !dbg !2805\l  %6 = load %struct.arena_s*, %struct.arena_s** %3, align 8, !dbg !2806\l  %7 = icmp ne %struct.arena_s* %6, null, !dbg !2806\l  br i1 %7, label %10, label %8, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x556851412720:s0 -> Node0x556851413930;
+	Node0x556851412720:s1 -> Node0x5568514138e0;
+	Node0x5568514138e0 [shape=record,label="{%8:\l8:                                                \l  %9 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2809\l  store %struct.arena_s* %9, %struct.arena_s** %3, align 8, !dbg !2810\l  br label %10, !dbg !2811\l}"];
+	Node0x5568514138e0 -> Node0x556851413930;
+	Node0x556851413930 [shape=record,label="{%10:\l10:                                               \l  %11 = load %struct.arena_s*, %struct.arena_s** %3, align 8, !dbg !2812\l  %12 = getelementptr inbounds %struct.arena_s, %struct.arena_s* %11, i32 0,\l... i32 1, !dbg !2814\l  %13 = call i32 @fio_trylock(i8* %12), !dbg !2815\l  %14 = icmp ne i32 %13, 0, !dbg !2815\l  br i1 %14, label %17, label %15, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x556851413930:s0 -> Node0x5568514139d0;
+	Node0x556851413930:s1 -> Node0x556851413980;
+	Node0x556851413980 [shape=record,label="{%15:\l15:                                               \l  %16 = load %struct.arena_s*, %struct.arena_s** %3, align 8, !dbg !2817\l  store %struct.arena_s* %16, %struct.arena_s** %2, align 8, !dbg !2818\l  br label %59, !dbg !2818\l}"];
+	Node0x556851413980 -> Node0x556851413de0;
+	Node0x5568514139d0 [shape=record,label="{%17:\l17:                                               \l  br label %18, !dbg !2819\l}"];
+	Node0x5568514139d0 -> Node0x556851413a20;
+	Node0x556851413a20 [shape=record,label="{%18:\l18:                                               \l  call void @llvm.dbg.declare(metadata %struct.arena_s** %4, metadata !2820,\l... metadata !DIExpression()), !dbg !2822\l  %19 = load %struct.arena_s*, %struct.arena_s** %3, align 8, !dbg !2823\l  store %struct.arena_s* %19, %struct.arena_s** %4, align 8, !dbg !2822\l  call void @llvm.dbg.declare(metadata i64* %5, metadata !2824, metadata\l... !DIExpression()), !dbg !2826\l  %20 = load %struct.arena_s*, %struct.arena_s** %4, align 8, !dbg !2827\l  %21 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2828\l  %22 = ptrtoint %struct.arena_s* %20 to i64, !dbg !2829\l  %23 = ptrtoint %struct.arena_s* %21 to i64, !dbg !2829\l  %24 = sub i64 %22, %23, !dbg !2829\l  %25 = sdiv exact i64 %24, 16, !dbg !2829\l  store i64 %25, i64* %5, align 8, !dbg !2826\l  br label %26, !dbg !2830\l}"];
+	Node0x556851413a20 -> Node0x556851413a70;
+	Node0x556851413a70 [shape=record,label="{%26:\l26:                                               \l  %27 = load i64, i64* %5, align 8, !dbg !2831\l  %28 = load i64, i64* getelementptr inbounds (%struct.anon.16,\l... %struct.anon.16* @memory, i32 0, i32 1), align 8, !dbg !2833\l  %29 = icmp ult i64 %27, %28, !dbg !2834\l  br i1 %29, label %30, label %51, !dbg !2835\l|{<s0>T|<s1>F}}"];
+	Node0x556851413a70:s0 -> Node0x556851413ac0;
+	Node0x556851413a70:s1 -> Node0x556851413ca0;
+	Node0x556851413ac0 [shape=record,label="{%30:\l30:                                               \l  %31 = load %struct.arena_s*, %struct.arena_s** %3, align 8, !dbg !2836\l  %32 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2839\l  %33 = icmp eq %struct.arena_s* %31, %32, !dbg !2840\l  br i1 %33, label %38, label %34, !dbg !2841\l|{<s0>T|<s1>F}}"];
+	Node0x556851413ac0:s0 -> Node0x556851413b60;
+	Node0x556851413ac0:s1 -> Node0x556851413b10;
+	Node0x556851413b10 [shape=record,label="{%34:\l34:                                               \l  %35 = load %struct.arena_s*, %struct.arena_s** %4, align 8, !dbg !2842\l  %36 = load %struct.arena_s*, %struct.arena_s** %3, align 8, !dbg !2843\l  %37 = icmp ne %struct.arena_s* %35, %36, !dbg !2844\l  br i1 %37, label %38, label %45, !dbg !2845\l|{<s0>T|<s1>F}}"];
+	Node0x556851413b10:s0 -> Node0x556851413b60;
+	Node0x556851413b10:s1 -> Node0x556851413c00;
+	Node0x556851413b60 [shape=record,label="{%38:\l38:                                               \l  %39 = load %struct.arena_s*, %struct.arena_s** %4, align 8, !dbg !2846\l  %40 = getelementptr inbounds %struct.arena_s, %struct.arena_s* %39, i32 0,\l... i32 1, !dbg !2847\l  %41 = call i32 @fio_trylock(i8* %40), !dbg !2848\l  %42 = icmp ne i32 %41, 0, !dbg !2848\l  br i1 %42, label %45, label %43, !dbg !2849\l|{<s0>T|<s1>F}}"];
+	Node0x556851413b60:s0 -> Node0x556851413c00;
+	Node0x556851413b60:s1 -> Node0x556851413bb0;
+	Node0x556851413bb0 [shape=record,label="{%43:\l43:                                               \l  %44 = load %struct.arena_s*, %struct.arena_s** %4, align 8, !dbg !2850\l  store %struct.arena_s* %44, %struct.arena_s** %2, align 8, !dbg !2851\l  br label %59, !dbg !2851\l}"];
+	Node0x556851413bb0 -> Node0x556851413de0;
+	Node0x556851413c00 [shape=record,label="{%45:\l45:                                               \l  %46 = load %struct.arena_s*, %struct.arena_s** %4, align 8, !dbg !2852\l  %47 = getelementptr inbounds %struct.arena_s, %struct.arena_s* %46, i32 1,\l... !dbg !2852\l  store %struct.arena_s* %47, %struct.arena_s** %4, align 8, !dbg !2852\l  br label %48, !dbg !2853\l}"];
+	Node0x556851413c00 -> Node0x556851413c50;
+	Node0x556851413c50 [shape=record,label="{%48:\l48:                                               \l  %49 = load i64, i64* %5, align 8, !dbg !2854\l  %50 = add i64 %49, 1, !dbg !2854\l  store i64 %50, i64* %5, align 8, !dbg !2854\l  br label %26, !dbg !2855, !llvm.loop !2856\l}"];
+	Node0x556851413c50 -> Node0x556851413a70;
+	Node0x556851413ca0 [shape=record,label="{%51:\l51:                                               \l  %52 = load %struct.arena_s*, %struct.arena_s** %3, align 8, !dbg !2858\l  %53 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2860\l  %54 = icmp eq %struct.arena_s* %52, %53, !dbg !2861\l  br i1 %54, label %55, label %56, !dbg !2862\l|{<s0>T|<s1>F}}"];
+	Node0x556851413ca0:s0 -> Node0x556851413cf0;
+	Node0x556851413ca0:s1 -> Node0x556851413d40;
+	Node0x556851413cf0 [shape=record,label="{%55:\l55:                                               \l  call void @fio_reschedule_thread(), !dbg !2863\l  br label %56, !dbg !2863\l}"];
+	Node0x556851413cf0 -> Node0x556851413d40;
+	Node0x556851413d40 [shape=record,label="{%56:\l56:                                               \l  %57 = load %struct.arena_s*, %struct.arena_s** @arenas, align 8, !dbg !2864\l  store %struct.arena_s* %57, %struct.arena_s** %3, align 8, !dbg !2865\l  br label %58, !dbg !2866\l}"];
+	Node0x556851413d40 -> Node0x556851413d90;
+	Node0x556851413d90 [shape=record,label="{%58:\l58:                                               \l  br i1 true, label %18, label %59, !dbg !2866, !llvm.loop !2867\l|{<s0>T|<s1>F}}"];
+	Node0x556851413d90:s0 -> Node0x556851413a20;
+	Node0x556851413d90:s1 -> Node0x556851413de0;
+	Node0x556851413de0 [shape=record,label="{%59:\l59:                                               \l  %60 = load %struct.arena_s*, %struct.arena_s** %2, align 8, !dbg !2869\l  ret %struct.arena_s* %60, !dbg !2869\l}"];
+}

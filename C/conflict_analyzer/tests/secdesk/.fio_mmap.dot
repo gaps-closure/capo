@@ -1,0 +1,12 @@
+digraph "CFG for 'fio_mmap' function" {
+	label="CFG for 'fio_mmap' function";
+
+	Node0x5568513cbe60 [shape=record,label="{%1:\l  %2 = alloca i8*, align 8\l  %3 = alloca i64, align 8\l  store i64 %0, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2804, metadata\l... !DIExpression()), !dbg !2805\l  %4 = load i64, i64* %3, align 8, !dbg !2806\l  %5 = icmp ne i64 %4, 0, !dbg !2806\l  br i1 %5, label %7, label %6, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x5568513cbe60:s0 -> Node0x5568513cc5b0;
+	Node0x5568513cbe60:s1 -> Node0x5568513cc560;
+	Node0x5568513cc560 [shape=record,label="{%6:\l6:                                                \l  store i8* null, i8** %2, align 8, !dbg !2809\l  br label %10, !dbg !2809\l}"];
+	Node0x5568513cc560 -> Node0x5568513cc600;
+	Node0x5568513cc5b0 [shape=record,label="{%7:\l7:                                                \l  %8 = load i64, i64* %3, align 8, !dbg !2811\l  %9 = call i8* @big_alloc(i64 %8), !dbg !2812\l  store i8* %9, i8** %2, align 8, !dbg !2813\l  br label %10, !dbg !2813\l}"];
+	Node0x5568513cc5b0 -> Node0x5568513cc600;
+	Node0x5568513cc600 [shape=record,label="{%10:\l10:                                               \l  %11 = load i8*, i8** %2, align 8, !dbg !2814\l  ret i8* %11, !dbg !2814\l}"];
+}

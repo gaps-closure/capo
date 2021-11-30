@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_parent_pid' function" {
+	label="CFG for 'fio_parent_pid' function";
+
+	Node0x55685153e9e0 [shape=record,label="{%0:\l  %1 = load %struct.fio_data_s*, %struct.fio_data_s** @fio_data, align 8, !dbg\l... !2804\l  %2 = getelementptr inbounds %struct.fio_data_s, %struct.fio_data_s* %1, i32\l... 0, i32 11, !dbg !2805\l  %3 = load i32, i32* %2, align 4, !dbg !2805\l  ret i32 %3, !dbg !2806\l}"];
+}

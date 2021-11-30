@@ -1,0 +1,18 @@
+digraph "CFG for 'http_status2str' function" {
+	label="CFG for 'http_status2str' function";
+
+	Node0x55685232eab0 [shape=record,label="{%2:\l  %3 = alloca i64, align 8\l  store i64 %1, i64* %3, align 8\l  call void @llvm.dbg.declare(metadata i64* %3, metadata !2801, metadata\l... !DIExpression()), !dbg !2802\l  call void @llvm.dbg.declare(metadata %struct.fio_str_info_s* %0, metadata\l... !2803, metadata !DIExpression()), !dbg !2804\l  %4 = bitcast %struct.fio_str_info_s* %0 to i8*, !dbg !2804\l  call void @llvm.memset.p0i8.i64(i8* align 8 %4, i8 0, i64 24, i1 false),\l... !dbg !2804\l  %5 = load i64, i64* %3, align 8, !dbg !2805\l  %6 = icmp uge i64 %5, 100, !dbg !2807\l  br i1 %6, label %7, label %17, !dbg !2808\l|{<s0>T|<s1>F}}"];
+	Node0x55685232eab0:s0 -> Node0x556852333970;
+	Node0x55685232eab0:s1 -> Node0x556852333a10;
+	Node0x556852333970 [shape=record,label="{%7:\l7:                                                \l  %8 = load i64, i64* %3, align 8, !dbg !2809\l  %9 = sub i64 %8, 100, !dbg !2810\l  %10 = icmp ult i64 %9, 412, !dbg !2811\l  br i1 %10, label %11, label %17, !dbg !2812\l|{<s0>T|<s1>F}}"];
+	Node0x556852333970:s0 -> Node0x5568523339c0;
+	Node0x556852333970:s1 -> Node0x556852333a10;
+	Node0x5568523339c0 [shape=record,label="{%11:\l11:                                               \l  %12 = load i64, i64* %3, align 8, !dbg !2813\l  %13 = sub i64 %12, 100, !dbg !2814\l  %14 = getelementptr inbounds [412 x %struct.fio_str_info_s], [412 x\l... %struct.fio_str_info_s]* @http_status2str.status2str, i64 0, i64 %13, !dbg\l... !2815\l  %15 = bitcast %struct.fio_str_info_s* %0 to i8*, !dbg !2815\l  %16 = bitcast %struct.fio_str_info_s* %14 to i8*, !dbg !2815\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %15, i8* align 8 %16, i64\l... 24, i1 false), !dbg !2815\l  br label %17, !dbg !2816\l}"];
+	Node0x5568523339c0 -> Node0x556852333a10;
+	Node0x556852333a10 [shape=record,label="{%17:\l17:                                               \l  %18 = getelementptr inbounds %struct.fio_str_info_s, %struct.fio_str_info_s*\l... %0, i32 0, i32 2, !dbg !2817\l  %19 = load i8*, i8** %18, align 8, !dbg !2817\l  %20 = icmp ne i8* %19, null, !dbg !2819\l  br i1 %20, label %23, label %21, !dbg !2820\l|{<s0>T|<s1>F}}"];
+	Node0x556852333a10:s0 -> Node0x556852333ab0;
+	Node0x556852333a10:s1 -> Node0x556852333a60;
+	Node0x556852333a60 [shape=record,label="{%21:\l21:                                               \l  %22 = bitcast %struct.fio_str_info_s* %0 to i8*, !dbg !2821\l  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 8 %22, i8* align 16 bitcast\l... (%struct.fio_str_info_s* getelementptr inbounds ([412 x\l... %struct.fio_str_info_s], [412 x %struct.fio_str_info_s]*\l... @http_status2str.status2str, i64 0, i64 400) to i8*), i64 24, i1 false), !dbg\l... !2821\l  br label %23, !dbg !2823\l}"];
+	Node0x556852333a60 -> Node0x556852333ab0;
+	Node0x556852333ab0 [shape=record,label="{%23:\l23:                                               \l  ret void, !dbg !2824\l}"];
+}

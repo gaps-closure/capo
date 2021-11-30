@@ -1,0 +1,17 @@
+digraph "CFG for 'fio_defer_thread_wait' function" {
+	label="CFG for 'fio_defer_thread_wait' function";
+
+	Node0x5568512ff6b0 [shape=record,label="{%0:\l  %1 = load i64, i64* @fio_defer_thread_wait.static_throttle, align 8, !dbg\l... !2801\l  call void @fio_throttle_thread(i64 %1), !dbg !2804\l  %2 = call i32 @fio_defer_has_queue(), !dbg !2805\l  %3 = icmp ne i32 %2, 0, !dbg !2805\l  br i1 %3, label %4, label %5, !dbg !2807\l|{<s0>T|<s1>F}}"];
+	Node0x5568512ff6b0:s0 -> Node0x5568512ff820;
+	Node0x5568512ff6b0:s1 -> Node0x5568512ff870;
+	Node0x5568512ff820 [shape=record,label="{%4:\l4:                                                \l  store i64 1, i64* @fio_defer_thread_wait.static_throttle, align 8, !dbg !2808\l  br label %12, !dbg !2809\l}"];
+	Node0x5568512ff820 -> Node0x5568512ff960;
+	Node0x5568512ff870 [shape=record,label="{%5:\l5:                                                \l  %6 = load i64, i64* @fio_defer_thread_wait.static_throttle, align 8, !dbg\l... !2810\l  %7 = icmp ult i64 %6, 134217472, !dbg !2812\l  br i1 %7, label %8, label %11, !dbg !2813\l|{<s0>T|<s1>F}}"];
+	Node0x5568512ff870:s0 -> Node0x5568512ff8c0;
+	Node0x5568512ff870:s1 -> Node0x5568512ff910;
+	Node0x5568512ff8c0 [shape=record,label="{%8:\l8:                                                \l  %9 = load i64, i64* @fio_defer_thread_wait.static_throttle, align 8, !dbg\l... !2814\l  %10 = shl i64 %9, 1, !dbg !2815\l  store i64 %10, i64* @fio_defer_thread_wait.static_throttle, align 8, !dbg\l... !2816\l  br label %11, !dbg !2817\l}"];
+	Node0x5568512ff8c0 -> Node0x5568512ff910;
+	Node0x5568512ff910 [shape=record,label="{%11:\l11:                                               \l  br label %12\l}"];
+	Node0x5568512ff910 -> Node0x5568512ff960;
+	Node0x5568512ff960 [shape=record,label="{%12:\l12:                                               \l  ret void, !dbg !2818\l}"];
+}

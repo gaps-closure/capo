@@ -1,0 +1,20 @@
+digraph "CFG for 'fio_free' function" {
+	label="CFG for 'fio_free' function";
+
+	Node0x5568513f9b90 [shape=record,label="{%1:\l  %2 = alloca i8*, align 8\l  store i8* %0, i8** %2, align 8\l  call void @llvm.dbg.declare(metadata i8** %2, metadata !2802, metadata\l... !DIExpression()), !dbg !2803\l  %3 = load i8*, i8** %2, align 8, !dbg !2804\l  %4 = icmp ne i8* %3, null, !dbg !2804\l  br i1 %4, label %5, label %8, !dbg !2806\l|{<s0>T|<s1>F}}"];
+	Node0x5568513f9b90:s0 -> Node0x5568513fa2d0;
+	Node0x5568513f9b90:s1 -> Node0x5568513fa320;
+	Node0x5568513fa2d0 [shape=record,label="{%5:\l5:                                                \l  %6 = load i8*, i8** %2, align 8, !dbg !2807\l  %7 = icmp eq i8* %6, bitcast (x86_fp80* @on_malloc_zero to i8*), !dbg !2808\l  br i1 %7, label %8, label %9, !dbg !2809\l|{<s0>T|<s1>F}}"];
+	Node0x5568513fa2d0:s0 -> Node0x5568513fa320;
+	Node0x5568513fa2d0:s1 -> Node0x5568513fa370;
+	Node0x5568513fa320 [shape=record,label="{%8:\l8:                                                \l  br label %18, !dbg !2810\l}"];
+	Node0x5568513fa320 -> Node0x5568513fa460;
+	Node0x5568513fa370 [shape=record,label="{%9:\l9:                                                \l  %10 = load i8*, i8** %2, align 8, !dbg !2811\l  %11 = ptrtoint i8* %10 to i64, !dbg !2813\l  %12 = and i64 %11, 32767, !dbg !2814\l  %13 = icmp eq i64 %12, 16, !dbg !2815\l  br i1 %13, label %14, label %16, !dbg !2816\l|{<s0>T|<s1>F}}"];
+	Node0x5568513fa370:s0 -> Node0x5568513fa3c0;
+	Node0x5568513fa370:s1 -> Node0x5568513fa410;
+	Node0x5568513fa3c0 [shape=record,label="{%14:\l14:                                               \l  %15 = load i8*, i8** %2, align 8, !dbg !2817\l  call void @big_free(i8* %15), !dbg !2819\l  br label %18, !dbg !2820\l}"];
+	Node0x5568513fa3c0 -> Node0x5568513fa460;
+	Node0x5568513fa410 [shape=record,label="{%16:\l16:                                               \l  %17 = load i8*, i8** %2, align 8, !dbg !2821\l  call void @block_slice_free(i8* %17), !dbg !2822\l  br label %18, !dbg !2823\l}"];
+	Node0x5568513fa410 -> Node0x5568513fa460;
+	Node0x5568513fa460 [shape=record,label="{%18:\l18:                                               \l  ret void, !dbg !2823\l}"];
+}

@@ -1,0 +1,26 @@
+digraph "CFG for 'fio_cluster_client_handler' function" {
+	label="CFG for 'fio_cluster_client_handler' function";
+
+	Node0x5568515a9e90 [shape=record,label="{%1:\l  %2 = alloca %struct.cluster_pr_s*, align 8\l  store %struct.cluster_pr_s* %0, %struct.cluster_pr_s** %2, align 8\l  call void @llvm.dbg.declare(metadata %struct.cluster_pr_s** %2, metadata\l... !2802, metadata !DIExpression()), !dbg !2803\l  %3 = load %struct.cluster_pr_s*, %struct.cluster_pr_s** %2, align 8, !dbg\l... !2804\l  %4 = getelementptr inbounds %struct.cluster_pr_s, %struct.cluster_pr_s* %3,\l... i32 0, i32 9, !dbg !2805\l  %5 = load i32, i32* %4, align 8, !dbg !2805\l  switch i32 %5, label %13 [\l    i32 0, label %6\l    i32 1, label %6\l    i32 8, label %11\l    i32 9, label %12\l    i32 10, label %12\l    i32 2, label %12\l    i32 3, label %12\l    i32 4, label %12\l    i32 5, label %12\l    i32 6, label %12\l    i32 7, label %12\l  ], !dbg !2806\l|{<s0>def|<s1>0|<s2>1|<s3>8|<s4>9|<s5>10|<s6>2|<s7>3|<s8>4|<s9>5|<s10>6|<s11>7}}"];
+	Node0x5568515a9e90:s0 -> Node0x5568515aa5a0;
+	Node0x5568515a9e90:s1 -> Node0x5568515aa4b0;
+	Node0x5568515a9e90:s2 -> Node0x5568515aa4b0;
+	Node0x5568515a9e90:s3 -> Node0x5568515aa500;
+	Node0x5568515a9e90:s4 -> Node0x5568515aa550;
+	Node0x5568515a9e90:s5 -> Node0x5568515aa550;
+	Node0x5568515a9e90:s6 -> Node0x5568515aa550;
+	Node0x5568515a9e90:s7 -> Node0x5568515aa550;
+	Node0x5568515a9e90:s8 -> Node0x5568515aa550;
+	Node0x5568515a9e90:s9 -> Node0x5568515aa550;
+	Node0x5568515a9e90:s10 -> Node0x5568515aa550;
+	Node0x5568515a9e90:s11 -> Node0x5568515aa550;
+	Node0x5568515aa4b0 [shape=record,label="{%6:\l6:                                                \l  %7 = load %struct.cluster_pr_s*, %struct.cluster_pr_s** %2, align 8, !dbg\l... !2807\l  %8 = getelementptr inbounds %struct.cluster_pr_s, %struct.cluster_pr_s* %7,\l... i32 0, i32 1, !dbg !2809\l  %9 = load %struct.fio_msg_internal_s*, %struct.fio_msg_internal_s** %8,\l... align 8, !dbg !2809\l  %10 = call %struct.fio_msg_internal_s*\l... @fio_msg_internal_dup(%struct.fio_msg_internal_s* %9), !dbg !2810\l  call void @fio_publish2process(%struct.fio_msg_internal_s* %10), !dbg !2811\l  br label %14, !dbg !2812\l}"];
+	Node0x5568515aa4b0 -> Node0x5568515aa5f0;
+	Node0x5568515aa500 [shape=record,label="{%11:\l11:                                               \l  call void @fio_stop(), !dbg !2813\l  br label %12, !dbg !2813\l}"];
+	Node0x5568515aa500 -> Node0x5568515aa550;
+	Node0x5568515aa550 [shape=record,label="{%12:\l12:                                               \l  br label %13, !dbg !2813\l}"];
+	Node0x5568515aa550 -> Node0x5568515aa5a0;
+	Node0x5568515aa5a0 [shape=record,label="{%13:\l13:                                               \l  br label %14, !dbg !2814\l}"];
+	Node0x5568515aa5a0 -> Node0x5568515aa5f0;
+	Node0x5568515aa5f0 [shape=record,label="{%14:\l14:                                               \l  ret void, !dbg !2815\l}"];
+}

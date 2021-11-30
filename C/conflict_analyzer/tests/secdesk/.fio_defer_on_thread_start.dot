@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_defer_on_thread_start' function" {
+	label="CFG for 'fio_defer_on_thread_start' function";
+
+	Node0x5568512fea20 [shape=record,label="{%0:\l  ret void, !dbg !2802\l}"];
+}

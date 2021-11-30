@@ -1,0 +1,5 @@
+digraph "CFG for 'fio_defer_thread_signal' function" {
+	label="CFG for 'fio_defer_thread_signal' function";
+
+	Node0x5568513ef050 [shape=record,label="{%0:\l  ret void, !dbg !2802\l}"];
+}
