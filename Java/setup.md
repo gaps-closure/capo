@@ -75,3 +75,14 @@ java -cp $CLASSPATH org.python.util.jython JoanaUsageExample.jy \
 # Launch the viewer, open the pdg file, and interact
 java -cp $CLASSPATH edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer 
 ```
+
+
+################################################################################
+# Produce Minizinc Input
+################################################################################
+java -cp $CLASSPATH org.python.util.jython zincOuput.jy   \
+  -c './testprog/dist/TESTPROGRAM.jar'   \
+  -e 'com.peratonlabs.closure.testprog.example1.Example1' \
+  -b 'com.peratonlabs.closure.testprog'
+
+  The -b option indicates the prefix for the classes that are of interest
