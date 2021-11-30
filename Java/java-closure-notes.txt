@@ -1,0 +1,177 @@
+
+Annot C    --> Preproc --> LLVM BC, CLE --> opt/genPDG   --> [ PDG,CLE --> genConstraintProblem --> ConflictAnalyzer --> topology.json, *.gedl --> Divvy/RPCGen       ] --> C+autogen
+Annot Java --> Preproc --> JVM BC, CLE  --> JOANA/genSDG --> [ SDG,CLE --> genConstraintProblem --> ConflictAnalyzer --> topology.json, *.gedl --> Divvy/RPCGenAspect ] --> Java+autogen
+
+Annotation sample from Ta
+Java example of a CLOSURE use case
+Partitioning intent
+Annotations
+
+** Follow annotation through to the graph **
+
+1. Annotated Java program
+2. Jar for above program
+3. SDG for above jar
+4. Preproc tool that dumps jar and cle
+5. Partitioning Architecture starting from "GEDL" + CLE
+   -- specify the input format (topology.json/.gedl + CLE equivalent for Java)
+6. Conflict Analyzer for Java
+
+---------------------------------
+// inside  a bytecode jar, no sources
+class Parent {
+  final String sensitiveData;  // child cannot override
+}
+
+--------------------------------------
+
+class SecureLibraryFieldsMethods {
+  @orange_nonshareable
+  @protect_parent_field{TARGET="Parent.sensitiveData"} // will generate aspect that will warp accesses to this field
+                                                       // can only be done once, and parent should not already have
+}
+
+// inside  a bytecode jar, no sources
+class SecureChild extends Parent {
+  // sensitiveData field protected by annotation in SecureLibraryFieldsMethods 
+  @orange_nonshareable
+  String anotherSensitiveItem;
+}
+
+class SecureSibling extends Parent {
+  // sensitiveData field protected by annotation in SecureLibraryFieldsMethods 
+}
+
+
+ 
+
+  // PURPLE calls foo.method
+  foo.method(); // inside of which is ORANGE taint
+
+  around foo.method() 
+    call bar.rpc_method()
+    // foo.method acutally not called
+    // control flow ensures ORANGE is not touched
+    // ORANGE is in the graph!
+
+  Foo.method() body
+    // ORANGE
+
+
+  if (in_before)
+    bar.rpc_method()
+  if (in_proceed)  // will never be true!!
+    foo.method()   // ORANGE taint
+  if (in_after)
+    pass
+  
+    
+
+===============================
+
+* Parse/local the .pdg, also load the jar, find each element in SDG, then get it from jar, find it is annotated, add that to in-memory model, and dump updated SDG -- Phase 1 post-processing style
+
+* Override the PDG writer, do the extra analysis, and add an ANNO field to relevant nodes
+  -- easiest
+  -- still have to do extra work to generate input for constraint solver 
+
+* Instead of overriding PDG writer, write exported for CLOSURE conflict analyzer directly
+  -- writing serializer:wq
+
+* Extend JOANA for Annotation support -- extensive, involved changes to code base
+
+Result of conflict analyzer
+  -- topology.json -- methods in the cut
+  -- for each method
+     -- generate an aspect to call RPC
+     -- for each argument, serialize for cross-domain
+     -- before calling RPC, call filter
+     -- generate the filter from annotations
+
+Generate
+  Aspects, e.g.,
+   pointcut around methodFoo (in topology.json)
+    -- around for App
+         call RPC into secure compartment
+         filter
+         serialize
+         encrypt
+         network_send
+    -- around for CDG
+         call XD_RPC
+         serialize
+         xd_send
+         [CDG will filter and encrypt]
+
+  Filter methods based on CLE operation
+  Serializer
+  DFDL, DAGR
+
+  foo(a,b) ==> remote._rpc_foo(a,b)
+  can a be passed? // a was part of "Context"
+   if a has annotation X and a is at level orange, remote is at level green, X allows orange->green
+   then serialize a, else through exception
+
+================================================================
+  class
+    instance method
+    instance field
+    class field
+    class method
+    variables within methods?
+
+  create an application story and a data model
+    identify classes, subclasses, information sharing constraints, methods
+  
+  coverage of conflicting situations and useful program constructs
+
+  - set of classes C_1 to C_n
+  - random tree for inheritance hierarchy across classes
+  - methods and fields in classes
+  - random instances of inheritance, override, and final of methods
+  - random number of instances for each class
+  - assign annotations
+
+================================================================
+
+CVI tool for composing CLE uniformly for C, MDD, and Java
+CLELABEL OrangeShareable
+CLEJSON {
+          "level": "orange"
+          "cdf": [
+            {
+              "direction": "egress", 
+              "guarddirective": { "operation": "allow" }, 
+              "remotelevel": "green"
+            }
+          ] 
+         } 
+
+CVI tool for dumping Java annotation definition
+CVI tool for creating pragma cle-def
+
+================================================================
+@Inherited
+public @interface OrangeNoShare {}
+
+@OrangeNoShare
+class SensitiveData
+
+class SensitiveDataHighPrecision extends SensitiveData  //  will inherit OrangeNoShare annotation
+
+class Parent 
+  method Foo // Foo is annotated
+
+class Child extends Parent
+  // inherits method Foo
+
+Childs Foo method is that of Parent, and therefore will have annotation
+
+=============
+
+Use cases in English
+  - model (classes, methods, ...)
+  - paritioning intent
+Annotated Java for the use cases
+Conflict analyzer model
+ 

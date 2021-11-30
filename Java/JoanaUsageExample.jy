@@ -1,0 +1,115 @@
+from json                                   import loads,dump
+from argparse                               import ArgumentParser
+from pprint                                 import PrettyPrinter
+
+from java.lang                              import Class
+from java.lang                              import System
+from java.io                                import FileOutputStream
+from com.ibm.wala.util                      import NullProgressMonitor
+from edu.kit.joana.api.sdg                  import SDGConfig
+from edu.kit.joana.api.sdg                  import SDGProgram
+from edu.kit.joana.ifc.sdg.graph            import SDGSerializer
+from edu.kit.joana.ifc.sdg.mhpoptimization  import MHPType
+from edu.kit.joana.ifc.sdg.util             import JavaMethodSignature
+from edu.kit.joana.util                     import Stubs
+from edu.kit.joana.wala.core.SDGBuilder     import PointsToPrecision
+from edu.kit.joana.wala.core.SDGBuilder     import ExceptionAnalysis
+from edu.kit.joana.ifc.sdg.io.dot           import JoanaGraph2Dot
+from java.util.jar                          import JarFile;
+
+def writePDG(sdg, pdgFile): 
+  SDGSerializer.toPDGFormat(sdg, FileOutputStream(pdgFile))
+
+def writeDOT(sdg, dotFile): 
+  JoanaGraph2Dot.writeDotToOutputStream(sdg, FileOutputStream(dotFile))
+
+def writeCLE(cles, jsonFile): 
+  with open(args.jsonfile,'w') as of: dump(cles, of, indent=2, sort_keys=True)
+
+def getClasses(cp):
+  for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
+    try:                   yield cnm,Class.forName(cnm)
+    except Exception as e: print('Error getting class ' + cnm + ':' + str(e))
+
+def collectCLE(cp):
+  cles = []
+  for cnm,cls in getClasses(cp):
+    if cls.isAnnotation():
+      for y in [x for x in cls.getDeclaredAnnotations() if x.annotationType().getName().endswith('Cledef')]: 
+        try:                   cles.append(dict(clelabel=cnm,clejson=loads(y.clejson())))
+        except Exception as e: print('CLE JSON failed for ' + y.toString())
+  return cles
+
+def cleAnnotationsForNode(node, prog, clabels):
+  return [q for q in [str(x.getType().getName()).lstrip('L').replace('/','.') for x in prog.getMiscAnnotations(node)] if q in clabels]
+
+def makeSDG(cp, em):
+  classPath   = cp
+  entryMethod = JavaMethodSignature.mainMethodOfClass(em)
+  config      = SDGConfig(classPath, entryMethod.toBCString(), Stubs.JRE_15)
+  config.setComputeInterferences(True)
+  config.setMhpType(MHPType.PRECISE)
+  config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED)
+  config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC)
+  program = SDGProgram.createSDGProgram(config, System.out, NullProgressMonitor())
+  return program
+
+def get_args():
+  p = ArgumentParser(description='CLOSURE System Dependence Graph Builder for Java')
+  p.add_argument('-e', '--entrymethod', required=True, type=str, help='Entry Method')
+  p.add_argument('-c', '--clpath', required=True, type=str, help='Jar file for program to be analyzed')
+  p.add_argument('-p', '--pdg', help='Dump Program Dependence Graph in native format',
+                 default=False, action='store_true') 
+  p.add_argument('-P', '--pdgfile', help='PDG filename', 
+                 required=False, type=str, default='yourSDGFile.pdg')
+  p.add_argument('-d', '--dot',help='Dump Program Dependence Graph in Dot format',
+                 default=False, action='store_true') 
+  p.add_argument('-D', '--dotfile', help='DOT filename',
+                 required=False, type=str, default='yourSDGFile.dot')
+  p.add_argument('-j', '--json',help='Dump CLE JSON',
+                 default=False, action='store_true') 
+  p.add_argument('-J', '--jsonfile', help='CLE JSON output filename', 
+                 required=False, type=str, default='yourSDGFile.clemap.json')
+  return p.parse_args()
+
+if __name__ == '__main__':
+  args   = get_args()
+  print('Options selected:')
+  for x in sorted(vars(args).items()): print('  %s: %s' % x)
+  prog = makeSDG(args.clpath, args.entrymethod)
+  sdg  = prog.getSDG()
+  cles = collectCLE(args.clpath)
+  if args.pdg:  writePDG(sdg, args.pdgfile)
+  if args.dot:  writeDOT(sdg, args.dotfile)
+  if args.json: writeCLE(cles, args.jsonfile)
+  print('SDG Done\n')
+
+  clabels = list([q['clelabel'] for q in cles])
+  nodes   = {}
+  edges   = {}
+  anns    = {}
+ 
+  # XXX: modify below to generate input for constraint solver
+  for y in sorted(set(sdg.vertexSet()),key=lambda x: x.getId()):
+    kind  = str(y.getKind().toString())
+    nid   = str(y.getId())
+    label = str(y.getLabel())
+    oper  = str(y.getOperation())
+
+    nkind = kind + '_' + oper
+    if not nkind in nodes: nodes[nkind] = []
+    nodes[nkind].append((nid,label))
+    print(y.getBytecodeMethod())
+
+    myann = cleAnnotationsForNode(y, prog, clabels)
+    if len(myann) > 0: anns[nid] = myann 
+
+    for e in sdg.outgoingEdgesOf(y): 
+      ekind = str(e.getKind().toString())
+      if not ekind in edges: edges[ekind] = []
+      edges[ekind].append((nid,str(e.getTarget().getId())))
+
+  pp = PrettyPrinter(indent=2)
+  # pp.pprint(nodes)
+  # pp.pprint(edges)
+  # pp.pprint(anns)
