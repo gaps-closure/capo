@@ -1,1 +1,1 @@
-pushd C; python3 build.py $@; popd;
+cd C; python3 build.py $@; cd -;

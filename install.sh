@@ -1,1 +1,1 @@
-pushd C; python3 install.py $@; popd;
+cd C; python3 install.py $@; cd -;
