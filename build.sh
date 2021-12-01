@@ -1,0 +1,1 @@
+pushd C; python3 build.py $@; popd;
