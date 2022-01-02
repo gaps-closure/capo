@@ -2,6 +2,7 @@ from json                                   import loads,dump
 from argparse                               import ArgumentParser
 from pprint                                 import PrettyPrinter
 
+from java.lang                              import Runtime
 from java.lang                              import Class
 from java.lang                              import System
 from java.lang                              import Process,ProcessBuilder
@@ -19,6 +20,86 @@ from edu.kit.joana.ifc.sdg.io.dot           import JoanaGraph2Dot
 from java.util.jar                          import JarFile;
 from collections import defaultdict
 from collections import OrderedDict
+
+import subprocess
+
+#globals
+nodes   = {}
+edges   = {}
+anns    = {}
+
+nodesZinc = OrderedDict()
+edgesZinc = OrderedDict()
+
+
+nodesZinc["Inst_FunCall"] = []
+nodesZinc["Inst_Ret"] = []
+nodesZinc["Inst_Br"] = []
+nodesZinc["Inst_Other"] = []
+nodesZinc["FunctionEntry"] = []
+nodesZinc["Param_FormalIn"] = []
+nodesZinc["Param_FormalOut"] = []
+nodesZinc["Param_ActualIn"] = []
+nodesZinc["Param_ActualOut"] = []
+
+edgesZinc["ControlDep_CallInv"] = []
+edgesZinc["ControlDep_CallRet"] = []
+edgesZinc["ControlDep_Other"] = []
+edgesZinc["DataDepEdge_Ret"] = []
+edgesZinc["DataDepEdge_Alias"] = []
+edgesZinc["DataDepEdge_Other"] = []
+edgesZinc["Parameter_In"] = []
+edgesZinc["Parameter_Out"] = []
+edgesZinc["Parameter_Field"] = []
+
+nodeConversion = {
+    "NORM" : "Inst_Other",
+    "PRED" : "Inst_Br",
+    "EXPR" : "Inst_Other",
+    "SYNC" : "Inst_Other",
+    "FOLD" : "Inst_Other",
+    "CALL" : "Inst_FunCall",
+    "ENTR" : "FunctionEntry",
+    "EXIT" : "Inst_Ret",
+    "ACTI" : "Param_ActualIn",
+    "ACTO" : "Param_ActualOut",
+    "FRMI" : "Param_FormalIn",
+    "FRMO" : "Param_FormalOut",
+}
+
+edgeConversion = {
+    "CD" : "ControlDep_Other",
+    "CE" : "ControlDep_Other",
+    "UN" : "ControlDep_Other",
+    "CF" : "ControlDep_Other",
+    "NF" : "ControlDep_Other",
+    "RF" : "ControlDep_CallRet",
+    "CC" : "ControlDep_CallInv",
+    "CL" : "ControlDep_CallInv",
+    "SD" : "ControlDep_Other",
+    "JOIN" : "ControlDep_Other",
+    "FORK" : "ControlDep_Other",
+    "DD" : "DataDepEdge_Other",
+    "DH" : "DataDepEdge_Other",
+    "DA" : "DataDepEdge_Alias",
+    "SU" : "DataDepEdge_Other",
+    "SH" : "DataDepEdge_Other",
+    "SF" : "DataDepEdge_Other",
+    "FD" : "DataDepEdge_Other",
+    "FI" : "DataDepEdge_Other",
+    "PI" : "Parameter_In",
+    "PO" : "Parameter_Out",
+    "PS" : "Parameter_Field",
+    "PE" : "DataDepEdge_Alias",
+    "FORK_IN" : "DataDepEdge_Other",
+    "FORK_OUT" : "DataDepEdge_Other",
+    "ID" : "DataDepEdge_Other",
+    "IW" : "DataDepEdge_Other",
+}
+
+funcID2Entry = {}
+Entry2funcID = {}
+funcID2EntryVal = {}
 
 def writePDG(sdg, pdgFile): 
   SDGSerializer.toPDGFormat(sdg, FileOutputStream(pdgFile))
@@ -78,6 +159,102 @@ def makeSDG(cp, em):
   config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC)
   program = SDGProgram.createSDGProgram(config, System.out, NullProgressMonitor())
   return program
+
+def isExternal(node):
+    nodeSource = str(node.getSource())
+
+    if not "closure" in nodeSource:
+        return True
+    else:
+        return False
+
+def getClassName(node):
+    pid   = node.getProc()
+    global funcID2EntryVal
+    # import pdb; pdb.set_trace()
+    className = str(funcID2EntryVal[pid].getBytecodeName()).split(".")
+    # find first index containing a parenthesis, this indicates end of class name
+    iterations = 0
+    for token in className:
+        if "(" in token  or ")" in token:
+            break
+        iterations +=1
+
+    nameCheck = ".".join(className[:iterations])
+    className = "__".join(className[:iterations])
+    print("Class Name " + str(className))
+    if not bname in nameCheck:
+        className = "sharedClass" 
+    return className
+
+def removeCall():
+    pass 
+
+def getCutJson(zincOutput,sdg):
+    jar = ""
+    rootDir = ""
+    codeDir = ""
+    entry = {"mainClass" : "", "filepath": ""}
+    enclaves = []
+    assingments = []
+    cuts = []
+
+    enclaveAssingments = {}
+    for line in zincOutput.split("\n"):
+        sLine = line.split(" ")
+        if len(sLine) > 1:
+            if sLine[1] == "Class":
+                enclave = sLine[-1]
+                className = sLine[-3]
+                if enclave in enclaveAssingments.keys():
+                    enclaveAssingments[enclave].append(className)
+                else:
+                    enclaveAssingments[enclave] = [className]
+            if sLine[1] == "XDCALL":
+                cutEntry = {}
+                methodSignature = {}
+                pidCallee = sLine[-1].split(":")[0]
+                pidCaller = sLine[-3].split(":")[0]
+                
+                global funcID2EntryVal
+                fullName = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeName()).split(".")
+                fqcn = ".".join(fullName[:-1])
+                name = fullName[-1]
+                lineNum = 99999999999
+                for param in sdg.outgoingEdgesOf(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]]):
+                    curlineNum = param.getTarget().getSr()
+                    if curlineNum != 0  and curlineNum < lineNum:
+                        lineNum = curlineNum
+                methodSignature["fqcn"] = fqcn
+                methodSignature["name"] = name
+                methodSignature["lineNum"] = lineNum
+
+                callee = {}
+                calleeType = ""
+                calleeLevel = ""
+                callee["calleeType"] = calleeType
+                callee["calleeLevel"] = calleeLevel
+                allowedCallers = []
+
+                cutEntry["methodSignature"] = methodSignature
+                cutEntry["callee"] = callee
+                cutEntry["allowedCallers"] = allowedCallers
+                cuts.append(cutEntry)
+    
+    for assingment in enclaveAssingments:
+        asng = {"name":assingment, "assignedClasses": enclaveAssingments[assingment]}
+        enclaves.append(asng)
+        for cl in enclaveAssingments[assingment]:
+            assingments.append({"className":cl, "enclave":assingment})
+    cutJson = {}
+    cutJson["jar"] = jar
+    cutJson["rootDir"] = rootDir
+    cutJson["codeDir"] = codeDir
+    cutJson["entry"] = entry
+    cutJson["enclaves"] = enclaves
+    cutJson["assingments"] = assingments
+    cutJson["cuts"] = cuts
+    return cutJson
 
 
 def compute_zinc(cleJson, maxArgIdx):
@@ -650,6 +827,63 @@ def compute_zinc(cleJson, maxArgIdx):
 
     return (cle_instance, enclave_instance)   
 
+def computeParamIdx(node):
+    paramID = -1
+    if str(node.getKind().toString()) == "FRMI":
+      # print(idx2nodeID[int(node)])
+      label = str(node.getLabel())
+      if "param" in label:
+        paramID = int(label.split()[1])
+        
+    if str(node.getKind().toString()) == "FRMO":
+      paramID = -1
+      for incoming in sdg.incomingEdgesOf(y):
+        if str(incoming.getKind().toString()) == "FRMI":
+            label = str(incoming.getLabel())
+            if "param" in label:
+              paramID = int(label.split()[1])
+
+      
+    if str(node.getKind().toString()) == "ACTI":
+      paramID = -1
+      for outgoing in sdg.getFormalIns(y):
+        if str(outgoing.getKind().toString()) == "FRMI":
+            label = str(outgoing.getLabel())
+            if "param" in label:
+              paramID = int(label.split()[1])
+
+    if str(node.getKind().toString()) == "ACTO":
+        paramID = -1
+        for formalOut in sdg.getFormalOuts(y):
+            if str(formalOut.getKind().toString()) == "FRMO":
+                for incoming in sdg.incomingEdgesOf(y):
+                    if str(incoming.getKind().toString()) == "FRMI":
+                        label = str(incoming.getLabel())
+                        if "param" in label:
+                            paramID = int(label.split()[1])
+    return paramID
+
+def isParameterNode(node):
+    kind  = str(node.getKind().toString())
+    if "ACT" in kind or "FRM" in kind:
+        return True
+    else:
+        return False
+
+def isRetConnectedNode(node):
+    # for e in sdg.outgoingEdgesOf(node): 
+    #     kind  = str(e.getTarget().getKind().toString())
+    #     if "EXIT" == kind:
+    #         return True
+    # kind  = str(node.getKind().toString())
+    for e in sdg.incomingEdgesOf(node): 
+        ekind = str(e.getKind().toString())
+        skind  = str(e.getSource().getKind().toString())
+        if "EXIT" == skind and ekind == "PO":
+            return True
+
+    return False
+
 def get_args():
   p = ArgumentParser(description='CLOSURE System Dependence Graph Builder for Java')
   p.add_argument('-e', '--entrymethod', required=True, type=str, help='Entry Method')
@@ -684,81 +918,21 @@ if __name__ == '__main__':
   if args.json: writeCLE(cles, args.jsonfile)
   print('SDG Done\n')
 
+  global clabels
   clabels = list([q['clelabel'] for q in cles])
-  nodes   = {}
-  edges   = {}
-  anns    = {}
+  global nodes
+  global edges
+  global anns
 
-  nodesZinc = OrderedDict()
-  edgesZinc = OrderedDict()
+  global nodesZinc
+  global edgesZin
 
-  nodesZinc["Inst_FunCall"] = []
-  nodesZinc["Inst_Ret"] = []
-  nodesZinc["Inst_Br"] = []
-  nodesZinc["Inst_Other"] = []
-  nodesZinc["FunctionEntry"] = []
-  nodesZinc["Param_FormalIn"] = []
-  nodesZinc["Param_FormalOut"] = []
-  nodesZinc["Param_ActualIn"] = []
-  nodesZinc["Param_ActualOut"] = []
+  global nodeConversion
+  global edgeConversion 
 
-  edgesZinc["ControlDep_CallInv"] = []
-  edgesZinc["ControlDep_CallRet"] = []
-  edgesZinc["ControlDep_Other"] = []
-  edgesZinc["DataDepEdge_Alias"] = []
-  edgesZinc["DataDepEdge_Other"] = []
-  edgesZinc["Parameter_In"] = []
-  edgesZinc["Parameter_Out"] = []
-  edgesZinc["Parameter_Field"] = []
-
-  nodeConversion = {
-      "NORM" : "Inst_Other",
-      "PRED" : "Inst_Br",
-      "EXPR" : "Inst_Other",
-      "SYNC" : "Inst_Other",
-      "FOLD" : "Inst_Other",
-      "CALL" : "Inst_FunCall",
-      "ENTR" : "FunctionEntry",
-      "EXIT" : "Inst_Ret",
-      "ACTI" : "Param_ActualIn",
-      "ACTO" : "Param_ActualOut",
-      "FRMI" : "Param_FormalIn",
-      "FRMO" : "Param_FormalOut",
-  }
-
-  edgeConversion = {
-      "CD" : "ControlDep_Other",
-      "CE" : "ControlDep_Other",
-      "UN" : "ControlDep_Other",
-      "CF" : "ControlDep_Other",
-      "NF" : "ControlDep_Other",
-      "RF" : "ControlDep_CallRet",
-      "CC" : "ControlDep_CallInv",
-      "CL" : "ControlDep_CallInv",
-      "SD" : "ControlDep_Other",
-      "JOIN" : "ControlDep_Other",
-      "FORK" : "ControlDep_Other",
-      "DD" : "DataDepEdge_Other",
-      "DH" : "DataDepEdge_Other",
-      "DA" : "DataDepEdge_Alias",
-      "SU" : "DataDepEdge_Other",
-      "SH" : "DataDepEdge_Other",
-      "SF" : "DataDepEdge_Other",
-      "FD" : "DataDepEdge_Other",
-      "FI" : "DataDepEdge_Other",
-      "PI" : "Parameter_In",
-      "PO" : "Parameter_Out",
-      "PS" : "Parameter_Field",
-      "PE" : "DataDepEdge_Alias",
-      "FORK_IN" : "DataDepEdge_Other",
-      "FORK_OUT" : "DataDepEdge_Other",
-      "ID" : "DataDepEdge_Other",
-      "IW" : "DataDepEdge_Other",
-  }
-
-  funcID2Entry = {}
-  Entry2funcID = {}
-  funcID2EntryVal = {}
+  global funcID2Entry 
+  global Entry2funcID
+  global funcID2EntryVal
  
   for y in sorted(set(sdg.vertexSet()),key=lambda x: x.getId()):
     kind  = str(y.getKind().toString())
@@ -766,6 +940,21 @@ if __name__ == '__main__':
     label = str(y.getLabel())
     oper  = str(y.getOperation())
 
+    if "UNIQ" in label or "MERGE" in label:
+        continue
+
+    if "except" in label:
+        continue
+    
+    if isExternal(y):
+          continue
+
+    # Don't remove return edges
+    if isParameterNode(y) and not isRetConnectedNode(y):
+        if computeParamIdx(y) < 0:
+            continue
+        
+        
     nkind = kind + '_' + oper
     if not nkind in nodes: nodes[nkind] = []
     nodes[nkind].append((nid,label))
@@ -778,6 +967,25 @@ if __name__ == '__main__':
     if len(myann) > 0: anns[nid] = myann 
 
     for e in sdg.outgoingEdgesOf(y): 
+      tar_label = str(e.getTarget().getLabel())
+      tar_nid = str(e.getTarget().getId())
+      tar_kind = str(e.getTarget().getKind().toString())
+
+      # Remove verbose edges and edge from command line params coming into main
+      if "UNIQ" in tar_label or "MERGE" in tar_label or "$args" in tar_label:
+        continue
+      if "except" in tar_label:
+        continue
+      
+      if isExternal(e.getTarget()):
+          continue
+
+      # Don't remove return edges  
+      if isParameterNode(e.getTarget()) and not isRetConnectedNode(e.getTarget()):
+        if computeParamIdx(e.getTarget()) < 0:
+            print(tar_nid)
+            continue
+      
       ekind = str(e.getKind().toString())
       if not ekind in edges: edges[ekind] = []
       edges[ekind].append((nid,str(e.getTarget().getId())))
@@ -785,13 +993,25 @@ if __name__ == '__main__':
       # We do not care about helper edges "HE"
       if ekind == "HE":
           continue
+
+      # Remove parameter edges that connect to params that are not param edges
+      # May need to switch these to data_dep other
+      if isParameterNode(e.getTarget()) or isParameterNode(y):
+          if ekind != "PO" and ekind != "PI" and ekind != "PS":
+              continue
+
+      # Remove parameter edges that do not connect to parameters
+      # May need to switch these to data_dep other
+      if ekind == "PO" or ekind == "PI" or ekind == "PS":
+        if not(isParameterNode(e.getTarget()) or isParameterNode(y)):
+              continue
       
       if ekind == "PO" and kind == "EXIT":
           if not "DataDepEdge_Ret" in edgesZinc : edgesZinc["DataDepEdge_Ret"] = []
-          edgesZinc["DataDepEdge_Ret"].append((nid,str(e.getTarget().getId())))
+          edgesZinc["DataDepEdge_Ret"].append((nid,str(e.getTarget().getId()),y,e.getTarget()))
       else:
             if not edgeConversion[ekind] in edgesZinc : edgesZinc[edgeConversion[ekind]] = []
-            edgesZinc[edgeConversion[ekind]].append((nid,str(e.getTarget().getId())))
+            edgesZinc[edgeConversion[ekind]].append((nid,str(e.getTarget().getId()),y,e.getTarget()))
             
 
     
@@ -836,75 +1056,94 @@ if __name__ == '__main__':
   edgeIdx["PDGEdge"] = []
 
   dbgFileEdge = open("./dbg_edge.csv", "w")
+  dbgFileEdge.write("Index, Kind, Node_ID_Src, Node_ID_Dest, diffFuncs \n")
   idx = 1
   for kind in edgesZinc:
     for edge in edgesZinc[kind]:
-      if kind in edgeIdx:
-        edgeIdx[kind].append(idx)
-      else:
-        edgeIdx[kind] = [idx]
-      if "ControlDep" in kind:
-          edgeIdx["ControlDep"].append(idx)
-      if "DataDepEdge" in kind:
-          edgeIdx["DataDepEdge"].append(idx)
-      if "Parameter" in kind:
-          edgeIdx["Parameter"].append(idx)
-      edgeIdx["PDGEdge"].append(idx)
-      hasSource.append(nodeID2Idx[int(edge[0])])
-      hasDest.append(nodeID2Idx[int(edge[1])])
+      
+      if int(edge[0]) in nodeID2Idx and int(edge[1]) in nodeID2Idx:
 
-      dbgStr = str(idx) + ", " + str(kind) + ", " + str(nodeID2Idx[int(edge[0])]) + ", " + str(nodeID2Idx[int(edge[1])]) + "\n"
-      dbgFileEdge.write(dbgStr)
-      idx+=1
+        if kind in edgeIdx:
+            edgeIdx[kind].append(idx)
+        else:
+            edgeIdx[kind] = [idx]
+        if "ControlDep" in kind:
+            edgeIdx["ControlDep"].append(idx)
+        if "DataDepEdge" in kind:
+            edgeIdx["DataDepEdge"].append(idx)
+        if "Parameter" in kind:
+            edgeIdx["Parameter"].append(idx)
+        edgeIdx["PDGEdge"].append(idx)
+        
+
+        hasSource.append(nodeID2Idx[int(edge[0])])
+        hasDest.append(nodeID2Idx[int(edge[1])])
+
+        dbgStr = str(idx) + ", " + str(kind) + ", " + str(nodeID2Idx[int(edge[0])]) + ", " + str(nodeID2Idx[int(edge[1])])+ ", " + str(edge[2].getProc()!=edge[3].getProc()) + "\n"
+        dbgFileEdge.write(dbgStr)
+        idx+=1
   
   
   dbgFileNode = open("./dbg_node.csv", "w")
+  dbgFileNode.write("Index, ID, Type, Label, hasFunction, Source, Start_Row, Start_Column, End_Row, End_Column \n")
+  
+  allNodeLables = []
   for kind in nodeIdx:
-    zincFile.write(kind + "_start = " + str(nodeIdx[kind][0]) + "; \n" )
-    zincFile.write(kind + "_end = " + str(nodeIdx[kind][-1]) + "; \n" )
+      allNodeLables.append(kind)
+  for kind in nodesZinc:
+      if not kind in allNodeLables:
+          allNodeLables.append(kind)
 
+  allEdgeLables = []
   for kind in edgeIdx:
-    zincFile.write(kind + "_start = " + str(edgeIdx[kind][0]) + "; \n" )
-    zincFile.write(kind + "_end = " + str(edgeIdx[kind][-1]) + "; \n" )
-
+      allEdgeLables.append(kind)
+  for kind in edgesZinc:
+      if not kind in allEdgeLables:
+          allEdgeLables.append(kind)
+#   for kind in nodeIdx:
+  for kind in allNodeLables:
+    if kind in nodeIdx:
+        zincFile.write(kind + "_start = " + str(nodeIdx[kind][0]) + "; \n" )
+        zincFile.write(kind + "_end = " + str(nodeIdx[kind][-1]) + "; \n" )
+    else:
+        zincFile.write(kind + "_start = 0; \n")
+        zincFile.write(kind + "_end = -1; \n" )
+#   for kind in edgeIdx:
+  for kind in allEdgeLables:
+    if kind in edgeIdx:
+        zincFile.write(kind + "_start = " + str(edgeIdx[kind][0]) + "; \n" )
+        zincFile.write(kind + "_end = " + str(edgeIdx[kind][-1]) + "; \n" )
+    else:
+        zincFile.write(kind + "_start = 0; \n")
+        zincFile.write(kind + "_end = -1; \n" )
   outString = ""
   outString += "hasFunction = [ \n"
-  for y in sorted(set(sdg.vertexSet()),key=lambda x: x.getId()):
-    pid   = y.getProc()
-    # import pdb; pdb.set_trace()
-    print("Function ID " + str(funcID2Entry[pid]))
-    outString = outString + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " 
+  for kind in nodesZinc:
+    for node in nodesZinc[kind]:
+        y = node[2]
+        pid   = y.getProc()
+        # import pdb; pdb.set_trace()
+        print("Function ID " + str(funcID2Entry[pid]))
+        outString = outString + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " 
   outString = outString[:-2] + "];\n"
 
   classNames = []
   outString += "hasClass = [ \n"
-  for y in sorted(set(sdg.vertexSet()),key=lambda x: x.getId()):
-    pid   = y.getProc()
-    nid   = str(y.getId())
-    kind  = str(y.getKind().toString())
-    label = str(y.getLabel())
+  for kind in nodesZinc:
+    for node in nodesZinc[kind]:
+        y = node[2]
+        pid   = y.getProc()
+        nid   = str(y.getId())
+        kind  = str(y.getKind().toString())
+        label = str(y.getLabel())
 
-    
-    # import pdb; pdb.set_trace()
-    className = str(funcID2EntryVal[pid].getBytecodeName()).split(".")
-    # find first index containing a parenthesis, this indicates end of class name
-    iterations = 0
-    for token in className:
-        if "(" in token  or ")" in token:
-            break
-        iterations +=1
-
-    nameCheck = ".".join(className[:iterations])
-    className = "__".join(className[:iterations])
-    print("Class Name " + str(className))
-    if not bname in nameCheck:
-        className = "sharedClass"
-    classNames.append(className)
-    outString = outString + className + ", " 
+        className = getClassName(y)
+        classNames.append(className)
+        outString = outString + className + ", " 
 
 
-    dbgStr = str(nodeID2Idx[int(nid)]) + ", " + nid + ", " + nodeConversion[kind] + ", " + label + ", " + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " + y.getSource() + ", " + str(y.getSr()) + ", " + str(y.getSc()) + ", " + str(y.getEr()) + ", " + str(y.getEc()) + "\n"
-    dbgFileNode.write(dbgStr)
+        dbgStr = str(nodeID2Idx[int(nid)]) + ", " + nid + ", " + nodeConversion[kind] + ", " + label + ", " + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " + y.getSource() + ", " + str(y.getSr()) + ", " + str(y.getSc()) + ", " + str(y.getEr()) + ", " + str(y.getEc()) + "\n"
+        dbgFileNode.write(dbgStr)
     
   outString = outString[:-2] + "];\n"
 
@@ -928,45 +1167,10 @@ if __name__ == '__main__':
   outString += "hasParamIdx = array1d(Param, ["
 #   for y in sorted(set(sdg.vertexSet()),key=lambda x: x.getId()):
   for y in paramNodes:
-    paramID = -1
-    if str(y.getKind().toString()) == "FRMI":
-      # print(idx2nodeID[int(node)])
-      label = str(y.getLabel())
-      if "param" in label:
-        paramID = int(label.split()[1])
-        if paramID > maxFuncParams:
-          maxFuncParams = paramID
-    if str(y.getKind().toString()) == "FRMO":
-      paramID = -1
-      for incoming in sdg.incomingEdgesOf(y):
-        if str(incoming.getKind().toString()) == "FRMI":
-            label = str(incoming.getLabel())
-            if "param" in label:
-              paramID = int(label.split()[1])
-              if paramID > maxFuncParams:
-                maxFuncParams = paramID
-
-      
-    if str(y.getKind().toString()) == "ACTI":
-      paramID = -1
-      for outgoing in sdg.getFormalIns(y):
-        if str(outgoing.getKind().toString()) == "FRMI":
-            label = str(outgoing.getLabel())
-            if "param" in label:
-              paramID = int(label.split()[1])
-
-    if str(y.getKind().toString()) == "ACTO":
-        paramID = -1
-        for formalOut in sdg.getFormalOuts(y):
-            if str(formalOut.getKind().toString()) == "FRMO":
-                for incoming in sdg.incomingEdgesOf(y):
-                    if str(incoming.getKind().toString()) == "FRMI":
-                        label = str(incoming.getLabel())
-                        if "param" in label:
-                            paramID = int(label.split()[1])
-
-
+    paramID =  computeParamIdx(y)
     outString = outString + str(paramID) + ", "
+    if paramID > maxFuncParams:
+          maxFuncParams = paramID
 
   outString = outString[:-2] +"]);\n" 
   zincFile.write(outString)
@@ -992,9 +1196,23 @@ if __name__ == '__main__':
   CleLabels =  ["nullCleLabel"]
   for annot in anns:
     label = anns[annot][0].split(".")[-1]
+    zid = nodeID2Idx[int(annot)]
+    
+    # check if function annotation is applied to a function
+    flagNotFunction = False
+    for entry in cles:
+        if entry["clelabel"].split(".")[-1] == label:
+            if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
+                if not zid in nodeIdx["FunctionEntry"]:
+                    flagNotFunction = True
+                    break
+    if flagNotFunction:
+        continue
+    
+    
     CleLabels.append(label)
     
-    zid = nodeID2Idx[int(annot)]
+    
     # print(zid)
     zincFile.write("constraint ::  \"TaintOnNodeIdx" + str(zid) + "\" taint[" + str(zid) + "]=" + label + ";\n" )
     print(anns)      
@@ -1010,14 +1228,30 @@ if __name__ == '__main__':
 #   zincFile.write(outString)
 
   cleOutput = compute_zinc(cles,maxFuncParams)
-
+  zincFile.close()
   with open("cle_instance.mzn", "w") as cle_f:
     cle_f.write(cleOutput[0])
   with open("enclave_instance.mzn", "w") as enclave_f:
     enclave_f.write(cleOutput[1])
 
-  proc = ProcessBuilder("minizinc --solver Gecode ./*.mzn ./constraints/*.mzn > result.txt").start()  
+#   process = Runtime.getRuntime().exec("minizinc --solver Gecode ./*.mzn ./constraints/*.mzn > ~/WIP/result.txt")
+  
+#   cmd = ["bash", "./runCA.sh"]
+#   output = subprocess.call(cmd)
+#   proc = subprocess.Popen(mycmd, shell=True).communicate()
+#   proc.wait()
 
+  cmd = "bash ./runCA.sh"
+  proc = subprocess.Popen(cmd ,bufsize=0, executable=None, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None, close_fds=True, shell=True)
+  out = str(proc.communicate(proc.stdout))
+  f = open("result.txt", "r")
+  output = f.read()
+  f.close()
+  print(output)
+  cutJson = getCutJson(output,sdg)
+  print(cutJson)
+  
+  
 
   # rawCle = dumpCLE(args.clpath)
   # rawCle["nullCleLabel"] = "null"
@@ -1031,6 +1265,6 @@ if __name__ == '__main__':
   # pp = PrettyPrinter(indent=2)
   # pp.pprint(nodesZinc)
 #   pp.pprint(edgesZinc)
-#   pp.pprint(anns)
+  print(anns)
 
 

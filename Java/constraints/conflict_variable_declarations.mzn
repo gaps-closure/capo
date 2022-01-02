@@ -171,7 +171,8 @@ set of int: NonAnnotation       = Inst union FunctionEntry union Param;
 set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_CallRet;
 set of int: ControlDep_NonCall  = ControlDep_Other;
 set of int: DataEdgeNoRet       = DataDepEdge_Other union DataDepEdge_Alias;
-set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
+% set of int: DataEdgeNoRet       = DataDepEdge_Other;
+set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter_Field;
 set of int: DataEdgeParam       = DataDepEdge union Parameter;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -206,6 +207,7 @@ array[cdf]                            of bool:           isOneway;
 array[cleLabel, Level]                of cdf:            cdfForRemoteLevel;
 
 set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel[x]]==true };
+% set of cdf: functionCdf = {OrangeMain_cdf_0,PurpleOrangeCallable_cdf_0,PurpleOrangeConstructable_cdf_0 };
 
 array[functionCdf, cleLabel]          of bool:           hasRettaints;
 array[functionCdf, cleLabel]          of bool:           hasCodtaints;
@@ -217,6 +219,7 @@ array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 bool:                                                    debug;
+debug = true;
 
 array[classNames]                     of var Enclave:    classEnclave;
 array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
