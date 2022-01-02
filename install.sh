@@ -1,0 +1,1 @@
+cd C; python3 install.py $@; cd -;
