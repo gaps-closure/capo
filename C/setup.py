@@ -34,6 +34,7 @@ setup(
         'ect/flowspec/Explanations.py',
         'ect/flowspec/FlowModel.py',
         'ect/flowspec/FlowSolver.py',
+        'ect/flowspec/xdmfview.py'
     ],
     package_data={
         "conflict_analyzer": ["constraints/*.mzn"],
