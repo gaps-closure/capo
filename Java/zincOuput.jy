@@ -20,6 +20,7 @@ from edu.kit.joana.ifc.sdg.io.dot           import JoanaGraph2Dot
 from java.util.jar                          import JarFile;
 from collections import defaultdict
 from collections import OrderedDict
+import os
 
 import subprocess
 
@@ -190,11 +191,16 @@ def getClassName(node):
 def removeCall():
     pass 
 
-def getCutJson(zincOutput,sdg):
-    jar = ""
-    rootDir = ""
-    codeDir = ""
-    entry = {"mainClass" : "", "filepath": ""}
+def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc, dest):
+    dirPath = os.path.dirname(os.path.realpath(__file__))
+    jar = jarLoc.split("/")[-1]
+    rootDir = dirPath
+    codeDir = jarLoc.split("/")[1]
+    entryMethod = JavaMethodSignature.mainMethodOfClass(mainCl)
+    # sourceLoc = entryMethod.getSourceLocation()
+    
+    
+    entry_main = {"mainClass" : str(entryMethod), "filepath": mainLoc}
     enclaves = []
     assingments = []
     cuts = []
@@ -214,7 +220,9 @@ def getCutJson(zincOutput,sdg):
                 cutEntry = {}
                 methodSignature = {}
                 pidCallee = sLine[-1].split(":")[0]
+                labelCallee = sLine[-1].split(":")[1]
                 pidCaller = sLine[-3].split(":")[0]
+                labelCaller = sLine[-1].split(":")[1]
                 
                 global funcID2EntryVal
                 fullName = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeName()).split(".")
@@ -225,16 +233,46 @@ def getCutJson(zincOutput,sdg):
                     curlineNum = param.getTarget().getSr()
                     if curlineNum != 0  and curlineNum < lineNum:
                         lineNum = curlineNum
+
+                method = funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeMethod()
+                sig = JavaMethodSignature.fromString(method)
+                paramList = []
+                for paramType in sig.getArgumentTypes():
+                    paramList.append(str(paramType.toHRString()))
+                retType = str(sig.getReturnType().toHRString())
+                print(paramList)
+                print(retType)
                 methodSignature["fqcn"] = fqcn
-                methodSignature["name"] = name
-                methodSignature["lineNum"] = lineNum
+                methodName = str(sig.getMethodName())
+                # Replace constructor name <init> with the name of the class
+                if "<init>" in methodName:
+                    methodName = str(fqcn).split(".")[-1]
+                methodSignature["name"] = methodName
+                # methodSignature["name"] = name
+                methodSignature["returnType"] = retType
+                methodSignature["parameterTypes"] = paramList
+                # methodSignature["lineNum"] = lineNum
 
                 callee = {}
-                calleeType = ""
-                calleeLevel = ""
+                calleeType = fqcn
                 callee["calleeType"] = calleeType
-                callee["calleeLevel"] = calleeLevel
-                allowedCallers = []
+                calleeLevel = ""
+                for entry in cleJson:
+                    if entry["clelabel"].split(".")[-1] == labelCallee:
+                        calleeLevel = entry["clejson"]["level"]
+
+                callee["calleeLevel"] = str(calleeLevel)
+
+                fullNameCaller = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCaller)]]].getBytecodeName()).split(".")
+                fqcnCaller = ".".join(fullName[:-1])
+                callerDict = {}
+                callerDict["callerType"] = fqcnCaller
+                levelCaller = ""
+                for entry in cleJson:
+                    if entry["clelabel"].split(".")[-1] == labelCaller:
+                        levelCaller = entry["clejson"]["level"]
+                callerDict["callerLevel"] = str(levelCaller)
+                allowedCallers = [callerDict]
 
                 cutEntry["methodSignature"] = methodSignature
                 cutEntry["callee"] = callee
@@ -246,14 +284,28 @@ def getCutJson(zincOutput,sdg):
         enclaves.append(asng)
         for cl in enclaveAssingments[assingment]:
             assingments.append({"className":cl, "enclave":assingment})
-    cutJson = {}
+    print("Jar: " + str(jar))
+    print("rootDir: " + str(rootDir))
+    print("codeDir: " + str(codeDir))
+    print("destDir: " + str(dest))
+    print("\n")
+    print("entry: " + str(entry_main))
+    print("\n")
+    print("assingments: " + str(assingments))
+    print("\n")
+    print("cuts: " + str(cuts))
+    print("\n")
+    
+    cutJson = {} 
     cutJson["jar"] = jar
     cutJson["rootDir"] = rootDir
     cutJson["codeDir"] = codeDir
-    cutJson["entry"] = entry
+    cutJson["destDir"] = dest
+    cutJson["entry"] = entry_main
     cutJson["enclaves"] = enclaves
     cutJson["assingments"] = assingments
     cutJson["cuts"] = cuts
+    dump(cutJson,open("cut.json","wb"))
     return cutJson
 
 
@@ -879,6 +931,8 @@ def isRetConnectedNode(node):
     for e in sdg.incomingEdgesOf(node): 
         ekind = str(e.getKind().toString())
         skind  = str(e.getSource().getKind().toString())
+        slab = str(e.getSource().getLabel())
+        # if "EXIT" == skind and ekind == "PO" or "except" in slab:
         if "EXIT" == skind and ekind == "PO":
             return True
 
@@ -888,6 +942,8 @@ def get_args():
   p = ArgumentParser(description='CLOSURE System Dependence Graph Builder for Java')
   p.add_argument('-e', '--entrymethod', required=True, type=str, help='Entry Method')
   p.add_argument('-b', '--bname', required=True, type=str, help='Base name for classes of interest ')
+  p.add_argument('-t', '--dest', required=True, type=str, help='Destination directory ')
+  p.add_argument('-m', '--mainLoc', required=True, type=str, help='File location of main class ')
   p.add_argument('-c', '--clpath', required=True, type=str, help='Jar file for program to be analyzed')
   p.add_argument('-p', '--pdg', help='Dump Program Dependence Graph in native format',
                  default=False, action='store_true') 
@@ -943,8 +999,8 @@ if __name__ == '__main__':
     if "UNIQ" in label or "MERGE" in label:
         continue
 
-    if "except" in label:
-        continue
+    # if "except" in label:
+    #     continue
     
     if isExternal(y):
           continue
@@ -974,8 +1030,8 @@ if __name__ == '__main__':
       # Remove verbose edges and edge from command line params coming into main
       if "UNIQ" in tar_label or "MERGE" in tar_label or "$args" in tar_label:
         continue
-      if "except" in tar_label:
-        continue
+    #   if "except" in tar_label:
+    #     continue
       
       if isExternal(e.getTarget()):
           continue
@@ -1014,11 +1070,10 @@ if __name__ == '__main__':
             edgesZinc[edgeConversion[ekind]].append((nid,str(e.getTarget().getId()),y,e.getTarget()))
             
 
-    
+    Entry2funcID[int(nid)] = y.getProc()
     if kind == "ENTR":
       funcID2Entry[y.getProc()] = int(nid)
       funcID2EntryVal[y.getProc()] = y
-      Entry2funcID[int(nid)] = y.getProc()
       numArgs = len(sdg.incomingEdgesOf(y))
 
   idx = 1
@@ -1248,8 +1303,9 @@ if __name__ == '__main__':
   output = f.read()
   f.close()
   print(output)
-  cutJson = getCutJson(output,sdg)
+  cutJson = getCutJson(output,sdg,cles,args.entrymethod, args.clpath, args.mainLoc, args.dest)
   print(cutJson)
+  
   
   
 
@@ -1265,6 +1321,6 @@ if __name__ == '__main__':
   # pp = PrettyPrinter(indent=2)
   # pp.pprint(nodesZinc)
 #   pp.pprint(edgesZinc)
-  print(anns)
+#   print(anns)
 
 
