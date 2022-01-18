@@ -24,7 +24,7 @@ import jsonschema
 
 # Invoke libclang tokenizer
 def cindex_tokenizer(f: Path, a: List[str]) -> Iterator[cindex.Token]:
-  return Index.create().parse(f,args=a).cursor.get_tokens()
+  return Index.create().parse(f,args=['-x','c++','-stdlib=libc++',*a]).cursor.get_tokens()
 
 # Transform tokens for CLE parsing
 class TypeLexer(Lexer):
@@ -205,7 +205,7 @@ def main() -> None:
   p = argparse.ArgumentParser(description='CLOSURE Language Extensions Preprocessor')
   p.add_argument('-f', '--input-file', required=True, type=Path, help='Input file')
   p.add_argument('-c', '--clang_args', required=False, type=str, 
-                 default='-x,c++,-stdlib=libc++', help='Arguments for clang')
+                 default='', help='Arguments for clang')
   p.add_argument('-a', '--annotation_style', required=False, type=str, 
                  default='naive', help='Annotation style (naive, type, or both)')
   p.add_argument('-s', '--schema', required=False, type=Path,
