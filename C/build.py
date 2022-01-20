@@ -50,7 +50,7 @@ class Args:
 
 
 def build() -> None:
-    # submodules()
+    submodules()
     build_pdg()
     build_gedl()
     build_verifier()
