@@ -1,7 +1,7 @@
 [submodule "pdg2"]
 	path = C/pdg2
-	url = git@github.com:gaps-closure/pdg2.git
+	url = ../pdg2.git
 [submodule "ect"]
 	path = C/ect
-	url = git@github.com:gaps-closure/ect.git
+	url = ../ect.git
 	branch = develop
