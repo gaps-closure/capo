@@ -1,7 +1,7 @@
 [submodule "pdg2"]
 	path = C/pdg2
-	url = https://github.com/gaps-closure/pdg2.git
+	url = ssh://git@github.com/gaps-closure/pdg2.git
 [submodule "ect"]
 	path = C/ect
-	url = https://github.com/gaps-closure/ect.git
+	url = ssh://git@github.com/gaps-closure/ect.git
 	branch = develop
