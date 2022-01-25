@@ -935,6 +935,8 @@ def isRetConnectedNode(node):
         # if "EXIT" == skind and ekind == "PO" or "except" in slab:
         if "EXIT" == skind and ekind == "PO":
             return True
+        if "excep" in slab:
+            return True
 
     return False
 
@@ -1001,6 +1003,9 @@ if __name__ == '__main__':
 
     # if "except" in label:
     #     continue
+
+    if "except" in label and not "ret" in label:
+        continue
     
     if isExternal(y):
           continue
@@ -1010,14 +1015,33 @@ if __name__ == '__main__':
         if computeParamIdx(y) < 0:
             continue
         
-        
+
+    kind_temp = kind
+    if "except" in label:
+        if "ret" in label:
+            kind = "EXIT"
+        else:
+            kind = "NORM"
+
     nkind = kind + '_' + oper
+    
     if not nkind in nodes: nodes[nkind] = []
     nodes[nkind].append((nid,label))
     hasFunction = y.getBytecodeMethod()
 
-    if not nodeConversion[kind] in nodesZinc: nodesZinc[nodeConversion[kind]] = []
-    nodesZinc[nodeConversion[kind]].append((nid,oper, y))
+    
+    if "except" in label:
+        if "ret" in label:
+            if not "Inst_Ret" in nodesZinc: 
+                nodesZinc["Inst_Ret"] = []
+            nodesZinc["Inst_Ret"].append((nid,oper, y))
+        else:
+            if not "Inst_Other" in nodesZinc: 
+                nodesZinc["Inst_Other"] = []
+            nodesZinc["Inst_Other"].append((nid,oper, y))
+    else:
+        if not nodeConversion[kind] in nodesZinc: nodesZinc[nodeConversion[kind]] = []
+        nodesZinc[nodeConversion[kind]].append((nid,oper, y))
 
     myann = cleAnnotationsForNode(y, prog, clabels)
     if len(myann) > 0: anns[nid] = myann 
@@ -1062,12 +1086,13 @@ if __name__ == '__main__':
         if not(isParameterNode(e.getTarget()) or isParameterNode(y)):
               continue
       
-      if ekind == "PO" and kind == "EXIT":
+      if ekind == "PO" and (kind == "EXIT" or "except" in label):
           if not "DataDepEdge_Ret" in edgesZinc : edgesZinc["DataDepEdge_Ret"] = []
           edgesZinc["DataDepEdge_Ret"].append((nid,str(e.getTarget().getId()),y,e.getTarget()))
       else:
             if not edgeConversion[ekind] in edgesZinc : edgesZinc[edgeConversion[ekind]] = []
             edgesZinc[edgeConversion[ekind]].append((nid,str(e.getTarget().getId()),y,e.getTarget()))
+
             
 
     Entry2funcID[int(nid)] = y.getProc()
@@ -1111,7 +1136,7 @@ if __name__ == '__main__':
   edgeIdx["PDGEdge"] = []
 
   dbgFileEdge = open("./dbg_edge.csv", "w")
-  dbgFileEdge.write("Index, Kind, Node_ID_Src, Node_ID_Dest, diffFuncs \n")
+  dbgFileEdge.write("Index, Kind, Node_IDX_Src, Node_IDX_Dest, diffFuncs \n")
   idx = 1
   for kind in edgesZinc:
     for edge in edgesZinc[kind]:
@@ -1189,7 +1214,7 @@ if __name__ == '__main__':
         y = node[2]
         pid   = y.getProc()
         nid   = str(y.getId())
-        kind  = str(y.getKind().toString())
+        # kind  = str(y.getKind().toString())
         label = str(y.getLabel())
 
         className = getClassName(y)
@@ -1197,7 +1222,7 @@ if __name__ == '__main__':
         outString = outString + className + ", " 
 
 
-        dbgStr = str(nodeID2Idx[int(nid)]) + ", " + nid + ", " + nodeConversion[kind] + ", " + label + ", " + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " + y.getSource() + ", " + str(y.getSr()) + ", " + str(y.getSc()) + ", " + str(y.getEr()) + ", " + str(y.getEc()) + "\n"
+        dbgStr = str(nodeID2Idx[int(nid)]) + ", " + nid + ", " + kind + ", " + label + ", " + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " + y.getSource() + ", " + str(y.getSr()) + ", " + str(y.getSc()) + ", " + str(y.getEr()) + ", " + str(y.getEc()) + "\n"
         dbgFileNode.write(dbgStr)
     
   outString = outString[:-2] + "];\n"
