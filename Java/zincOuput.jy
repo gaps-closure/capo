@@ -917,6 +917,11 @@ def computeParamIdx(node):
 
 def isParameterNode(node):
     kind  = str(node.getKind().toString())
+    label  = str(node.getLabel())
+    # don't consider exception nodes as parameters
+    if "except" in label:
+        return False
+    
     if "ACT" in kind or "FRM" in kind:
         return True
     else:
@@ -1004,8 +1009,8 @@ if __name__ == '__main__':
     # if "except" in label:
     #     continue
 
-    if "except" in label and not "ret" in label:
-        continue
+    # if "except" in label and not "ret" in label:
+    #     continue
     
     if isExternal(y):
           continue

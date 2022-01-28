@@ -8,9 +8,7 @@
 % Utility functions and predicates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% predicate isVarNode(var PDGNodeIdx: n)         = (n>=VarNode_start /\ n<=VarNode_end);
 predicate isFunctionEntry(var PDGNodeIdx: n)   = (n>=FunctionEntry_start /\ n<=FunctionEntry_end);
-% predicate isAnnotation(var PDGNodeIdx: n)      = (n>=Annotation_start /\ n<=Annotation_end);
 predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end);
 predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
 predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
@@ -20,9 +18,6 @@ predicate sourceAnnotFun(var PDGEdgeIdx: e) =
 
 predicate destAnnotFun(var PDGEdgeIdx: e) =
  (if hasFunction[hasDest[e]]!=0 then userAnnotatedFunction[hasFunction[hasDest[e]]] else false endif);
-
-% predicate isInArctaint(var cleLabel: fan, var cleLabel: tnt, var Level: lvl) =
-%  (if isFunctionAnnotation[fan] then hasARCtaints[cdfForRemoteLevel[fan, lvl], tnt] else false endif);
 
  predicate  isInArctaint(var cleLabel: fan, var cleLabel: tnt, var Level: lvl) =
  (if isFunctionAnnotation[fan] then hasARCtaints[cdfForRemoteLevel[fan, lvl], tnt] else false endif);
@@ -125,8 +120,7 @@ constraint :: "ArgumentTaintCoerced"
 constraint :: "ReturnTaintCoerced"
  forall (e in DataDepEdge_Ret) (coerced[e] == (if sourceAnnotFun(e) then hasRettaints[esFunCdf[e], edTaint[e]] else false endif));
 
-% Fundementally the issue is for the main function the argument doesn't match the taint of the main function. Need to see if function taint is flowing to main function
-% Additionally, there is an issue with the return instruction from example 1 to main. Maybe it is just an issue in general with the taint of main
+
 constraint :: "DataTaintCoercedData"
  forall (e in DataEdgeNoRet)
   (if ( hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
@@ -135,7 +129,15 @@ constraint :: "DataTaintCoercedData"
    else coerced[e] == false
    endif);
 
-constraint :: "DataTaintCoercedField"
+% constraint :: "DataTaintCoercedParam"
+%  forall (e in Parameter)
+%   (if ( hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
+%    then coerced[e] == (isInArctaint(esFunTaint[e], edTaint[e], hasLabelLevel[edTaint[e]]) /\
+%                        isInArctaint(esFunTaint[e], esTaint[e], hasLabelLevel[esTaint[e]]))
+%    else coerced[e] == false
+%    endif);
+
+constraint :: "DataTaintCoercedParam"
  forall (e in Parameter)
   (if ( hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
    then coerced[e] == (isInArctaint(esFunTaint[e], edTaint[e], hasLabelLevel[edTaint[e]]) /\
