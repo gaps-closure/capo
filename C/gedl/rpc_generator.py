@@ -101,10 +101,11 @@ class GEDLProcessor:
   ##############################################################################################################
   def genrpcH(self, e, inu, outu, ipc):
     n,t = '\n','    '
-    def boiler(): 
+    def boiler(f):    # ARQ mod: for each RPC functions (in and out)
       s  = '#ifndef _' + e.upper() + '_RPC_' + n
       s += '#define _' + e.upper() + '_RPC_' + n + n
       s += '#include "codec.h"' + n
+      s += '#include <limits.h>' + n    # ARQ mod:
       s += '#include <pthread.h>' + n if ipc != 'Singlethreaded' and e not in self.masters else n
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += '#include <assert.h>'  + n
@@ -162,11 +163,18 @@ class GEDLProcessor:
       return s
     def fundecl(fd, wrap=True): 
       s  = 'extern ' + fd['return']['type'] + ' ' + ('_rpc_' if wrap else '') + fd['func'] + '('
-      s += ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]) + ');' + n  # XXX: check array/pointer
+      # ARQ mod:
+      s += ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']])  # XXX: check array/pointer
+      if wrap :
+        if ','.join( [p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']] ) != "" :
+          s += ', '
+        s += 'int *error'
+      s += ');' + n
       return s
     def trailer(): return n + '#endif /* _' + e.upper() + '_RPC_ */' + n
 
-    s = boiler()
+    
+    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e): s = boiler(f)   # ARQ mod: for all RPC functions (in and out)
     if len(self.enclaveList) == 2 and len(self.masters) == 1:   # XXX: multi-enclave scenario not handled, NEXTRPC will have different mux,sec per peer
       if e in self.masters:
         for p in self.callees(e): s +=  specialscle(e,p)
@@ -186,7 +194,16 @@ class GEDLProcessor:
     return s
 
   ##############################################################################################################
-  def genrpcC(self, e, ipc): 
+  def genrpcC(self, e, ipc):
+    # ARQ mod: Get CLE parameters (num_tries, num_tries) from JSON file
+    def readfromjsonfile():
+      f = open('/opt/closure/schemas/cle-schema.json',)
+      data = json.load(f)
+      f.close()
+      return data['definitions']['cdfType']['properties']
+    dict_lossndelay = readfromjsonfile()
+    num_tries = dict_lossndelay['num_tries']['default']
+    timeout   = dict_lossndelay['timeout']['default']
     n,t = '\n','    '
     def boiler():
       s  = '#include "' + e + '_rpc.h"' + n
@@ -257,6 +274,15 @@ class GEDLProcessor:
       s += t + 'size_t adu_len;' + n
       s += t + 'my_gaps_data_decode(p, size, adu, &adu_len, tag, cmap);' + n
       s += '}' + n + n
+      # ARQ mod: recv function returns size
+      s += 'int my_xdc_recv(void *socket, void *adu, gaps_tag *tag, codec_map *cmap) {' + n
+      s += t + 'sdh_ha_v1 packet;' + n
+      s += t + 'void *p = &packet;' + n
+      s += t + 'int size = zmq_recv(socket, p, sizeof(sdh_ha_v1), 0);' + n
+      s += t + 'size_t adu_len;' + n
+      s += t + 'my_gaps_data_decode(p, size, adu, &adu_len, tag, cmap);' + n
+      s += t + 'return size;' + n
+      s += '}' + n + n
       s += 'void *my_xdc_pub_socket(void *ctx) {' + n
       s += t + 'int err;' + n
       s += t + 'void *socket;' + n
@@ -280,6 +306,30 @@ class GEDLProcessor:
       s += t + 'tag->sec = sec;' + n
       s += t + 'tag->typ = typ;' + n
       s += '}' + n + n
+      # ARQ mod:  subscribe with timeout
+      s += 'void *my_xdc_sub_socket_non_blocking(gaps_tag tag, void *ctx, int timeout) {' + n
+      s += t + 'int  err, len;' + n
+      s += t + 'void    *socket;' + n
+      s += t + 'gaps_tag tag4filter;' + n
+      s += t + 'void    *filter;' + n
+      s += t + 'socket = zmq_socket(ctx, ZMQ_SUB);' + n
+      s += t + 'if (timeout>=0) {' + n
+      s += t + t + 'err = zmq_setsockopt(socket, ZMQ_RCVTIMEO, &timeout, sizeof(timeout));' + n
+      s += t + t + 'assert(err == 0);' + n
+      s += t + '}' + n
+      s += t + 'err = zmq_connect(socket, INURI);' + n
+      s += t + 'if ((tag.mux) != 0) {' + n
+      s += t + t + 'len = RX_FILTER_LEN;' + n
+      s += t + t + 'my_tag_encode(&tag4filter, &tag);' + n
+      s += t + t + 'filter = (void *) &tag4filter;' + n
+      s += t + '} else {' + n
+      s += t + t + 'len = 0;' + n
+      s += t + t + 'filter = (void *) "";' + n
+      s += t + '}' + n
+      s += t + 'err = zmq_setsockopt(socket, ZMQ_SUBSCRIBE, filter, len);' + n
+      s += t + 'assert(err == 0);' + n
+      s += t + 'return socket;' + n
+      s += '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
       return s
     def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''): 
@@ -303,6 +353,57 @@ class GEDLProcessor:
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
+    # ARQ mod: Lossdelayslave BLOCK1 function
+    def lossdelayslaveBLOCK1() :
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
+      s += t + 'void *psocket;' + n
+      s += t + 'void *ssocket;' + n
+      s += t + 'gaps_tag t_tag;' + n
+      s += t + 'gaps_tag o_tag;' + n
+      s += t + 'static int processed_counter = 0;' + n
+      s += t + 'static double last_processed_result;' + n
+      s += t + 'static int last_processed_error = 0;' + n
+      s += t + 'codec_map  mycmap[MY_DATA_TYP_MAX];' + n
+      s += t + 'for (int i=0; i < MY_DATA_TYP_MAX; i++)  mycmap[i].valid=0;' + n
+      s += t + 'my_xdc_register(nextrpc_data_encode, nextrpc_data_decode, DATA_TYP_NEXTRPC, mycmap);' + n
+      s += t + 'my_xdc_register(okay_data_encode, okay_data_decode, DATA_TYP_OKAY, mycmap);' + n
+      for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e):
+            s += t + myregdtyp(x,y,f,True)
+            s += t + myregdtyp(x,y,f,False)
+      s += '#else' + n
+      s += t + 'static int inited = 0;' + n
+      s += t + 'static void *psocket;' + n
+      s += t + 'static void *ssocket;' + n
+      s += t + 'static int processed_counter = 0;' + n
+      s += t + 'static double last_processed_result;' + n
+      s += t + 'static int last_processed_error = 0;' + n
+      s += t + 'gaps_tag t_tag;' + n
+      s += t + 'gaps_tag o_tag;' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s;
+    def lossdelaymasterBLOCK1() :
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
+      s += t + 'void *psocket;' + n
+      s += t + 'void *ssocket;' + n
+      s += t + 'gaps_tag t_tag;' + n
+      s += t + 'gaps_tag o_tag;' + n
+      s += t + 'static int request_counter = INT_MIN;' + n
+      s += t + 'codec_map  mycmap[MY_DATA_TYP_MAX];' + n
+      s += t + 'for (int i=0; i < MY_DATA_TYP_MAX; i++)  mycmap[i].valid=0;' + n
+      s += t + 'my_xdc_register(nextrpc_data_encode, nextrpc_data_decode, DATA_TYP_NEXTRPC, mycmap);' + n
+      s += t + 'my_xdc_register(okay_data_encode, okay_data_decode, DATA_TYP_OKAY, mycmap);' + n
+      for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e):
+        s += t + myregdtyp(x,y,f,True)
+        s += t + myregdtyp(x,y,f,False)
+      s += '#else' + n
+      s += t + 'static int inited = 0;' + n
+      s += t + 'static void *psocket;' + n
+      s += t + 'static void *ssocket;' + n
+      s += t + 'static int request_counter = INT_MIN;' + n
+      s += t + 'gaps_tag t_tag;' + n
+      s += t + 'gaps_tag o_tag;' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s;
     def BLOCK1():
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void *psocket;' + n
@@ -324,6 +425,64 @@ class GEDLProcessor:
       s += t + 'gaps_tag o_tag;' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
+      
+    # ARQ mod: Lossdelayslave BLOCK2 function
+    def lossdelayslaveBLOCK2(tag):
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
+      s += t + 'void * ctx = zmq_ctx_new();' + n
+      s += t + 'psocket = my_xdc_pub_socket(ctx);' + n
+      s += t + 'ssocket = my_xdc_sub_socket(' + tag + ', ctx);' + n
+      s += t + 'sleep(1); /* zmq socket join delay */' + n
+      s += '#else' + n
+      s += t + 'if (!inited) {' + n
+      s += t + t + 'inited = 1;' + n
+      s += t + t + 'psocket = xdc_pub_socket();' + n
+      s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
+      s += t + t + 'sleep(1); /* zmq socket join delay */' + n
+      s += t + '}' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s;
+    def lossdelaymasterBLOCK2(f, tag) :
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
+      s += t + 'void * ctx = zmq_ctx_new();' + n
+      s += t + 'psocket = my_xdc_pub_socket(ctx);' + n
+      s += t + t + 'ssocket = my_xdc_sub_socket_non_blocking(' + tag + ', ctx, ' + str(timeout) + ');' + n
+      s += t + 'sleep(1); /* zmq socket join delay */' + n
+      s += t + t + 'int status = my_rpc_' + f + '_sync_request_counter(&request_counter, psocket, ssocket, &t_tag, &o_tag, ctx, mycmap,'
+      s += 'req_' + f + ', res_' + f
+
+      def mparam(q): return q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ');' + n
+      else :
+        s += ');' + n
+      s += t + 'if(status == 0) {' + n
+      s += t + t + '*error = 1;' + n
+      s += t + t + 'return 0;' + n
+      s += t + '}' + n
+      s += t + 'request_counter++;' + n
+      s += '#else' + n
+      s += t + 'if (!inited) {' + n
+      s += t + t + 'inited = 1;' + n
+      s += t + t + 'psocket = xdc_pub_socket();' + n
+      s += t + t + 'ssocket = xdc_sub_socket_non_blocking(' + tag + ',' + str(timeout) + ');' + n
+      s += t + t + 'sleep(1); /* zmq socket join delay */' + n
+      s += t + t + 'int status = _rpc_' + f + '_sync_request_counter(&request_counter, psocket, ssocket, &t_tag, &o_tag'
+
+      def mparam(q): return q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ');' + n
+      else :
+        s += ');' + n
+
+      s += t + t + 'if(status == 0){' + n
+      s += t + t + t + '*error = 1;' + n
+      s += t + t + t + 'return 0;' + n
+      s += t + t + '}' + n
+      s += t + '}' + n
+      s += t + 'request_counter++;' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s;
     def BLOCK2(tag):
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void * ctx = zmq_ctx_new();' + n
@@ -335,6 +494,22 @@ class GEDLProcessor:
       s += t + t + 'inited = 1;' + n
       s += t + t + 'psocket = xdc_pub_socket();' + n
       s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
+      s += t + t + 'sleep(1); /* zmq socket join delay */' + n
+      s += t + '}' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s;
+    # ARQ mod: Notify BLOCK2 function
+    def notifynextrpcBLOCK2(tag) :
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
+      s += t + 'void * ctx = zmq_ctx_new();' + n
+      s += t + 'psocket = my_xdc_pub_socket(ctx);' + n
+      s += t + 'ssocket = my_xdc_sub_socket_non_blocking(' + tag + ', ctx,' + str(timeout) + ');' + n
+      s += t + 'sleep(1); /* zmq socket join delay */' + n
+      s += '#else' + n
+      s += t + 'if (!inited) {' + n
+      s += t + t + 'inited = 1;' + n
+      s += t + t + 'psocket = xdc_pub_socket();' + n
+      s += t + t + 'ssocket = xdc_sub_socket_non_blocking(' + tag + ',' + str(timeout) + ');' + n
       s += t + t + 'sleep(1); /* zmq socket join delay */' + n
       s += t + '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
@@ -358,7 +533,7 @@ class GEDLProcessor:
       s += '#else' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      s += BLOCK2('o_tag')
+      s += notifynextrpcBLOCK2('o_tag')   # ARQ mod: call notify-BLOCK2 (istead of BLOCK2)
       s += t + 'nxt.mux = n_tag->mux;' + n
       s += t + 'nxt.sec = n_tag->sec;' + n
       s += t + 'nxt.typ = n_tag->typ;' + n
@@ -375,10 +550,203 @@ class GEDLProcessor:
       s += t + '// XXX: check that we got valid OK?' + n
       s += '}' + n + n
       return s
-    def rpcwrapdef(x,y,f,fd,ipc):
+      
+    # ARQ mod: New Function
+    def masterpclossdelay(x,y,f,fd) :
+      s = '#ifndef __LEGACY_XDCOMMS__' + n
+      s += 'int my_rpc_' + f + '_sync_request_counter(int* request_counter, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, void * ctx, codec_map *mycmap, '
+      s +=  'request_' + f + '_datatype req_' + f + ', response_' + f + '_datatype res_' + f
+      
       def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
-      s = fd['return']['type'] + ' _rpc_' + f + '(' + ','.join([mparam(q) for q in fd['params']]) +') {' + n
-      s += BLOCK1()
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ') {' + n
+      else :
+        s += ') {' + n
+
+      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
+      s += t + 'while(tries_remaining != 0){' + n
+      if len(fd['params']) == 0:
+        s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
+      else:
+        for q in fd['params']:
+          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
+            s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + '0' + '[i];' + n
+          else:
+            s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
+
+      s +=  t + t + 'req_' + f + '.trailer.seq = *request_counter;' + n
+      s +=  t + t + 'my_xdc_asyn_send(psocket, &req_' + f + ', t_tag, mycmap);' + n
+
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s +=  t + t + 'int status = my_xdc_recv(ssocket, &res_' + f + ', o_tag, mycmap);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      
+      s +=  t + t + 'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
+      s +=  t + t + 'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
+      s +=  t + t + 'if(status == -1){' + n
+      s +=  t + t + t + 'tries_remaining--;' + n
+      s +=  t + t + '}' + n
+      s +=  t + t +  'else{' + n
+      s +=  t + t + t + '*request_counter = respId;' + n
+      s +=  t + t + t + 'return 1;' + n
+      s +=  t + t + '}' + n
+      s +=  t + '}' + n
+      s +=  t + 'return 0;' + n
+      s +=  '}' + n + n
+      s += 'int my_rpc_' + f + '_remote_call(int reqId, double* result, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, void * ctx, codec_map *mycmap, '
+      s +=  'request_' + f + '_datatype req_' + f + ', response_' + f + '_datatype res_' + f
+
+      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ') {' + n
+      else :
+        s += ') {' + n
+
+      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
+      s += t +'while(tries_remaining!=0){' + n
+
+      if len(fd['params']) == 0:
+        s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
+      else:
+        for q in fd['params']:
+          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
+            s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + q['name'] + '[i];' + n
+          else:
+            s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
+      s += t + t +'req_' + f + '.trailer.seq = reqId;' + n
+      s += t + t +'my_xdc_asyn_send(psocket, &req_' + f + ', t_tag, mycmap);' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t +'int status = my_xdc_recv(ssocket, &res_' + f + ', o_tag, mycmap);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + t +'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
+      s += t + t +'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
+      s += t + t +'if(status == -1){' + n
+      s += t + t + t +'tries_remaining--;' + n
+      s += t + t +'}' + n
+      s += t + t +'else{' + n
+      s += t + t + t +'if(respId < reqId){' + n
+      s += t + t + t + t +'continue;' + n
+      s += t + t + t +'}' + n
+      s += t + t + t +'if(error){' + n
+      s += t + t + t + t +'return 0;' + n
+      s += t + t + t +'}' + n
+      s += t + t + t +'*result = res_' + f + '.ret;' + n
+      s += t + t + t +'return 1;' + n
+      s += t + t +'}' + n
+      s += t +'}' + n
+      s += t +'return 0;' + n
+      s += '}' + n
+      s += '#else' + n
+      s += 'int _rpc_' + f + '_sync_request_counter(int* request_counter, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag'
+      
+      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ') {' + n
+      else :
+        s += ') {' + n
+
+      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
+      s += t + 'while(tries_remaining != 0){' + n
+      l  = self.const(x,y,f,True)
+      s += t + t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
+      s += t + t + '#pragma cle end ' + l['clelabl'] + n + n
+      l  = self.const(x,y,f,False)
+
+      s += t + t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
+      s += t + t + '#pragma cle end ' + l['clelabl'] + n + n
+
+      
+      if len(fd['params']) == 0:
+        s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
+      else:
+        for q in fd['params']:
+          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
+            s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + '0' + '[i];' + n
+          else:
+            s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
+
+      s +=  t + t + 'req_' + f + '.trailer.seq = *request_counter;' + n
+      s +=  t + t + 'xdc_asyn_send(psocket, &req_' + f + ', t_tag);' + n
+
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s +=  t + t + 'int status = xdc_recv(ssocket, &res_' + f + ', o_tag);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      
+      s +=  t + t + 'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
+      s +=  t + t + 'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
+      s +=  t + t + 'if(status == -1){' + n
+      s +=  t + t + t + 'tries_remaining--;' + n
+      s +=  t + t + '}' + n
+      s +=  t + t +  'else{' + n
+      s +=  t + t + t + '*request_counter = respId;' + n
+      s +=  t + t + t + 'return 1;' + n
+      s +=  t + t + '}' + n
+      s +=  t + '}' + n
+      s +=  t + 'return 0;' + n
+      s +=  '}' + n + n
+      s += 'int _rpc_' + f + '_remote_call(int reqId, double* result, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag'
+
+      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ') {' + n
+      else :
+        s += ') {' + n
+
+      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
+      s += t +'while(tries_remaining!=0){' + n
+      l  = self.const(x,y,f,True)
+      s += t + t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
+      s += t + t + '#pragma cle end ' + l['clelabl'] + n + n
+      l  = self.const(x,y,f,False)
+
+      s += t + t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
+      s += t + t + '#pragma cle end ' + l['clelabl'] + n + n
+      if len(fd['params']) == 0:
+        s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
+      else:
+        for q in fd['params']:
+          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
+            s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + q['name'] + '[i];' + n
+          else:
+            s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
+      s += t + t +'req_' + f + '.trailer.seq = reqId;' + n
+      s += t + t +'xdc_asyn_send(psocket, &req_' + f + ', t_tag);' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t +'int status = xdc_recv(ssocket, &res_' + f + ', o_tag);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + t +'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
+      s += t + t +'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
+      s += t + t +'if(status == -1){' + n
+      s += t + t + t +'tries_remaining--;' + n
+      s += t + t +'}' + n
+      s += t + t +'else{' + n
+      s += t + t + t +'if(respId < reqId){' + n
+      s += t + t + t + t +'continue;' + n
+      s += t + t + t +'}' + n
+      s += t + t + t +'if(error){' + n
+      s += t + t + t + t +'return 0;' + n
+      s += t + t + t +'}' + n
+      s += t + t + t +'*result = res_' + f + '.ret;' + n
+      s += t + t + t +'return 1;' + n
+      s += t + t +'}' + n
+      s += t +'}' + n
+      s += t +'return 0;' + n
+      s += '}' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s
+    def rpcwrapdef(x,y,f,fd,ipc):
+      # ARQ mod: call lossdelaymasterBLOCK1 not BLOCK1
+      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      s = fd['return']['type'] + ' _rpc_' + f + '(' + ','.join([mparam(q) for q in fd['params']])
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ', '
+      s += 'int *error) {' + n
+      s += lossdelaymasterBLOCK1()
+      #s += BLOCK1()
       l  = self.const(x,y,f,True)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
@@ -397,34 +765,55 @@ class GEDLProcessor:
       s += '#else' + n
       s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      if len(fd['params']) == 0:
-        s += t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void 
-      else:
+      # ARQ mod: Ignore IDL convention on void
+      if len(fd['params']) != 0:
+        #s += t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
+      #else:
         for q in fd['params']:
           if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']: 
             s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + q['name'] + '[i];' + n
           else:
             s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
-      s += BLOCK2('o_tag')
+      s += lossdelaymasterBLOCK2(f, 'o_tag')   # ARQ mod: Call lossdelaymasterBLOCK2 not BLOCK2
       if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'my_xdc_asyn_send(psocket, &req_' + f + ', &t_tag, mycmap);' + n
-      oneway = True # XXX: must pass f to this function and check if it is oneway
-      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
-      s += t + 'my_xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag, mycmap);' + n
-      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
+      # ARQ mod:  Replace my_xdc_asyn_send and my_xdc_blocking_recv with my_rpc_+f+_remote_call in next 12 lines
+      s += t + 'double result;' + n
+      s += t + 'int status1 = my_rpc_' + f + '_remote_call(request_counter,  &result, psocket, ssocket, &t_tag, &o_tag, ctx, mycmap, '
+      s += 'req_' + f + ', res_' + f
+      def mparam(q): return q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ');' + n
+      else :
+        s += ');' + n
+      s += t + 'if(status1 == 0){' + n
+      s += t + t + '*error = 1;' + n
+      s += t + t + 'return 0;' + n
+      s += t + '}' + n
+      
       s += t + 'zmq_close(psocket);' + n
       s += t + 'zmq_close(ssocket);' + n
       s += t + 'zmq_ctx_shutdown(ctx);' + n
       s += '#else' + n
-      s += t + 'xdc_asyn_send(psocket, &req_' + f + ', &t_tag);' + n
-      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
-      s += t + 'xdc_blocking_recv(ssocket, &res_' + f + ', &o_tag);' + n
-      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
+      
+      # ARQ mod: replace my_xdc_asyn_send and my_xdc_blocking_recv with my_rpc_+f+_remote_call in next 13 lines
+      s += t + 'double result;' + n
+      s += t + 'int status1 = _rpc_' + f + '_remote_call(request_counter,  &result, psocket, ssocket, &t_tag, &o_tag'
+      def mparam(q): return q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
+      if ','.join([mparam(q) for q in fd['params']]) != "" :
+        s += ',' + ','.join([mparam(q) for q in fd['params']]) + ');' + n
+      else :
+        s += ');' + n
+      s += t + 'if(status1 == 0){' + n
+      s += t + t + '*error = 1;' + n
+      s += t + t + 'return 0;' + n
+      s += t + '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      oneway = True
+
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
       if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
-      s += t + 'return (res_' + f + '.ret);' + n
+      s += t + 'return (result);' + n   # ARQ mod: Use result from above
       if (oneway): s += '#else' + n
       s += t + 'return 0;' + n
       if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
@@ -432,7 +821,7 @@ class GEDLProcessor:
       return s
     def handlernextrpc(): #XXX: hardcoded tags
       s = 'void _handle_nextrpc(gaps_tag* n_tag) {' + n
-      s += BLOCK1()
+      s += BLOCK1()   #
       s += t + '#pragma cle begin TAG_NEXTRPC' + n
       s += t + 'nextrpc_datatype nxt;' + n
       s += t + '#pragma cle end TAG_NEXTRPC' + n
@@ -466,7 +855,7 @@ class GEDLProcessor:
       return s
     def handlerdef(x,y,f,fd,ipc):
       s  = 'void _handle_request_' + f + '(gaps_tag* tag) {' + n
-      s += BLOCK1()
+      s += lossdelayslaveBLOCK1()   # ARQ mod: Call lossdelayslaveBLOCK1 not BLOCK1
       l  = self.const(x,y,f,True)
       s += t + '#pragma cle begin ' + l['clelabl'] + n
       s += t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
@@ -485,26 +874,76 @@ class GEDLProcessor:
       s += '#else' + n
       s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      s += BLOCK2('t_tag')
+      s += lossdelayslaveBLOCK2('t_tag')    # ARQ mod: Call lossdelayslaveBLOCK2 not BLOCK2
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag, mycmap);' + n
       s += '#else' + n
       s += t + 'xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag);' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      s += t + ('res_' + f + '.ret = ' if fd['return']['type'] != 'void' else '') + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
+      #s += t + ('res_' + f + '.ret = ' if fd['return']['type'] != 'void' else '') + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n    # ARQ mod:
       # XXX: marshaller needs to copy output arguments (including arrays) to res here !!
       oneway = True # XXX: must pass f to this function and check if it is oneway
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
-      s += t + 'my_xdc_asyn_send(psocket, &res_' + f + ', &o_tag, mycmap);' + n
-      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
+      # ARQ mod: replace my_xdc_asyn_send with req_' + f + '.' + q['name'] in next 26 lines
+      s += t + 'int reqId = req_' + f + '.trailer.seq;' + n
+      s += t + 'if(reqId > processed_counter){' + n
+      s += t + t + 'int error = 0;' + n
+      s += t + t + 'processed_counter = reqId;' + n
+      s += t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
+      s += t + t + 'last_processed_error = error;' + n
+      s += t + t +  'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s +=   t + t + 'res_' + f + '.ret = last_processed_result;' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t +  'my_xdc_asyn_send(psocket, &res_' + f + ', &o_tag, mycmap);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + '}' + n
+      s += t + 'else if(reqId == processed_counter){'
+      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s += t + t + 'res_' + f + '.ret = last_processed_result;' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t + 'my_xdc_asyn_send(psocket, &res_' + f + ', &o_tag, mycmap);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + '}' + n
+      s += t + 'else if(reqId == INT_MIN){' + n
+      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s += t + t +  'res_' + f + '.ret = last_processed_result;' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t +  'my_xdc_asyn_send(psocket, &res_' + f + ', &o_tag, mycmap);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + '}' + n
+
       s += t + 'zmq_close(psocket);' + n
       s += t + 'zmq_close(ssocket);' + n
       s += t + 'zmq_ctx_shutdown(ctx);' + n
       s += '#else' + n
-      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
-      s += t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
-      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
+
+      # ARQ mod: replace my_xdc_asyn_send with req_' + f + '.' + q['name'] in next 26 lines
+      s += t + 'int reqId = req_' + f + '.trailer.seq;' + n
+      s += t + 'if(reqId > processed_counter){' + n
+      s += t + t + 'int error = 0;' + n
+      s += t + t + 'processed_counter = reqId;' + n
+      s += t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
+      s += t + t + 'last_processed_error = error;' + n
+      s += t + t +  'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s +=   t + t + 'res_' + f + '.ret = last_processed_result;' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t +  'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + '}' + n
+      s += t + 'else if(reqId == processed_counter){'
+      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s += t + t + 'res_' + f + '.ret = last_processed_result;' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + '}' + n
+      s += t + 'else if(reqId == INT_MIN){' + n
+      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s += t + t +  'res_' + f + '.ret = last_processed_result;' + n
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + t +  'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
@@ -513,7 +952,7 @@ class GEDLProcessor:
     def slavedispatch(e,ipc):
       s = ''
       if ipc == "Multithreaded":
-        calls = self.inCalls(e);
+        calls = self.inCalls(e)   # ARQ mod: Remove ; at end of python
         s += '#define NXDRPC ' + str(len(calls) + 1) + n
         s += 'WRAP(nextrpc)' + n
         for (x,y,f,fd) in calls: s += 'WRAP(request_' + f + ')' + n
@@ -561,8 +1000,12 @@ class GEDLProcessor:
 
     s = boiler() + xdclib() + halinit(e)
     s += notify_nxtag() if e in self.masters else handlernextrpc()
-    for (x,y,f,fd) in self.inCalls(e):  s += handlerdef(x,y,f,fd,ipc)
-    for (x,y,f,fd) in self.outCalls(e): s += rpcwrapdef(x,y,f,fd,ipc)
+    # ARQ mod: add masterpclossdelay in outcalls
+    for (x,y,f,fd) in self.inCalls(e):
+        s += handlerdef(x,y,f,fd,ipc)
+    for (x,y,f,fd) in self.outCalls(e):
+        s += masterpclossdelay(x,y,f,fd)
+        s += rpcwrapdef(x,y,f,fd,ipc)
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
     return s
 
@@ -608,6 +1051,11 @@ class GEDLProcessor:
                 for func in self.affected[canonold][index+1]:
                   if line.find(func) == -1: raise Exception(func + ' not found in ' + canonold + ' at line ' + str(index) + ':' + line)
                   line = line.replace(func, '_rpc_' + func)
+                  # ARQ mod: ADDITION BY SHUBH
+                  if line.find('()') == -1 :
+                    line = line.replace(')', ', 0)')
+                  else :
+                    line = line.replace(')', '0)')
                   print('Replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
             newf.write(line)
           if e not in self.masters:
@@ -623,6 +1071,7 @@ def main():
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
   if len(gp.masters) != 1: raise Exception('Need one master, got:' + ' '.join(gp.masters))
+  print('**** 2022 Merged Version with Reliable RPC')
   print('Processing source tree from ' + args.edir + ' to ' + args.odir)
   gp.processSourceTree(args.mainprog,args.enclave_list,args.edir,args.odir)
   for e in args.enclave_list:
