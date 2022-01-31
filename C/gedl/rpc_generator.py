@@ -15,6 +15,7 @@ def argparser():
   parser.add_argument('-i','--ipc', required=True, type=str, help='IPC Type (Singlethreaded/Multithreaded)')
   parser.add_argument('-a','--hal', required=True, type=str, help='HAL Api Directory Path')
   parser.add_argument('-n','--inuri', required=True, type=str, help='Input URI')
+  parser.add_argument('-s','--schema', required=False, type=str, help='override location of schema if required', default='/opt/closure/schemas/cle-schema.json')
   parser.add_argument('-t','--outuri', required=True, type=str, help='Output URI')
   parser.add_argument('-x','--xdconf', required=True, type=str, help='Hal Config Map Filename')
   parser.add_argument('-e','--edir', required=True, type=str, help='Input Directory')
@@ -35,7 +36,7 @@ def gotMain(fn): # XXX: will fail on #ifdef'd out main, consider using clang.cin
   
 #####################################################################################################################################################
 class GEDLProcessor:
-  def __init__(self, gedlfile, enclaveList, muxbase, secbase, typbase):
+  def __init__(self, gedlfile, enclaveList, muxbase, secbase, typbase, schemafile):
     with open(gedlfile) as edl_file: self.gedl = json.load(edl_file)['gedl']
     self.xdcalls     = [c['func'] for x in self.gedl for c in x['calls']]
     self.specials    = ['nextrpc', 'okay']
@@ -48,6 +49,7 @@ class GEDLProcessor:
     self.secAssign   = {x: i for i,x in enumerate(cartesian)}
     self.masters     = []
     self.affected    = {}
+    self.schemafile  = schemafile
     y = [x for x in self.gedl if x['caller'] not in enclaveList or x['callee'] not in enclaveList]
     if len(y) > 0: raise Exception('Enclaves referenced in GEDL not in provided enclave list: ' + ','.join(y))
     if len(self.xdcalls) != len(set(self.xdcalls)): raise Exception('Cross-domain function calls are not unique')
@@ -197,7 +199,7 @@ class GEDLProcessor:
   def genrpcC(self, e, ipc):
     # ARQ mod: Get CLE parameters (num_tries, num_tries) from JSON file
     def readfromjsonfile():
-      f = open('/opt/closure/schemas/cle-schema.json',)
+      f = open(self.schemafile,)
       data = json.load(f)
       f.close()
       return data['definitions']['cdfType']['properties']
@@ -1067,7 +1069,7 @@ class GEDLProcessor:
 #####################################################################################################################################################
 def main():
   args = argparser()
-  gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base)
+  gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base,args.schema)
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
   if len(gp.masters) != 1: raise Exception('Need one master, got:' + ' '.join(gp.masters))
