@@ -17,6 +17,7 @@ def argparser():
   parser.add_argument('-n','--inuri', required=True, type=str, help='Input URI')
   parser.add_argument('-s','--schema', required=False, type=str, help='override location of schema if required', default='/opt/closure/schemas/cle-schema.json')
   parser.add_argument('-t','--outuri', required=True, type=str, help='Output URI')
+  parser.add_argument('-v','--verbose', required=False, action='store_false')
   parser.add_argument('-x','--xdconf', required=True, type=str, help='Hal Config Map Filename')
   parser.add_argument('-e','--edir', required=True, type=str, help='Input Directory')
   parser.add_argument('-E','--enclave_list', required=True, type=str, nargs='+', help='List of enclaves')
@@ -567,6 +568,7 @@ class GEDLProcessor:
 
       s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
       s += t + 'while(tries_remaining != 0){' + n
+      s += t + t + 'fprintf(stderr, "num_tries=%d\\n", tries_remaining)' + ';' + n
       if len(fd['params']) == 0:
         s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
       else:
@@ -670,6 +672,7 @@ class GEDLProcessor:
             s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
 
       s +=  t + t + 'req_' + f + '.trailer.seq = *request_counter;' + n
+      s +=  t + t + 'fprintf(stderr, "Sync=%d\\n", *request_counter)' + ';' + n
       s +=  t + t + 'xdc_asyn_send(psocket, &req_' + f + ', t_tag);' + n
 
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
@@ -722,6 +725,7 @@ class GEDLProcessor:
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += t + t +'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
       s += t + t +'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
+      s += t + t + 'fprintf(stderr, "ReqId=%d ResId=%d err=%d tries=%d\\n", reqId, respId, error, tries_remaining)' + ';' + n
       s += t + t +'if(status == -1){' + n
       s += t + t + t +'tries_remaining--;' + n
       s += t + t +'}' + n
