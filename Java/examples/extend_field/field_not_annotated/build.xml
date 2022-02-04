@@ -1,0 +1,154 @@
+<project name="TESTPROGRAM" basedir="." default="default">
+	<property name="author"     value=""                                   />
+	<property name="vendor"     value=""                                   />
+	<property name="version"    value=""                                   />
+	<property name="pkg_base"   value=""                                   />
+	<property name="jar_dir"    value="dist"                               />
+	<property name="src_dir"    value="src"                                />
+	<property name="build_dir"  value="build"                              />
+	<property name="lib_dir"    value="lib"                                />
+	<property name="class_dir"  value="${build_dir}/class"                 />
+	<property name="jar_file"   value="${jar_dir}/${ant.project.name}.jar" />
+	<property name="main_class" value="${pkg_base}.${ant.project.name}"    />
+
+	<path id="build_classpath">
+		<fileset dir="${lib_dir}">
+			<include name="**/*.jar"/>
+                        <exclude name="**/*src.jar"/>
+		</fileset>
+	</path>
+
+	<mkdir dir="${jar_dir}"/>
+	<manifestclasspath property="manifest_classpath" jarfile="${jar_file}">
+		<classpath refid="build_classpath" />
+	</manifestclasspath>
+
+	<!-- ============ TARGET: CLEAN ==================== -->
+	<target name="clean">
+		<delete dir="${build_dir}"/>
+		<delete file="${jar_file}"/>
+	</target>
+
+	<!-- ============ TARGET: COMPILE ================== -->
+	<target name="compile">
+		<mkdir dir="${class_dir}"/>
+		<javac srcdir="${src_dir}" destdir="${class_dir}" debug="on" 
+			debuglevel="lines,vars,source" includeantruntime="false">
+			<classpath>
+				<path refid="build_classpath"/>
+			</classpath>
+		</javac>
+	</target>
+
+	<!-- ============ TARGET: JAR ====================== -->
+	<target name="jar" depends="compile">
+		<jar destfile="${jar_file}" basedir="${class_dir}">
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0"                  />
+				<attribute name="Created-By"       value="${author}"            />
+				<attribute name="Main-Class"       value="${main_class}"        />
+				<attribute name="Version"          value="${version}"           />
+				<attribute name="Vendor"           value="${vendor}"            />
+				<attribute name="Class-Path"       value="${manifest_classpath}"/> 
+			</manifest>
+		</jar>
+		<copy todir="${jar_dir}/lib" >
+			<fileset file="lib/*.jar" />
+		</copy>
+	</target>
+
+	<!-- ============ TARGET: DIST ==================== -->
+	<target name="dist" depends="clean,compile">
+		<unzip dest="${class_dir}">
+			<path refid="build_classpath"/>
+		</unzip>
+		<mkdir dir="${jar_dir}"/>
+		<jar destfile="${jar_file}" basedir="${class_dir}">
+			<manifest>
+				<attribute name="Manifest-Version" value="1.0"                  />
+				<attribute name="Created-By"       value="${author}"            />
+				<attribute name="Main-Class"       value="${main_class}"        />
+				<attribute name="Version"          value="${version}"           />
+				<attribute name="Vendor"           value="${vendor}"            />
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- ============ TARGET: DEBUG ==================== -->
+	<target name="debug" depends="compile">
+		<java classpath="${class_dir}" classname="${main_class}" fork="true">
+			<jvmarg line="-Xdebug"/>
+			<jvmarg line="-Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"/>
+		<classpath>
+			<path refid="build_classpath"/>
+		</classpath>
+		</java>
+	</target>
+
+	<!-- ============ TARGET: RUN ====================== -->
+	<target name="run" depends="compile">
+		<java classpath="${class_dir}" classname="${main_class}" fork="true">
+		<classpath>
+			<path refid="build_classpath"/>
+		</classpath>
+		</java>
+	</target>
+
+	<!-- ============ TARGET: DOCS ===================== -->
+	<target name="docs">
+		<javadoc
+           destdir="docs/api"
+           author="true"
+           version="true"
+           use="true"
+           windowtitle="${ant.project.name} API">
+			
+			<fileset dir="${src_dir}" defaultexcludes="yes">
+				<include name="**/*.java"/>
+			</fileset>
+			<classpath>
+				<path refid="build_classpath"/>
+			</classpath>
+			<doctitle><![CDATA[<h1>${ant.project.name}</h1>]]></doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; 2010 ${vendor}. All Rights Reserved.</i>]]></bottom>
+			<tag name="todo" scope="all" description="To do:"/>
+			<group title="Packages" packages="${pkg_base}.*"/>
+			<link offline="false" href="http://download.oracle.com/javase/6/docs/api/"/>
+		</javadoc>
+	</target>
+
+	<!-- ============ TARGET: DEFAULT ================== -->
+	<target name="default" depends="clean,jar"/>
+
+        <!-- ============ TARGET: TEST ===================== -->
+        <target name="test" depends="compile">
+            <mkdir dir="${build_dir}/tests"/>
+            <javac srcdir="tests" target="1.5" source="1.5" destdir="${build_dir}/tests"
+                     debug="on" debuglevel="lines,vars,source" deprecation="true"
+                     includeantruntime="false">
+                <classpath>
+                    <pathelement location="tests/junit-4.11.jar"/>
+                    <pathelement location="tests/jsc.jar"/>
+                    <pathelement path="${class_dir}"/>
+                    <fileset dir="${lib_dir}">
+                        <include name="**/*.jar"/>
+                    </fileset>
+                </classpath>
+            </javac>
+            <junit>
+                <classpath>
+                    <pathelement path="${build_dir}/tests"/>
+                    <pathelement location="tests/junit-4.11.jar"/>
+                    <pathelement location="tests/jsc.jar"/>
+                    <pathelement path="${class_dir}"/>
+                    <fileset dir="${lib_dir}">
+                        <include name="**/*.jar"/>
+                   </fileset>
+               </classpath>
+               <formatter type="brief" usefile="false" />
+               <batchtest todir="tests">
+                   <fileset dir="tests" includes="**/*Test*.java"/>
+               </batchtest>
+           </junit>
+       </target>
+</project>
