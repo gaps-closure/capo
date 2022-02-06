@@ -549,6 +549,7 @@ class GEDLProcessor:
       s += '#else' + n
       s += t + 'xdc_asyn_send(psocket, &nxt, &t_tag);' + n
       s += t + 'xdc_blocking_recv(ssocket, &okay, &o_tag);' + n
+      s += t + 'fprintf(stderr, "REQ: nxt tag=<%d, %d, %d>\\n", nxt.mux, nxt.sec, nxt.typ)' + ';' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + '// XXX: check that we got valid OK?' + n
       s += '}' + n + n
@@ -568,7 +569,7 @@ class GEDLProcessor:
 
       s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
       s += t + 'while(tries_remaining != 0){' + n
-      s += t + t + 'fprintf(stderr, "num_tries=%d\\n", tries_remaining)' + ';' + n
+      s += t + t + 'fprintf(stderr, "mparam num_tries=%d\\n", tries_remaining)' + ';' + n
       if len(fd['params']) == 0:
         s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
       else:
@@ -672,7 +673,6 @@ class GEDLProcessor:
             s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
 
       s +=  t + t + 'req_' + f + '.trailer.seq = *request_counter;' + n
-      s +=  t + t + 'fprintf(stderr, "Sync=%d\\n", *request_counter)' + ';' + n
       s +=  t + t + 'xdc_asyn_send(psocket, &req_' + f + ', t_tag);' + n
 
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
@@ -681,6 +681,7 @@ class GEDLProcessor:
       
       s +=  t + t + 'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
       s +=  t + t + 'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
+      s +=  t + t + 'fprintf(stderr, "REQ: syn ReqId=%x ResId=%d ResErr=%d tries=%d\\n", *request_counter, respId, error, tries_remaining)' + ';' + n
       s +=  t + t + 'if(status == -1){' + n
       s +=  t + t + t + 'tries_remaining--;' + n
       s +=  t + t + '}' + n
@@ -725,7 +726,7 @@ class GEDLProcessor:
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += t + t +'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
       s += t + t +'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
-      s += t + t + 'fprintf(stderr, "ReqId=%d ResId=%d err=%d tries=%d\\n", reqId, respId, error, tries_remaining)' + ';' + n
+      s += t + t + 'fprintf(stderr, "REQ: req ReqId=%d ResId=%d Reserr=%d tries=%d\\n", reqId, respId, error, tries_remaining)' + ';' + n
       s += t + t +'if(status == -1){' + n
       s += t + t + t +'tries_remaining--;' + n
       s += t + t +'}' + n
@@ -852,6 +853,7 @@ class GEDLProcessor:
       s += t + 'xdc_blocking_recv(ssocket, &nxt, &t_tag);' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
       s += t + 'okay.x = 0;' + n
+      s += t + 'fprintf(stderr, "RES: nxt tag=<%d, %d, %d>\\n", nxt.mux, nxt.sec, nxt.typ)' + ';' + n
       s += t + 'xdc_asyn_send(psocket, &okay, &o_tag);' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'n_tag->mux = nxt.mux;' + n
@@ -925,15 +927,17 @@ class GEDLProcessor:
 
       # ARQ mod: replace my_xdc_asyn_send with req_' + f + '.' + q['name'] in next 26 lines
       s += t + 'int reqId = req_' + f + '.trailer.seq;' + n
+      s += t + 'int error = 0;' + n
       s += t + 'if(reqId > processed_counter){' + n
-      s += t + t + 'int error = 0;' + n
+      s += t + t + 'error = 0;' + n
       s += t + t + 'processed_counter = reqId;' + n
       s += t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
       s += t + t + 'last_processed_error = error;' + n
-      s += t + t +  'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
-      s +=   t + t + 'res_' + f + '.ret = last_processed_result;' + n
+#xxxx ToDo Remove next two redundant if-statements - ALWAYS use next five lines
+      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s += t + t + 'res_' + f + '.ret = last_processed_result;' + n
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += t + t +  'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      s += t + t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += t + '}' + n
       s += t + 'else if(reqId == processed_counter){'
@@ -945,11 +949,12 @@ class GEDLProcessor:
       s += t + '}' + n
       s += t + 'else if(reqId == INT_MIN){' + n
       s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
-      s += t + t +  'res_' + f + '.ret = last_processed_result;' + n
+      s += t + t + 'res_' + f + '.ret = last_processed_result;' + n
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += t + t +  'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      s += t + t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += t + '}' + n
+      s += t + 'fprintf(stderr, "RES: ReqId=%d (Max=%d) Return=%f ResId=%d (seq==%x err=%d<-%d)\\n", reqId, processed_counter, last_processed_result, processed_counter << 2 | last_processed_error << 1, processed_counter, error, last_processed_error)' + ';' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
