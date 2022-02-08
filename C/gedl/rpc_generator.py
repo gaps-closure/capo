@@ -15,7 +15,7 @@ def argparser():
   parser.add_argument('-i','--ipc', required=True, type=str, help='IPC Type (Singlethreaded/Multithreaded)')
   parser.add_argument('-a','--hal', required=True, type=str, help='HAL Api Directory Path')
   parser.add_argument('-n','--inuri', required=True, type=str, help='Input URI')
-  parser.add_argument('-s','--schema', required=False, type=str, help='override location of schema if required', default='/opt/closure/schemas/cle-schema.json')
+  parser.add_argument('-s','--schema', required=False, type=str, help='override location of cle schema if required', default='/opt/closure/schemas/cle-schema.json')
   parser.add_argument('-t','--outuri', required=True, type=str, help='Output URI')
   parser.add_argument('-v','--verbose', required=False, action='store_false')
   parser.add_argument('-x','--xdconf', required=True, type=str, help='Hal Config Map Filename')
@@ -681,7 +681,7 @@ class GEDLProcessor:
       
       s +=  t + t + 'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
       s +=  t + t + 'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
-      s +=  t + t + 'fprintf(stderr, "REQ: syn ReqId=%x ResId=%d ResErr=%d tries=%d\\n", *request_counter, respId, error, tries_remaining)' + ';' + n
+      s +=  t + t + 'fprintf(stderr, "REQ: syn ReqId=%d ResId=%d ResErr=%d tries=%d\\n", *request_counter, respId, error, tries_remaining)' + ';' + n
       s +=  t + t + 'if(status == -1){' + n
       s +=  t + t + t + 'tries_remaining--;' + n
       s +=  t + t + '}' + n
@@ -726,7 +726,7 @@ class GEDLProcessor:
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += t + t +'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
       s += t + t +'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
-      s += t + t + 'fprintf(stderr, "REQ: req ReqId=%d ResId=%d Reserr=%d tries=%d\\n", reqId, respId, error, tries_remaining)' + ';' + n
+      s += t + t + 'fprintf(stderr, "REQ: req ReqId=%d ResId=%d Reserr=%d status=%d tries=%d result=%f\\n", reqId, respId, error, status, tries_remaining, res_' + f + '.ret)' + ';' + n
       s += t + t +'if(status == -1){' + n
       s += t + t + t +'tries_remaining--;' + n
       s += t + t +'}' + n
@@ -741,6 +741,7 @@ class GEDLProcessor:
       s += t + t + t +'return 1;' + n
       s += t + t +'}' + n
       s += t +'}' + n
+      s += t + 'fprintf(stderr, "REQ: req GIVING UP on res_' + f + ' ReqId=%d (after ' + str(num_tries) + ' tries)\\n", reqId)' + ';' + n
       s += t +'return 0;' + n
       s += '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
@@ -933,28 +934,16 @@ class GEDLProcessor:
       s += t + t + 'processed_counter = reqId;' + n
       s += t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
       s += t + t + 'last_processed_error = error;' + n
-#xxxx ToDo Remove next two redundant if-statements - ALWAYS use next five lines
-      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
-      s += t + t + 'res_' + f + '.ret = last_processed_result;' + n
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += t + t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += t + '}' + n
-      s += t + 'else if(reqId == processed_counter){'
-      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
-      s += t + t + 'res_' + f + '.ret = last_processed_result;' + n
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += t + t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += t + '}' + n
-      s += t + 'else if(reqId == INT_MIN){' + n
-      s += t + t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
-      s += t + t + 'res_' + f + '.ret = last_processed_result;' + n
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += t + t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += t + '}' + n
-      s += t + 'fprintf(stderr, "RES: ReqId=%d (Max=%d) Return=%f ResId=%d (seq==%x err=%d<-%d)\\n", reqId, processed_counter, last_processed_result, processed_counter << 2 | last_processed_error << 1, processed_counter, error, last_processed_error)' + ';' + n
+#xxxx Remove two redundant if-statements - ALWAYS use next six lines
+#      s += t + 'else if(reqId == processed_counter){'
+#      s += t + 'else if(reqId == INT_MIN){' + n
+      s += t + 'res_' + f + '.trailer.seq = processed_counter << 2 | last_processed_error << 1;' + n
+      s += t + 'res_' + f + '.ret = last_processed_result;' + n
+      s += t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag);' + n
+      s += t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + 'fprintf(stderr, "RES: ReqId=%d (Min=%d Max=%d) Return=%f ResId=%d err=%d,%d (seq=0x%x)\\n", reqId, INT_MIN, processed_counter, last_processed_result, processed_counter, error, last_processed_error, processed_counter << 2 | last_processed_error << 1)' + ';' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
@@ -1063,10 +1052,16 @@ class GEDLProcessor:
                   if line.find(func) == -1: raise Exception(func + ' not found in ' + canonold + ' at line ' + str(index) + ':' + line)
                   line = line.replace(func, '_rpc_' + func)
                   # ARQ mod: ADDITION BY SHUBH
+                  err_var = 'error_num_' + func
+                  newline1 = ' ' * (len(line) - len(line.lstrip())) + 'int ' + err_var + ';\n'
+                  print('Add error variable', newline1)
+                  newf.write(newline1)
+                  # ARQ mod: ADDITION BY SHUBH
+                  line_end = '&' + err_var + ')'
                   if line.find('()') == -1 :
-                    line = line.replace(')', ', 0)')
+                    line = line.replace(')', ',' + line_end)
                   else :
-                    line = line.replace(')', '0)')
+                    line = line.replace(')', line_end)
                   print('Replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
             newf.write(line)
           if e not in self.masters:
