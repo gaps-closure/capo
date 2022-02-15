@@ -72,17 +72,48 @@ java -cp $CLASSPATH org.python.util.jython JoanaUsageExample.jy \
   -d -D 'out.dot' \
   -j -J 'out.clemap.json' 
 
+java -cp $CLASSPATH org.python.util.jython JoanaUsageExample.jy \
+  -c './example_exception_1/dist/EXAMPLE_EXCEPT_1.jar' \
+  -e 'com.peratonlabs.closure.example_except_1.Example_Except_1' \
+  -p -P 'out.pdg' \
+  -d -D 'out.dot' \
+  -j -J 'out.clemap.json' 
+
 # Launch the viewer, open the pdg file, and interact
 java -cp $CLASSPATH edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer 
 ```
 
 
 ################################################################################
-# Produce Minizinc Input
+# Evaluate CLE Annotations and Produce Program Partition
 ################################################################################
-java -cp $CLASSPATH org.python.util.jython zincOuput.jy   \
-  -c './testprog/dist/TESTPROGRAM.jar'   \
-  -e 'com.peratonlabs.closure.testprog.example1.Example1' \
-  -b 'com.peratonlabs.closure.testprog'
 
-  The -b option indicates the prefix for the classes that are of interest
+java -cp $CLASSPATH org.python.util.jython zincOuput.jy
+ -m './example1/src/example1/Example1.java'
+ -c './example1/dist/TESTPROGRAM.jar'   
+ -e 'com.peratonlabs.closure.testprog.example1.Example1' 
+ -b 'com.peratonlabs.closure.testprog' 
+ -p -P 'output.pdg'
+
+
+  the -m option indicates what java file has the main class to analyze
+  the -c option indicates the jar file to analyze
+  the -e option indicates the class with the entry method
+  the -b option indicates the prefix for the classes that are of interest
+  the -p option indicates the 
+
+  Running this command will result in the following artifacts to be generated
+  
+  * enclave_instance.mzn
+  * pdg_instance.mzn
+  * cle_instance.mzn
+  * cut.json
+  * dbg_edge.csv
+  * dbg_node.csv
+
+  The dbg_edge.csv and dbg_node.csv files report useful information about all of the nodes and edges in the SDG being analyzed that can be useful to debug and find issues with annotations
+
+  The three .mzn files are what get fed to minizinc along with the .mzn files in the constraints/ directory to check if the program is properly annotated.
+
+  If the program is properly annotated, a cut.json file is produced showing the class assingments to each enclave and the methods in the cut.
+ 
