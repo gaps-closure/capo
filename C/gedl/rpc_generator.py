@@ -418,8 +418,14 @@ class GEDLProcessor:
       s += t + t + 'sleep(1); /* zmq socket join delay */' + n
       s += t + '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      return s;
+      return s
     
+    def cc_socket_close():
+      s  = t + 'zmq_close(psocket);' + n
+      s += t + 'zmq_close(ssocket);' + n
+      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      return s
+      
     # Create parameter list from fd['params'] list for calling RPC function
     def cc_params_in_call():
       s=''
@@ -441,17 +447,32 @@ class GEDLProcessor:
     ##############################################################################################################
     # Send RPC Request and wait for RPC Responnse
     ##############################################################################################################
-    # Define request and respose structures ('req_' + f and 'res' + f)
-    def cc_datatype_req_res() :
+    def cc_tag_write() :
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
       l  = self.const(x,y,f,True)
-      s  = t + t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
-      s += t + t + '#pragma cle end ' + l['clelabl'] + n + n
+      s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       l  = self.const(x,y,f,False)
-      s += t + t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
-      s += t + t + '#pragma cle end ' + l['clelabl'] + n + n
+      s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#else' + n
+      l  = self.const(x,y,f,True)
+      s += t +    'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      l  = self.const(x,y,f,False)
+      s += t +    'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
+      
+    # Define request and respose structures ('req_' + f and 'res' + f)
+    def cc_datatype_req_res(tc=2) :
+      l  = self.const(x,y,f,True)
+      s  = t*tc + '#pragma cle begin ' + l['clelabl'] + n
+      s += t*tc + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
+      s += t*tc + '#pragma cle end ' + l['clelabl'] + n
+      l  = self.const(x,y,f,False)
+      s += t*tc + '#pragma cle begin ' + l['clelabl'] + n
+      s += t*tc + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
+      s += t*tc + '#pragma cle end ' + l['clelabl'] + n
+      return s;
+      
     # Create sync packet in request struct ('req_' + f)
     def cc_create_packet_sync(pfx='', sfx=''):
       s = ''
@@ -637,9 +658,7 @@ class GEDLProcessor:
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_xdc_asyn_send(psocket, &nxt, &t_tag, mycmap);' + n
       s += t + 'my_xdc_blocking_recv(ssocket, &okay, &o_tag, mycmap);' + n
-      s += t + 'zmq_close(psocket);' + n
-      s += t + 'zmq_close(ssocket);' + n
-      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += cc_socket_close()
       s += '#else' + n
       s += t + 'xdc_asyn_send(psocket, &nxt, &t_tag);' + n
       s += t + 'xdc_blocking_recv(ssocket, &okay, &o_tag);' + n
@@ -656,26 +675,11 @@ class GEDLProcessor:
       if ','.join([mparam(q) for q in fd['params']]) != "" :
         s += ', '
       s += 'int *error) {' + n
+      
       s += cc_vars('req_counter', 'INT_MIN')
       s += cc_my_reg()
-      l  = self.const(x,y,f,True)
-      s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
-      s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      s += '#else' + n
-      s += t + 'tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      l  = self.const(x,y,f,False)
-      s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
-      s += t + '#pragma cle end ' + l['clelabl'] + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'my_tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      s += '#else' + n
-      s += t + 'tag_write(&o_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      s += cc_datatype_req_res(1)
+      s += cc_tag_write()
       # ARQ mod: Ignore IDL convention on void
       if len(fd['params']) != 0:
         #s += t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
@@ -690,39 +694,27 @@ class GEDLProcessor:
       if ipc == "Singlethreaded":
         s += t + '_notify_next_tag(&t_tag);' + n
         s += t + 'fprintf(stderr, "REQ: for Singlethreaded RES using nxt tag=<%d, %d, %d>\\n", t_tag.mux, t_tag.sec, t_tag.typ)' + ';' + n
+      s += t + 'double result;' + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       # ARQ mod:  Replace my_xdc_asyn_send and my_xdc_blocking_recv with my_rpc_+f+_remote_call in next 12 lines
-      s += t + 'double result;' + n
       s += t + 'int status1 = my_rpc_' + f + '_remote_call(req_counter,  &result, psocket, ssocket, &t_tag, &o_tag, ctx, mycmap, '
       s += 'req_' + f + ', res_' + f
       s += cc_params_in_call()
-      s += t + 'if(status1 == 0){' + n
-      s += t + t + '*error = 1;' + n
-      s += t + t + 'return 0;' + n
-      s += t + '}' + n
-      
-      s += t + 'zmq_close(psocket);' + n
-      s += t + 'zmq_close(ssocket);' + n
-      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += cc_socket_close()
       s += '#else' + n
-      
-      # ARQ mod: replace my_xdc_asyn_send and my_xdc_blocking_recv with my_rpc_+f+_remote_call in next 13 lines
-      s += t + 'double result;' + n
       s += t + 'int status1 = _rpc_' + f + '_remote_call(req_counter,  &result, psocket, ssocket, &t_tag, &o_tag'
       s += cc_params_in_call()
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'if(status1 == 0){' + n
       s += t + t + '*error = 1;' + n
       s += t + t + 'return 0;' + n
       s += t + '}' + n
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      oneway = True
-
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
-      if (oneway): s += '#ifndef __ONEWAY_RPC__' + n
+      s += '#ifndef __ONEWAY_RPC__' + n
       s += t + 'return (result);' + n   # ARQ mod: Use result from above
-      if (oneway): s += '#else' + n
+      s += '#else' + n
       s += t + 'return 0;' + n
-      if (oneway): s += '#endif /* __ONEWAY_RPC__ */' + n
+      s += '#endif /* __ONEWAY_RPC__ */' + n
       s += '}' + n + n
       return s
 
@@ -750,9 +742,7 @@ class GEDLProcessor:
       s += t + 'my_tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
       s += t + 'okay.x = 0;' + n
       s += t + 'my_xdc_asyn_send(psocket, &okay, &o_tag, mycmap);' + n
-      s += t + 'zmq_close(psocket);' + n
-      s += t + 'zmq_close(ssocket);' + n
-      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += cc_socket_close()
       s += '#else' + n
       s += t + 'xdc_blocking_recv(ssocket, &nxt, &t_tag);' + n
       s += t + 'tag_write(&o_tag, MUX_OKAY, SEC_OKAY, DATA_TYP_OKAY);' + n
@@ -795,7 +785,6 @@ class GEDLProcessor:
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       #s += t + ('res_' + f + '.ret = ' if fd['return']['type'] != 'void' else '') + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n    # ARQ mod:
       # XXX: marshaller needs to copy output arguments (including arrays) to res here !!
-      oneway = True # XXX: must pass f to this function and check if it is oneway
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       # ARQ mod: replace my_xdc_asyn_send with req_' + f + '.' + q['name'] in next 26 lines
       s += t + 'int reqId = req_' + f + '.trailer.seq;' + n
@@ -825,9 +814,7 @@ class GEDLProcessor:
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += t + '}' + n
 
-      s += t + 'zmq_close(psocket);' + n
-      s += t + 'zmq_close(ssocket);' + n
-      s += t + 'zmq_ctx_shutdown(ctx);' + n
+      s += cc_socket_close()
       s += '#else' + n
 
       # ARQ mod: replace my_xdc_asyn_send with req_' + f + '.' + q['name'] in next 26 lines
@@ -941,6 +928,7 @@ class GEDLProcessor:
         for fname in files: self.processFile(prog,e,idir,odir,rel,fname)
 
   ##############################################################################################################
+  # Add lines into APP programs (e.g. example1.c) + add prfix to XD (affected) functions (e.g., get_a to _rpc_get_a)
   def processFile(self, prog, e, idir, odir, rel, fname): # XXX: ought to use a C Parser, not regex
     canonold  = os.path.abspath(idir + '/' + rel + '/' + fname)
     canonmain = os.path.abspath(idir + '/' + e   + '/' + prog + '.c')
