@@ -439,7 +439,7 @@ class GEDLProcessor:
       return s
 
     ##############################################################################################################
-    # Send RPC Request and waits for RPC Responnse
+    # Send RPC Request and wait for RPC Responnse
     ##############################################################################################################
     # Define request and respose structures ('req_' + f and 'res' + f)
     def cc_datatype_req_res() :
@@ -453,7 +453,7 @@ class GEDLProcessor:
       s += t + t + '#pragma cle end ' + l['clelabl'] + n + n
       return s;
     # Create sync packet in request struct ('req_' + f)
-    def cc_create_packet_sync():
+    def cc_create_packet_sync(pfx='', sfx=''):
       s = ''
       if len(fd['params']) == 0:
         s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
@@ -464,9 +464,11 @@ class GEDLProcessor:
           else:
             s = t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
       s += t + t + 'req_' + f + '.trailer.seq = *req_counter;' + n
+      s += t + t + pfx +'xdc_asyn_send(psocket, &req_' + f + ', t_tag' + sfx + ');' + n
+
       return s
     # Create packet reqIdto hold remote function variables in request struct (req_' + f)
-    def cc_create_packet_func():
+    def cc_create_packet_func(pfx='', sfx=''):
       s = ''
       if len(fd['params']) == 0:
         s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
@@ -477,12 +479,13 @@ class GEDLProcessor:
           else:
             s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
       s += t + t + 'req_' + f + '.trailer.seq = reqId;' + n
+      s += t + t + pfx +'xdc_asyn_send(psocket, &req_' + f + ', t_tag' + sfx + ');' + n
       return s
       
     # Get response and resend request (continue) if xdc_recv timeout (status == -1)
-    def cc_recv_test(req_id_string) :
+    def cc_recv_response(req_id_string, pfx='', sfx='') :
       s = ''
-      s += t + t + 'int status = xdc_recv(ssocket, &res_' + f + ', o_tag);' + n
+      s += t + t + 'int status = ' + pfx + 'xdc_recv(ssocket, &res_' + f + ', o_tag' + sfx +');' + n
       s += t + t + 'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
       s += t + t + 'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
       s += t + t + 'fprintf(stderr, "REQ: ReqId=%d ResId=%d Reserr=%d status=%d tries=%d result=%f\\n", ' + req_id_string + ', respId, error, status, tries_remaining, res_' + f + '.ret)' + ';' + n
@@ -491,6 +494,27 @@ class GEDLProcessor:
       s += t + t + t + 'continue;' + n
       s += t + t + '}' + n
       return s;
+      
+    def cc_recv_check_func() :
+      s = ''
+      s += t + t + 'if(respId < reqId){' + n
+      s += t + t + t +'continue;' + n
+      s += t + t + '}' + n
+      s += t + t + 'if(error){' + n
+      s += t + t + t + 'return 0;' + n
+      s += t + t + '}' + n
+      s += t + t + '*result = res_' + f + '.ret;' + n
+      s += t + t + '#else' + n
+      s += t + t + '*result = 0;' + n
+      return s;
+      
+    def cc_recv_check_sync() :
+      s = ''
+      s += t + t + '*req_counter = respId;' + n
+      s += t + t + '#else' + n
+      s += t + t + '*req_counter = 0;' + n    # XXX Currently hardcoded (else assume responder agrees to sent value
+      return s;
+
     # Done with request, so return success or failure
     def cc_recv_done(req_id_string) :
       s = ''
@@ -510,26 +534,14 @@ class GEDLProcessor:
 
       s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
       s += t + 'while(tries_remaining != 0){' + n
-      s += t + t + 'fprintf(stderr, "mparam num_tries=%d\\n", tries_remaining)' + ';' + n
-      s += cc_create_packet_sync()
-      s +=  t + t + 'my_xdc_asyn_send(psocket, &req_' + f + ', t_tag, mycmap);' + n
-
+      s += cc_datatype_req_res()
+      s += cc_create_packet_sync('my_', ' , mycmap')
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s +=  t + t + 'int status = my_xdc_recv(ssocket, &res_' + f + ', o_tag, mycmap);' + n
+      s += cc_recv_response('*req_counter', 'my_', ' , mycmap')
+      s += cc_recv_check_sync()
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += cc_recv_done('*req_counter')
       
-      s +=  t + t + 'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
-      s +=  t + t + 'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
-      s +=  t + t + 'if(status == -1){' + n
-      s +=  t + t + t + 'tries_remaining--;' + n
-      s +=  t + t + '}' + n
-      s +=  t + t +  'else{' + n
-      s +=  t + t + t + '*req_counter = respId;' + n
-      s +=  t + t + t + 'return 1;' + n
-      s +=  t + t + '}' + n
-      s +=  t + '}' + n
-      s +=  t + 'return 0;' + n
-      s +=  '}' + n + n
       
       # RPC Function Request (non-legacy)
       s += 'int my_rpc_' + f + '_remote_call(int reqId, double* result, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, void * ctx, codec_map *mycmap, '
@@ -538,30 +550,12 @@ class GEDLProcessor:
 
       s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
       s += t + 'while(tries_remaining != 0){' + n
-      s += cc_create_packet_func()
-      s += t + t + 'req_' + f + '.trailer.seq = reqId;' + n
-      s += t + t +'my_xdc_asyn_send(psocket, &req_' + f + ', t_tag, mycmap);' + n
+      s += cc_create_packet_func('my_', ' , mycmap')
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += t + t +'int status = my_xdc_recv(ssocket, &res_' + f + ', o_tag, mycmap);' + n
+      s += cc_recv_response('reqId', 'my_', ' , mycmap')
+      s += cc_recv_check_func()
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += t + t +'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
-      s += t + t +'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
-      s += t + t +'if(status == -1){' + n
-      s += t + t + t +'tries_remaining--;' + n
-      s += t + t +'}' + n
-      s += t + t +'else{' + n
-      s += t + t + t +'if(respId < reqId){' + n
-      s += t + t + t + t +'continue;' + n
-      s += t + t + t +'}' + n
-      s += t + t + t +'if(error){' + n
-      s += t + t + t + t +'return 0;' + n
-      s += t + t + t +'}' + n
-      s += t + t + t +'*result = res_' + f + '.ret;' + n
-      s += t + t + t +'return 1;' + n
-      s += t + t +'}' + n
-      s += t +'}' + n
-      s += t +'return 0;' + n
-      s += '}' + n
+      s += cc_recv_done('reqId')
       s += '#else' + n
       
       # RPC SYNC Request (legacy)
@@ -571,12 +565,9 @@ class GEDLProcessor:
       s += t + 'while(tries_remaining != 0){' + n
       s += cc_datatype_req_res()
       s += cc_create_packet_sync()
-      s += t + t + 'xdc_asyn_send(psocket, &req_' + f + ', t_tag);' + n
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += cc_recv_test('* req_counter')
-      s += t + t + '*req_counter = respId;' + n
-      s += t + t + '#else' + n
-      s += t + t + '*req_counter = 0;' + n    # XXX Currently hardcoded (else assume responder agrees to sent value
+      s += cc_recv_response('*req_counter')
+      s += cc_recv_check_sync()
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += cc_recv_done('*req_counter')
       
@@ -587,18 +578,9 @@ class GEDLProcessor:
       s += t + 'while(tries_remaining != 0){' + n
       s += cc_datatype_req_res()
       s += cc_create_packet_func()
-      s += t + t + 'xdc_asyn_send(psocket, &req_' + f + ', t_tag);' + n
       s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += cc_recv_test('reqId')
-      s += t + t + 'if(respId < reqId){' + n
-      s += t + t + t +'continue;' + n
-      s += t + t + '}' + n
-      s += t + t + 'if(error){' + n
-      s += t + t + t + 'return 0;' + n
-      s += t + t + '}' + n
-      s += t + t + '*result = res_' + f + '.ret;' + n
-      s += t + t + '#else' + n
-      s += t + t + '*result = 0;' + n
+      s += cc_recv_response('reqId')
+      s += cc_recv_check_func()
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       s += cc_recv_done('reqId')
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
