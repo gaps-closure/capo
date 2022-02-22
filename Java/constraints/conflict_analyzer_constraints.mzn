@@ -190,7 +190,10 @@ output [" ASSIGN   : " ++
  show(nodeEnclave[n])
  ++ "]::" ++ show(taint[n]) ++ "\n"
  | n in PDGNodeIdx where debug];
+ output ["=======================================" ++ "\n" ++ "Enclave Assingments\n" ++ "=======================================" ++ "\n"];
+output [" Enclaves : " ++ show(hasEnclaveLevel[x]) ++ ":" ++ show(x) ++ "\n" | x in Enclave ] ;
 output ["=======================================" ++ "\n" ++ "Assignments for classes:\n" ++ "=======================================" ++ "\n"];
+
 output [" Class : " ++ show(x) ++ " -> " ++ show(classEnclave[x]) ++ "\n" | x in classNames ] ;
 % output [" Class : " ++ show(x) ++ " -> " ++ show(classEnclave[x]) ++ "\n" | x in classNames where x != sharedClass] ;
 output ["Cross-domain cut:" ++ "\n"];

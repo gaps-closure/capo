@@ -191,27 +191,51 @@ def getClassName(node):
 def removeCall():
     pass 
 
-def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc, dest):
+def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
     dirPath = os.path.dirname(os.path.realpath(__file__))
     jar = jarLoc.split("/")[-1]
     rootDir = dirPath
     codeDir = jarLoc.split("/")[1]
     entryMethod = JavaMethodSignature.mainMethodOfClass(mainCl)
     # sourceLoc = entryMethod.getSourceLocation()
+    entryMethod = str(entryMethod).split(".")
+    # remove function from string
+    idxRmv = 0
+    for i in range(len(entryMethod)-1,0,-1):
+        idxRmv +=1
+        if "(" in entryMethod[i]:
+            break
+    # case where there was not a method in label
+    if idxRmv == len(entryMethod)-1:
+        entryMethod = ".".join(entryMethod)
+    else:
+        entryMethod = ".".join(entryMethod[:(-1*idxRmv)])
     
-    
+    entryMethod = entryMethod.split()[1]
     entry_main = {"mainClass" : str(entryMethod), "filepath": mainLoc}
     enclaves = []
     assingments = []
     cuts = []
+    enclaveToLevel = {}
 
     enclaveAssingments = {}
     for line in zincOutput.split("\n"):
         sLine = line.split(" ")
         if len(sLine) > 1:
+            if sLine[1] == "Enclaves":
+                enclaveLevel = sLine[-1].split(":")[0]
+                enclave = sLine[-1].split(":")[1]
+                enclaveToLevel[enclave] = enclaveLevel
             if sLine[1] == "Class":
                 enclave = sLine[-1]
+                
                 className = sLine[-3]
+                className = className.replace("__", ".")
+                # print("Looking for classname:")
+                # print(className)
+                # print(entryMethod)
+                if className == entryMethod:
+                    entry_main["enclave"] = enclave
                 if enclave in enclaveAssingments.keys():
                     enclaveAssingments[enclave].append(className)
                 else:
@@ -226,6 +250,8 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc, dest):
                 
                 global funcID2EntryVal
                 fullName = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeName()).split(".")
+                print("FULLNAME:")
+                print(fullName)
                 fqcn = ".".join(fullName[:-1])
                 name = fullName[-1]
                 lineNum = 99999999999
@@ -247,6 +273,7 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc, dest):
                 # Replace constructor name <init> with the name of the class
                 if "<init>" in methodName:
                     methodName = str(fqcn).split(".")[-1]
+                    retType = "CONSTRUCTOR"
                 methodSignature["name"] = methodName
                 # methodSignature["name"] = name
                 methodSignature["returnType"] = retType
@@ -255,23 +282,23 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc, dest):
 
                 callee = {}
                 calleeType = fqcn
-                callee["calleeType"] = calleeType
+                callee["type"] = calleeType
                 calleeLevel = ""
                 for entry in cleJson:
                     if entry["clelabel"].split(".")[-1] == labelCallee:
                         calleeLevel = entry["clejson"]["level"]
 
-                callee["calleeLevel"] = str(calleeLevel)
+                callee["level"] = str(calleeLevel)
 
                 fullNameCaller = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCaller)]]].getBytecodeName()).split(".")
                 fqcnCaller = ".".join(fullName[:-1])
                 callerDict = {}
-                callerDict["callerType"] = fqcnCaller
+                callerDict["type"] = fqcnCaller
                 levelCaller = ""
                 for entry in cleJson:
                     if entry["clelabel"].split(".")[-1] == labelCaller:
                         levelCaller = entry["clejson"]["level"]
-                callerDict["callerLevel"] = str(levelCaller)
+                callerDict["level"] = str(levelCaller)
                 allowedCallers = [callerDict]
 
                 cutEntry["methodSignature"] = methodSignature
@@ -280,14 +307,13 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc, dest):
                 cuts.append(cutEntry)
     
     for assingment in enclaveAssingments:
-        asng = {"name":assingment, "assignedClasses": enclaveAssingments[assingment]}
+        asng = {"name":assingment, "assignedClasses": enclaveAssingments[assingment], "level":enclaveToLevel[assingment]}
         enclaves.append(asng)
         for cl in enclaveAssingments[assingment]:
             assingments.append({"className":cl, "enclave":assingment})
     print("Jar: " + str(jar))
     print("rootDir: " + str(rootDir))
     print("codeDir: " + str(codeDir))
-    print("destDir: " + str(dest))
     print("\n")
     print("entry: " + str(entry_main))
     print("\n")
@@ -300,12 +326,12 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc, dest):
     cutJson["jar"] = jar
     cutJson["rootDir"] = rootDir
     cutJson["codeDir"] = codeDir
-    cutJson["destDir"] = dest
+    # cutJson["destDir"] = dest
     cutJson["entry"] = entry_main
     cutJson["enclaves"] = enclaves
     cutJson["assingments"] = assingments
     cutJson["cuts"] = cuts
-    dump(cutJson,open("cut.json","wb"))
+    dump(cutJson,open("cut.json","wb"), indent=4)
     return cutJson
 
 
@@ -949,7 +975,7 @@ def get_args():
   p = ArgumentParser(description='CLOSURE System Dependence Graph Builder for Java')
   p.add_argument('-e', '--entrymethod', required=True, type=str, help='Entry Method')
   p.add_argument('-b', '--bname', required=True, type=str, help='Base name for classes of interest ')
-  p.add_argument('-t', '--dest', required=True, type=str, help='Destination directory ')
+#   p.add_argument('-t', '--dest', required=True, type=str, help='Destination directory ') # no longer used
   p.add_argument('-m', '--mainLoc', required=True, type=str, help='File location of main class ')
   p.add_argument('-c', '--clpath', required=True, type=str, help='Jar file for program to be analyzed')
   p.add_argument('-p', '--pdg', help='Dump Program Dependence Graph in native format',
@@ -1333,7 +1359,7 @@ if __name__ == '__main__':
   output = f.read()
   f.close()
   print(output)
-  cutJson = getCutJson(output,sdg,cles,args.entrymethod, args.clpath, args.mainLoc, args.dest)
+  cutJson = getCutJson(output,sdg,cles,args.entrymethod, args.clpath, args.mainLoc)
   print(cutJson)
   
   
