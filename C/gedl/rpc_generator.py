@@ -102,7 +102,10 @@ class GEDLProcessor:
   def genrpcH(self, e, inu, outu, ipc):
     n,t = '\n','    '
     def boiler(): 
-      s  = '#ifndef _' + e.upper() + '_RPC_' + n
+      s  = '#ifdef _cplusplus' + n
+      s += 'extern "C" {' + n
+      s += '#endif /* _cplusplus */' + n
+      s += '#ifndef _' + e.upper() + '_RPC_' + n
       s += '#define _' + e.upper() + '_RPC_' + n + n
       s += '#include "codec.h"' + n
       s += '#include <pthread.h>' + n if ipc != 'Singlethreaded' and e not in self.masters else n
@@ -164,7 +167,12 @@ class GEDLProcessor:
       s  = 'extern ' + fd['return']['type'] + ' ' + ('_rpc_' if wrap else '') + fd['func'] + '('
       s += ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]) + ');' + n  # XXX: check array/pointer
       return s
-    def trailer(): return n + '#endif /* _' + e.upper() + '_RPC_ */' + n
+    def trailer(): 
+      s =  n + '#endif /* _' + e.upper() + '_RPC_ */' + n
+      s += n + '#ifdef _cplusplus' + n
+      s += '}' + n
+      s += '#endif /* _cplusplus */' + n
+      return s
 
     s = boiler()
     if len(self.enclaveList) == 2 and len(self.masters) == 1:   # XXX: multi-enclave scenario not handled, NEXTRPC will have different mux,sec per peer
@@ -189,9 +197,12 @@ class GEDLProcessor:
   def genrpcC(self, e, ipc): 
     n,t = '\n','    '
     def boiler():
-      s  = '#include "' + e + '_rpc.h"' + n
+      s  = '#ifdef _cplusplus' + n
+      s += 'extern "C" {' + n
+      s += '#endif /* _cplusplus */' + n
+      s += '#include "' + e + '_rpc.h"' + n
       s += '#define TAG_MATCH(X, Y) (X.mux == Y.mux && X.sec == Y.sec && X.typ == Y.typ)' + n
-      s += '#define WRAP(X) void *_wrapper_##X(void *tag) { while(1) { _handle_##X(tag); } }' + n + n
+      s += '#define WRAP(X) void *_wrapper_##X(void *tag) { while(1) { _handle_##X((gaps_tag *) tag); } }' + n + n
       return s
     def xdclib():
       s  = ''
@@ -406,7 +417,9 @@ class GEDLProcessor:
           else:
             s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
       s += BLOCK2('o_tag')
-      if ipc == "Singlethreaded": s += t + '_notify_next_tag(&t_tag);' + n
+      if ipc == "Singlethreaded": 
+        s += t + '_notify_next_tag(&t_tag);' + n 
+        s += t + 'sleep(1);' + n 
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'my_xdc_asyn_send(psocket, &req_' + f + ', &t_tag, mycmap);' + n
       oneway = True # XXX: must pass f to this function and check if it is oneway
@@ -545,7 +558,7 @@ class GEDLProcessor:
         s += '#endif /* __LEGACY_XDCOMMS__ */' + n
         s += t + t + 'if(TAG_MATCH(o_tag, t_tag)) { continue; }' + n
         for (x,y,f,fd) in self.inCalls(e):  
-          l  = self.const(x,y,f,False)
+          l  = self.const(x,y,f,True)
           s += '#ifndef __LEGACY_XDCOMMS__' + n
           s += t + t + 'my_tag_write(&t_tag, ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
           s += '#else' + n
@@ -553,10 +566,16 @@ class GEDLProcessor:
           s += '#endif /* __LEGACY_XDCOMMS__ */' + n
           s += t + t + 'if (TAG_MATCH(o_tag, t_tag)) {' + n
           s += t + t + t + '_handle_request_'+ f + '(NULL);' + n
-          s += t + t + t + '}' + n
-          s += t + t + 'continue;' + n
-          s += t + '}' + n
-          s += '}' + n + n
+          s += t + t + t + 'continue;' + n
+          s += t + t + '}' + n
+          # end for
+        s += t + '}' + n
+        s += '}' + n + n
+      return s
+    def trailer():
+      s = n + '#ifdef _cplusplus' + n
+      s += '}' + n
+      s += '#endif /* _cplusplus */' + n
       return s
 
     s = boiler() + xdclib() + halinit(e)
@@ -564,6 +583,7 @@ class GEDLProcessor:
     for (x,y,f,fd) in self.inCalls(e):  s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e): s += rpcwrapdef(x,y,f,fd,ipc)
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
+    s += trailer()
     return s
 
   ##############################################################################################################
