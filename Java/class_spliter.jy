@@ -1,0 +1,155 @@
+#!/usr/bin/jython
+
+from json import loads,dump
+from argparse import ArgumentParser
+from java.lang import Class
+from java.util.jar import JarFile
+import os
+from fnmatch import fnmatch
+import re
+
+def getJavaFiles(dir):
+    for root, dirs, files in os.walk(dir):
+        for base in files:
+            if fnmatch(base, "*.java"):
+                filename = os.path.join(root, base)
+                yield filename
+
+def isClassAnnotated(cnm):
+    print(cnm)
+    programClassName = str(cnm.getCanonicalName())
+    isAnnotated = False
+    if not "annotations" in programClassName:
+        methods = cnm.getMethods()
+        fields = cnm.getFields()
+            
+        for method in methods:
+            # print(method.getName())
+            annos = method.getDeclaredAnnotations()
+            for anno in annos:
+                if "annotations" in str(anno.toString()):
+                    # print("Found user annotated function")
+                    isAnnotated = True
+                    break
+                    
+        for field in fields:
+            # print(field.getName())
+            annos = field.getDeclaredAnnotations()
+            for anno in annos:
+                if "annotations" in str(anno.toString()):
+                    # print("Found user annotated field")
+                    isAnnotated = True
+                    break
+
+        # if isAnnotated:
+        #     print("Class is annotated")
+        # else:
+        #     print("Class is not annotated")
+    return isAnnotated
+
+def buildClassHierarchy(cp):
+    hierarchy = {}
+    for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
+        # print(Class.forName(cnm).getCanonicalName())
+        programClassName = Class.forName(cnm)
+        isAnnotated = False
+        if not "annotations" in programClassName.getCanonicalName():
+            superClassName = Class.forName(cnm).getSuperclass()
+            if str(superClassName.getCanonicalName()) != "java.lang.Object":
+                if superClassName in  hierarchy.keys():
+                    hierarchy[superClassName].append(programClassName)
+                else:
+                    hierarchy[superClassName] = [programClassName]
+    return hierarchy
+                        
+
+       
+
+def getClasses(cp):
+  for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
+    try:                   yield cnm,Class.forName(cnm)
+    except Exception as e: print('Error getting class ' + cnm + ':' + str(e))
+
+def collectCLE(cp):
+  cles = []
+  labels = []
+  for cnm,cls in getClasses(cp):
+    if cls.isAnnotation():
+      for y in [x for x in cls.getDeclaredAnnotations() if x.annotationType().getName().endswith('Cledef')]: 
+        try:
+            # don't add duplicate labels
+            if cnm in labels:
+              continue                   
+            cles.append(dict(clelabel=cnm,clejson=loads(y.clejson()))) 
+            labels.append(cnm)
+        except Exception as e: print('CLE JSON failed for ' + y.toString())
+  return cles
+
+
+if __name__ == "__main__":
+
+    p = ArgumentParser(description='Splits unannotated parent classes')
+    p.add_argument('-c', '--clpath', required=True, type=str, help='Jar file for program to be analyzed')
+    args = p.parse_args()
+    hierarchy = buildClassHierarchy(args.clpath)
+    print(hierarchy)
+    for parent in hierarchy:
+        if len(hierarchy[parent]) > 1:
+            if isClassAnnotated(parent) == False:
+                isFirstChild = True
+                childID = 0
+                for child in hierarchy[parent]:
+                    childID+=1
+                    # We don't want to duplicate the first child
+                    if isFirstChild:
+                        isFirstChild = False
+                        continue
+                    childFindPackage = ".".join(str(child.getCanonicalName()).split(".")[:-1]) + ";"
+                    childName = str(child.getCanonicalName()).split(".")[-1]
+                    # print(findPackage)
+                    print(childName)
+
+                    parentFindPackage = ".".join(str(parent.getCanonicalName()).split(".")[:-1]) + ";"
+                    parentName = str(parent.getCanonicalName()).split(".")[-1]
+
+                    parentFile = None
+                    childFile = None
+
+                    for filename in getJavaFiles('src'):
+                        f = open(filename,"r")
+                        data = f.read()
+                        if childFindPackage in data:
+                            if re.search("class\s+" + childName + "\s+" , data):
+                                print("Found child in file:")
+                                print(filename)
+                                childFile = filename
+                        if parentFindPackage in data:
+                            if re.search("class\s+" + parentName + "\s+" , data):
+                                print("Found parent in file:")
+                                print(filename)
+                                parentFile = filename
+
+                        f.close()
+                    print("Replacing: " + parentName + " with: " + parentName + "_" + str(childID)  )
+                    newParentName = parentName + "_" + str(childID)
+                    path = "/".join(parentFile.split("/")[:-1]) + "/"
+                    cmd = "cp " + parentFile + " " + path + newParentName + ".java"
+                    print(cmd)
+                    os.system(cmd)
+                    fParent = open(path + newParentName + ".java", "r+")
+                    parentFileData = fParent.read()
+                    fParent.seek(0)
+                    parentFileData = parentFileData.replace(parentName, parentName + "_" + str(childID))
+                    fParent.write(parentFileData)
+                    fParent.truncate()
+                    fParent.close()
+                    fchild = open(childFile, "r+")
+                    childFileData = fchild.read()
+                    fchild.seek(0)
+                    childFileData = childFileData.replace(parentName, parentName + "_" + str(childID))
+                    fchild.write(childFileData)
+                    fchild.truncate()
+                    fchild.close()
+
+
+    # print(collectCLE(args.clpath))
