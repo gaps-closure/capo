@@ -69,22 +69,26 @@ class GEDLProcessor:
   ##############################################################################################################
   def callees(self, e):  return [x['callee'] for x in self.gedl if x['caller'] == e]
   def callers(self, e):  return [x['caller'] for x in self.gedl if x['callee'] == e]
-  # Construct quad (caller, callee, func, other call info) list of calls (in and out) of an enclave
+  # List of calls (in and out) of an enclave [caller, callee, func, other call info]
   def inCalls(self, e):  return [(x['caller'],x['callee'],c['func'],c) for x in self.gedl for c in x['calls'] if x['callee'] == e]
   def outCalls(self, e): return [(x['caller'],x['callee'],c['func'],c) for x in self.gedl for c in x['calls'] if x['caller'] == e]
-  # NEXT/OKAY Call Flows to support RPC in enclave e
+  # Special flows with singlethreaded handler [caller, callee, spec_func, outbound_flag]. Special function = NEXT/OKAY
   def speCalls(self, e):
-    def add_next_flows(x, y, direct_next, direct_okay):
+    def add_next_flows(x, y, direct_next):
       list.append([x,y,'nextrpc', direct_next])
-      list.append([x,y,'okay',    direct_okay])
+      list.append([x,y,'okay',    not direct_next])
     list=[]
     for g in self.gedl:
       x,y = g['caller'], g['callee']
       if len(g['calls']) > 0 :
-        if x == e : add_next_flows(x, y, True, False)  # Support Requests from e
-        if y == e : add_next_flows(x, y, False, True)  # Support Requests to e
+        if x == e : add_next_flows(x, y, True)   # e sends NEXT to y and receives OKAY from y
+        if y == e : add_next_flows(x, y, False)  # e sends OKAY to y and receives NEXT from y
     return list
-      
+    
+  def spePrint(self, e):
+    for (x,y,fs,o) in self.speCalls(e):
+      print(e, 'specials (o=' + str(o) + ')' + json.dumps(self.const(x,y,fs,o), indent=2, default=str))
+  
   ##############################################################################################################
   # Construct dictionary with per flow/function (caller, callee, func, direction) assignments
   def const(self, caller, callee, func, outgoing=True):
@@ -103,8 +107,8 @@ class GEDLProcessor:
     y['typ']     = self.specials.index(func) + 1 if func in self.specials else len(self.specials) + self.xdcalls.index(func) * 2 + (1 if outgoing else 2)
     return y
 
-  # Print flows from and to enclave e (using const module) - Special flows will be redundantly printed
-  def const_print(self, e):
+  # Print flows from and to enclave e using the const module (Special flows are redundantly printed)
+  def constPrint(self, e):
     print ('All flows to and from enclave', e)
     for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e):
       print ('function =', f)
@@ -112,18 +116,6 @@ class GEDLProcessor:
         print ('Const func dict =', json.dumps(self.const(x,y,f,o), indent=2, default=str))
         for fs in self.specials:
           print ('Const spec dict =', json.dumps(self.const(x,y,fs,o), indent=2, default=str))
-
-  # Print special NEXT/OKAY flows from and to enclave e (using const module)
-  def const_print_spec(self):
-    for g in self.gedl:
-      x = g['caller']
-      y = g['callee']
-      num_f = len(g['calls'])
-      print ('Number of calls from ' + x + ' to ' + y + ' = ' + str(num_f))
-      if (num_f > 0):
-        for fs in self.specials :
-          for o in (True, False):
-            print ('Const spec dict =', json.dumps(self.const(x,y,fs,o), indent=2, default=str))
 
   ##############################################################################################################
   # Generate dictioary with info needed for HAL cofiguration (via xdconf.ini json file)
@@ -377,7 +369,53 @@ class GEDLProcessor:
       s += '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
       return s
-
+      
+    ##############################################################################################################
+    # Define C code variables
+    ##############################################################################################################
+    def cc_vars(counter_name, initial_count_as_a_string) :
+      s  = t + 'gaps_tag t_tag;' + n
+      s += t + 'gaps_tag o_tag;' + n
+      s += t + 'static int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
+      s += t + 'static double last_processed_result;' + n
+      s += t + 'static int last_processed_error = 0;' + n
+      s += '#ifndef __LEGACY_XDCOMMS__' + n
+      s += t + 'void *psocket;' + n
+      s += t + 'void *ssocket;' + n
+      s += '#else' + n
+      s += t + 'static int inited = 0;' + n
+      s += t + 'static void *psocket;' + n
+      s += t + 'static void *ssocket;' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s;
+    # Define comms structures (and pointer) for a request and respose
+    def cc_datatype_req_res(tc=1) :
+      l  = self.const(x,y,f,True)
+      s  = t*tc + '#pragma cle begin ' + l['clelabl'] + n
+      s += t*tc + 'request_'  + f.lower() + '_datatype req_' + f + ', *req_ptr_' + f + ' = &req_' + f + ';' + n
+      s += t*tc + '#pragma cle end ' + l['clelabl'] + n
+      l  = self.const(x,y,f,False)
+      s += t*tc + '#pragma cle begin ' + l['clelabl'] + n
+      s += t*tc + 'response_' + f.lower() + '_datatype res_' + f + ', *res_ptr_' + f + ' = &res_' + f + ';' + n
+      s += t*tc + '#pragma cle end ' + l['clelabl'] + n
+      return s;
+    # Define comms structures for a NEXT/OKAY
+    def cc_datatype_nxt_oky(x, y, direct_next, direct_okay) :
+      fs = 'nextrpc'
+      l  = self.const(x,y,fs,direct_next)
+      s  = t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + fs.lower() + '_datatype nxt;' + n
+      s += t + '#pragma cle end ' + l['clelabl'] + n
+      fs = 'okay'
+      l  = self.const(x,y,fs,direct_okay)
+      s += t + '#pragma cle begin ' + l['clelabl'] + n
+      s += t + fs.lower() + '_datatype okay;' + n
+      s += t + '#pragma cle end ' + l['clelabl'] + n
+      return s;
+      
+    ##############################################################################################################
+    # Cross Domain CLOSURE API Initialization
+    ##############################################################################################################
     # Register XDC encode and decode functions (e.g. for get_a) with HAL API (legacy and non-legacy)
     def regdtyp(x,y,f,outgoing=True,pfx='',sfx='', special=False):
       type = 'request_' if outgoing==True else 'response_'
@@ -388,7 +426,7 @@ class GEDLProcessor:
       s = ''
       for (x,y,fs,o) in self.speCalls(e): s += t + regdtyp(x,y,fs,o,pfx,sfx,True)
       for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e) :
-        for o in (True, False) : s += t + regdtyp(x,y,f,o,pfx,sfx)
+        for o in (True, False) :          s += t + regdtyp(x,y,f, o,pfx,sfx)
       return s
     # Register non-legacy XDC encode and decode functions
     def cc_my_reg():
@@ -423,43 +461,26 @@ class GEDLProcessor:
       s += bi_tags(func)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
-      
-    # RPC C code Variable definitions
-    def cc_vars(counter_name, init_count_string) :
-      s  = t + 'gaps_tag t_tag;' + n
-      s += t + 'gaps_tag o_tag;' + n
-      s += t + 'static int ' + counter_name + ' = ' + init_count_string + ';' + n
-      s += t + 'static double last_processed_result;' + n
-      s += t + 'static int last_processed_error = 0;' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'void *psocket;' + n
-      s += t + 'void *ssocket;' + n
-      s += '#else' + n
-      s += t + 'static int inited = 0;' + n
-      s += t + 'static void *psocket;' + n
-      s += t + 'static void *ssocket;' + n
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      return s;
-      
-    # Create Publish and Subscribe sockets (once per XD function ifndef __LEGACY_XDCOMMS__)
-    # Requestor sets use_timeout=True to support ARQ. Responder sets use_timeout=False
+
+    # Create Publish and Subscribe sockets (per XD function ifndef __LEGACY_XDCOMMS__)
+    # Requestor sets use_timeout=True to retrasmit packets. Responder sets use_timeout=False
     def cc_sockets_open(tag, use_timeout):
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void * ctx = zmq_ctx_new();' + n
       s += t + 'psocket = my_xdc_pub_socket(ctx);' + n
-      if (use_timeout==False) :
-        s += t + 'ssocket = my_xdc_sub_socket(' + tag + ', ctx);' + n
-      else:
+      if (use_timeout) :
         s += t + 'ssocket = my_xdc_sub_socket_non_blocking(' + tag + ', ctx, ' + str(timeout) + ');' + n
+      else:
+        s += t + 'ssocket = my_xdc_sub_socket(' + tag + ', ctx);' + n
       s += t + 'sleep(1); /* zmq socket join delay */' + n
       s += '#else' + n
       s += t + 'if (!inited) {' + n
       s += t + t + 'inited = 1;' + n
       s += t + t + 'psocket = xdc_pub_socket();' + n
-      if (use_timeout==False) :
-        s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
-      else:
+      if (use_timeout) :
         s += t + t + 'ssocket = xdc_sub_socket_non_blocking(' + tag + ', ' + str(timeout) + ');' + n
+      else:
+        s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
       s += t + t + 'sleep(1); /* zmq socket join delay */' + n
       s += t + '}' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
@@ -472,239 +493,154 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # Send RPC Request and wait for RPC Responnse
+    # Master sends RPC Request and waits for RPC Responnse (Reliabiity using retrasmission if timeout)
     ##############################################################################################################
-    # Create parameter list from fd['params'] list for calling an RPC function
-    def cc_params_in_call():
-      s=''
-      def mparam(q): return q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
-      if ','.join([mparam(q) for q in fd['params']]) != "" :
-        s = ',' + ','.join([mparam(q) for q in fd['params']])
-      s += ')' + ';' + n
-      return s
-      
-    # Create parameter list from fd['params'] list for RPC function definition variables
-    def cc_params_in_func():
-      def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
-      s=''
-      if ','.join([mparam(q) for q in fd['params']]) != "" :
-        s = ',' + ','.join([mparam(q) for q in fd['params']])
+    def cc_get_seq_req():  return  'req_ptr_' + f + '->trailer.seq'
+    def cc_get_seq_res():  return  'res_ptr_' + f + '->trailer.seq >> 2'
+    def cc_set_seq_res():  return  'res_ptr_' + f + '->trailer.seq'
+    def cc_get_err_res():  return '(res_ptr_' + f + '->trailer.seq >> 1) & 0x01'
+    def cc_get_ret_res():  return  'res_ptr_' + f + '->ret'
+  
+    def send_params_with_type(pfx=''):
+      s  = '(void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, '
+      if pfx != '':  s += 'void * ctx, codec_map *mycmap, '
+      s += 'request_' + f + '_datatype *req_ptr_' + f + ', response_' + f + '_datatype *res_ptr_' + f
       s += ')' + '{' + n
       return s
-
-    # Define comms structures for a request and respose ('req_' + f and 'res' + f)
-    def cc_datatype_req_res(tc=2) :
-      l  = self.const(x,y,f,True)
-      s  = t*tc + '#pragma cle begin ' + l['clelabl'] + n
-      s += t*tc + 'request_' + f.lower() + '_datatype req_' + f + ';' + n
-      s += t*tc + '#pragma cle end ' + l['clelabl'] + n
-      l  = self.const(x,y,f,False)
-      s += t*tc + '#pragma cle begin ' + l['clelabl'] + n
-      s += t*tc + 'response_' + f.lower() + '_datatype res_' + f + ';' + n
-      s += t*tc + '#pragma cle end ' + l['clelabl'] + n
-      return s;
-
-    # Define comms structures for a NEXT/OKAY
-    def cc_datatype_next_okay(x, y, direct_next, direct_okay) :
-      fs = 'nextrpc'
-      l  = self.const(x,y,fs,direct_next)
-      s  = t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + fs.lower() + '_datatype nxt;' + n
-      s += t + '#pragma cle end ' + l['clelabl'] + n
-      fs = 'okay'
-      l  = self.const(x,y,fs,direct_okay)
-      s += t + '#pragma cle begin ' + l['clelabl'] + n
-      s += t + fs.lower() + '_datatype okay;' + n
-      s += t + '#pragma cle end ' + l['clelabl'] + n
-      return s;
-      
-    # Create packet reqIdto hold remote function variables in request struct (req_' + f)
-    def cc_create_packet_func(pfx='', sfx=''):
-      s = ''
-      if len(fd['params']) == 0:
-        s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
-      else:
-        for q in fd['params']:
-          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
-            s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + q['name'] + '[i];' + n
-          else:
-            s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
-      s += t + t + 'req_' + f + '.trailer.seq = reqId;' + n
-      s += t + t + pfx +'xdc_asyn_send(psocket, &req_' + f + ', t_tag' + sfx + ');' + n
+    def send_loop_start():
+      s  = t + 'int tries_remaining = ' + str(num_tries) + ';' + n
+      s += t + 'while(tries_remaining != 0){' + n
       return s
-    # Create sync packet in request struct ('req_' + f).  XXXXX Does a SYNC ever have params?????
-    def cc_create_packet_sync(pfx='', sfx=''):
-      s = ''
-      if len(fd['params']) == 0:
-        s += t + t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
-      else:
-        for q in fd['params']:
-          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
-            s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + '0' + '[i];' + n   # DIFF: NO q['name']
-          else:
-            s += t + t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
-      s += t + t + 'req_' + f + '.trailer.seq = *req_counter;' + n   # DIFF: *req_counter replaces reqId
-      s += t + t + pfx +'xdc_asyn_send(psocket, &req_' + f + ', t_tag' + sfx + ');' + n
-      return s
-      
+    def cc_send_request(pfx='', sfx=''):
+      return t + t + pfx +'xdc_asyn_send(psocket, req_ptr_' + f + ', t_tag' + sfx + ');' + n
     # Get response and resend request (continue) if xdc_recv timeout (status == -1)
-    def cc_recv_response(req_id_string, pfx='', sfx='') :
-      s = ''
-      s += t + t + 'int status = ' + pfx + 'xdc_recv(ssocket, &res_' + f + ', o_tag' + sfx +');' + n
-      s += t + t + 'int respId = res_' + f + '.trailer.seq >> 2 ;' + n
-      s += t + t + 'int error = (res_' + f + '.trailer.seq >> 1)& 0x01 ;' + n
-      s += t + t + 'fprintf(stderr, "REQ: ReqId=%d ResId=%d Reserr=%d status=%d tries=%d result=%f\\n", ' + req_id_string + ', respId, error, status, tries_remaining, res_' + f + '.ret)' + ';' + n
+    def cc_recv_response(pfx='', sfx='') :
+      s  = t + t + 'int status = ' + pfx + 'xdc_recv(ssocket, res_ptr_' + f + ', o_tag' + sfx +');' + n
+      s += t + t + 'fprintf(stderr, "REQ: ReqId=%d ResId=%d Reserr=%d status=%d tries=%d result=%f\\n", ' + cc_get_seq_req() + ', ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ', status, tries_remaining, ' + cc_get_ret_res() + ');' + n
       s += t + t + 'if(status == -1){' + n
       s += t + t + t + 'tries_remaining--;' + n
       s += t + t + t + 'continue;' + n
       s += t + t + '}' + n
       return s
-      
-    def cc_recv_save_func() :
-      s = ''
-      s += t + t + 'if(respId < reqId){' + n
-      s += t + t + t +'continue;' + n
-      s += t + t + '}' + n
-      s += t + t + 'if(error){' + n
-      s += t + t + t + 'return 0;' + n
-      s += t + t + '}' + n
-      s += t + t + '*result = res_' + f + '.ret;' + n
-      s += t + t + '#else' + n
-      s += t + t + '*result = 0;' + n
-      return s
-      
-    def cc_recv_save_sync() :
-      s = ''
-      s += t + t + '*req_counter = respId;' + n
-      s += t + t + '#else' + n
-      s += t + t + '*req_counter = 0;' + n    # XXX Currently hardcoded (else assume responder agrees to sent value
-      return s
-
     # Done with request, so return success or failure
-    def cc_recv_done(req_id_string) :
-      s = ''
-      s += t + t + 'return 1;' + n    # Success
+    def send_loop_end():
+      s  = t + t + 'return 1;' + n    # Success
       s += t + '}' + n
-      s += t + 'fprintf(stderr, "REQ: GIVING UP on res_' + f + ' ReqId=%d (after ' + str(num_tries) + ' tries)\\n", ' + req_id_string + ');' + n
+      s += t + 'fprintf(stderr, "REQ: GIVING UP on res_ptr_' + f + ' ReqId=%d (after ' + str(num_tries) + ' tries)\\n", ' + cc_get_seq_req() + ');' + n
       s += t + 'return 0;' + n        # Fail
       s += '}' + n + n
       return s
-      
-    def cc_check_if_error(tc=1) :
-      s  = t*tc + 'if(status == 0) {' + n
+    def reliable_request(pfx='', sfx='') :
+      s  = send_params_with_type(pfx)
+      s += send_loop_start()
+      s += cc_send_request(pfx, sfx)
+      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += cc_recv_response(pfx, sfx)
+      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += send_loop_end()
+      return s
+
+    ##############################################################################################################
+    # RPC methods (per XD function) to exchange: a) SYNC (SN negotiation), b) DATA (RPC parameters and result)
+    ##############################################################################################################
+    def masterpclossdelay(x,y,f,fd) :
+      s = '#ifndef __LEGACY_XDCOMMS__' + n
+      # a1) RPC SYNC Request (non-legacy) XXX maybe merge with RPC Request Call for functions?
+      s += 'int my_rpc_' + f + '_sync_request_counter'
+      s += reliable_request('my_', ' , mycmap')
+      # b1) RPC DATA Request (non-legacy)
+      s += 'int my_rpc_' + f + '_remote_call'
+      s += reliable_request('my_', ' , mycmap')
+      # a0) RPC SYNC Request (legacy)
+      s += '#else' + n
+      s += 'int _rpc_' + f + '_sync_request_counter'
+      s += reliable_request()
+      # b0) RPC DATA Request (legacy)
+      s += 'int _rpc_' + f + '_remote_call'
+      s += reliable_request()
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s
+
+    ##############################################################################################################
+    # Master creates SYNC and DATA packets (in request struct 'req_' + f)
+    ##############################################################################################################
+    def cc_create_req_packet(fill=True):
+      s = ''
+      if len(fd['params']) == 0:
+        s += t + t + 'req_ptr_' + f + '->dummy = 0;'  + n  # matches IDL convention on void (ARQ avoid?)
+      else:
+        for q in fd['params']:
+          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
+            s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_ptr_' + f + '->' + q['name'] + '[i] = '
+            # QQQ Why '0'?
+            if fill:  s +=  q['name']
+            else:     s += '0'
+            s += '[i];' + n
+          else:
+            s += t + t + 'req_ptr_' + f + '->' + q['name'] + ' = ' + q['name'] + ';' + n
+      s += t + t + cc_get_seq_req() + ' = req_counter;' + n
+      return s
+
+    def cc_rpc_params_and_status_check(tc, my=False):
+      s  = '(psocket, ssocket, &t_tag, &o_tag, '
+      if my:  s += 'ctx, mycmap, '
+      s += 'req_ptr_' + f + ', res_ptr_' + f
+      s += ');' + n
+      s += t*tc + 'if(status == 0) {' + n
       s += t*tc + t + '*error = 1;' + n
       s += t*tc + t + 'return 0;' + n
       s += t*tc + '}' + n
+      s += t*tc + '*error = 0;' + n
       return s
-
-    def cc_get_request(pfx='', sfx='') :
-      s  = t + pfx + 'xdc_blocking_recv(ssocket, &req_' + f + ', &t_tag' + sfx + ');' + n
-      #s += t + ('res_' + f + '.ret = ' if fd['return']['type'] != 'void' else '') + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n    # ARQ mod:
-      # XXX: marshaller needs to copy output arguments (including arrays) to res here !!
-      s += t + 'int reqId = req_' + f + '.trailer.seq;' + n
-      # error not used???
-      s += t + 'int error = 0;' + n
-      s += t + 'if(reqId > rep_counter){' + n
-      s += t + t + 'error = 0;' + n
-      s += t + t + 'rep_counter = reqId;' + n
-      s += t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_' + f + '.' + q['name'] for q in fd['params']]) + ');' + n
-      s += t + t + 'last_processed_error = error;' + n
-      s += t + '}' + n
-      s += t + 'res_' + f + '.trailer.seq = rep_counter << 2 | last_processed_error << 1;' + n
-      s += t + 'res_' + f + '.ret = last_processed_result;' + n
-      s += t + '#ifndef __ONEWAY_RPC__' + n
-      s += t + pfx + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag' + sfx + ');' + n
-      s += t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += t + 'fprintf(stderr, "RES: ReqId=%d (Min=%d Max=%d) Return=%f ResId=%d err=%d,%d (seq=0x%x)\\n", reqId, INT_MIN, rep_counter, last_processed_result, rep_counter, error, last_processed_error, rep_counter << 2 | last_processed_error << 1)' + ';' + n
+    
+    # Modify Sequence Number (after SYNC)
+    def cc_modify_req_counter(tc=1):
+      s  = t*tc + 'fprintf(stderr, "SYNC Req SN=%d (from %d)\\n", ' + cc_get_seq_res() + ', req_counter);' + n
+      s += t*tc + 'req_counter = 1 + (' + cc_get_seq_res() + ');' + n
       return s
-
-
-
-    # RPC SYNC Request (non-legacy) XXX maybe merge with RPC Request Call for functions?
-    def masterpclossdelay(x,y,f,fd) :
-      s = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += 'int my_rpc_' + f + '_sync_request_counter(int* req_counter, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, void * ctx, codec_map *mycmap, '
-      s +=  'request_' + f + '_datatype req_' + f + ', response_' + f + '_datatype res_' + f
-      s += cc_params_in_func()
-
-      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
-      s += t + 'while(tries_remaining != 0){' + n
-      s += cc_datatype_req_res()
-      s += cc_create_packet_sync('my_', ' , mycmap')
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += cc_recv_response('*req_counter', 'my_', ' , mycmap')
-      s += cc_recv_save_sync()
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += cc_recv_done('*req_counter')
       
-      
-      # RPC Function Request (non-legacy)
-      s += 'int my_rpc_' + f + '_remote_call(int reqId, double* result, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, void * ctx, codec_map *mycmap, '
-      s +=  'request_' + f + '_datatype req_' + f + ', response_' + f + '_datatype res_' + f
-      s += cc_params_in_func()
-
-      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
-      s += t + 'while(tries_remaining != 0){' + n
-      s += cc_create_packet_func('my_', ' , mycmap')
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += cc_recv_response('reqId', 'my_', ' , mycmap')
-      s += cc_recv_save_func()
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += cc_recv_done('reqId')
-      s += '#else' + n
-      
-      # RPC SYNC Request (legacy)
-      s += 'int _rpc_' + f + '_sync_request_counter(int* req_counter, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag'
-      s += cc_params_in_func()
-      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
-      s += t + 'while(tries_remaining != 0){' + n
-      s += cc_datatype_req_res()
-      s += cc_create_packet_sync()
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += cc_recv_response('*req_counter')
-      s += cc_recv_save_sync()
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += cc_recv_done('*req_counter')
-      
-      # RPC Function Request (legacy)
-      s += 'int _rpc_' + f + '_remote_call(int reqId, double* result, void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag'
-      s += cc_params_in_func()
-      s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
-      s += t + 'while(tries_remaining != 0){' + n
-      s += cc_datatype_req_res()
-      s += cc_create_packet_func()
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
-      s += cc_recv_response('reqId')
-      s += cc_recv_save_func()
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
-      s += cc_recv_done('reqId')
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      return s
-
-    # Common SYNC Request for a XD function (f) and process status - XXXX should sync have one-way
-    def cc_sync(f, tag) :
+    # RPC SYNC method for a XD function (f)
+    def cc_sync() :
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'int status = my_rpc_' + f + '_sync_request_counter(&req_counter, psocket, ssocket, &t_tag, &o_tag, ctx, mycmap,'
-      s += 'req_' + f + ', res_' + f
-      s += cc_params_in_call()
-      s += cc_check_if_error()
+      s += t + 'int status = my_rpc_' + f + '_sync_request_counter'
+      s += cc_rpc_params_and_status_check(1, True)
+      s += cc_modify_req_counter();
       s += '#else' + n
       s += t + 'if (inited < 2) {' + n
       s += t + t + 'inited = 2;' + n
-      s += t + t + 'int status = _rpc_' + f + '_sync_request_counter(&req_counter, psocket, ssocket, &t_tag, &o_tag'
-      s += cc_params_in_call()
-      s += cc_check_if_error(2)
-      s += t + '}' + n
+      s += t + t + 'int status = _rpc_' + f + '_sync_request_counter'
+      s += cc_rpc_params_and_status_check(2, False)
+      s += cc_modify_req_counter(2);
+      s += t + '};' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      return s
+
+    def cc_inc_req_counter():
+      s  = t + 'result = ' + cc_get_ret_res() + ';' + n
+      s += t + 'fprintf(stderr, "REQ: ReqId=%d ResId=%d Reserr=%d result=%f\\n", '
+      s += t + cc_get_seq_req() + ', ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ', ' + 'result' + ');' + n
       s += t + 'req_counter++;' + n
-      return s;
+      return s
       
+    def cc_data() :
+      s  = '#ifndef __LEGACY_XDCOMMS__' + n
+      s += t + 'int status = my_rpc_' + f + '_remote_call'
+      s += cc_rpc_params_and_status_check(1, True)
+      s += cc_sockets_close()
+      s += '#else' + n
+      s += t + 'int status = _rpc_' + f + '_remote_call'
+      s += cc_rpc_params_and_status_check(1, False)
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      s += cc_inc_req_counter()
+      return s
+ 
+
     # RPC nxtag Request (legacy and non-legacy) - XXX maybe merge with RPC Request Call for functions?)
     def notify_nxtag(): # XXX: hardcoded tags, should use self.const (which requires passing x and y)
       s  = 'void _notify_next_tag(gaps_tag* n_tag) {' + n
       s += cc_vars('req_counter', 'INT_MIN')
       s += cc_my_reg()
-# Needs x and y     s += cc_datatype_next_okay(x, y, True, False)
+# Needs x and y     s += cc_datatype_nxt_oky(x, y, True, False)
       s += t + '#pragma cle begin TAG_NEXTRPC' + n
       s += t + 'nextrpc_datatype nxt;' + n
       s += t + '#pragma cle end TAG_NEXTRPC' + n
@@ -725,7 +661,7 @@ class GEDLProcessor:
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       
       s += cc_sockets_open('o_tag', True)
-# xxxx      s += t + 'tag_cp(n_tag, nxt);'
+# QQQ      s += t + 'tag_cp(n_tag, nxt);'
       s += t + 'nxt.mux = n_tag->mux;' + n
       s += t + 'nxt.sec = n_tag->sec;' + n
       s += t + 'nxt.typ = n_tag->typ;' + n
@@ -744,42 +680,28 @@ class GEDLProcessor:
 
     # Common RPC exteral Request function: e.g., _rpc_get_a()
     def rpcwrapdef(x,y,f,fd,ipc):
+      s  = fd['return']['type'] + ' _rpc_' + f + '('
       def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
-      s = fd['return']['type'] + ' _rpc_' + f + '(' + ','.join([mparam(q) for q in fd['params']])
-      if ','.join([mparam(q) for q in fd['params']]) != "" :
-        s += ', '
+      s += ','.join([mparam(q) for q in fd['params']])
+      # ARQ adds an error parameter (not used yet)
+      if s[-1] != '(': s += ', '
       s += 'int *error) {' + n
-      
+    
       s += cc_vars('req_counter', 'INT_MIN')
+      s += t + fd['return']['type'] + ' result;' + n
       s += cc_my_reg()
-      s += cc_datatype_req_res(1)
+      s += cc_datatype_req_res()
       s += cc_tags_write(f)
-      # ARQ mod: Ignore IDL convention on void
-      if len(fd['params']) != 0:
-        #s += t + 'req_' + f + '.dummy = 0;'  + n  # matches IDL convention on void
-      #else:
-        for q in fd['params']:
-          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']: 
-            s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_' + f + '.' + q['name'] + '[i] = ' + q['name'] + '[i];' + n
-          else:
-            s += t + 'req_' + f + '.' + q['name'] + ' = ' + q['name'] + ';' + n
       s += cc_sockets_open('o_tag', True)
-      s += cc_sync(f, 'o_tag')
+      s += cc_create_req_packet(False)
+      s += cc_sync()
+
       if ipc == "Singlethreaded":
         s += t + '_notify_next_tag(&t_tag);' + n
         s += t + 'fprintf(stderr, "REQ: for Singlethreaded RES using nxt tag=<%d, %d, %d>\\n", t_tag.mux, t_tag.sec, t_tag.typ)' + ';' + n
-      s += t + 'double result;' + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
-      # ARQ mod:  Replace my_xdc_asyn_send and my_xdc_blocking_recv with my_rpc_+f+_remote_call in next 12 lines
-      s += t + 'int status = my_rpc_' + f + '_remote_call(req_counter,  &result, psocket, ssocket, &t_tag, &o_tag, ctx, mycmap, '
-      s += 'req_' + f + ', res_' + f
-      s += cc_params_in_call()
-      s += cc_sockets_close()
-      s += '#else' + n
-      s += t + 'int status = _rpc_' + f + '_remote_call(req_counter,  &result, psocket, ssocket, &t_tag, &o_tag'
-      s += cc_params_in_call()
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      s += cc_check_if_error()
+        
+      s += cc_create_req_packet(True)
+      s += cc_data()
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
       s += '#ifndef __ONEWAY_RPC__' + n
       s += t + 'return (result);' + n   # ARQ mod: Use result from above
@@ -790,8 +712,28 @@ class GEDLProcessor:
       return s
 
     ##############################################################################################################
-    # Slave waits for RPC Request and sends an RPC Responnse (in handler functions)
+    # Slave waits for RPC request and sends an RPC Responnse (in handler functions)
     ##############################################################################################################
+    def cc_wait_for_request(pfx='', sfx='') :
+      s  = t + pfx + 'xdc_blocking_recv(ssocket, req_ptr_' + f + ', &t_tag' + sfx + ');' + n
+      # XXX: marshaller needs to copy output arguments (including arrays) to res here !!
+      s += t + 'int req_counter =' + cc_get_seq_req() + ';' + n
+      # error not used???
+      s += t + 'int error = 0;' + n
+      s += t + 'if(req_counter > rep_counter){' + n
+      s += t + t + 'error = 0;' + n
+      s += t + t + 'rep_counter = req_counter;' + n
+      s += t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_ptr_' + f + '->' + q['name'] for q in fd['params']]) + ');' + n
+      s += t + t + 'last_processed_error = error;' + n
+      s += t + '}' + n
+      s += t + cc_set_seq_res() + ' = rep_counter << 2 | last_processed_error << 1;' + n
+      s += t + 'res_' + f + '.ret = last_processed_result;' + n
+      s += t + '#ifndef __ONEWAY_RPC__' + n
+      s += t + pfx + 'xdc_asyn_send(psocket, &res_' + f + ', &o_tag' + sfx + ');' + n
+      s += t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += t + 'fprintf(stderr, "RES: ReqId=%d (Min=%d Max=%d) Return=%f ResId=%d err=%d,%d (seq=0x%x)\\n", req_counter, INT_MIN, rep_counter, last_processed_result, rep_counter, error, last_processed_error, rep_counter << 2 | last_processed_error << 1)' + ';' + n
+      return s
+      
     def handlernextrpc(): #XXX: hardcoded tags
       s = 'void _handle_nextrpc(gaps_tag* n_tag) {' + n
       s += cc_vars('rep_counter', '0')
@@ -834,14 +776,14 @@ class GEDLProcessor:
       s  = 'void _handle_request_' + f + '(gaps_tag* tag) {' + n
       s += cc_vars('rep_counter', '0')
       s += cc_my_reg()
-      s += cc_datatype_req_res(1)
+      s += cc_datatype_req_res()
       s += cc_tags_write(f)
       s += cc_sockets_open('t_tag', False)
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_get_request('my_', ', mycmap')
+      s += cc_wait_for_request('my_', ', mycmap')
       s += cc_sockets_close()
       s += '#else' + n
-      s += cc_get_request()
+      s += cc_wait_for_request()
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
@@ -908,7 +850,6 @@ class GEDLProcessor:
     s = boiler() + xdclib() + halinit(e)
     # pass parameters, x, y, f=
     s += notify_nxtag() if e in self.masters else handlernextrpc()
-    # ARQ mod: add masterpclossdelay in outcalls
     for (x,y,f,fd) in self.inCalls(e):
         s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e):
@@ -939,7 +880,7 @@ class GEDLProcessor:
         for fname in files: self.processFile(prog,e,idir,odir,rel,fname)
 
   ##############################################################################################################
-  # Add lines into APP programs (e.g. example1.c) + add prfix to XD (affected) functions (e.g., get_a to _rpc_get_a)
+  # Modify APP (e.g. example1.c), adding prefix to XD (affected) functions (e.g. get_a to _rpc_get_a)
   def processFile(self, prog, e, idir, odir, rel, fname): # XXX: ought to use a C Parser, not regex
     canonold  = os.path.abspath(idir + '/' + rel + '/' + fname)
     canonmain = os.path.abspath(idir + '/' + e   + '/' + prog + '.c')
@@ -995,8 +936,9 @@ def main():
     with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc))
   print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
-#  gp.const_print(args.enclave_list[0])
-  gp.const_print_spec()
-  
+#  for e in args.enclave_list: gp.constPrint(e)
+#  for e in args.enclave_list: gp.spePrint(e)
+
+
 if __name__ == '__main__':
   main()
