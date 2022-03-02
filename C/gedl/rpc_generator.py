@@ -74,6 +74,7 @@ class GEDLProcessor:
   def outCalls(self, e):  return [(x['caller'],x['callee'],c['func'],c)        for x in self.gedl for c in x['calls'] if x['caller'] == e]
   def sInCalls (self, e): return [(x['caller'],x['callee'],self.specials[0],c) for x in self.gedl for c in x['calls'] if x['callee'] == e]
   def sOutCalls(self, e): return [(x['caller'],x['callee'],self.specials[0],c) for x in self.gedl for c in x['calls'] if x['caller'] == e]
+  def allCalls(self, e):  return self.sOutCalls(e) + self.sInCalls(e) + self.outCalls(e) + self.inCalls(e)
   
   ##############################################################################################################
   # Construct dictionary with per flow/function (caller, callee, func, direction) assignments
@@ -95,7 +96,7 @@ class GEDLProcessor:
 
   # Print flows from and to enclave e using the const module
   def constPrint(self, e):
-    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e) + self.sOutCalls(e) + self.sInCalls(e):
+    for (x,y,f,fd) in self.allCalls(e):
       for o in [True,False]:
         print ('Flow to and from enclave', e, 'for', f, '=', json.dumps(self.const(x,y,f,o), indent=2, default=str))
 
@@ -107,11 +108,9 @@ class GEDLProcessor:
       return {'from':y['from'],'to':y['to'],'mux':y['mux']+self.muxbase,'sec':y['sec']+self.secbase,'typ':y['typ']+self.typbase,'name':y['dnm']}
     def getmaps(e): 
       m = []
-      if e in self.masters: # XXX: revisit for multi-enclave
-        for p in self.callees(e): m.extend([amap(e,p,'nextrpc',True), amap(e,p,'okay',False)])
-      else:
-        for p in self.masters:    m.extend([amap(p,e,'nextrpc',True), amap(p,e,'okay',False)])
-      for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e): m.extend([amap(x,y,f,True), amap(x,y,f,False)])
+      for (x,y,f,fd) in self.allCalls(e):
+        for o in [True,False]:
+          m.extend([amap(x,y,f,o)])
       return m
     return dict(enclaves=[dict(enclave=e,inuri=inu+e,outuri=outu+e,halmaps=getmaps(e)) for e in self.enclaveList])
 
@@ -406,7 +405,7 @@ class GEDLProcessor:
 
     def cc_reg_xdc(pfx='', sfx=''):
       s = ''
-      for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e) + self.sInCalls(e) + self.sOutCalls(e) :
+      for (x,y,f,fd) in self.allCalls(e):
         for o in (True, False) : s += t + regdtyp(x,y,f,o,pfx,sfx)
       return s
       
@@ -599,7 +598,7 @@ class GEDLProcessor:
 
     def cc_inc_req_counter():
       s  = t + 'result = ' + cc_get_ret_res() + ';' + n
-      s += t + 'fprintf(stderr, "REQ: ReqId=%d ResId=%d Reserr=%d result=%f\\n", '
+#      s += t + 'fprintf(stderr, "REQ: ReqId=%d ResId=%d Reserr=%d result=%f\\n", '
       s += t + cc_get_seq_req() + ', ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ', ' + 'result' + ');' + n
       s += t + 'req_counter++;' + n
       return s
@@ -774,14 +773,14 @@ class GEDLProcessor:
     ##############################################################################################################
     # RPC source code for master or slave enclaves (returned as string s)
     ##############################################################################################################
-    # Create either: a) Multithreaded (thread per inCall) or b) Singlethreaded (listeer waiting for nextrpc)
+    # Create either: a) Multithreaded (thread per inCall) or b) Singlethreaded (waits for nextrpc)
     def slavedispatch(e,ipc):
       s = ''
       if ipc == "Multithreaded":
         calls = self.inCalls(e)
         s += '#define NXDRPC ' + str(len(calls)) + n
 #        s += '#define NXDRPC ' + str(len(calls) + 1) + n
-# Only needed if Singlethreaded        s += 'WRAP(nextrpc)' + n
+#        s += 'WRAP(nextrpc)' + n
         for (x,y,f,fd) in calls: s += 'WRAP(request_' + f + ')' + n
         s += n
         s += 'int _slave_rpc_loop() {' + n
@@ -921,8 +920,6 @@ def main():
   print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
   for e in args.enclave_list: gp.constPrint(e)
-#  for e in args.enclave_list: gp.spePrint(e)
-
 
 if __name__ == '__main__':
   main()
