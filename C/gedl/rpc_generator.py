@@ -67,32 +67,18 @@ class GEDLProcessor:
             self.affected[canon][line].append(c['func'])
 
   ##############################################################################################################
-  def callees(self, e):  return [x['callee'] for x in self.gedl if x['caller'] == e]
-  def callers(self, e):  return [x['caller'] for x in self.gedl if x['callee'] == e]
   # List of calls (in and out) of an enclave [caller, callee, func, other call info]
-  def inCalls(self, e):  return [(x['caller'],x['callee'],c['func'],c) for x in self.gedl for c in x['calls'] if x['callee'] == e]
-  def outCalls(self, e): return [(x['caller'],x['callee'],c['func'],c) for x in self.gedl for c in x['calls'] if x['caller'] == e]
-  # Special flows with singlethreaded handler [caller, callee, spec_func, outbound_flag]. Special function = NEXT/OKAY
-  def speCalls(self, e):
-    def add_next_flows(x, y, direct_next):
-      list.append([x,y,'nextrpc', direct_next])
-      list.append([x,y,'okay',    not direct_next])
-    list=[]
-    for g in self.gedl:
-      x,y = g['caller'], g['callee']
-      if len(g['calls']) > 0 :
-        if x == e : add_next_flows(x, y, True)   # e sends NEXT to y and receives OKAY from y
-        if y == e : add_next_flows(x, y, False)  # e sends OKAY to y and receives NEXT from y
-    return list
-    
-  def spePrint(self, e):
-    for (x,y,fs,o) in self.speCalls(e):
-      print(e, 'specials (o=' + str(o) + ')' + json.dumps(self.const(x,y,fs,o), indent=2, default=str))
+  def callees(self, e):   return [x['callee']                                  for x in self.gedl if x['caller'] == e]
+  def callers(self, e):   return [x['caller']                                  for x in self.gedl if x['callee'] == e]
+  def inCalls(self, e):   return [(x['caller'],x['callee'],c['func'],c)        for x in self.gedl for c in x['calls'] if x['callee'] == e]
+  def outCalls(self, e):  return [(x['caller'],x['callee'],c['func'],c)        for x in self.gedl for c in x['calls'] if x['caller'] == e]
+  def sInCalls (self, e): return [(x['caller'],x['callee'],self.specials[0],c) for x in self.gedl for c in x['calls'] if x['callee'] == e]
+  def sOutCalls(self, e): return [(x['caller'],x['callee'],self.specials[0],c) for x in self.gedl for c in x['calls'] if x['caller'] == e]
   
   ##############################################################################################################
   # Construct dictionary with per flow/function (caller, callee, func, direction) assignments
   def const(self, caller, callee, func, outgoing=True):
-    if func in self.specials: dnm = func.upper() 
+    if func in self.specials: dnm =   self.specials[0].upper() if outgoing else   self.specials[1].upper()
     else:                     dnm = 'REQUEST_'  + func.upper() if outgoing else 'RESPONSE_' + func.upper()
     y            = {}
     y['from']    = caller if outgoing else callee
@@ -104,18 +90,14 @@ class GEDLProcessor:
     y['clelabl'] = 'TAG_'      + dnm
     y['mux']     = (self.muxAssign[(caller,callee)] + 1) if outgoing else (self.muxAssign[(callee,caller)] + 1)
     y['sec']     = (self.secAssign[(caller,callee)] + 1) if outgoing else (self.secAssign[(callee,caller)] + 1)
-    y['typ']     = self.specials.index(func) + 1 if func in self.specials else len(self.specials) + self.xdcalls.index(func) * 2 + (1 if outgoing else 2)
+    y['typ']     = self.specials.index(func) + (1 if outgoing else 2) if func in self.specials else len(self.specials) + self.xdcalls.index(func) * 2 + (1 if outgoing else 2)
     return y
 
-  # Print flows from and to enclave e using the const module (Special flows are redundantly printed)
+  # Print flows from and to enclave e using the const module
   def constPrint(self, e):
-    print ('All flows to and from enclave', e)
-    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e):
-      print ('function =', f)
+    for (x,y,f,fd) in self.outCalls(e) + self.inCalls(e) + self.sOutCalls(e) + self.sInCalls(e):
       for o in [True,False]:
-        print ('Const func dict =', json.dumps(self.const(x,y,f,o), indent=2, default=str))
-        for fs in self.specials:
-          print ('Const spec dict =', json.dumps(self.const(x,y,fs,o), indent=2, default=str))
+        print ('Flow to and from enclave', e, 'for', f, '=', json.dumps(self.const(x,y,f,o), indent=2, default=str))
 
   ##############################################################################################################
   # Generate dictioary with info needed for HAL cofiguration (via xdconf.ini json file)
@@ -417,17 +399,17 @@ class GEDLProcessor:
     # Cross Domain CLOSURE API Initialization
     ##############################################################################################################
     # Register XDC encode and decode functions (e.g. for get_a) with HAL API (legacy and non-legacy)
-    def regdtyp(x,y,f,outgoing=True,pfx='',sfx='', special=False):
-      type = 'request_' if outgoing==True else 'response_'
-      if special: type=''
+    def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''):
       l  = self.const(x,y,f,outgoing)
-      return pfx + 'xdc_register(' + type + f.lower() + '_data_encode, ' + type + f.lower() + '_data_decode, ' + l['typdef'] + sfx + ');' + n
+      ff = l['dnm'].lower()
+      return pfx + 'xdc_register(' + ff + '_data_encode, ' + ff + '_data_decode, ' + l['typdef'] + sfx + ');' + n
+
     def cc_reg_xdc(pfx='', sfx=''):
       s = ''
-      for (x,y,fs,o) in self.speCalls(e): s += t + regdtyp(x,y,fs,o,pfx,sfx,True)
-      for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e) :
-        for o in (True, False) :          s += t + regdtyp(x,y,f, o,pfx,sfx)
+      for (x,y,f,fd) in self.inCalls(e) + self.outCalls(e) + self.sInCalls(e) + self.sOutCalls(e) :
+        for o in (True, False) : s += t + regdtyp(x,y,f,o,pfx,sfx)
       return s
+      
     # Register non-legacy XDC encode and decode functions
     def cc_my_reg():
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
@@ -723,6 +705,7 @@ class GEDLProcessor:
       s += t + 'if(req_counter > rep_counter){' + n
       s += t + t + 'error = 0;' + n
       s += t + t + 'rep_counter = req_counter;' + n
+      # Not support arrays?
       s += t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_ptr_' + f + '->' + q['name'] for q in fd['params']]) + ');' + n
       s += t + t + 'last_processed_error = error;' + n
       s += t + '}' + n
@@ -796,8 +779,9 @@ class GEDLProcessor:
       s = ''
       if ipc == "Multithreaded":
         calls = self.inCalls(e)
-        s += '#define NXDRPC ' + str(len(calls) + 1) + n
-        s += 'WRAP(nextrpc)' + n
+        s += '#define NXDRPC ' + str(len(calls)) + n
+#        s += '#define NXDRPC ' + str(len(calls) + 1) + n
+# Only needed if Singlethreaded        s += 'WRAP(nextrpc)' + n
         for (x,y,f,fd) in calls: s += 'WRAP(request_' + f + ')' + n
         s += n
         s += 'int _slave_rpc_loop() {' + n
@@ -805,8 +789,8 @@ class GEDLProcessor:
         s += t + 'pthread_t tid[NXDRPC];'  + n
         s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n
         tidIndex = 0
-        s += t + 'pthread_create(&tid[' + str(tidIndex) + '], NULL, _wrapper_nextrpc, &n_tag);' + n
-        tidIndex += 1
+#        s += t + 'pthread_create(&tid[' + str(tidIndex) + '], NULL, _wrapper_nextrpc, &n_tag);' + n
+#        tidIndex += 1
         for (x,y,f,fd) in self.inCalls(e):
           s += t + 'pthread_create(&tid[' + str(tidIndex) + '], NULL, _wrapper_request_' + f + ', &n_tag);' + n
           tidIndex += 1
@@ -848,13 +832,13 @@ class GEDLProcessor:
       return 'void _master_rpc_init() {' + n + t + '_hal_init((char*)INURI, (char *)OUTURI);' +n + '}' + n + n
 
     s = boiler() + xdclib() + halinit(e)
-    # pass parameters, x, y, f=
-    s += notify_nxtag() if e in self.masters else handlernextrpc()
-    for (x,y,f,fd) in self.inCalls(e):
-        s += handlerdef(x,y,f,fd,ipc)
+    if ipc == "Singlethreaded":
+      for (x,y,f,fd) in self.sInCalls(e):  s += handlernextrpc()
+      for (x,y,f,fd) in self.sOutCalls(e): s += notify_nxtag()
+    for (x,y,f,fd) in self.inCalls(e):  s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e):
-        s += masterpclossdelay(x,y,f,fd)
-        s += rpcwrapdef(x,y,f,fd,ipc)
+      s += masterpclossdelay(x,y,f,fd)
+      s += rpcwrapdef(x,y,f,fd,ipc)
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
     return s
 
@@ -936,7 +920,7 @@ def main():
     with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc))
   print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
-#  for e in args.enclave_list: gp.constPrint(e)
+  for e in args.enclave_list: gp.constPrint(e)
 #  for e in args.enclave_list: gp.spePrint(e)
 
 
