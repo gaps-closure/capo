@@ -80,8 +80,7 @@ class GEDLProcessor:
   def sOutCalls(self, e): return [(x['caller'],x['callee'],self.specials[0],c) for x in self.gedl for c in x['calls'] if x['caller'] == e]
   def allCalls(self, e):  return self.sOutCalls(e) + self.sInCalls(e) + self.outCalls(e) + self.inCalls(e)
   
-  ##############################################################################################################
-  # Construct dictionary with per flow/function (caller, callee, func, direction) assignments
+  # Flow assigment dictionary for each (caller, callee, func, direction) flow
   def const(self, caller, callee, func, outgoing=True):
     if func in self.specials: dnm =   self.specials[0].upper() if outgoing else self.specials[1].upper()
     else:                     dnm = 'REQUEST_'  + func.upper() if outgoing else 'RESPONSE_' + func.upper()
@@ -105,7 +104,8 @@ class GEDLProcessor:
         print ('Flow to and from enclave', e, 'for', f, '=', json.dumps(self.const(x,y,f,o), indent=2, default=str))
 
   ##############################################################################################################
-  # Generate dictioary with info needed for HAL cofiguration (via xdconf.ini json file)
+  # A) Generate dictioary with info needed for HAL cofiguration (via xdconf.ini json file)
+  ##############################################################################################################
   def genXDConf(self, inu, outu):
     def amap(caller,callee,func,o):
       y = self.const(caller,callee,func,o)
@@ -118,6 +118,8 @@ class GEDLProcessor:
       return m
     return dict(enclaves=[dict(enclave=e,inuri=inu+e,outuri=outu+e,halmaps=getmaps(e)) for e in self.enclaveList])
 
+  ##############################################################################################################
+  # B) Generate .h information for each enclave (e.g., purple_rpc.h)
   ##############################################################################################################
   def genrpcH(self, e, inu, outu, ipc):
     n,t = '\n','    '
@@ -168,6 +170,7 @@ class GEDLProcessor:
       return s
       
     def muxsec(l): return '#define ' + l['muxdef'] + ' MUX_BASE + ' + str(l['mux']) + n + '#define ' + l['secdef'] + ' SEC_BASE + ' + str(l['sec']) + n
+    
     # XXX should all be egress? Can use outgoing True,False or chage to ingress/egress
     def tagcle(x,y,f,outgoing=True): 
       l  = self.const(x,y,f,outgoing)
@@ -201,7 +204,8 @@ class GEDLProcessor:
     return s
 
   ##############################################################################################################
-  # Create Cross Domain RPC source program (string) for each enclave (e.g., purple_rpc.c)
+  # C) Create Cross Domain RPC source program (string) for each enclave (e.g., purple_rpc.c)
+  ##############################################################################################################
   def genrpcC(self, e, ipc):
     # Get default ARQ parameters (num_tries, num_tries) from JSON CLE schema file
     def readfromjsonfile():
@@ -216,9 +220,11 @@ class GEDLProcessor:
     def boiler():
       s  = '#include "' + e + '_rpc.h"' + n
       s += '#define TAG_MATCH(X, Y) (X.mux == Y.mux && X.sec == Y.sec && X.typ == Y.typ)' + n
-      s += '#define WRAP(X) void *_wrapper_##X(void *tag) { while(1) { _handle_##X(tag); } }' + n + n
+      s += '#define WRAP(X) void *_wrapper_##X(void *tag) { while(1) { _handle_##X(); } }' + n + n
       return s
-    # HAL API (my_) functions to support a 0MQ Socket per RPC flow (non-legacy XDComms)
+    ##############################################################################################################
+    # C1) HAL API (my_) functions to support a 0MQ Socket per RPC flow (non-legacy XDComms)
+    ##############################################################################################################
     def xdclib():
       s  = ''
       s += '#ifndef __LEGACY_XDCOMMS__' + n + n
@@ -343,7 +349,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # Cross Domain CLOSURE API Initialization (register encode and decode functios)
+    # C2) Cross Domain CLOSURE API Initialization (register encode and decode functios)
     ##############################################################################################################
     # Register XDC encode and decode functions (e.g. for get_a) with HAL API (legacy and non-legacy)
     def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''):
@@ -358,6 +364,9 @@ class GEDLProcessor:
     # Iitialize CLOSURE API URI and Register the encode and decode function
     def halinit(e):
       s  = 'void _hal_init(char *inuri, char *outuri) {' + n
+      if DZ:
+        s += t + 'xdc_log_level(0);' + n
+        s += t + 'fprintf(stderr, "API URIs: in=%s out=%s\\n", inuri, outuri);' + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += cc_reg_xdc('my_', ', mycmap')
       s += '#else' + n
@@ -404,7 +413,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # Define C code variables
+    # C3) Define C code variables
     ##############################################################################################################
     def tagsPrint(ptr=True):
       z = '->' if ptr else '.'
@@ -479,8 +488,7 @@ class GEDLProcessor:
       return fd['return']['type'] + ' result;' + n
     
     ##############################################################################################################
-    # Master sends RPC Request and waits for RPC Responnse (Reliabiity using retrasmission if timeout):
-    # a) SYNC (SN negotiation), b) DATA (RPC parameters and result)
+    # C4) Send RPC Request and waits for Responnse (with ARQ): a) SYNC (get SN , b) DATA (RPC params and result)
     ##############################################################################################################
     def cc_send_params_with_type(pfx=''):
       s  = '(void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, '
@@ -538,7 +546,7 @@ class GEDLProcessor:
       return s
 
     ##############################################################################################################
-    # Master creates and reads SYNC and DATA packets (in req_ptr/res_ptr struct)
+    # C5 Create and reads SYNC and DATA packets (in req_ptr/res_ptr struct)
     ##############################################################################################################
     def cc_create_req_packet(fill=True):
       s = ''
@@ -672,9 +680,8 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # Slave waits for RPC request and sends an RPC Responnse (in handler functions)
+    # C6) Slave handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
-    
     # Call local function - XXX: marshaller needs to copy output arguments (including arrays) to res here !!
     def cc_get_result_from_local_app_function():
       s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_ptr->' + q['name'] for q in fd['params']]) + ');' + n
@@ -705,7 +712,7 @@ class GEDLProcessor:
       s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
       # (Min=%d Max=%d), INT_MIN, rep_counter
       if DX:
-        s += t + t + 'fprintf(stderr, "RES ' + f + ': ReqId=%d ResId=%d err=%d,%d (seq=0x%x) Return=%f ", req_counter, rep_counter, error, last_processed_error, rep_counter << 2 | last_processed_error << 1), last_processed_result' + ';' + n
+        s += t + t + 'fprintf(stderr, "RES ' + f + ': ReqId=%d ResId=%d err=%d (seq=0x%x) Return=%f ", req_counter, rep_counter, error, last_processed_error, last_processed_result);' + n
         s += tagsPrint(False)
       s += t + '}' + n
       return s
@@ -748,15 +755,20 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # Master (waits for APP function calls) and Slave (starts thread per app function handler (inCall)
+    # C7) Master (waits for APP function calls) and Slave (starts thread per app function handler (inCall)
     ##############################################################################################################
     def slavedispatch(e,ipc):
       s = ''
       if ipc == "Multithreaded":
         for (x,y,f,fd) in self.inCalls(e): s += 'WRAP(request_' + f + ')' + n
-        s += '#define NXDRPC ' + str(len(calls)) + n + n
-        s += 'int _slave_rpc_loop() {' + n
-        if DY: s += t + 'fprintf(stderr, "RES: Adds %d Threads\\n", NXDRPC);' + n
+        s += '#define NXDRPC ' + str(len(self.inCalls(e))) + n + n
+      else:
+        s += '#define NXDRPC 0' + n + n
+
+      s += 'int _slave_rpc_loop() {' + n
+      s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n
+      if DY: s += t + 'fprintf(stderr, "RES: Adds %d Threads\\n", NXDRPC);' + n
+      if ipc == "Multithreaded":
         # A) Start thread per app function handler (inCall)
         s += t + 'pthread_t tid[NXDRPC];' + n
         tidIndex = 0
@@ -768,13 +780,9 @@ class GEDLProcessor:
         s += '}' + n + n
       else:
         # B) Singlethreaded nextrpc/app function handler while loop
-        s += 'int _slave_rpc_loop() {' + n
-        # s += t + 'xdc_log_level(0);' + n
-        s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n
         s += t + 'gaps_tag n_tag;' + n
         s += t + 'gaps_tag o_tag;' + n
         s += t + 'gaps_tag t_tag;' + n
-        if DY: s += t + 'fprintf(stderr, "RES: Adds 0 Threads\\n");' + n
         # Singlethread slave msin loop
         s += t + 'while (1) {' + n
         s += t + t + '_handle_nextrpc(&n_tag);' + n
@@ -795,7 +803,9 @@ class GEDLProcessor:
     def masterdispatch(e,ipc):
       return 'void _master_rpc_init() {' + n + t + '_hal_init((char*)INURI, (char *)OUTURI);' +n + '}' + n + n
 
-    # Create RPC defiitions C source code as string (s) to be writen to a file (e.g. file=purple/purple_rpc.c)
+    ##############################################################################################################
+    # C8) Create RPC C source code as string (to be writen to a file: e.g. file=purple/purple_rpc.c)
+    ##############################################################################################################
     s = boiler() + xdclib() + halinit(e)
     if ipc == "Singlethreaded":
       for (x,y,f,fd) in self.sInCalls(e):
@@ -812,13 +822,14 @@ class GEDLProcessor:
     return s
 
   ##############################################################################################################
-  def findMaster(self,enclaves,idirp,prog): 
+  # D) Process Source FIle(s)
+  ##############################################################################################################
+  def findMaster(self,enclaves,idirp,prog):
     idir   = idirp.rstrip('/')
     for e in enclaves:
       fn = idir + '/' + e + '/' + prog + '.c'
       if gotMain(fn): self.masters.append(e)
 
-  ##############################################################################################################
   def processSourceTree(self,prog,enclaves,idirp,odirp):
     idir   = idirp.rstrip('/')
     odir   = odirp.rstrip('/')
@@ -832,7 +843,6 @@ class GEDLProcessor:
           os.makedirs(newd, mode=0o755, exist_ok=True)  
         for fname in files: self.processFile(prog,e,idir,odir,rel,fname)
 
-  ##############################################################################################################
   # Modify APP (e.g. example1.c), adding prefix to XD (affected) functions (e.g. get_a to _rpc_get_a)
   def processFile(self, prog, e, idir, odir, rel, fname): # XXX: ought to use a C Parser, not regex
     canonold  = os.path.abspath(idir + '/' + rel + '/' + fname)
@@ -872,7 +882,9 @@ class GEDLProcessor:
     else:
       copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
 
-#####################################################################################################################################################
+##############################################################################################################
+# E) Main
+##############################################################################################################
 def main():
   args = argparser()
   gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base,args.schema)
