@@ -349,7 +349,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C2) Cross Domain CLOSURE API Initialization (register encode and decode functios)
+    # C2) REQ/REP Cross Domain CLOSURE API Initialization (register encode and decode functios)
     ##############################################################################################################
     # Register XDC encode and decode functions (e.g. for get_a) with HAL API (legacy and non-legacy)
     def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''):
@@ -367,9 +367,17 @@ class GEDLProcessor:
       if DZ:
         s += t + 'xdc_log_level(0);' + n
         s += t + 'fprintf(stderr, "API URIs: in=%s out=%s\\n", inuri, outuri);' + n
+      if DX:
+        s += '#ifdef __ONEWAY_RPC__' + n
+        s += t + 'fprintf(stderr, "__ONEWAY_RPC__ ");' + n
+        s += '#else' + n
+        s += t + 'fprintf(stderr, "__TWOWAY_RPC__ ");' + n
+        s += '#endif /* __ONEWAY_RPC__ */' + n
+      
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_reg_xdc('my_', ', mycmap')
+      if DX: s += t + 'fprintf(stderr, "__NEW_XDCOMMS__\\n");' + n
       s += '#else' + n
+      if DX: s += t + 'fprintf(stderr, "__LEGACY_XDCOMMS__\\n");' + n
       s += t + 'xdc_set_in(inuri);' + n
       s += t + 'xdc_set_out(outuri);' + n
       s += cc_reg_xdc()
@@ -413,7 +421,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C3) Define C code variables
+    # C3) REQ/REP: Define C code variables
     ##############################################################################################################
     def tagsPrint(ptr=True):
       z = '->' if ptr else '.'
@@ -439,6 +447,7 @@ class GEDLProcessor:
       s  = t + 'gaps_tag t_tag;' + n
       s += t + 'gaps_tag o_tag;' + n
       s += cc_tags_write(x,y,f)
+      s += t + 'int status;' + n
       s += t + 'static int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
       s += t + 'static ' + fd['return']['type'] + ' last_processed_result = 0;' + n  # XXX: type initialization is not correct for some types
       s += t + 'static int last_processed_error = 0;' + n
@@ -456,6 +465,7 @@ class GEDLProcessor:
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'codec_map  mycmap[MY_DATA_TYP_MAX];' + n
       s += t + 'for (int i=0; i < MY_DATA_TYP_MAX; i++)  mycmap[i].valid=0;' + n
+      s += cc_reg_xdc('my_', ', mycmap')
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
     # Register legacy XDC encode and decode functions (and set URIs)
@@ -488,7 +498,7 @@ class GEDLProcessor:
       return fd['return']['type'] + ' result;' + n
     
     ##############################################################################################################
-    # C4) Send RPC Request and waits for Responnse (with ARQ): a) SYNC (get SN , b) DATA (RPC params and result)
+    # C4) REQ: Send RPC Request and waits for Responnse (with ARQ): a) SYNC (get SN , b) DATA (RPC params and result)
     ##############################################################################################################
     def cc_send_params_with_type(pfx=''):
       s  = '(void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, '
@@ -501,7 +511,7 @@ class GEDLProcessor:
     def cc_recv_response(pfx='', sfx='') :
       s  = ''
       if DY: s += t + t + 'fprintf(stderr, "REQ ' + f + ' Sent request on t_tag (waiting for respose on o_tag)\\n");' + n
-      s += t + t + 'int status = ' + pfx + 'xdc_recv(ssocket, res_ptr, o_tag' + sfx +');' + n
+      s += t + t + 'status = ' + pfx + 'xdc_recv(ssocket, res_ptr, o_tag' + sfx +');' + n
       if DX:
         s += t + t + 'fprintf(stderr, "REQ ' + f + ': ReqId=%d ResId=%d Reserr=%d status=%d tries=%d ", ' + cc_get_seq_req() + ', ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ', status, tries_remaining);' + n
         s += tagsPrint()
@@ -509,25 +519,27 @@ class GEDLProcessor:
       s += t + t + t + 'tries_remaining--;' + n
       s += t + t + t + 'continue;' + n
       s += t + t + '}' + n
+      s += t + t + 'return 1;' + n    # Success
       return s
     # Done with request, so return success or failure
     
     def cc_send_loop_end():
-      s  = t + t + 'return 1;' + n    # Success
+      s  = t + t + 'break;  /* Only reach here if __ONEWAY_RPC__ */' + n
       s += t + '}' + n
-      s += t + 'fprintf(stderr, "REQ: GIVING UP on ReqId=%d (after ' + str(num_tries) + ' tries)\\n", ' + cc_get_seq_req() + ');' + n
-      s += t + 'return 0;' + n        # Fail
+      s += t + 'fprintf(stderr, "REQ: GIVING UP (ONEWAY_RPC or ' + str(num_tries) + ' tries) on ReqId=%d \\n", ' + cc_get_seq_req() + ');' + n
+      s += t + 'return 0;' + n        # ONEWAY_RPC or Fail
       s += '}' + n + n
       return s
       
     def reliable_request(pfx='', sfx='') :
       s  = cc_send_params_with_type(pfx)
       s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
+      s += t + 'int status = 0;' + n
       s += t + 'while(tries_remaining != 0){' + n
       s += t + t + pfx +'xdc_asyn_send(psocket, req_ptr, t_tag' + sfx + ');' + n
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
+      s += '#ifndef __ONEWAY_RPC__' + n
       s += cc_recv_response(pfx, sfx)
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += '#endif /* __ONEWAY_RPC__ */' + n
       s += cc_send_loop_end()
       return s
 
@@ -546,7 +558,7 @@ class GEDLProcessor:
       return s
 
     ##############################################################################################################
-    # C5 Create and reads SYNC and DATA packets (in req_ptr/res_ptr struct)
+    # C5 REQ: Creates and reads SYNC and DATA packets (in req_ptr/res_ptr struct)
     ##############################################################################################################
     def cc_create_req_packet(fill=True):
       s = ''
@@ -586,21 +598,23 @@ class GEDLProcessor:
     # Modify Sequence Number (after SYNC)
     def cc_modify_req_counter(tc=1):
       s = ''
-      if DZ: s += t*tc + 'fprintf(stderr, "SYNC Req SN=%d (from %d)\\n", ' + cc_get_seq_res() + ', req_counter);' + n
-      s += t*tc + 'req_counter = 1 + (' + cc_get_seq_res() + ');' + n
+      s += t*tc + 'if (status == 1) req_counter = 1 + (' + cc_get_seq_res() + ');' + n
+      s += t*tc + 'else req_counter++;' + n
+      #if DZ:
+      s += t*tc + 'fprintf(stderr, "SYNC Req SN=%d\\n", req_counter);' + n
       return s
       
     # RPC SYNC method for a XD function (f)
     def cc_sync() :
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'int status = my_rpc_' + f + '_sync_request_counter'
+      s += t + 'status = my_rpc_' + f + '_sync_request_counter'
       s += cc_rpc_params_and_status_check(1, True)
       s += cc_modify_req_counter();
       s += cc_sockets_close()
       s += '#else' + n
       s += t + 'if (inited < 2) {' + n
       s += t + t + 'inited = 2;' + n
-      s += t + t + 'int status = _rpc_' + f + '_sync_request_counter'
+      s += t + t + 'status = _rpc_' + f + '_sync_request_counter'
       s += cc_rpc_params_and_status_check(2, False)
       s += cc_modify_req_counter(2);
       s += t + '};' + n
@@ -609,11 +623,11 @@ class GEDLProcessor:
       
     def cc_data() :
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'int status = my_rpc_' + f + '_remote_call'
+      s += t + 'status = my_rpc_' + f + '_remote_call'
       s += cc_rpc_params_and_status_check(1, True)
       s += cc_sockets_close()
       s += '#else' + n
-      s += t + 'int status = _rpc_' + f + '_remote_call'
+      s += t + 'status = _rpc_' + f + '_remote_call'
       s += cc_rpc_params_and_status_check(1, False)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'req_counter++;' + n
@@ -680,14 +694,14 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C6) Slave handlers waits for RPC request and sends RPC Responnse
+    # C6) REP: handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
     # Call local function - XXX: marshaller needs to copy output arguments (including arrays) to res here !!
     def cc_get_result_from_local_app_function():
       s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_ptr->' + q['name'] for q in fd['params']]) + ');' + n
       s += t + t + t + cc_get_ret_res() + ' = last_processed_result;' + n
       return s
-
+    # Call Application if new request, storing result in last_processed_result (and set error=0)
     def cc_check_req_rep_seq_nums(notSpecial):
       s  = t + t + 'if(req_counter > rep_counter){' + n
       s += t + t + t + 'error = 0;' + n
@@ -696,8 +710,8 @@ class GEDLProcessor:
       s += t + t + t + 'last_processed_error = error;' + n
       s += t + t + '}' + n
       return s
-          
-    # Reply to any app function request, but only return when a new (req_counter > rep_counter) request
+        
+    # Reply to any app function request. Return last_processed_result
     def cc_wait_for_request(pfx='', sfx='', notSpecial=True) :
       s = ''
       s += t + 'int error = 1;' + n
@@ -706,10 +720,12 @@ class GEDLProcessor:
       s += t + t + pfx + 'xdc_blocking_recv(ssocket, req_ptr, &t_tag' + sfx + ');' + n
       s += t + t + 'int req_counter =' + cc_get_seq_req() + ';' + n
       s += cc_check_req_rep_seq_nums(notSpecial)
+      s += '#ifndef __ONEWAY_RPC__' + n
       s += t + t + cc_set_seq_res() + ' = rep_counter << 2 | last_processed_error << 1;' + n
-      s += t + t + '#ifndef __ONEWAY_RPC__' + n
       s += t + t + pfx + 'xdc_asyn_send(psocket, res_ptr, &o_tag' + sfx + ');' + n
-      s += t + t + '#endif /* __ONEWAY_RPC__ */' + n
+      s += '#else /* __ONEWAY_RPC__ */' + n
+      s += t + t + 'rep_counter = req_counter;' + n
+      s += '#endif /* __ONEWAY_RPC__ */' + n
       # (Min=%d Max=%d), INT_MIN, rep_counter
       if DX:
         s += t + t + 'fprintf(stderr, "RES ' + f + ': ReqId=%d ResId=%d err=%d (seq=0x%x) Return=%f ", req_counter, rep_counter, error, last_processed_error, last_processed_result);' + n
@@ -804,7 +820,7 @@ class GEDLProcessor:
       return 'void _master_rpc_init() {' + n + t + '_hal_init((char*)INURI, (char *)OUTURI);' +n + '}' + n + n
 
     ##############################################################################################################
-    # C8) Create RPC C source code as string (to be writen to a file: e.g. file=purple/purple_rpc.c)
+    # C8) REQ/REP: Create RPC C source code as string (to be writen to a file: e.g. file=purple/purple_rpc.c)
     ##############################################################################################################
     s = boiler() + xdclib() + halinit(e)
     if ipc == "Singlethreaded":
