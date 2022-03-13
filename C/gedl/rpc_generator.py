@@ -362,26 +362,30 @@ class GEDLProcessor:
         for o in (True, False) : s += t + regdtyp(x,y,f,o,pfx,sfx)
       return s
     # Iitialize CLOSURE API URI and Register the encode and decode function
-    def halinit(e):
+    def halinit(e, ipc):
       s  = 'void _hal_init(char *inuri, char *outuri) {' + n
       if DZ:
         s += t + 'xdc_log_level(0);' + n
         s += t + 'fprintf(stderr, "API URIs: in=%s out=%s\\n", inuri, outuri);' + n
-      if DX:
-        s += '#ifdef __ONEWAY_RPC__' + n
-        s += t + 'fprintf(stderr, "__ONEWAY_RPC__ ");' + n
-        s += '#else' + n
-        s += t + 'fprintf(stderr, "__TWOWAY_RPC__ ");' + n
-        s += '#endif /* __ONEWAY_RPC__ */' + n
-      
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
-      if DX: s += t + 'fprintf(stderr, "__NEW_XDCOMMS__\\n");' + n
-      s += '#else' + n
-      if DX: s += t + 'fprintf(stderr, "__LEGACY_XDCOMMS__\\n");' + n
+      s += '#ifdef __LEGACY_XDCOMMS__' + n
       s += t + 'xdc_set_in(inuri);' + n
       s += t + 'xdc_set_out(outuri);' + n
       s += cc_reg_xdc()
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+      s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
+      if DX:
+        s += '#ifdef __ONEWAY_RPC__' + n
+        s += t + 'fprintf(stderr, "' + e + ' RPC=1-way, ");' + n
+        s += '#else' + n
+        s += t + 'fprintf(stderr, "' + e + ' RPC=2-way, ");' + n
+        s += '#endif /* __ONEWAY_RPC__ */' + n
+        s += '#ifndef __LEGACY_XDCOMMS__' + n
+        s += t + 'fprintf(stderr, "API=new, ");' + n
+        s += '#else' + n
+        s += t + 'fprintf(stderr, "API=legacy, \\n");' + n
+        s += '#endif /* __LEGACY_XDCOMMS__ */' + n
+        if ipc == "Singlethreaded": s += t + 'fprintf(stderr, "THR=single, ");' + n
+        else:                       s += t + 'fprintf(stderr, "THR=multi, ");' + n
+        s += t + 'fprintf(stderr, "ARQ={n:' + str(num_tries) + ' t:' + str(timeout) + ')\\n");' + n
       s += '}' + n + n
       return s
 
@@ -610,7 +614,6 @@ class GEDLProcessor:
       s += t + 'status = my_rpc_' + f + '_sync_request_counter'
       s += cc_rpc_params_and_status_check(1, True)
       s += cc_modify_req_counter();
-      s += cc_sockets_close()
       s += '#else' + n
       s += t + 'if (inited < 2) {' + n
       s += t + t + 'inited = 2;' + n
@@ -822,7 +825,7 @@ class GEDLProcessor:
     ##############################################################################################################
     # C8) REQ/REP: Create RPC C source code as string (to be writen to a file: e.g. file=purple/purple_rpc.c)
     ##############################################################################################################
-    s = boiler() + xdclib() + halinit(e)
+    s = boiler() + xdclib() + halinit(e, ipc)
     if ipc == "Singlethreaded":
       for (x,y,f,fd) in self.sInCalls(e):
         s += handlernextrpc(x,y,f,fd)
@@ -835,6 +838,7 @@ class GEDLProcessor:
       s += masterpclossdelay(x,y,f,fd)
       s += rpcwrapdef(x,y,f,fd,ipc)
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
+
     return s
 
   ##############################################################################################################
