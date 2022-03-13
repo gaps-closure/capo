@@ -455,11 +455,11 @@ class GEDLProcessor:
       s += t + 'static int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
       s += t + 'static ' + fd['return']['type'] + ' last_processed_result = 0;' + n  # XXX: type initialization is not correct for some types
       s += t + 'static int last_processed_error = 0;' + n
+      s += t + 'static int inited = 0;' + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void *psocket;' + n
       s += t + 'void *ssocket;' + n
       s += '#else' + n
-      s += t + 'static int inited = 0;' + n
       s += t + 'static void *psocket;' + n
       s += t + 'static void *ssocket;' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
@@ -607,20 +607,23 @@ class GEDLProcessor:
       #if DZ:
       s += t*tc + 'fprintf(stderr, "SYNC Req SN=%d\\n", req_counter);' + n
       return s
+    # Send sync only once
+    def cc_sync_once(flag=True):
+      pfx = '' if flag == False else 'my'
+      s  = t + 'if (inited < 2) {' + n
+      s += t + t + 'inited = 2;' + n
+      s += t + t + 'status = ' + pfx + '_rpc_' + f + '_sync_request_counter'
+      s += cc_rpc_params_and_status_check(2, flag)
+      s += cc_modify_req_counter(2)
+      s += t + '};' + n
+      return s
       
     # RPC SYNC method for a XD function (f)
     def cc_sync() :
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'status = my_rpc_' + f + '_sync_request_counter'
-      s += cc_rpc_params_and_status_check(1, True)
-      s += cc_modify_req_counter();
+      s += cc_sync_once(True)
       s += '#else' + n
-      s += t + 'if (inited < 2) {' + n
-      s += t + t + 'inited = 2;' + n
-      s += t + t + 'status = _rpc_' + f + '_sync_request_counter'
-      s += cc_rpc_params_and_status_check(2, False)
-      s += cc_modify_req_counter(2);
-      s += t + '};' + n
+      s += cc_sync_once(False)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
       
