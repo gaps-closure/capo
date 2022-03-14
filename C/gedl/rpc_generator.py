@@ -208,12 +208,7 @@ class GEDLProcessor:
   ##############################################################################################################
   def genrpcC(self, e, ipc):
     # Get default ARQ parameters (num_tries, num_tries) from JSON CLE schema file
-    def readfromjsonfile():
-      f = open(self.schemafile,)
-      data = json.load(f)
-      f.close()
-      return data['definitions']['cdfType']['properties']
-    dict_lossndelay = readfromjsonfile()
+    with open(self.schemafile,) as sch_file: dict_lossndelay = json.load(sch_file)['definitions']['cdfType']['properties']
     num_tries = dict_lossndelay['num_tries']['default']
     timeout   = dict_lossndelay['timeout']['default']
     n,t = '\n','    '
@@ -381,7 +376,7 @@ class GEDLProcessor:
         s += '#ifndef __LEGACY_XDCOMMS__' + n
         s += t + 'fprintf(stderr, "API=new, ");' + n
         s += '#else' + n
-        s += t + 'fprintf(stderr, "API=legacy, \\n");' + n
+        s += t + 'fprintf(stderr, "API=legacy, ");' + n
         s += '#endif /* __LEGACY_XDCOMMS__ */' + n
         if ipc == "Singlethreaded": s += t + 'fprintf(stderr, "THR=single, ");' + n
         else:                       s += t + 'fprintf(stderr, "THR=multi, ");' + n
@@ -504,7 +499,7 @@ class GEDLProcessor:
     ##############################################################################################################
     # C4) REQ: Send RPC Request and waits for Responnse (with ARQ): a) SYNC (get SN , b) DATA (RPC params and result)
     ##############################################################################################################
-    def cc_send_params_with_type(pfx=''):
+    def cc_req_params_with_type(pfx=''):
       s  = '(void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, '
       if pfx != '':  s += 'void * ctx, codec_map *mycmap, '
       s += get_req_or_res_datatype(True) + ' *req_ptr, ' + get_req_or_res_datatype(False) + ' *res_ptr'
@@ -512,7 +507,7 @@ class GEDLProcessor:
       return s
       
     # Get response and resend request (continue) if xdc_recv timeout (status == -1)
-    def cc_recv_response(pfx='', sfx='') :
+    def cc_req_recv_response(pfx='', sfx='') :
       s  = ''
       if DY: s += t + t + 'fprintf(stderr, "REQ ' + f + ' Sent request on t_tag (waiting for respose on o_tag)\\n");' + n
       s += t + t + 'status = ' + pfx + 'xdc_recv(ssocket, res_ptr, o_tag' + sfx +');' + n
@@ -527,7 +522,7 @@ class GEDLProcessor:
       return s
     # Done with request, so return success or failure
     
-    def cc_send_loop_end():
+    def cc_req_loop_end():
       s  = t + t + 'break;  /* Only reach here if __ONEWAY_RPC__ */' + n
       s += t + '}' + n
       s += t + 'fprintf(stderr, "REQ: GIVING UP (ONEWAY_RPC or ' + str(num_tries) + ' tries) on ReqId=%d \\n", ' + cc_get_seq_req() + ');' + n
@@ -535,29 +530,29 @@ class GEDLProcessor:
       s += '}' + n + n
       return s
       
-    def reliable_request(pfx='', sfx='') :
-      s  = cc_send_params_with_type(pfx)
+    def cc_req_send_reliably (pfx='', sfx='') :
+      s  = cc_req_params_with_type(pfx)
       s += t + 'int tries_remaining = ' + str(num_tries) + ';' + n
       s += t + 'int status = 0;' + n
       s += t + 'while(tries_remaining != 0){' + n
       s += t + t + pfx +'xdc_asyn_send(psocket, req_ptr, t_tag' + sfx + ');' + n
       s += '#ifndef __ONEWAY_RPC__' + n
-      s += cc_recv_response(pfx, sfx)
+      s += cc_req_recv_response(pfx, sfx)
       s += '#endif /* __ONEWAY_RPC__ */' + n
-      s += cc_send_loop_end()
+      s += cc_req_loop_end()
       return s
 
     def masterpclossdelay(x,y,f,fd) :
       s = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += 'int my_rpc_' + f + '_sync_request_counter'  # a1) RPC SYNC Request (non-legacy)
-      s += reliable_request('my_', ' , mycmap')
+      s += 'int my_rpc_' + f + '_req_sync'  # a1) RPC SYNC Request (non-legacy)
+      s += cc_req_send_reliably ('my_', ' , mycmap')
       s += 'int my_rpc_' + f + '_remote_call'           # b1) RPC DATA Request (non-legacy)
-      s += reliable_request('my_', ' , mycmap')
+      s += cc_req_send_reliably ('my_', ' , mycmap')
       s += '#else' + n
-      s += 'int _rpc_' + f + '_sync_request_counter'    # a0) RPC SYNC Request (legacy)
-      s += reliable_request()
+      s += 'int _rpc_' + f + '_req_sync'    # a0) RPC SYNC Request (legacy)
+      s += cc_req_send_reliably ()
       s += 'int _rpc_' + f + '_remote_call'             # b0) RPC DATA Request (legacy)
-      s += reliable_request()
+      s += cc_req_send_reliably ()
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
 
@@ -612,7 +607,7 @@ class GEDLProcessor:
       pfx = '' if flag == False else 'my'
       s  = t + 'if (inited < 2) {' + n
       s += t + t + 'inited = 2;' + n
-      s += t + t + 'status = ' + pfx + '_rpc_' + f + '_sync_request_counter'
+      s += t + t + 'status = ' + pfx + '_rpc_' + f + '_req_sync'
       s += cc_rpc_params_and_status_check(2, flag)
       s += cc_modify_req_counter(2)
       s += t + '};' + n
@@ -703,29 +698,29 @@ class GEDLProcessor:
     # C6) REP: handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
     # Call local function - XXX: marshaller needs to copy output arguments (including arrays) to res here !!
-    def cc_get_result_from_local_app_function():
+    def cc_rep_get_result_from_local_app():
       s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_ptr->' + q['name'] for q in fd['params']]) + ');' + n
       s += t + t + t + cc_get_ret_res() + ' = last_processed_result;' + n
       return s
     # Call Application if new request, storing result in last_processed_result (and set error=0)
-    def cc_check_req_rep_seq_nums(notSpecial):
+    def cc_rep_check_seq_nums(notSpecial):
       s  = t + t + 'if(req_counter > rep_counter){' + n
       s += t + t + t + 'error = 0;' + n
       s += t + t + t + 'rep_counter = req_counter;' + n
-      if notSpecial: s += cc_get_result_from_local_app_function()
+      if notSpecial: s += cc_rep_get_result_from_local_app()
       s += t + t + t + 'last_processed_error = error;' + n
       s += t + t + '}' + n
       return s
         
     # Reply to any app function request. Return last_processed_result
-    def cc_wait_for_request(pfx='', sfx='', notSpecial=True) :
+    def cc_rep_wait_for_request(pfx='', sfx='', notSpecial=True) :
       s = ''
       s += t + 'int error = 1;' + n
       s += t + 'while (error == 1) {'    # only return when a new request (error == 0)
       if DZ: s += t + t + 'fprintf(stderr, "RES ' + f + ' Waiting for request on t_tag (send respose on o_tag)\\n");' + n
       s += t + t + pfx + 'xdc_blocking_recv(ssocket, req_ptr, &t_tag' + sfx + ');' + n
       s += t + t + 'int req_counter =' + cc_get_seq_req() + ';' + n
-      s += cc_check_req_rep_seq_nums(notSpecial)
+      s += cc_rep_check_seq_nums(notSpecial)
       s += '#ifndef __ONEWAY_RPC__' + n
       s += t + t + cc_set_seq_res() + ' = rep_counter << 2 | last_processed_error << 1;' + n
       s += t + t + pfx + 'xdc_asyn_send(psocket, res_ptr, &o_tag' + sfx + ');' + n
@@ -752,10 +747,10 @@ class GEDLProcessor:
 
       s += cc_xdc_open('t_tag', False)
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_wait_for_request('my_', ', mycmap', False)
+      s += cc_rep_wait_for_request('my_', ', mycmap', False)
       s += cc_sockets_close()
       s += '#else' + n
-      s += cc_wait_for_request('', '', False)
+      s += cc_rep_wait_for_request('', '', False)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += cc_read_nxt_packet()
       s += '}' + n + n
@@ -768,10 +763,10 @@ class GEDLProcessor:
       s += cc_define_my_cmap()
       s += cc_xdc_open('t_tag', False)
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_wait_for_request('my_', ', mycmap')
+      s += cc_rep_wait_for_request('my_', ', mycmap')
       s += cc_sockets_close()
       s += '#else' + n
-      s += cc_wait_for_request()
+      s += cc_rep_wait_for_request()
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
