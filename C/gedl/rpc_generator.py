@@ -7,10 +7,6 @@ import re
 from argparse import ArgumentParser
 from shutil import copyfile
 
-# Print Debugs (when c code runs)?
-DX=True
-DY=False
-DZ=False
 #####################################################################################################################################################
 def argparser():
   parser = ArgumentParser(description='CLOSURE RPC File and Wrapper Generator')
@@ -21,7 +17,7 @@ def argparser():
   parser.add_argument('-n','--inuri', required=True, type=str, help='Input URI')
   parser.add_argument('-s','--schema', required=False, type=str, help='override location of cle schema if required', default='/opt/closure/schemas/cle-schema.json')
   parser.add_argument('-t','--outuri', required=True, type=str, help='Output URI')
-  parser.add_argument('-v','--verbose', required=False, action='store_false')
+  parser.add_argument('-v','--verbose', required=False, action='store_true')
   parser.add_argument('-x','--xdconf', required=True, type=str, help='Hal Config Map Filename')
   parser.add_argument('-e','--edir', required=True, type=str, help='Input Directory')
   parser.add_argument('-E','--enclave_list', required=True, type=str, nargs='+', help='List of enclaves')
@@ -206,11 +202,12 @@ class GEDLProcessor:
   ##############################################################################################################
   # C) Create Cross Domain RPC source program (string) for each enclave (e.g., purple_rpc.c)
   ##############################################################################################################
-  def genrpcC(self, e, ipc):
+  def genrpcC(self, e, ipc, verbose):
     # Get default ARQ parameters (num_tries, num_tries) from JSON CLE schema file
     with open(self.schemafile,) as sch_file: dict_lossndelay = json.load(sch_file)['definitions']['cdfType']['properties']
     num_tries = dict_lossndelay['num_tries']['default']
     timeout   = dict_lossndelay['timeout']['default']
+    DB = [False, True, True] if verbose else [False, False, True]   # Print Debugs when c code runs (levels 0,1,2)
     n,t = '\n','    '
     def boiler():
       s  = '#include "' + e + '_rpc.h"' + n
@@ -353,13 +350,14 @@ class GEDLProcessor:
       return pfx + 'xdc_register(' + ff + '_data_encode, ' + ff + '_data_decode, ' + l['typdef'] + sfx + ');' + n
     def cc_reg_xdc(pfx='', sfx=''):
       s = ''
-      for (x,y,f,fd) in self.allCalls(e):
+      calls = self.allCalls(e) if ipc == 'Singlethreaded' else self.inCalls(e) + self.outCalls(e)
+      for (x,y,f,fd) in calls:
         for o in (True, False) : s += t + regdtyp(x,y,f,o,pfx,sfx)
       return s
     # Iitialize CLOSURE API URI and Register the encode and decode function
-    def halinit(e, ipc):
+    def halinit(e, ipc, verbose):
       s  = 'void _hal_init(char *inuri, char *outuri) {' + n
-      if DZ:
+      if DB[0]:
         s += t + 'xdc_log_level(0);' + n
         s += t + 'fprintf(stderr, "API URIs: in=%s out=%s\\n", inuri, outuri);' + n
       s += '#ifdef __LEGACY_XDCOMMS__' + n
@@ -367,7 +365,7 @@ class GEDLProcessor:
       s += t + 'xdc_set_out(outuri);' + n
       s += cc_reg_xdc()
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
-      if DX:
+      if DB[2]:
         s += '#ifdef __ONEWAY_RPC__' + n
         s += t + 'fprintf(stderr, "' + e + ' RPC=1-way, ");' + n
         s += '#else' + n
@@ -386,7 +384,7 @@ class GEDLProcessor:
 
     def cc_join_delay(tag, use_timeout, tc=1):
       s  = ''
-      if DY: s += t*tc + 'fprintf(stderr, "Open ' + f + ' pub/sub sockets (sub filter=<%u, %u, %u>, timeout=' + str(use_timeout) + '\\n", ' + tag + '.mux, ' + tag + '.sec,' + tag + '.typ);' + n
+      if DB[1]: s += t*tc + 'fprintf(stderr, "Open ' + f + ' pub/sub sockets (sub filter=<%u, %u, %u>, timeout=' + str(use_timeout) + '\\n", ' + tag + '.mux, ' + tag + '.sec,' + tag + '.typ);' + n
       s += t*tc + 'sleep(1); /* zmq socket join delay */' + n
       return s
     # Open Publish and Subscribe sockets (per XD function ifndef __LEGACY_XDCOMMS__)
@@ -424,8 +422,8 @@ class GEDLProcessor:
     ##############################################################################################################
     def tagsPrint(ptr=True):
       z = '->' if ptr else '.'
-      s  = t + 'fprintf(stderr, "t_tag=<%02u, %02u, %02u>, ", t_tag' + z + 'mux, t_tag' + z + 'sec, t_tag' + z + 'typ);' + n
-      s += t + 'fprintf(stderr, "o_tag=<%02u, %02u, %02u>\\n", o_tag' + z + 'mux, o_tag' + z + 'sec, o_tag' + z + 'typ);' + n
+      s  = t + t + 'fprintf(stderr, "t_tag=<%02u, %02u, %02u>, ", t_tag' + z + 'mux, t_tag' + z + 'sec, t_tag' + z + 'typ);' + n
+      s += t + t + 'fprintf(stderr, "o_tag=<%02u, %02u, %02u>\\n", o_tag' + z + 'mux, o_tag' + z + 'sec, o_tag' + z + 'typ);' + n
       return s
     # Write request (t_tag) and respose (o_tag) tags using const dictionary
     def tag_write_direct(x,y,f, outbound=True):
@@ -497,7 +495,7 @@ class GEDLProcessor:
       return fd['return']['type'] + ' result;' + n
     
     ##############################################################################################################
-    # C4) REQ: Send RPC Request and waits for Responnse (with ARQ): a) SYNC (get SN , b) DATA (RPC params and result)
+    # C4) REQ: Send RPC Request and wait for Responnse (with ARQ): a) SYNC (get SN), b) DATA (RPC params and result)
     ##############################################################################################################
     def cc_req_params_with_type(pfx=''):
       s  = '(void* psocket, void* ssocket, gaps_tag* t_tag, gaps_tag* o_tag, '
@@ -505,27 +503,31 @@ class GEDLProcessor:
       s += get_req_or_res_datatype(True) + ' *req_ptr, ' + get_req_or_res_datatype(False) + ' *res_ptr'
       s += ')' + '{' + n
       return s
+    
+    def cc_req_print():
+      s  = t + t + 'fprintf(stderr, "REQ ' + f + ': ReqId=%d status=%d tries=%d ", ' + cc_get_seq_req() + ', status, tries_remaining);' + n
+      s += t + t + 'if (status >= 0) fprintf(stderr, "ResId=%d Reserr=%d ", ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ');' + n
+      s += tagsPrint()
+      return s
       
     # Get response and resend request (continue) if xdc_recv timeout (status == -1)
     def cc_req_recv_response(pfx='', sfx='') :
       s  = ''
-      if DY: s += t + t + 'fprintf(stderr, "REQ ' + f + ' Sent request on t_tag (waiting for respose on o_tag)\\n");' + n
+      if DB[1]: s += t + t + 'fprintf(stderr, "REQ ' + f + ' Sent request on t_tag (waiting for respose on o_tag)\\n");' + n
       s += t + t + 'status = ' + pfx + 'xdc_recv(ssocket, res_ptr, o_tag' + sfx +');' + n
-      if DX:
-        s += t + t + 'fprintf(stderr, "REQ ' + f + ': ReqId=%d ResId=%d Reserr=%d status=%d tries=%d ", ' + cc_get_seq_req() + ', ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ', status, tries_remaining);' + n
-        s += tagsPrint()
+      if DB[2]: s += cc_req_print()
       s += t + t + 'if(status == -1){' + n
       s += t + t + t + 'tries_remaining--;' + n
       s += t + t + t + 'continue;' + n
       s += t + t + '}' + n
       s += t + t + 'return 1;' + n    # Success
       return s
+      
     # Done with request, so return success or failure
-    
     def cc_req_loop_end():
       s  = t + t + 'break;  /* Only reach here if __ONEWAY_RPC__ */' + n
       s += t + '}' + n
-      s += t + 'fprintf(stderr, "REQ: GIVING UP (ONEWAY_RPC or ' + str(num_tries) + ' tries) on ReqId=%d \\n", ' + cc_get_seq_req() + ');' + n
+      if DB[2]: s += t + 'fprintf(stderr, "REQ: GIVING UP (ONEWAY_RPC or ' + str(num_tries) + ' tries) on ReqId=%d \\n", ' + cc_get_seq_req() + ');' + n
       s += t + 'return 0;' + n        # ONEWAY_RPC or Fail
       s += '}' + n + n
       return s
@@ -567,10 +569,8 @@ class GEDLProcessor:
         for q in fd['params']:
           if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
             s += t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_ptr->' + q['name'] + '[i] = '
-            # XXX Why '0'?
-            if fill:  s +=  q['name']
-            else:     s += '0'
-            s += '[i];' + n
+            if fill:  s +=  q['name'] + '[i];' + n
+            else:     s += '0;' + n    # do not pass parameters in RPC if sync packet
           else:
             s += t + t + 'req_ptr->' + q['name'] + ' = ' + q['name'] + ';' + n
       s += t + t + cc_get_seq_req() + ' = req_counter;' + n
@@ -599,7 +599,6 @@ class GEDLProcessor:
       s = ''
       s += t*tc + 'if (status == 1) req_counter = 1 + (' + cc_get_seq_res() + ');' + n
       s += t*tc + 'else req_counter++;' + n
-      #if DZ:
       s += t*tc + 'fprintf(stderr, "SYNC Req SN=%d\\n", req_counter);' + n
       return s
     # Send sync only once
@@ -636,9 +635,9 @@ class GEDLProcessor:
       
     def cc_read_res_packet():
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
-      s  = t + 'result = ' + cc_get_ret_res() + ';' + n
-      if DY: s += t + 'fprintf(stderr, "REQ Result=%f>\\n", result)' + ';' + n   # XXX Assumes output is a double
-      s += '#ifndef __ONEWAY_RPC__' + n
+      s  = '#ifndef __ONEWAY_RPC__' + n
+      s += t + 'result = ' + cc_get_ret_res() + ';' + n
+      if DB[1]: s += t + 'fprintf(stderr, "REQ Result=%f\\n", result)' + ';' + n   # XXX Assumes output is a double
       s += t + 'return (result);' + n   # ARQ mod: Use result from above
       s += '#else' + n
       s += t + 'return 0;' + n
@@ -649,7 +648,7 @@ class GEDLProcessor:
       s  = t + 'n_tag->mux = req_ptr->mux;' + n
       s += t + 'n_tag->sec = req_ptr->sec;' + n
       s += t + 'n_tag->typ = req_ptr->typ;' + n
-      if DZ: s += t + 'fprintf(stderr, "RES read nextrpc n_tag = <%u, %u, %u>,\\n", n_tag->mux, n_tag->sec, n_tag->typ);' + n
+      if DB[0]: s += t + 'fprintf(stderr, "RES read nextrpc n_tag = <%u, %u, %u>,\\n", n_tag->mux, n_tag->sec, n_tag->typ);' + n
       s += t + '// XXX: check that we got valid SN?' + n
       return s
 
@@ -663,7 +662,7 @@ class GEDLProcessor:
       s += cc_create_nxt_packet()
       s += cc_sync()
       s += cc_create_nxt_packet()
-      if DY: s += t + 'fprintf(stderr, "REQ: nxt tag=<%d, %d, %d>\\n", req_ptr->mux, req_ptr->sec, req_ptr->typ)' + ';' + n
+      if DB[1]: s += t + 'fprintf(stderr, "REQ: nxt tag=<%d, %d, %d>\\n", req_ptr->mux, req_ptr->sec, req_ptr->typ)' + ';' + n
       s += cc_data()
       s += '}' + n + n
       return s
@@ -684,7 +683,7 @@ class GEDLProcessor:
       s += cc_xdc_open('o_tag', True)
       
       if ipc == "Singlethreaded":
-        if DY: s += t + 'fprintf(stderr, "REQ: for Singlethreaded RES using nxt tag=<%d, %d, %d>\\n", t_tag.mux, t_tag.sec, t_tag.typ)' + ';' + n
+        if DB[1]: s += t + 'fprintf(stderr, "REQ: for Singlethreaded RES using nxt tag=<%d, %d, %d>\\n", t_tag.mux, t_tag.sec, t_tag.typ)' + ';' + n
         s += t + '_notify_next_tag(&t_tag, error);' + n
       s += cc_create_req_packet(False)
       s += cc_sync()
@@ -717,7 +716,7 @@ class GEDLProcessor:
       s = ''
       s += t + 'int error = 1;' + n
       s += t + 'while (error == 1) {'    # only return when a new request (error == 0)
-      if DZ: s += t + t + 'fprintf(stderr, "RES ' + f + ' Waiting for request on t_tag (send respose on o_tag)\\n");' + n
+      if DB[0]: s += t + t + 'fprintf(stderr, "RES ' + f + ' Waiting for request on t_tag (send respose on o_tag)\\n");' + n
       s += t + t + pfx + 'xdc_blocking_recv(ssocket, req_ptr, &t_tag' + sfx + ');' + n
       s += t + t + 'int req_counter =' + cc_get_seq_req() + ';' + n
       s += cc_rep_check_seq_nums(notSpecial)
@@ -728,7 +727,7 @@ class GEDLProcessor:
       s += t + t + 'rep_counter = req_counter;' + n
       s += '#endif /* __ONEWAY_RPC__ */' + n
       # (Min=%d Max=%d), INT_MIN, rep_counter
-      if DX:
+      if DB[2]:
         s += t + t + 'fprintf(stderr, "RES ' + f + ': ReqId=%d ResId=%d err=%d (seq=0x%x) Return=%f ", req_counter, rep_counter, error, last_processed_error, last_processed_result);' + n
         s += tagsPrint(False)
       s += t + '}' + n
@@ -784,7 +783,7 @@ class GEDLProcessor:
 
       s += 'int _slave_rpc_loop() {' + n
       s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n
-      if DY: s += t + 'fprintf(stderr, "RES: Adds %d Threads\\n", NXDRPC);' + n
+      if DB[1]: s += t + 'fprintf(stderr, "RES: Adds %d Threads\\n", NXDRPC);' + n
       if ipc == "Multithreaded":
         # A) Start thread per app function handler (inCall)
         s += t + 'pthread_t tid[NXDRPC];' + n
@@ -803,7 +802,7 @@ class GEDLProcessor:
         # Singlethread slave msin loop
         s += t + 'while (1) {' + n
         s += t + t + '_handle_nextrpc(&n_tag);' + n
-        if DY: s += t + 'fprintf(stderr, "Singlethread slave main loop gets n_tag <%u, %u, %u>\\n", n_tag.mux, n_tag.sec, n_tag.typ);' + n
+        if DB[1]: s += t + 'fprintf(stderr, "Singlethread slave main loop gets n_tag <%u, %u, %u>\\n", n_tag.mux, n_tag.sec, n_tag.typ);' + n
         for (x,y,f,fd) in self.sInCalls(e):
           s += tag_write_direct(x,y,f,True)
           s += t + t + 'if(TAG_MATCH(n_tag, t_tag)) { continue; }' + n
@@ -823,7 +822,7 @@ class GEDLProcessor:
     ##############################################################################################################
     # C8) REQ/REP: Create RPC C source code as string (to be writen to a file: e.g. file=purple/purple_rpc.c)
     ##############################################################################################################
-    s = boiler() + xdclib() + halinit(e, ipc)
+    s = boiler() + xdclib() + halinit(e, ipc, verbose)
     if ipc == "Singlethreaded":
       for (x,y,f,fd) in self.sInCalls(e):
         s += handlernextrpc(x,y,f,fd)
@@ -916,10 +915,11 @@ def main():
     print('Generating RPC Header for:', e)
     with open(args.odir + '/' + e + '/' + e + '_rpc.h', 'w') as rh: rh.write(gp.genrpcH(e, args.inuri, args.outuri, args.ipc))
     print('Generating RPC Code for:', e)
-    with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc))
+    with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc, args.verbose))
   print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
-#  for e in args.enclave_list: gp.constPrint(e)
+  if args.verbose:
+    for e in args.enclave_list: gp.constPrint(e)
 
 if __name__ == '__main__':
   main()
