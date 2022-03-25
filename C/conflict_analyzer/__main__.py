@@ -7,8 +7,9 @@ from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
 from conflict_analyzer.minizinc import minizinc
-from preprocessor.__main__ import LabelledCleJson, Transform
-import preprocessor.__main__ as preprocessor
+from preprocessor.__main__ import validate_with_schema
+from preprocessor.preprocessor import LabelDefinition, Transform
+import preprocessor.preprocessor as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
 from conflict_analyzer.exceptions import SourcedException, Source
 import tempfile
@@ -28,29 +29,27 @@ class Args:
     zmq: Optional[str]
     constraint_files: List[Path]
     log_level: str 
-
-def preprocess(source: Path, clang_args: List[str], schema: Optional[Any], logger: Logger) -> Transform:
-    toks = preprocessor.cindex_tokenizer(source, clang_args)
-    tree = preprocessor.cle_parser().parser.parse(toks)
-    tree = preprocessor.CLETransformer().transform(tree)
-    with open(source) as source_f:
-        transform = preprocessor.source_transform(source, source_f.read(), tree, 'naive', schema, logger)
+ 
+def preprocess(source_path: Path, schema: Optional[Any]) -> Transform:
+    with open(source_path) as f:
+        source = f.read() 
+    transform = preprocessor.preprocess(source, 'naive', validate_with_schema(schema))
     return transform
 
 @dataclass
 class SourceEntity:
     source_path: Path
     preprocessed: str
-    cle_json: List[LabelledCleJson]
+    cle_json: List[LabelDefinition]
     source_map: Dict[int, int]
 
-def collate_json(entities: List[SourceEntity]) -> List[LabelledCleJson]: 
+def collate_json(entities: List[SourceEntity]) -> List[LabelDefinition]: 
     collated = {}
     for entity in entities:
         for obj in entity.cle_json:
-            if obj['cle-label'] in collated:
-                raise SourcedException(f"Label {obj['cle-label']} is defined twice", [Source(entity.source_path, None)])
-            collated[obj['cle-label']] = obj
+            if obj.name in collated:
+                raise SourcedException(f"Label {obj.name} is defined twice", [Source(entity.source_path, None)])
+            collated[obj.name] = obj
     return list(collated.values())
 
 def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tuple[str, int], Tuple[str, int]]:
@@ -80,7 +79,7 @@ def start(args: Type[Args], logger: Logger) -> Optional[Dict[str, Any]]:
         logger.info("No schema provided, using liberal mode in preprocessor") 
 
     def make_source_entity(source: Path) -> SourceEntity:
-        transform = preprocess(source, clang_args, schema, logger)
+        transform = preprocess(source, schema)
         logger.info("Preprocessed source file %s", source)
         return SourceEntity(source, transform.preprocessed, transform.cle_json, transform.source_map) 
 

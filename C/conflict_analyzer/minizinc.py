@@ -54,12 +54,27 @@ def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_insta
     else:
         return parse_assignment(mzn_out.stdout, pdg_csv, logger, source_path, source_map)
 
-        
+SourceMap = Dict[Tuple[str, int], Tuple[str, int]]
+PathSourceMap = Dict[Tuple[Path, int], Tuple[Path, int]]
+
+def canonicalize_source_map(source_map: SourceMap) -> PathSourceMap:
+    return { 
+        (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) 
+        for ((kpath, kline), (vpath, vline)) in source_map.items() 
+    }
+
+def lookup(source_map: PathSourceMap, path: Path, line: int) -> Optional[Tuple[Path, int]]:
+    return source_map[(path.resolve(), line)] if (path, line) in source_map else None
+
+def lookup_with_default(source_map: PathSourceMap, path: Path, line: int) -> Tuple[Path, int]:
+    result = lookup(source_map, path, line) 
+    return (path, line) if result is None else result
 
 def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_path: Path, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
     pdg_csv = list(pdg_csv)
+    source_map_resolved = {}
     if source_map:
-        source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
+        source_map_resolved = canonicalize_source_map(source_map)
     function_entries : List[Dict[str, str]] = []
     global_var_entries : List[Dict[str, str]] = []
     enclaves : Set[str] = set() 
@@ -82,7 +97,7 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
         name = match.group(1)
         enclaves.add(enclave)
         levels.add(level)
-        source, line_no = source_map_resolved[(Path(source).resolve(), line_no)] if source_map else (source, line_no)
+        source, line_no = lookup_with_default(source_map_resolved, Path(source), line_no) 
         entries.append({ "name": name, "enclave": enclave, "level": level, "line": str(line_no) })
         logger.info(f"{entry_type} {name} is in {enclave}{'' if not source else f' @ {source}:{str(line_no)}'}")
     
@@ -106,6 +121,7 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
 def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
     pdg_csv = list(pdg_csv)
 
+    source_map_resolved = {}
     if source_map:
         source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
 
@@ -140,9 +156,9 @@ def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map
                 (_, source, _, line) = nodes[node_num - 1] 
                 line_no = int(line)
                 if line_no > 0:
-                    source, line_no = source_map[(source, line_no)] if source_map else (source, line_no)
+                    source, line_no = lookup_with_default(source_map_resolved, Path(source), line_no) 
                 else:
-                    source, _ = source_map[(source, 1)] if source_map else (source, -1)
+                    source, _ = lookup_with_default(source_map_resolved, Path(source), line_no) 
                     line_no = -1 
                 conflicts.append({
                     "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
@@ -167,8 +183,8 @@ def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map
                 (_, first_source, _, first_line), (_, second_source, _, second_line) = nodes[first - 1], nodes[second - 1]
                 first_line_no = int(first_line)
                 second_line_no = int(second_line)
-                first_source, first_line_no = source_map_resolved[(Path(first_source).resolve(), first_line_no)] if source_map else (first_source, first_line_no)
-                second_source, second_line_no = source_map_resolved[(Path(second_source).resolve(), second_line_no)] if source_map else (second_source, second_line_no)
+                first_source, first_line_no = lookup_with_default(source_map_resolved, Path(first_source), first_line_no)
+                second_source, second_line_no = lookup_with_default(source_map_resolved, Path(second_source), second_line_no) 
                 conflicts.append({
                     "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
                     "description": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
