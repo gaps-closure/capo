@@ -9,6 +9,8 @@ import os.path
 from collections import defaultdict
 from typing import Any, Dict, List
 from logging import Logger
+import logging
+import csv
 
 from preprocessor.__main__ import LabelledCleJson
 
@@ -73,6 +75,19 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
     arrays["isOneway"].append("false")
     arrays["hasARCtaints"] = []
     noneCount +=1
+
+    labelList = []
+    for entry in cleJson:
+      labelList.append(entry["cle-label"])
+    
+    #group function annotations
+    cleJson2 = cleJson[:]
+    for entry in cleJson:
+        # print("Updating Order")
+        if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
+            print("Updating Order")
+            cleJson2.insert(0,cleJson2.pop(cleJson.index(entry)))
+    cleJson = cleJson2
     
     maxCDFIdx = 0
     maxArgIdx = 0
@@ -174,14 +189,14 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
 
                 if "rettaints" in cdf.keys():
                     for label in cdf['rettaints']:
-                        if label not in enums["cleLabel"]:
+                        if label not in enums["cleLabel"] and not label in labelList:
                             enums["cleLabel"].append(label)
                             arrays['hasLabelLevel'].append("nullLevel") 
                             arrays['isFunctionAnnotation'].append("false")
                             arrays["cdfForRemoteLevel"].append(nullLevel)
                 if "codtaints" in cdf.keys():
                     for label in cdf['codtaints']:
-                        if label not in enums["cleLabel"]:
+                        if label not in enums["cleLabel"] and not label in labelList:
                             enums["cleLabel"].append(label)
                             arrays['hasLabelLevel'].append("nullLevel") 
                             arrays['isFunctionAnnotation'].append("false")
@@ -189,7 +204,7 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
                 if "argtaints" in cdf.keys():
                     for param in cdf['argtaints']:
                         for label in param:
-                            if label not in enums["cleLabel"]:
+                            if label not in enums["cleLabel"] and not label in labelList:
                                 enums["cleLabel"].append(label)
                                 arrays['hasLabelLevel'].append("nullLevel") 
                                 arrays['isFunctionAnnotation'].append("false")
@@ -596,16 +611,31 @@ def get_args():
 
 
 def main():
-  args   = get_args()
-  
+    args   = get_args()
+    logger = logging.getLogger()
+    handler = logging.StreamHandler(sys.stderr)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+    with open('tests/example/orange/tmp/pdg_instance.mzn') as pdg_f:
+        pdg_instance = pdg_f.read()
+    with open('tests/example/orange/tmp/functionArgs.txt') as fn_args_f:
+        function_args = fn_args_f.read()
+    with open('tests/example/orange/tmp/pdg_data.csv') as pdg_f:
+        pdg_data = list(csv.reader(
+            pdg_f, quotechar='"', skipinitialspace=True))
+    try:
+        with open('tests/example/orange/tmp/oneway.txt') as one_way_f:
+            one_way = one_way_f.read()
+    except:
+        one_way = ""
 #   print(args.file)
-  f = open(args.file,"r")
-  cle_json=json.load(f)
-  src = compute_zinc(cle_json)
-  with open("cle_instance.mzn", "w") as cle_f:
-    cle_f.write(src.cle_instance)
-  with open("enclave_instance.mzn", "w") as enclave_f:
-    enclave_f.write(src.enclave_instance)
+    f = open(args.file,"r")
+    cle_json=json.load(f)
+    src = compute_zinc(cle_json,function_args,pdg_instance,one_way,logger)
+    with open("cle_instance.mzn", "w") as cle_f:
+        cle_f.write(src.cle_instance)
+    with open("enclave_instance.mzn", "w") as enclave_f:
+        enclave_f.write(src.enclave_instance)
 
 
 if __name__ == '__main__':
