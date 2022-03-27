@@ -41,7 +41,7 @@ def gotMain(fn): # XXX: will fail on #ifdef'd out main, consider using clang.cin
 class GEDLProcessor:
   def __init__(self, gedlfile, enclaveList, muxbase, secbase, typbase, schemafile, subfuncs):
     with open(gedlfile) as edl_file: self.gedl = json.load(edl_file)['gedl']
-    self.xdcalls     = [c['func'] for x in self.gedl for c in x['calls']]   # special call instances and types
+    self.xdcalls     = [c['func'] for x in self.gedl for c in x['calls']]   # RPC call instances
     self.spcalls     = [sFuncg(x) for x in self.gedl]                       # special call instances
     self.sptypes     = ['nextrpc', 'okay']                                  # Special call types (outbound, inbound)
     self.muxbase     = muxbase                                              # CLOSURE Tag index offsets
@@ -56,6 +56,7 @@ class GEDLProcessor:
     self.masters     = []
     self.affected    = {}
     self.schemafile  = schemafile
+# Get ARQ Params per function...    self.clelabels   = {c['func'] : c['clelabel'] for x in self.gedl for c in x['calls']}
     # Check for errors
     y = [x for x in self.gedl if x['caller'] not in enclaveList or x['callee'] not in enclaveList]
     if len(y) > 0: raise Exception('Enclaves referenced in GEDL not in provided enclave list: ' + ','.join(y))
@@ -83,8 +84,8 @@ class GEDLProcessor:
   # Call assigment (caller, callee, func, direction) dictionary
   def const(self, caller, callee, func, outgoing=True):
     if func in self.spcalls:
-      dni = sFunc(caller, callee)
-      dnm = (self.sptypes[0]).upper() if outgoing else (self.sptypes[1]).upper()
+      dni =  self.sptypes[0] + '_' + func if outgoing else  self.sptypes[1] + '_' + func
+      dnm = (self.sptypes[0]).upper()     if outgoing else (self.sptypes[1]).upper()
     else:
       dni = 'request_' + func if outgoing else 'response_' + func
       dnm = dni.upper()
@@ -114,7 +115,7 @@ class GEDLProcessor:
   def genXDConf(self, inu, outu):
     def amap(caller,callee,func,o):
       y = self.const(caller,callee,func,o)
-      return {'from':y['from'],'to':y['to'],'mux':y['mux']+self.muxbase,'sec':y['sec']+self.secbase,'typ':y['typ']+self.typbase,'name':y['dnm']}
+      return {'from':y['from'],'to':y['to'],'mux':y['mux']+self.muxbase,'sec':y['sec']+self.secbase,'typ':y['typ']+self.typbase,'name':y['dni']}
     def getmaps(e): 
       m = []
       for (x,y,f,fd) in self.allCalls(e):
@@ -944,9 +945,8 @@ def main():
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
   if args.verbose:
     for e in args.enclave_list: gp.constPrint(e)
-    
 #  for e in args.enclave_list: gp.constPrint(e)
 #  xyz
-  
+
 if __name__ == '__main__':
   main()
