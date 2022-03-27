@@ -571,6 +571,19 @@ class GEDLProcessor:
         s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
 
+    def cc_rpc_params(pfx=''):
+      s  = '(psocket, ssocket, t_tag, o_tag, '
+      if pfx == 'my_':  s += 'ctx, mycmap, '
+      s += 'req_ptr, res_ptr);' + n
+      return s
+    def cc_call_req_subfunctions(req_type, tc=1, pfx='', sfx=''):
+      if self.subfuncs:
+        s  = t*tc + 'status = ' + pfx + 'rpc_' + f + req_type
+        s += cc_rpc_params(pfx)
+      else:
+        s  = cc_req_send_reliably(pfx, sfx)
+      return s
+        
     ##############################################################################################################
     # C6 REQ: Creates and reads SYNC and DATA packets (in req_ptr/res_ptr struct)
     ##############################################################################################################
@@ -595,12 +608,6 @@ class GEDLProcessor:
       s += t + 'req_ptr->typ = n_tag->typ;' + n
       s += t + cc_get_seq_req() + ' = req_counter;' + n
       return s
-
-    def cc_rpc_params(pfx=''):
-      s  = '(psocket, ssocket, t_tag, o_tag, '
-      if pfx == 'my_':  s += 'ctx, mycmap, '
-      s += 'req_ptr, res_ptr);' + n
-      return s
       
     def cc_status_check(tc):
       s  = t*tc + 'if(status <= 0) {' + n
@@ -620,11 +627,7 @@ class GEDLProcessor:
     def cc_sync_once(pfx='', sfx=''):
       s  = t + 'if (inited < 2) {' + n
       s += t + t + 'inited = 2;' + n
-      if self.subfuncs:
-        s += t + t + 'status = ' + pfx + 'rpc_' + f + '_req_sync'
-        s += cc_rpc_params(pfx)
-      else:
-        s += cc_req_send_reliably(pfx, sfx)
+      s += cc_call_req_subfunctions('_req_sync', 2, pfx, sfx)
       s += cc_status_check(2)
       s += cc_modify_req_counter(2)
       s += t + '};' + n
@@ -639,21 +642,13 @@ class GEDLProcessor:
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
       
-    def cc_data() :
+    def cc_data():
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      if self.subfuncs:
-        s += t + 'status = my_rpc_' + f + '_remote_call'
-        s += cc_rpc_params('my_')
-      else:
-        s += cc_req_send_reliably('my_', ' , mycmap')
+      s += cc_call_req_subfunctions('_remote_call', 1, 'my_', ' , mycmap')
       s += cc_status_check(1)
       s += cc_sockets_close()
       s += '#else' + n
-      if self.subfuncs:
-        s += t + 'status = rpc_' + f + '_remote_call'
-        s += cc_rpc_params()
-      else:
-        s += cc_req_send_reliably()
+      s += cc_call_req_subfunctions('_remote_call')
       s += cc_status_check(1)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'req_counter++;' + n
