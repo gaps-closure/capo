@@ -350,7 +350,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C2) REQ/REP CLOSURE API Initialization (register encode and decode functios)
+    # C2) REQ/RES CLOSURE API Initialization (register encode and decode functios)
     ##############################################################################################################
     # Register XDC encode and decode functions (e.g. for get_a) with HAL API (legacy and non-legacy)
     def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''):
@@ -427,7 +427,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C3) REQ/REP: Define C code variables
+    # C3) REQ/RES: Define C code variables
     ##############################################################################################################
     def tagsPrint(ptr=False):
       z = '->' if ptr else '.'
@@ -506,8 +506,11 @@ class GEDLProcessor:
     ##############################################################################################################
     # C4) REQ: Send RPC Request and wait for Responnse (with ARQ): a) SYNC (get SN), b) DATA (RPC params and result)
     ##############################################################################################################
+    def cc_call_type_and_name(outbound):
+      l  = self.const(x,y,f,outbound)
+      return l['dnm'][0:4] + ' ' + f + ': '
     def cc_req_print():
-      s  = t + t + 'fprintf(stderr, "REQ ' + f + ': ReqId=%d status=%d tries=%d ", ' + cc_get_seq_req() + ', status, tries_remaining);' + n
+      s  = t + t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'ReqId=%d status=%d tries=%d ", ' + cc_get_seq_req() + ', status, tries_remaining);' + n
       s += t + t + 'if (status >= 0) fprintf(stderr, "ResId=%d Reserr=%d ", ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ');' + n
       s += tagsPrint()
       return s
@@ -517,14 +520,14 @@ class GEDLProcessor:
       s  = t + t + 'break;  /* Reach here if __ONEWAY_RPC__ */' + n
       s += t + '}' + n
       if DB[1]:
-        s += t + 'if (status <= 0) fprintf(stderr, "REQ: GIVING UP or ONEWAY_RPC");' + n
+        s += t + 'if (status <= 0) fprintf(stderr, "' + cc_call_type_and_name(True) + 'GIVING UP or ONEWAY_RPC");' + n
         s += t + 'else fprintf(stderr, "RPC Succeeded");' + n
         s += t + 'fprintf(stderr, " on ReqId=%d (Status = %d)\\n", ' + cc_get_seq_req() + ', status);' + n
       return s
     # Get response and resend request (continue) if xdc_recv timeout (status == -1)
     def cc_req_recv_response(pfx='', sfx='') :
       s  = ''
-      if DB[1]: s += t + t + 'fprintf(stderr, "REQ ' + f + ' Sent request on t_tag (waiting for response on o_tag)\\n");' + n
+      if DB[1]: s += t + t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'Sent request on t_tag (waiting for response on o_tag)\\n");' + n
       s += t + t + 'status = ' + pfx + 'xdc_recv(ssocket, res_ptr, &o_tag' + sfx +');' + n
       if DB[2]: s += cc_req_print()
       s += t + t + 'if(status == -1){' + n
@@ -658,7 +661,7 @@ class GEDLProcessor:
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
       s  = '#ifndef __ONEWAY_RPC__' + n
       s += t + 'result = ' + cc_get_ret_res() + ';' + n
-      if DB[1]: s += t + 'fprintf(stderr, "REQ Result=%f\\n", result)' + ';' + n   # XXX Assumes output is a double
+      if DB[1]: s += t + 'fprintf(stderr, "Result=%f\\n", result)' + ';' + n   # XXX Assumes output is a double
       s += t + 'return (result);' + n   # ARQ mod: Use result from above
       s += '#else' + n
       s += t + 'return 0;' + n
@@ -669,7 +672,7 @@ class GEDLProcessor:
       s  = t + 'n_tag->mux = req_ptr->mux;' + n
       s += t + 'n_tag->sec = req_ptr->sec;' + n
       s += t + 'n_tag->typ = req_ptr->typ;' + n
-      if DB[0]: s += t + 'fprintf(stderr, "RES read nextrpc n_tag = <%u, %u, %u>,\\n", n_tag->mux, n_tag->sec, n_tag->typ);' + n
+      if DB[0]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'read nextrpc n_tag = <%u, %u, %u>,\\n", n_tag->mux, n_tag->sec, n_tag->typ);' + n
       s += t + '// XXX: check that we got valid SN?' + n
       return s
 
@@ -683,7 +686,7 @@ class GEDLProcessor:
       s += cc_create_nxt_packet()
       s += cc_sync()
       s += cc_create_nxt_packet()
-      if DB[1]: s += t + 'fprintf(stderr, "REQ: nxt tag=<%d, %d, %d>\\n", req_ptr->mux, req_ptr->sec, req_ptr->typ)' + ';' + n
+      if DB[1]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'nxt tag=<%d, %d, %d>\\n", req_ptr->mux, req_ptr->sec, req_ptr->typ)' + ';' + n
       s += cc_data()
       s += '}' + n + n
       return s
@@ -704,7 +707,7 @@ class GEDLProcessor:
       s += cc_xdc_open('o_tag', True)
       
       if ipc == "Singlethreaded":
-        if DB[1]: s += t + 'fprintf(stderr, "REQ: for Singlethreaded RES using nxt tag=<%d, %d, %d>\\n", t_tag.mux, t_tag.sec, t_tag.typ)' + ';' + n
+        if DB[1]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'Singlethreaded nxt tag=<%d, %d, %d>\\n", t_tag.mux, t_tag.sec, t_tag.typ)' + ';' + n
         s += t + '_notify_next_tag(&t_tag, error);' + n
       s += cc_create_req_packet(False)
       s += cc_sync()
@@ -715,49 +718,51 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C7) REP: handlers waits for RPC request and sends RPC Responnse
+    # C7) RES: handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
+    def cc_res_print():
+      s  = t + t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'ReqId=%d ResId=%d err=%d (seq=0x%x) Return=%f ", req_counter, res_counter, error, last_processed_error, last_processed_result);' + n
+      s += tagsPrint()
+      return s
+
     # Call local function - XXX: marshaller needs to copy output arguments (including arrays) to res here !!
-    def cc_rep_get_result_from_local_app():
+    def cc_res_get_result_from_local_app():
       s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_ptr->' + q['name'] for q in fd['params']]) + ');' + n
       s += t + t + t + cc_get_ret_res() + ' = last_processed_result;' + n
       return s
     # Call Application if new request, storing result in last_processed_result (and set error=0)
-    def cc_rep_check_seq_nums(notSpecial):
-      s  = t + t + 'if(req_counter > rep_counter){' + n
+    def cc_res_check_seq_nums(notSpecial):
+      s  = t + t + 'if(req_counter > res_counter){' + n
       s += t + t + t + 'error = 0;' + n
-      s += t + t + t + 'rep_counter = req_counter;' + n
-      if notSpecial: s += cc_rep_get_result_from_local_app()
+      s += t + t + t + 'res_counter = req_counter;' + n
+      if notSpecial: s += cc_res_get_result_from_local_app()
       s += t + t + t + 'last_processed_error = error;' + n
       s += t + t + '}' + n
       return s
         
     # Reply to any app function request. Return last_processed_result
-    def cc_rep_wait_for_request(pfx='', sfx='', notSpecial=True) :
+    def cc_res_wait_for_request(pfx='', sfx='', notSpecial=True) :
       s = ''
       s += t + 'int error = 1;' + n
       s += t + 'while (error == 1) {'    # only return when a new request (error == 0)
-      if DB[0]: s += t + t + 'fprintf(stderr, "RES ' + f + ' Waiting for request on t_tag (send response on o_tag)\\n");' + n
+      if DB[0]: s += t + t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'Waiting for request on t_tag (send response on o_tag)\\n");' + n
       s += t + t + pfx + 'xdc_blocking_recv(ssocket, req_ptr, &t_tag' + sfx + ');' + n
       s += t + t + 'int req_counter =' + cc_get_seq_req() + ';' + n
-      s += cc_rep_check_seq_nums(notSpecial)
+      s += cc_res_check_seq_nums(notSpecial)
       s += '#ifndef __ONEWAY_RPC__' + n
-      s += t + t + cc_set_seq_res() + ' = rep_counter << 2 | last_processed_error << 1;' + n
+      s += t + t + cc_set_seq_res() + ' = res_counter << 2 | last_processed_error << 1;' + n
       s += t + t + pfx + 'xdc_asyn_send(psocket, res_ptr, &o_tag' + sfx + ');' + n
       s += '#else /* __ONEWAY_RPC__ */' + n
-      s += t + t + 'rep_counter = req_counter;' + n
+      s += t + t + 'res_counter = req_counter;' + n
       s += '#endif /* __ONEWAY_RPC__ */' + n
-      # (Min=%d Max=%d), INT_MIN, rep_counter
-      if DB[2]:
-        s += t + t + 'fprintf(stderr, "RES ' + f + ': ReqId=%d ResId=%d err=%d (seq=0x%x) Return=%f ", req_counter, rep_counter, error, last_processed_error, last_processed_result);' + n
-        s += tagsPrint()
+      if DB[2]: s += cc_res_print()
       s += t + '}' + n
       return s
       
     # Listens for any Special (NEXTRPC/OKAY) packets
     def handlernextrpc(x,y,f,fd):
       s  = 'void _handle_nextrpc(gaps_tag* n_tag) {' + n
-      s += cc_define_vars('rep_counter', '0')
+      s += cc_define_vars('res_counter', '0')
       s += cc_define_req_res()
       s += cc_define_my_cmap()
 #     Subscribe to any packet
@@ -767,10 +772,10 @@ class GEDLProcessor:
 
       s += cc_xdc_open('t_tag', False)
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_rep_wait_for_request('my_', ', mycmap', False)
+      s += cc_res_wait_for_request('my_', ', mycmap', False)
       s += cc_sockets_close()
       s += '#else' + n
-      s += cc_rep_wait_for_request('', '', False)
+      s += cc_res_wait_for_request('', '', False)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += cc_read_nxt_packet()
       s += '}' + n + n
@@ -778,21 +783,21 @@ class GEDLProcessor:
     # Listen for RPC Requests
     def handlerdef(x,y,f,fd,ipc):
       s  = 'void _handle_request_' + f + '() {' + n
-      s += cc_define_vars('rep_counter', '0')
+      s += cc_define_vars('res_counter', '0')
       s += cc_define_req_res()
       s += cc_define_my_cmap()
       s += cc_xdc_open('t_tag', False)
       s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_rep_wait_for_request('my_', ', mycmap')
+      s += cc_res_wait_for_request('my_', ', mycmap')
       s += cc_sockets_close()
       s += '#else' + n
-      s += cc_rep_wait_for_request()
+      s += cc_res_wait_for_request()
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += '}' + n + n
       return s
       
     ##############################################################################################################
-    # C8) REQ/REP: Slave starts thread per app function handler and Master waits for APP function calls)
+    # C8) REQ/RES: Slave starts thread per app function handler and Master waits for APP function calls)
     ##############################################################################################################
     def slavedispatch(e,ipc):
       s = ''
@@ -804,7 +809,7 @@ class GEDLProcessor:
 
       s += 'int _slave_rpc_loop() {' + n
       s += t + '_hal_init((char *)INURI, (char *)OUTURI);' + n
-      if DB[1]: s += t + 'fprintf(stderr, "RES: Adds %d Threads\\n", NXDRPC);' + n
+      if DB[1]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'Adds %d Threads\\n", NXDRPC);' + n
       if ipc == "Multithreaded":
         # A) Start thread per app function handler (inCall)
         s += t + 'pthread_t tid[NXDRPC];' + n
@@ -841,7 +846,7 @@ class GEDLProcessor:
       return 'void _master_rpc_init() {' + n + t + '_hal_init((char*)INURI, (char *)OUTURI);' +n + '}' + n + n
 
     ##############################################################################################################
-    # C9) REQ/REP: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
+    # C9) REQ/RES: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
     ##############################################################################################################
     s = boiler() + xdclib() + halinit(e, ipc, verbose)
     if ipc == "Singlethreaded":
@@ -940,8 +945,8 @@ def main():
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
   if args.verbose:
     for e in args.enclave_list: gp.constPrint(e)
-#  for e in args.enclave_list: gp.constPrint(e)
-#  xyz
+  #for e in args.enclave_list: gp.constPrint(e)
+  #xyz
 
 if __name__ == '__main__':
   main()
