@@ -435,19 +435,19 @@ class GEDLProcessor:
       s += t*tc + t + 'fprintf(stderr, "o_tag=<%02u, %02u, %02u>\\n", o_tag' + z + 'mux, o_tag' + z + 'sec, o_tag' + z + 'typ);' + n
       return s
     # Write request (t_tag) and response (o_tag) tags using const dictionary
-    def cc_tags_write_uni(x,y,f, outbound=True):
+    def cc_tags_write_uni(x,y,f, outbound=True, tc=1):
       l  = self.const(x,y,f,outbound)
       tag = 't_tag' if outbound else 'o_tag'
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'my_tag_write(&' + tag + ', ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += t*tc + 'my_tag_write(&' + tag + ', ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#else' + n
-      s += t +    'tag_write(&' + tag + ', ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
+      s += t*tc +    'tag_write(&' + tag + ', ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
-    def cc_tags_write_bi(x,y,f) :
+    def cc_tags_write_bi(x,y,f,tc) :
       s  = ''
       for o in [True, False]:
-        s += cc_tags_write_uni(x,y,f,o)
+        s += cc_tags_write_uni(x,y,f,o,tc)
       return s;
     def cc_define_vars(counter_name, initial_count_as_a_string) :
       s  = t + 'gaps_tag t_tag;' + n
@@ -489,19 +489,19 @@ class GEDLProcessor:
         s += t + '#pragma cle begin ' + l['clelabl'] + n
         s += t + pkt_type(o) + ' ' + pkt_name(o) + ';' + n
         s += t + '#pragma cle end ' + l['clelabl'] + n
-        ptr = 'req_ptr' if o else 'res_ptr'
-        s += t + pkt_type(o) + ' *' + ptr + ' = &' + pkt_name(o) + ';' + n
+#        ptr = 'req_ptr' if o else 'res_ptr'
+#        s += t + pkt_type(o) + ' *' + ptr + ' = &' + pkt_name(o) + ';' + n
       return s;
 
-    def cc_get_seq_req():  return  'req_ptr->trailer.seq'
-    def cc_get_seq_res():  return  'res_ptr->trailer.seq >> 2'
-    def cc_set_seq_res():  return  'res_ptr->trailer.seq'
-    def cc_get_err_res():  return '(res_ptr->trailer.seq >> 1) & 0x01'
-    def cc_get_ret_res():  return  'res_ptr->ret'
+    def cc_get_seq_req():  return  pkt_name(True)  + '.trailer.seq'
+    def cc_get_seq_res():  return  pkt_name(False) + '.trailer.seq >> 2'
+    def cc_set_seq_res():  return  pkt_name(False) + '.trailer.seq'
+    def cc_get_err_res():  return  '(' + pkt_name(False) + '.trailer.seq >> 1) & 0x01'
+    def cc_get_ret_res():  return  pkt_name(False) + '.ret'
   
     # Define result variable from an RPC call
     def cc_define_result():
-      return fd['return']['type'] + ' result;' + n
+      return t + fd['return']['type'] + ' result;' + n
     
     ##############################################################################################################
     # C4) REQ: Send RPC Request and wait for Responnse (with ARQ): a) SYNC (get SN), b) DATA (RPC params and result)
@@ -527,7 +527,7 @@ class GEDLProcessor:
     def cc_req_recv_response(tc=1, pfx='', sfx='') :
       s  = ''
       if DB[1]: s += t*tc + t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'Sent request on t_tag (waiting for response on o_tag)\\n");' + n
-      s += t*tc + t + '*error = ' + pfx + 'xdc_recv(ssocket, res_ptr, &o_tag' + sfx +');' + n
+      s += t*tc + t + '*error = ' + pfx + 'xdc_recv(ssocket, ' + pkt_name(False) + ', &o_tag' + sfx +');' + n
       if DB[2]: s += cc_req_print(tc)
       s += t*tc + t + 'if (*error == -1){' + n
       s += t*tc + t + t + 'tries_remaining--;' + n
@@ -538,7 +538,7 @@ class GEDLProcessor:
     def cc_req_send_reliably (tc=1, pfx='', sfx='') :
       s  = t*tc + 'int tries_remaining = ' + str(num_tries) + ';' + n
       s += t*tc + 'while(tries_remaining != 0){' + n
-      s += t*tc + t + pfx +'xdc_asyn_send(psocket, req_ptr, &t_tag' + sfx + ');' + n
+      s += t*tc + t + pfx +'xdc_asyn_send(psocket, &' + pkt_name(True) + ', &t_tag' + sfx + ');' + n
       s += '#ifndef __ONEWAY_RPC__' + n
       s += cc_req_recv_response(tc, pfx, sfx)
       s += '#endif /* __ONEWAY_RPC__ */' + n
@@ -552,8 +552,8 @@ class GEDLProcessor:
       s  = pfx + 'rpc_' + f + type         # Name of subfunction
       s += '(void* psocket, void* ssocket, gaps_tag t_tag, gaps_tag o_tag, '
       if pfx == 'my_':  s += 'void * ctx, codec_map *mycmap, '
-      s += pkt_type(True) + ' *req_ptr, ' + pkt_type(False) + ' *res_ptr'
-      s += ' ,error)' + '{' + n
+      s += pkt_type(True) + ' ' + pkt_name(True) + ', ' + pkt_type(False) + ' ' + pkt_name(False)
+      s += ', int *error)' + '{' + n
       s += cc_req_send_reliably (1, pfx, sfx)
       s += '}' + n + n
       return s
@@ -574,7 +574,7 @@ class GEDLProcessor:
     def cc_rpc_params(pfx=''):
       s  = '(psocket, ssocket, t_tag, o_tag, '
       if pfx == 'my_':  s += 'ctx, mycmap, '
-      s += 'req_ptr, res_ptr, error);' + n
+      s += pkt_name(True) + ', ' + pkt_name(False) + ', error);' + n
       return s
     def cc_call_req_subfunctions(req_type, tc=1, pfx='', sfx=''):
       if self.subfuncs:
@@ -590,22 +590,22 @@ class GEDLProcessor:
     def cc_create_req_packet(fill=True):
       s = ''
       if len(fd['params']) == 0:
-        s += t + 'req_ptr->dummy = 0;'  + n  # matches IDL convention on void (ARQ avoid?)
+        s += t + pkt_name(True) + '.dummy = 0;'  + n  # matches IDL convention on void (ARQ avoid?)
       else:
         for q in fd['params']:
           if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
-            s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) req_ptr->' + q['name'] + '[i] = '
+            s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) ' + pkt_name(True) + '.' + q['name'] + '[i] = '
             if fill:  s +=  q['name'] + '[i];' + n
             else:     s += '0;' + n    # do not pass parameters in RPC if sync packet
           else:
-            s += t + 'req_ptr->' + q['name'] + ' = ' + q['name'] + ';' + n
+            s += t + pkt_name(True) + '.' + q['name'] + ' = ' + q['name'] + ';' + n
       s += t + cc_get_seq_req() + ' = req_counter;' + n
       return s
 
     def cc_create_nxt_packet():
-      s  = t + 'req_ptr->mux = n_tag->mux;' + n
-      s += t + 'req_ptr->sec = n_tag->sec;' + n
-      s += t + 'req_ptr->typ = n_tag->typ;' + n
+      s  = t + pkt_name(True) + '.mux = n_tag->mux;' + n
+      s += t + pkt_name(True) + '.sec = n_tag->sec;' + n
+      s += t + pkt_name(True) + '.typ = n_tag->typ;' + n
       s += t + cc_get_seq_req() + ' = req_counter;' + n
       return s
       
@@ -663,9 +663,9 @@ class GEDLProcessor:
       return s
 
     def cc_read_nxt_packet():
-      s  = t + 'n_tag->mux = req_ptr->mux;' + n
-      s += t + 'n_tag->sec = req_ptr->sec;' + n
-      s += t + 'n_tag->typ = req_ptr->typ;' + n
+      s  = t + 'n_tag->mux = ' + pkt_name(True) + '.mux;' + n
+      s += t + 'n_tag->sec = ' + pkt_name(True) + '.sec;' + n
+      s += t + 'n_tag->typ = ' + pkt_name(True) + '.typ;' + n
       if DB[0]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'read nextrpc n_tag = <%u, %u, %u>,\\n", n_tag->mux, n_tag->sec, n_tag->typ);' + n
       s += t + '// XXX: check that we got valid SN?' + n
       return s
@@ -680,7 +680,7 @@ class GEDLProcessor:
       s += cc_create_nxt_packet()
       s += cc_sync()
       s += cc_create_nxt_packet()
-      if DB[1]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'nxt tag=<%d, %d, %d>\\n", req_ptr->mux, req_ptr->sec, req_ptr->typ)' + ';' + n
+      if DB[1]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'nxt tag=<%d, %d, %d>\\n", ' + pkt_name(True) + '.mux, ' + pkt_name(True) + '.sec, ' + pkt_name(True) + '.typ)' + ';' + n
       s += cc_data()
       s += '}' + n + n
       return s
@@ -721,7 +721,7 @@ class GEDLProcessor:
 
     # Call local function - XXX: marshaller needs to copy output arguments (including arrays) to res here !!
     def cc_res_get_result_from_local_app():
-      s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join(['req_ptr->' + q['name'] for q in fd['params']]) + ');' + n
+      s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join([pkt_name(True) + '.' + q['name'] for q in fd['params']]) + ');' + n
       s += t + t + t + cc_get_ret_res() + ' = last_processed_result;' + n
       return s
     # Call Application if new request, storing result in last_processed_result (and reset proc_error)
@@ -740,12 +740,12 @@ class GEDLProcessor:
       s += t + 'int proc_error = 1;' + n
       s += t + 'while (proc_error == 1) {' + n    # only return when a new request is good
       if DB[0]: s += t + t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'Waiting for request on t_tag (send response on o_tag)\\n");' + n
-      s += t + t + pfx + 'xdc_blocking_recv(ssocket, req_ptr, &t_tag' + sfx + ');' + n
-      s += t + t + 'int req_counter =' + cc_get_seq_req() + ';' + n
+      s += t + t + pfx + 'xdc_blocking_recv(ssocket, &' + pkt_name(True) + ', &t_tag' + sfx + ');' + n
+      s += t + t + 'int req_counter = ' + cc_get_seq_req() + ';' + n
       s += cc_res_check_seq_nums(notSpecial)
       s += '#ifndef __ONEWAY_RPC__' + n
       s += t + t + cc_set_seq_res() + ' = res_counter << 2 | last_processed_error << 1;' + n
-      s += t + t + pfx + 'xdc_asyn_send(psocket, res_ptr, &o_tag' + sfx + ');' + n
+      s += t + t + pfx + 'xdc_asyn_send(psocket, &' + pkt_name(False) + ', &o_tag' + sfx + ');' + n
       s += '#else /* __ONEWAY_RPC__ */' + n
       s += t + t + 'res_counter = req_counter;' + n
       s += '#endif /* __ONEWAY_RPC__ */' + n
@@ -824,10 +824,10 @@ class GEDLProcessor:
         s += t + t + '_handle_nextrpc(&n_tag);' + n
         if DB[1]: s += t + 'fprintf(stderr, "Singlethread slave main loop gets n_tag <%u, %u, %u>\\n", n_tag.mux, n_tag.sec, n_tag.typ);' + n
         for (x,y,f,fd) in self.sInCalls(e):
-          s += cc_tags_write_uni(x,y,f,True)     # write t_tag for special call
+          s += cc_tags_write_uni(x,y,f,True,2)     # write t_tag for special call
           s += t + t + 'if(TAG_MATCH(n_tag, t_tag)) { continue; }' + n
         for (x,y,f,fd) in self.inCalls(e):
-          s += cc_tags_write_bi(x,y,f)             # write t_tag and o_tag for RPC call
+          s += cc_tags_write_bi(x,y,f,2)             # write t_tag and o_tag for RPC call
           s += t + t + 'if (TAG_MATCH(n_tag, t_tag)) {' + n
           s += t + t + t + '_handle_request_'+ f + '();' + n
           s += t + t + t + 'continue;' + n
