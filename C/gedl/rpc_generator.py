@@ -12,7 +12,7 @@ def argparser():
   parser = ArgumentParser(description='CLOSURE RPC File and Wrapper Generator')
   parser.add_argument('-a','--hal', required=True, type=str, help='HAL Api Directory Path')
   parser.add_argument('-e','--edir', required=True, type=str, help='Input Directory')
-  parser.add_argument('-f','--subfuncs', required=False, action='store_true')
+  parser.add_argument('-f','--subfuncs', required=False, action='store_true', help='NB: DEPRICATED (Not fixed to work with subfuncs - must pass result back, after pass by value replaced pass by ref)')
   parser.add_argument('-g','--gedl', required=True, type=str, help='Input GEDL Filepath')
   parser.add_argument('-i','--ipc', required=True, type=str, help='IPC Type (Singlethreaded/Multithreaded)')
   parser.add_argument('-m','--mainprog', required=True, type=str, help='Application program name, <mainprog>.c must exsit')
@@ -444,7 +444,7 @@ class GEDLProcessor:
       s += t*tc +    'tag_write(&' + tag + ', ' + l['muxdef'] + ', ' + l['secdef'] + ', ' + l['typdef'] + ');' + n
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
-    def cc_tags_write_bi(x,y,f,tc) :
+    def cc_tags_write_bi(x,y,f,tc=1) :
       s  = ''
       for o in [True, False]:
         s += cc_tags_write_uni(x,y,f,o,tc)
@@ -453,16 +453,19 @@ class GEDLProcessor:
       s  = t + 'gaps_tag t_tag;' + n
       s += t + 'gaps_tag o_tag;' + n
       s += cc_tags_write_bi(x,y,f)
-      s += t + 'static int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
-      s += t + 'static ' + fd['return']['type'] + ' last_processed_result = 0;' + n  # XXX: type initialization is not correct for some types
+      s += t + 'int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
+      s += t + 'static ' + fd['return']['type'] + ' last_processed_result = 0;' + n
       s += t + 'static int last_processed_error = 0;' + n
       s += t + 'static int inited = 0;' + n
       s += '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void *psocket;' + n
       s += t + 'void *ssocket;' + n
+#      s += t + 'int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
       s += '#else' + n
       s += t + 'static void *psocket;' + n
       s += t + 'static void *ssocket;' + n
+#      s += t + 'static int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
+
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s;
     # Register non-legacy XDC encode and decode functions
@@ -489,8 +492,8 @@ class GEDLProcessor:
         s += t + '#pragma cle begin ' + l['clelabl'] + n
         s += t + pkt_type(o) + ' ' + pkt_name(o) + ';' + n
         s += t + '#pragma cle end ' + l['clelabl'] + n
-#        ptr = 'req_ptr' if o else 'res_ptr'
-#        s += t + pkt_type(o) + ' *' + ptr + ' = &' + pkt_name(o) + ';' + n
+# DEPRICATED        ptr = 'req_ptr' if o else 'res_ptr'
+# DEPRICATED        s += t + pkt_type(o) + ' *' + ptr + ' = &' + pkt_name(o) + ';' + n
       return s;
 
     def cc_get_seq_req():  return  pkt_name(True)  + '.trailer.seq'
@@ -527,7 +530,7 @@ class GEDLProcessor:
     def cc_req_recv_response(tc=1, pfx='', sfx='') :
       s  = ''
       if DB[1]: s += t*tc + t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'Sent request on t_tag (waiting for response on o_tag)\\n");' + n
-      s += t*tc + t + '*error = ' + pfx + 'xdc_recv(ssocket, ' + pkt_name(False) + ', &o_tag' + sfx +');' + n
+      s += t*tc + t + '*error = ' + pfx + 'xdc_recv(ssocket, &' + pkt_name(False) + ', &o_tag' + sfx +');' + n
       if DB[2]: s += cc_req_print(tc)
       s += t*tc + t + 'if (*error == -1){' + n
       s += t*tc + t + t + 'tries_remaining--;' + n
@@ -546,7 +549,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C5) REQ: Define RPC as a subfunction (rather than inline)
+    # C5) REQ: Define RPC as a subfunction (rather than inline) - DEPRICATED AFTER PASS BY VALUE (no ptrs)
     ##############################################################################################################
     def cc_subfunc_one(type, pfx='', sfx=''):
       s  = pfx + 'rpc_' + f + type         # Name of subfunction
@@ -578,8 +581,8 @@ class GEDLProcessor:
       return s
     def cc_call_req_subfunctions(req_type, tc=1, pfx='', sfx=''):
       if self.subfuncs:
-        s  = t*tc + pfx + 'rpc_' + f + req_type
-        s += cc_rpc_params(pfx)
+        s  = t*tc + pfx + 'rpc_' + f + req_type   # DEPRICATED
+        s += cc_rpc_params(pfx)                   # DEPRICATED
       else:
         s  = cc_req_send_reliably(tc, pfx, sfx)
       return s
@@ -847,12 +850,12 @@ class GEDLProcessor:
       for (x,y,f,fd) in self.sInCalls(e):
         s += handlernextrpc(x,y,f,fd)
       for (x,y,f,fd) in self.sOutCalls(e):
-        s += cc_define_req_subfunctions(x,y,f,fd)
+        s += cc_define_req_subfunctions(x,y,f,fd)  # DEPRICATED
         s += notify_nxtag(x,y,f,fd)
     for (x,y,f,fd) in self.inCalls(e):
       s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e):
-      s += cc_define_req_subfunctions(x,y,f,fd)
+      s += cc_define_req_subfunctions(x,y,f,fd)   # DEPRICATED
       s += rpcwrapdef(x,y,f,fd,ipc)
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
     return s
