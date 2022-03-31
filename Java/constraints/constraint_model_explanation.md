@@ -1,4 +1,51 @@
+
+
 # Constraint model for CLE for JOANA SDG based on Java/JVM
+# SDG Graph
+## SDG Nodes
+A node in the SDG represents an abstraction of IR components used by JOANA. This results in the following node types on the left and are translated to our own abstraction on the right:
+    "NORM" : "Inst_Other"
+    "PRED" : "Inst_Br"
+    "EXPR" : "Inst_Other"
+    "SYNC" : "Inst_Other"
+    "FOLD" : "Inst_Other"
+    "CALL" : "Inst_FunCall"
+    "ENTR" : "FunctionEntry"
+    "EXIT" : "Inst_Ret"
+    "ACTI" : "Param_ActualIn"
+    "ACTO" : "Param_ActualOut"
+    "FRMI" : "Param_FormalIn"
+    "FRMO" : "Param_FormalOut"
+## SDG Edges
+An edge in the SDG connects two nodes together and has a type. The following shows the edge types in the SDG on the left and our abstraction on the left:
+    "CD" : "ControlDep_Other"
+    "CE" : "ControlDep_Other"
+    "UN" : "ControlDep_Other"
+    "CF" : "ControlDep_Other"
+    "NF" : "ControlDep_Other"
+    "RF" : "ControlDep_CallRet"
+    "CC" : "ControlDep_CallInv"
+    "CL" : "ControlDep_CallInv"
+    "SD" : "ControlDep_Other"
+    "JOIN" : "ControlDep_Other"
+    "FORK" : "ControlDep_Other"
+    "DD" : "DataDepEdge_Other"
+    "DH" : "DataDepEdge_Other"
+    "DA" : "DataDepEdge_Alias"
+    "SU" : "DataDepEdge_Other"
+    "SH" : "DataDepEdge_Other"
+    "SF" : "DataDepEdge_Other"
+    "FD" : "DataDepEdge_Other"
+    "FI" : "DataDepEdge_Other"
+    "PI" : "Parameter_In"
+    "PO" : "Parameter_Out"
+    "PS" : "Parameter_Field"
+    "PE" : "DataDepEdge_Alias"
+    "FORK_IN" : "DataDepEdge_Other"
+    "FORK_OUT" : "DataDepEdge_Other"
+    "ID" : "DataDepEdge_Other"
+    "IW" : "DataDepEdge_Other"
+
 
 ## Constraint Model in MiniZinc
 
@@ -6,63 +53,58 @@ Class annotations are currently not used by CLE, but this can change in the futu
 Instance and class fields can be annotated by the user with node annotations.
 Instance and class methods can be annotated by the user with method annotations.
 Constructors can be be annotated by the user with constructor annotations.
-Only node annotations can be assigned by the solver to unannotated fields, methods are constructors.
+Only node annotations can be assigned by the solver to unannotated fields, methods or constructors.
+
 
 
 
 ### General Constraints on Output and Setup of Auxiliary Decision Variables
 
-Every class must be assigned to a valid enclave.
-All instance methods of a Class must be assigned to the same enclave as the Class.
-All instance fields  of a Class must be assigned to the same enclave as the Class.
-All static methods of a Class must be assigned to the same enclave as the Class.
-All static fields of a Class must be assigned to the same enclave as the Class.
+Every class must be assigned to at least one valid enclave.
+** Each class containing one or more annotated element (constructor, method, or field) must be assigned to exactly one enclave. 
+** Each class containing no annotated elements  must be assigned to at least one enclave and at most every enclave.
 
-Contained nodes and parameters are assigned the same enclave as their containing
+Across all accesses/invocations of an unannotated element, it may touch at most one label at each level.
+
+
+All elements (constructor, method, or field) of a class instance must be assigned the same enclave as the instance itself.
+
+This entails separate constraints for constructors, instance methods, instance fields, static methods and static fields.
+
+Contained nodes and parameters are assigned the same enclave(s) as their containing
 methods.  
 
-Annotations can not assigned to a valid enclave and they must be
+Annotations can not be assigned to a valid enclave and they must be
 assigned to `nullEnclave`.
 
-The level of every node that is not an annotation must match:
- * the level of the label (taint) assigned to the node
- * the level of the enclave the node is assigned to 
+Each (node,level) pair is assigned at most one valid enclave at that level.
+Each (node,level) pair is assigned at most one valid label with that level.
+
 
 Only method entry nodes can be assigned a method annotation label.
 Only constructor method entry nodes can be assigned a constructor annotation label.
 
 Furthermore, only the user can bless a method or constructor with a method or constructor annotation 
-respectively (that gets be passed to the solver through the input).  
+respectively (that gets passed to the solver through the input).   
 
-Set up a number of auxiliary decision variables as needed. 
-
-If a node is contained in an unannotated method or constructor then the CLE label taint
-assigned to the node must match that of the containing method or constructor. In other
-words, since unannotated methods/constructors must be singly tainted, all nodes contained
-within the methods/constructors must have the same taint as the method/constructor.
-
-
-XXX: remaining needs to be worked on for Java/SDG
-
-If a node is contained in an user annotated method, then the CLE label
-taint assigned to the node must be allowed by the CLE JSON of the method
-annotation in the argument taints, return taints, or code body taints. In other
-words, any node contained within a method blessed with a method-annotation
-by the user can only contain nodes with taints that are explicitly permitted
-(to be coerced) by the method annotation.
 
 
 ### 2.2 Constraints on the Cross-Domain Control Flow
 
 The control flow can never leave an enclave, unless it is done through an
 approved cross-domain call, as expressed in the following three constraints.
-The only control edges allowed in the cross-domain cut are either call
-invocations or returns. For any call invocation edge in the cut, the method
+
+1) The only control edges allowed in the cross-domain cut are either call
+invocations or returns. 
+
+2) For any call invocation edge in the cut, the method
 annotation of the method entry being called must have a CDF that allows (with
-or without redaction) the level of the label assigned to the callsite.  The
-label assigned to the callsite must have a node annotation with a CDF that
+or without redaction) the level of the label assigned to the callsite.  
+
+3) The label assigned to the callsite must have a node annotation with a CDF that
 allows the data to be shared with the level of the (taint of the) method
 entry being called.
+
 
 Notes: 
   1. No additional constraint is needed for control call return edges; checking
@@ -85,11 +127,15 @@ Notes:
 Data can only leave an enclave through parameters or return of valid
 cross-domain call invocations, as expressed in the following three constraints. 
 
-Any data dependency edge that is not a data return cannot be in the
-cross-domain cut.  For any data return edge in the cut, the taint of the source
+1) Any data dependency edge that is not a data return cannot be in the
+cross-domain cut.  
+
+2) For any data return edge in the cut, the taint of the source
 node (the returned value in the callee) must have a CDF that allows the data to
 be shared with the level of the taint of the destination node (the return site 
-in the caller). For any parameter passing edge in the cut, the taint of the source
+in the caller). 
+
+3) For any parameter passing edge in the cut, the taint of the source
 node (what is passed by the callee) must have a CDF that allows the data to be
 shared with the level of the taint of the destination node (the corresponding
 actual parameter node of the callee function).
@@ -103,10 +149,12 @@ to perform taint checking to ensure that data annotated with different
 labels inside each enclave are managed correctly and only when the
 mixing of the taints is explcitly allowed by the user.
 
-Labels can be cooerced (i.e., nodes of a given SDG edge can be permitted to
+Labels can be coerced (i.e., nodes of a given SDG edge can be permitted to
 have different label assigments) inside an enclave only through user annotated
 methods.  To track valid label coercion across a SDG edge `e`, the model uses
-an additional auxiliary decision variable called `coerced[e]`.
+an additional auxiliary decision variable called `coerced[level][e]`. ** Note the addition of a level to coerced. There will be a unique edge for each level for each edge in the SDG.
+
+** A coerced label must be compatible for the level of an edge that is not a cross-domain edge.
 
 Any data dependency or parameter edge that is intra-enclave (not in the
 cross-domain cut) and with different CLE label taints assigned to the source
@@ -118,6 +166,8 @@ in the argument taints for the corresponding parameter index. In other words,
 what is passed in through this parameter has a taint allowed by the method
 annotation.
 
+
+
 If the edge is a data return edge, then it can be coerced if and only if the
 associated method annotation has the taint of the other node in the return
 taints.
@@ -126,13 +176,12 @@ If the edge is a data dependency edge (and not a return or parameter edge),
 then it can be coerced if and only if the associated method annotation allows
 the taint of the other node in the argument taints of any parameter.
 
-### To be worked out
- - if a subclass is assigned to an enclave, what about all instance of all its parent classes?
- - what about annotations on methods in interfaces?
- - Do exceptions require a special treatment?
- - Do parameter edges resulting from class fields require special treatment?
- - Is our current formulation too restrictive/impractical?
-
+If a node is contained in an user annotated method or constructor, then the CLE label
+taint assigned to the node must be allowed by the CLE JSON of the method
+annotation in the argument taints, return taints, or code body taints. In other
+words, any node contained within a method blessed with a method-annotation
+by the user can only contain nodes with taints that are explicitly permitted
+(to be coerced) by the method annotation.
 
 
 
