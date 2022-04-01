@@ -453,7 +453,7 @@ class GEDLProcessor:
       s  = t + 'gaps_tag t_tag;' + n
       s += t + 'gaps_tag o_tag;' + n
       s += cc_tags_write_bi(x,y,f)
-      s += t + 'int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
+      s += t + 'static int ' + counter_name + ' = ' + initial_count_as_a_string + ';' + n
       s += t + 'static ' + fd['return']['type'] + ' last_processed_result = 0;' + n
       s += t + 'static int last_processed_error = 0;' + n
       s += t + 'static int inited = 0;' + n
