@@ -549,7 +549,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C5) REQ: Define RPC as a subfunction (rather than inline) - DEPRICATED AFTER PASS BY VALUE (no ptrs)
+    # C5) REQ: Define RPC as a subfunction (rather than inline) - DEPRICATED SECTION AFTER PASS BY VALUE (no ptrs)
     ##############################################################################################################
     def cc_subfunc_one(type, pfx='', sfx=''):
       s  = pfx + 'rpc_' + f + type         # Name of subfunction
@@ -579,9 +579,9 @@ class GEDLProcessor:
       if pfx == 'my_':  s += 'ctx, mycmap, '
       s += pkt_name(True) + ', ' + pkt_name(False) + ', error);' + n
       return s
-    def cc_call_req_subfunctions(req_type, tc=1, pfx='', sfx=''):
+    def cc_call_req_subfunctions(req_type, tc=1, pfx='', sfx=''):  # DEPRICATED (replace calls with cc_req_send_reliably(tc, pfx, sfx)
       if self.subfuncs:
-        s  = t*tc + pfx + 'rpc_' + f + req_type   # DEPRICATED
+        s  = t*tc + pfx + 'rpc_' + f + req_type
         s += cc_rpc_params(pfx)                   # DEPRICATED
       else:
         s  = cc_req_send_reliably(tc, pfx, sfx)
@@ -625,9 +625,10 @@ class GEDLProcessor:
       return s
     # Send sync only once
     def cc_sync_once(pfx='', sfx=''):
-      s  = t + 'if (inited < 2) {' + n
-      s += t + t + 'inited = 2;' + n
-      s += cc_call_req_subfunctions('_req_sync', 2, pfx, sfx)
+      s  = t + 'if (req_counter == INT_MIN) {' + n
+#      s  = t + 'if (inited < 2) {' + n
+#      s += t + t + 'inited = 2;' + n
+      s += cc_call_req_subfunctions('_req_sync', 2, pfx, sfx)  # DEPRICATED
 #      s += cc_status_check(2)
       s += cc_modify_req_counter(2)
       s += t + '}' + n
@@ -644,11 +645,11 @@ class GEDLProcessor:
       
     def cc_data():
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_call_req_subfunctions('_remote_call', 1, 'my_', ' , mycmap')
+      s += cc_call_req_subfunctions('_remote_call', 1, 'my_', ' , mycmap') # DEPRICATED
 #      s += cc_status_check(1)
       s += cc_sockets_close()
       s += '#else' + n
-      s += cc_call_req_subfunctions('_remote_call')
+      s += cc_call_req_subfunctions('_remote_call') # DEPRICATED
 #      s += cc_status_check(1)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'req_counter++;' + n
@@ -930,7 +931,7 @@ def main():
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
   if len(gp.masters) != 1: raise Exception('Need one master, got:' + ' '.join(gp.masters))
-  print('2022 Merged Version: Processing source tree from ' + args.edir + ' to ' + args.odir)
+  print('2022 Merged (April) Version: Processing source tree from ' + args.edir + ' to ' + args.odir)
   gp.processSourceTree(args.mainprog,args.enclave_list,args.edir,args.odir)
 
   for e in args.enclave_list:
