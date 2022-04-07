@@ -43,12 +43,13 @@ class GEDLProcessor:
     with open(gedlfile) as edl_file: self.gedl = json.load(edl_file)['gedl']
     self.xdcalls     = [c['func'] for x in self.gedl for c in x['calls']]   # RPC call instances
     self.spcalls     = [sFuncg(x) for x in self.gedl]                       # special call instances
+    print ('xdcalls=', self.xdcalls, 'spcalls=', self.spcalls)
     self.sptypes     = ['nextrpc', 'okay']                                  # Special call types (outbound, inbound)
     self.muxbase     = muxbase                                              # CLOSURE Tag index offsets
     self.secbase     = secbase
     self.typbase     = typbase
     self.enclaveList = enclaveList
-    self.subfuncs    = subfuncs                                             # Flag if requestor has two subfunctions
+    self.subfuncs    = subfuncs                                             # DEPRICATED Flag if requestor has two subfunctions
     # generate mux and sec assigmets per enclave pairs (e.g., orange, purple and purple, orange)
     cartesian        = [(i,j) for i in enclaveList for j in enclaveList if i != j]
     self.muxAssign   = {x: i for i,x in enumerate(cartesian)}
@@ -179,7 +180,8 @@ class GEDLProcessor:
     # XXX should all be egress? Can use outgoing True,False or chage to ingress/egress
     def tagcle(x,y,f,outgoing=True): 
       l  = self.const(x,y,f,outgoing)
-      s  = '#pragma cle def ' + l['clelabl'] + ' {"level": "' + l['from'] + '", \\' + n
+      s  = '#pragma cle def ' + l['clelabl'] + ' {"level": "' + e + '", \\' + n
+      # remove "direction": "egress",
       s += t + '"cdf": [{"remotelevel": "' + l['to'] + '", "direction": "egress", \\' + n
       s += t + t + t + '"guarddirective": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.muxbase),str(l['sec']+self.secbase),str(l['typ']+self.typbase)]) + ']}}]}' + n + n
       return s
@@ -211,12 +213,11 @@ class GEDLProcessor:
   ##############################################################################################################
   # C) Create Cross Domain RPC source program (string) for each enclave (e.g., purple_rpc.c)
   ##############################################################################################################
-  def genrpcC(self, e, ipc, verbose):
+  def genrpcC(self, e, ipc, DB):
     # Get default ARQ parameters (num_tries, num_tries) from JSON CLE schema file
     with open(self.schemafile,) as sch_file: dict_lossndelay = json.load(sch_file)['definitions']['cdfType']['properties']
     num_tries = dict_lossndelay['num_tries']['default']
     timeout   = dict_lossndelay['timeout']['default']
-    DB = [False, True, True] if verbose else [False, False, True]   # Print Debugs when c code runs (levels 0,1,2)
     n,t = '\n','    '
     def boiler():
       s  = '#include "' + e + '_rpc.h"' + n
@@ -364,7 +365,7 @@ class GEDLProcessor:
         for o in (True, False) : s += t + regdtyp(x,y,f,o,pfx,sfx)
       return s
     # Iitialize CLOSURE API URI and Register the encode and decode function
-    def halinit(e, ipc, verbose):
+    def halinit(e, ipc, DB):
       s  = 'void _hal_init(char *inuri, char *outuri) {' + n
       if DB[0]:
         s += t + 'xdc_log_level(0);' + n
@@ -655,11 +656,16 @@ class GEDLProcessor:
       s += t + 'req_counter++;' + n
       return s
       
+    # Print if know result type or use C11 _Generic:  s  = t + t + 'fprintf(stderr, "Return=%f," last_processed_result);' + n
+    def cc_result_print(tc=2):
+      s=''
+#      s += t*tc + 'fprintf(stderr, "Result=%f\\n", result);' + n    # XXX Assumes output is a double
+      return s
     def cc_read_res_packet():
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
       s  = '#ifndef __ONEWAY_RPC__' + n
       s += t + 'result = ' + cc_get_ret_res() + ';' + n
-      if DB[1]: s += t + 'fprintf(stderr, "Result=%f\\n", result)' + ';' + n   # XXX Assumes output is a double
+      if DB[1]: s += cc_result_print(1)
       s += t + 'return (result);' + n   # ARQ mod: Use result from above
       s += '#else' + n
       s += t + 'return 0;' + n
@@ -719,7 +725,8 @@ class GEDLProcessor:
     # C7) RES: handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
     def cc_res_print():
-      s  = t + t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'ReqId=%d ResId=%d err=%d (seq=0x%x) Return=%f ", req_counter, res_counter, proc_error, last_processed_error, last_processed_result);' + n
+      s  = t + t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'ReqId=%d ResId=%d err=%d (seq=0x%x) ", req_counter, res_counter, proc_error, last_processed_error);' + n
+      s += cc_result_print()
       s += tagsPrint(1)
       return s
 
@@ -846,7 +853,7 @@ class GEDLProcessor:
     ##############################################################################################################
     # C9) REQ/RES: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
     ##############################################################################################################
-    s = boiler() + xdclib() + halinit(e, ipc, verbose)
+    s = boiler() + xdclib() + halinit(e, ipc, DB)
     if ipc == "Singlethreaded":
       for (x,y,f,fd) in self.sInCalls(e):
         s += handlernextrpc(x,y,f,fd)
@@ -870,7 +877,7 @@ class GEDLProcessor:
       fn = idir + '/' + e + '/' + prog + '.c'
       if gotMain(fn): self.masters.append(e)
 
-  def processSourceTree(self,prog,enclaves,idirp,odirp):
+  def processSourceTree(self,prog,enclaves,idirp,odirp, DB):
     idir   = idirp.rstrip('/')
     odir   = odirp.rstrip('/')
     os.makedirs(odir, mode=0o755, exist_ok=True)  
@@ -881,10 +888,11 @@ class GEDLProcessor:
         for name in dirs:
           newd = os.path.join(odir, rel, name)
           os.makedirs(newd, mode=0o755, exist_ok=True)  
-        for fname in files: self.processFile(prog,e,idir,odir,rel,fname)
+        for fname in files: self.processFile(prog,e,idir,odir,rel,fname, DB)
 
   # Modify APP (e.g. example1.c), adding prefix to XD (affected) functions (e.g. get_a to _rpc_get_a)
-  def processFile(self, prog, e, idir, odir, rel, fname): # XXX: ought to use a C Parser, not regex
+  def processFile(self, prog, e, idir, odir, rel, fname, DB): # XXX: ought to use a C Parser, not regex
+    err_param = ''
     canonold  = os.path.abspath(idir + '/' + rel + '/' + fname)
     canonmain = os.path.abspath(idir + '/' + e   + '/' + prog + '.c')
     canonnew  = os.path.abspath(odir + '/' + rel + '/' + fname)
@@ -903,18 +911,20 @@ class GEDLProcessor:
               if index+1 in self.affected[canonold]:
                 for func in self.affected[canonold][index+1]:
                   if line.find(func) == -1: raise Exception(func + ' not found in ' + canonold + ' at line ' + str(index) + ':' + line)
-                  line = line.replace(func, '_rpc_' + func)
-                  # ARQ mod: Pass variable into function to return error number (NB: not used yet)
-                  err_var = 'error_num_' + func
-                  newline1 = ' ' * (len(line) - len(line.lstrip())) + 'int ' + err_var + ';\n'
-                  print('Add error variable', newline1)
+                  err_param = 'error_num_' + func
+                  newline1 = ' ' * (len(line) - len(line.lstrip())) + 'int ' + err_param + ';\n'
                   newf.write(newline1)
-                  line_end = '&' + err_var + ')'
-                  if line.find('()') == -1 :
-                    line = line.replace(')', ',' + line_end)
-                  else :
-                    line = line.replace(')', line_end)
-                  print('Replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
+                  line = line.replace(func, '_rpc_' + func)
+                  if DB[2]:
+                    print('Add error variable line', newline1)
+                    print('Replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
+            if len(err_param) > 0:
+                if DB[2]: print('Checking if close rpc function call')
+                if line.find(')') != -1:    # end of (multi-line) XD function call
+                  if line.find('()') == -1: line = line.replace(')', ', &' + err_param + ')')
+                  else:                     line = line.replace(')',   '&' + err_param + ')')
+                  if DB[2]: print('Adding error variable', err_param, 'to XD function')
+                  err_param = ''
             newf.write(line)
           if e not in self.masters:
             print('Adding slave main to: ' + canonnew)
@@ -927,21 +937,22 @@ class GEDLProcessor:
 ##############################################################################################################
 def main():
   args = argparser()
+  DB = [False, True, True] if args.verbose else [False, False, True]   # Print Debugs when c code runs (levels 0,1,2)
   gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base,args.schema,args.subfuncs)
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
   if len(gp.masters) != 1: raise Exception('Need one master, got:' + ' '.join(gp.masters))
   print('2022 Merged (April) Version: Processing source tree from ' + args.edir + ' to ' + args.odir)
-  gp.processSourceTree(args.mainprog,args.enclave_list,args.edir,args.odir)
+  gp.processSourceTree(args.mainprog,args.enclave_list,args.edir,args.odir, DB)
 
   for e in args.enclave_list:
     print('Generating RPC Header for:', e)
     with open(args.odir + '/' + e + '/' + e + '_rpc.h', 'w') as rh: rh.write(gp.genrpcH(e, args.inuri, args.outuri, args.ipc))
     print('Generating RPC Code for:', e)
-    with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc, args.verbose))
+    with open(args.odir + '/' + e + '/' + e + '_rpc.c', 'w') as rc: rc.write(gp.genrpcC(e, args.ipc, DB))
   print('Generating cross domain configuration')
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
-  if args.verbose:
+  if DB[1]:
     for e in args.enclave_list: gp.constPrint(e)
   #for e in args.enclave_list: gp.constPrint(e)
   #xyz
