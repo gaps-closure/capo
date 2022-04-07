@@ -43,7 +43,7 @@ class GEDLProcessor:
     with open(gedlfile) as edl_file: self.gedl = json.load(edl_file)['gedl']
     self.xdcalls     = [c['func'] for x in self.gedl for c in x['calls']]   # RPC call instances
     self.spcalls     = [sFuncg(x) for x in self.gedl]                       # special call instances
-    print ('xdcalls=', self.xdcalls, 'spcalls=', self.spcalls)
+#    print ('xdcalls=', self.xdcalls, 'spcalls=', self.spcalls)
     self.sptypes     = ['nextrpc', 'okay']                                  # Special call types (outbound, inbound)
     self.muxbase     = muxbase                                              # CLOSURE Tag index offsets
     self.secbase     = secbase
@@ -915,19 +915,20 @@ class GEDLProcessor:
                   newline1 = ' ' * (len(line) - len(line.lstrip())) + 'int ' + err_param + ';\n'
                   newf.write(newline1)
                   line = line.replace(func, '_rpc_' + func)
-                  if DB[2]:
+                  if DB[1]:
                     print('Add error variable line', newline1)
                     print('Replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
+            # ARQ adds an error variable to each XD function call (canonold in self.affected)
             if len(err_param) > 0:
-                if DB[2]: print('Checking if close rpc function call')
-                if line.find(')') != -1:    # end of (multi-line) XD function call
+                if DB[0]: print('Checking if close rpc function call')
+                if line.find(')') != -1:    # end of (possibly multi-line) XD function call
                   if line.find('()') == -1: line = line.replace(')', ', &' + err_param + ')')
                   else:                     line = line.replace(')',   '&' + err_param + ')')
-                  if DB[2]: print('Adding error variable', err_param, 'to XD function')
+                  if DB[1]: print('Adding error variable', err_param, 'to XD function')
                   err_param = ''
             newf.write(line)
           if e not in self.masters:
-            print('Adding slave main to: ' + canonnew)
+            if DB[1]: print('Adding slave main to: ' + canonnew)
             newf.write('int main(int argc, char *argv[]) {\n  return _slave_rpc_loop();\n}')
     else:
       copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
