@@ -181,6 +181,7 @@ set of int: DataEdgeParam       = DataDepEdge union Parameter;
 
 enum classNames;
 enum Level;
+set of Level: nonNullLevel = { x | x in Level where x!=nullLevel };
 enum Enclave;
 array[Enclave] of Level: hasEnclaveLevel;
 
@@ -197,6 +198,7 @@ int: MaxFuncParms;  % Max number of function parameters in the program (C<128, C
 set of int: parmIdx = 1..MaxFuncParms;
 
 array[cleLabel]                       of Level:          hasLabelLevel;
+array[classNames]                     of bool:           isClassAnnotated;
 array[cleLabel]                       of bool:           isFunctionAnnotation;
 
 array[cdf]                            of cleLabel:       fromCleLabel;
@@ -221,28 +223,34 @@ array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 bool:                                                    debug;
 debug = true;
 
-array[classNames]                     of var Enclave:    classEnclave;
-array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
-array[PDGNodeIdx]                     of var Level:      nodeLevel;
-array[PDGNodeIdx]                     of var cleLabel:   taint;
-array[PDGNodeIdx]                     of var cleLabel:   ftaint;
 
-array[PDGEdgeIdx]                     of var Enclave:    esEnclave;
-array[PDGEdgeIdx]                     of var Enclave:    edEnclave;
+% array[classNames]                     of var Enclave:    classEnclave;
+% array[classNames,nonNullLevel]                of var Enclave:    classEnclave;
 
-array[PDGEdgeIdx]                     of var cleLabel:   esTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edTaint;
+array[classNames,nonNullLevel]                     of var Enclave:    classEnclave;
+array[PDGNodeIdx,nonNullLevel]                     of var Enclave:    nodeEnclave;
+array[PDGNodeIdx,nonNullLevel]                     of var Level:      nodeLevel;
+array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   taint;
+array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   ftaint;
+array[classNames,nonNullLevel]                     of var cleLabel:   ctaint;
 
-array[PDGEdgeIdx]                     of var cleLabel:   esFunTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edFunTaint;
+array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    esEnclave;
+array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    edEnclave;
 
-array[PDGEdgeIdx]                     of var cdf:        esFunCdf;
-array[PDGEdgeIdx]                     of var cdf:        edFunCdf;
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   esTaint;
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   edTaint;
 
-array[PDGEdgeIdx]                     of var bool:       xdedge;
-array[PDGEdgeIdx]                     of var bool:       tcedge;
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   esFunTaint;
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   edFunTaint;
 
-array[PDGEdgeIdx]                     of var bool:       coerced;
+
+array[PDGEdgeIdx,nonNullLevel]                     of var cdf:        esFunCdf;
+array[PDGEdgeIdx,nonNullLevel]                     of var cdf:        edFunCdf;
+
+array[PDGEdgeIdx,nonNullLevel]                     of var bool:       xdedge;
+array[PDGEdgeIdx,nonNullLevel]                     of var bool:       tcedge;
+
+array[PDGEdgeIdx,nonNullLevel]                     of var bool:       coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
