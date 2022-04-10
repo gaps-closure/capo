@@ -31,12 +31,9 @@ predicate destAnnotFun(var PDGEdgeIdx: e) =
 
 
 
-% constraint :: "ClassHasEnclave"               forall (n in classNames)         (n == sharedClass \/ nullEnclave!=classEnclave[n]);
-
-
 constraint :: "ClassHasEnclave"               forall (cl in classNames)         ( forall(l in nonNullLevel) (nullEnclave!=classEnclave[cl, l]));
 constraint :: "BindAnnoClassToEnclaveLevel"       forall (cl in classNames)         ( forall(l1 in nonNullLevel) (forall(l2 in nonNullLevel) ((isClassAnnotated[cl]) -> classEnclave[cl, l1] == classEnclave[cl, l2])));
-% constraint :: "BindUnannoClassToEnclaveLevel"       forall (cl in classNames)         ( forall(l in nonNullLevel) ((not isClassAnnotated[cl]) -> l == hasEnclaveLevel[classEnclave[cl, l]]));
+constraint :: "BindUnannoClassToEnclaveLevel"       forall (cl in classNames)         ( forall(l in nonNullLevel) ((not isClassAnnotated[cl]) -> l == hasEnclaveLevel[classEnclave[cl, l]]));
 constraint :: "BindFunctionToClass"           forall (n in FunctionEntry)      ( forall(l in nonNullLevel) ( nodeEnclave[n,l]==classEnclave[hasClass[n], nodeLevel[n,l]]));
 
 
@@ -96,7 +93,7 @@ constraint :: "XDCParmAllowed"
 constraint :: "ArgumentTaintCoerced"
  forall (e in Parameter_In union Parameter_Out)
  (forall (l in nonNullLevel)
-  (if sourceAnnotFun(e) /\ isParam_ActualOut(hasSource[e]) /\ (hasParamIdx[hasSource[e]]>0)
+  (if sourceAnnotFun(e) /\ xdedge[e,l] /\ isParam_ActualOut(hasSource[e]) /\ (hasParamIdx[hasSource[e]]>0)
    then hasArgtaints[esFunCdf[e,l], hasParamIdx[hasSource[e]], taint[hasDest[e],l]]
    else true 
    endif));
@@ -105,7 +102,7 @@ constraint :: "ArgumentTaintCoerced"
 
 constraint :: "ReturnTaintCoerced"
  forall (e in DataDepEdge_Ret) 
- (forall (l in nonNullLevel) ((if sourceAnnotFun(e) then hasRettaints[esFunCdf[e,l], taint[hasDest[e],l]]
+ (forall (l in nonNullLevel) ((if sourceAnnotFun(e) /\ xdedge[e,l] then hasRettaints[esFunCdf[e,l], taint[hasDest[e],l]]
  else true endif)));
 
 constraint :: "DataTaintCoercedData"
