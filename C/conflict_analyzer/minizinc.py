@@ -10,6 +10,8 @@ from pathlib import Path
 from logging import Logger
 from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, Union
 
+from conflict_analyzer.exceptions import ProcessException
+
 def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_instance: str, constraint_files: List[Path], 
     pdg_csv: list, source_path: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]], logger: Logger) -> Dict[str, Any]:
     cle_instance_path, pdg_instance_path, enclave_instance_path = \
@@ -30,8 +32,8 @@ def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_insta
             *constraint_files
     ]  
     mzn_out = subprocess.run(mzn_args, capture_output=True, encoding='utf-8')
-    if mzn_out.stderr.strip() != '' or mzn_out.returncode != 0:
-        raise Exception("minizinc failure", mzn_out)          
+    if mzn_out.returncode != 0:
+        raise ProcessException("minizinc failure", mzn_out)          
     if "UNSATISFIABLE" in mzn_out.stdout:
         findmus_args : List[Union[Path, str]] = [
             'minizinc',
@@ -49,7 +51,7 @@ def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_insta
         ]  
         findmus_out = subprocess.run(findmus_args, capture_output=True, encoding='utf-8')
         if findmus_out.stderr.strip() != '' or findmus_out.returncode != 0:
-            raise Exception("minizinc failure", findmus_out)         
+            raise ProcessException("minizinc failure", findmus_out)         
         return parse_findmus(findmus_out.stdout, pdg_csv, logger, source_map)
     else:
         return parse_assignment(mzn_out.stdout, pdg_csv, logger, source_path, source_map)
