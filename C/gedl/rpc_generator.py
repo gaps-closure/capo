@@ -515,12 +515,12 @@ class GEDLProcessor:
       return l['dnm'][0:4] + ' ' + f + ': '
     def cc_req_print(tc):
       s  = t*tc + t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'ReqId=%d error=%d tries=%d ", ' + cc_get_seq_req() + ', *error, tries_remaining);' + n
-      s += t*tc + t + 'if (*error >= 0) fprintf(stderr, "ResId=%d Reserr=%d ", ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ');' + n
+      s += t*tc + t + 'if (*error > 0) fprintf(stderr, "ResId=%d Reserr=%d ", ' + cc_get_seq_res() + ', ' + cc_get_err_res() + ');' + n
       s += tagsPrint(tc)
       return s
     # Done with request, so return success or failure
     def cc_req_loop_end(tc):
-      s  = t*tc + t + 'break;  /* Reach here if __ONEWAY_RPC__ */' + n
+      s  = t*tc + t + 'break;  /* Reach here if received a response or __ONEWAY_RPC__ */' + n
       s += t*tc + '}' + n
       if DB[1]:
         s += t*tc + 'if (*error < 0) fprintf(stderr, "' + cc_call_type_and_name(True) + 'GIVING UP or ONEWAY_RPC");' + n
@@ -545,6 +545,9 @@ class GEDLProcessor:
       s += t*tc + t + pfx +'xdc_asyn_send(psocket, &' + pkt_name(True) + ', &t_tag' + sfx + ');' + n
       s += '#ifndef __ONEWAY_RPC__' + n
       s += cc_req_recv_response(tc, pfx, sfx)
+      s += '#else' + n
+      s += t*tc + t + '*error = 0;' + n
+      if DB[2]: s += cc_req_print(tc)
       s += '#endif /* __ONEWAY_RPC__ */' + n
       s += cc_req_loop_end(tc)
       return s
@@ -854,6 +857,7 @@ class GEDLProcessor:
     # C9) REQ/RES: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
     ##############################################################################################################
     s = boiler() + xdclib() + halinit(e, ipc, DB)
+#    s = boiler() + halinit(e, ipc, DB)
     if ipc == "Singlethreaded":
       for (x,y,f,fd) in self.sInCalls(e):
         s += handlernextrpc(x,y,f,fd)
