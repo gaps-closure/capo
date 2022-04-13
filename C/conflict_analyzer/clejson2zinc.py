@@ -84,7 +84,7 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
     cleJson2 = cleJson[:]
     for entry in cleJson:
         # print("Updating Order")
-        if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
+        if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]: 
             print("Updating Order")
             cleJson2.insert(0,cleJson2.pop(cleJson.index(entry)))
     cleJson = cleJson2
