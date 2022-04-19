@@ -27,6 +27,8 @@ int: Inst_end;
 int: FunctionEntry_start;
 int: FunctionEntry_end;
 
+
+% Need to check that there isn't an issue with non-contiguious arg indicies
 int: Param_FormalIn_start;
 int: Param_FormalIn_end;
 int: Param_FormalOut_start;
@@ -51,6 +53,7 @@ int: PDGNode_start;
 int: PDGNode_end;
 
 set of int: Inst = Inst_start .. Inst_end;
+set of int: FunCall = Inst_FunCall_start .. Inst_FunCall_end;
 
 % set of int: VarNode_StaticGlobal = VarNode_StaticGlobal_start .. VarNode_StaticGlobal_end;
 % set of int: VarNode_StaticModule = VarNode_StaticModule_start .. VarNode_StaticModule_end;
@@ -96,8 +99,10 @@ int: ControlDep_end;
 % int: DataDepEdge_RAW_end;
 int: DataDepEdge_Ret_start;
 int: DataDepEdge_Ret_end;
+% Find example of alias in program
 int: DataDepEdge_Alias_start;
 int: DataDepEdge_Alias_end;
+
 int: DataDepEdge_Other_start;
 int: DataDepEdge_Other_end;
 int: DataDepEdge_start;
@@ -152,6 +157,45 @@ set of int: Parameter = Parameter_start .. Parameter_end;
 set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Java OO Features
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+enum AllClassNames;
+set of AllClassNames: classNames = { x | x in AllClassNames where x!=External_Class };
+
+enum classFields;
+array[classFields]     of classNames:  fieldOfClass;
+array[classFields]     of bool:  fieldIsStatic;
+
+% enum classMethods;
+% array[classMethods]     of classNames:  methodOfClass;
+% array[classMethods]     of bool:  methodIsStatic;
+
+array[classFields]     of set of cleLabel:  fieldAnnotation;
+% array[classMethods]     of set of cleLabel:  methodAnnotation;
+
+
+
+% array[classNames]     of classNames:  immediateParent;
+% array[classNames]     of set of classNames:  allParents;
+
+array[FunctionEntry]     of set of classFields:  methodsFieldAccess;
+
+% From the input model we need to know fields to class
+% In the input model we must have:
+    % Enumeration of classes
+    % Enumeration of fields
+    % Relationship of fields to classes
+    % Whether a field is an instance or class field
+    % Enumeration of methods to classes
+    % Whether a method is an instance or a class method
+    % Inheritance Relationship between classes
+        % Is immediate parent-subclass relationship
+        % Is ancestor successor relationship
+        % Implementer to interface relationship
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Containing Class for PDG Nodes, Containing Function for PDG Nodes, Endpoints for PDG Edges, Indices of Fucntion Formal Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -179,7 +223,7 @@ set of int: DataEdgeParam       = DataDepEdge union Parameter;
 % Security Levels and Enclaves
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-enum classNames;
+
 enum Level;
 set of Level: nonNullLevel = { x | x in Level where x!=nullLevel };
 enum Enclave;
@@ -233,6 +277,9 @@ array[PDGNodeIdx,nonNullLevel]                     of var Level:      nodeLevel;
 array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   taint;
 array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   ftaint;
 array[classNames,nonNullLevel]                     of var cleLabel:   ctaint;
+
+array[classFields,nonNullLevel]                    of var cleLabel:   fieldTaint;
+
 
 array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    esEnclave;
 array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    edEnclave;

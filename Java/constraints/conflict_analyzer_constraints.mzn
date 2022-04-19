@@ -9,6 +9,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 predicate isFunctionEntry(var PDGNodeIdx: n)   = (n>=FunctionEntry_start /\ n<=FunctionEntry_end);
+predicate isFunCall(var PDGEdgeIdx: e)   = (e>=ControlDep_CallInv_start /\ e<=ControlDep_CallInv_end);
+predicate isFunRet(var PDGEdgeIdx: e)   = (e>=ControlDep_CallRet_start /\ e<=ControlDep_CallRet_end);
 predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end);
 predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
 predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
@@ -26,68 +28,182 @@ predicate destAnnotFun(var PDGEdgeIdx: e) =
 % Basic constraints on output decision variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% constraint :: "InstHasEnclave"                forall (n in Inst)               ( forall(l in nonNullLevel) (isClassAnnotated[hasClass[n]] -> nodeEnclave[n,l]==nodeEnclave[hasFunction[n],l]));
-% constraint :: "ParamHasEnclave"               forall (n in Param)             ( forall(l in nonNullLevel)  (isClassAnnotated[hasClass[n]] -> nodeEnclave[n,l]==nodeEnclave[hasFunction[n],l]));
 
 
 
-constraint :: "ClassHasEnclave"               forall (cl in classNames)         ( forall(l in nonNullLevel) (nullEnclave!=classEnclave[cl, l]));
-constraint :: "BindAnnoClassToEnclaveLevel"       forall (cl in classNames)         ( forall(l1 in nonNullLevel) (forall(l2 in nonNullLevel) ((isClassAnnotated[cl]) -> classEnclave[cl, l1] == classEnclave[cl, l2])));
-constraint :: "BindUnannoClassToEnclaveLevel"       forall (cl in classNames)         ( forall(l in nonNullLevel) ((not isClassAnnotated[cl]) -> l == hasEnclaveLevel[classEnclave[cl, l]]));
-constraint :: "BindFunctionToClass"           forall (n in FunctionEntry)      ( forall(l in nonNullLevel) ( nodeEnclave[n,l]==classEnclave[hasClass[n], nodeLevel[n,l]]));
+constraint :: "ClassHasEnclave"               
+forall (cl in classNames)
+( forall(l in nonNullLevel) 
+(nullEnclave!=classEnclave[cl, l]));
 
+constraint :: "BindAnnoClassToEnclaveLevel"
+forall (cl in classNames)
+( forall(l1 in nonNullLevel) 
+(forall(l2 in nonNullLevel) 
+((isClassAnnotated[cl]) -> classEnclave[cl, l1] == classEnclave[cl, l2])));
 
-constraint :: "NodeLevelAtTaintLevel"         forall (n in NonAnnotation)      ( forall(l in nonNullLevel) ( nodeLevel[n,l]==hasLabelLevel[taint[n,l]]));
-constraint :: "NodeLevelAtEnclaveLevel"       forall (n in NonAnnotation)      ( forall(l in nonNullLevel) ( nodeLevel[n,l]==hasEnclaveLevel[nodeEnclave[n,l]]));
-constraint :: "FnAnnotationForFnOnly"         forall (n in NonAnnotation)      ( forall(l in nonNullLevel)(isFunctionAnnotation[taint[n,l]] -> isFunctionEntry(n)));
-constraint :: "FnAnnotationByUserOnly"        forall (n in FunctionEntry)      ( forall(l in nonNullLevel)(isFunctionAnnotation[taint[n,l]] == userAnnotatedFunction[n]));
+constraint :: "BindUnannoClassToEnclaveLevel"       
+forall (cl in classNames)
+( forall(l in nonNullLevel) 
+((not isClassAnnotated[cl]) -> l == hasEnclaveLevel[classEnclave[cl, l]]));
+
+constraint :: "BindFunctionToClass"
+forall (n in FunctionEntry)
+( forall(l in nonNullLevel) 
+( nodeEnclave[n,l]==classEnclave[hasClass[n], nodeLevel[n,l]]));
+
+constraint :: "NodeLevelAtTaintLevel"         
+forall (n in NonAnnotation)      
+( forall(l in nonNullLevel) 
+( nodeLevel[n,l]==hasLabelLevel[taint[n,l]]));
+
+constraint :: "NodeLevelAtEnclaveLevel"       
+forall (n in NonAnnotation)      
+( forall(l in nonNullLevel) 
+( nodeLevel[n,l]==hasEnclaveLevel[nodeEnclave[n,l]]));
+
+constraint :: "CannotBeNullEnclave"       
+forall (n in NonAnnotation)      
+( forall(l in nonNullLevel) 
+( nullEnclave != nodeEnclave[n,l]));
+
+constraint :: "FnAnnotationForFnOnly"         
+forall (n in NonAnnotation)      
+( forall(l in nonNullLevel)
+(isFunctionAnnotation[taint[n,l]] -> isFunctionEntry(n)));
+
+constraint :: "FnAnnotationByUserOnly"        
+forall (n in FunctionEntry)      
+( forall(l in nonNullLevel)
+(isFunctionAnnotation[taint[n,l]] == userAnnotatedFunction[n]));
 
 constraint :: "UnannotatedClassSinglyTainted"
- forall (n in PDGNodeIdx) (forall (l in nonNullLevel) ((not isClassAnnotated[hasClass[n]]) -> ctaint[hasClass[n],l] == taint[n,l]));
+ forall (n in PDGNodeIdx) 
+ (forall (l in nonNullLevel) 
+ ((not isClassAnnotated[hasClass[n]]) -> ctaint[hasClass[n],l] == taint[n,l]));
+
+
+constraint :: "BindFieldTaints"
+forall (method in FunctionEntry)
+(
+  forall(field in methodsFieldAccess[method])
+  (
+    forall (l in nonNullLevel) 
+    (
+      if userAnnotatedFunction[method]==false
+      then
+      (fieldTaint[field,l] == ftaint[method,l])
+      else
+        % reject any annotated function that accesses a static field
+        (if fieldIsStatic[field]
+        then
+        false
+        else
+        % (isInArctaint(ftaint[method,l], fieldTaint[field,l], hasLabelLevel[fieldTaint[field,l]]))
+        true
+        endif)
+      endif
+    )
+  )
+);
 
 
 
 constraint :: "UnannotatedFunContentTaintMatch"
- forall (n in PDGNodeIdx) (forall (l in nonNullLevel) (userAnnotatedFunction[hasFunction[n]]==false -> taint[n,l]==ftaint[n,l]));
+ forall (n in PDGNodeIdx) 
+ (forall (l in nonNullLevel) 
+ (userAnnotatedFunction[hasFunction[n]]==false -> taint[n,l]==ftaint[n,l]));
 
 
-constraint :: "ForceAnnotFuncToAnnoEnc"
-forall (n in FunctionEntry) (forall (l in nonNullLevel) (userAnnotatedFunction[hasFunction[n]] -> hasLabelLevel[taint[n,l]]==hasLabelLevel[ftaint[n,l]]));
+constraint :: "ForceAnnotFuncToAnnoLvl"
+forall (n in FunctionEntry) 
+(forall (l in nonNullLevel) 
+(userAnnotatedFunction[hasFunction[n]] -> hasLabelLevel[taint[n,l]]==hasLabelLevel[ftaint[n,l]]));
 
 constraint :: "AnnotatedFunContentCoercible"
- forall (n in PDGNodeIdx where  isFunctionEntry(n)==false)  (forall (l in nonNullLevel)
+ forall (n in PDGNodeIdx where  isFunctionEntry(n)==false)  
+ (forall (l in nonNullLevel)
   (userAnnotatedFunction[hasFunction[n]] -> isInArctaint(ftaint[n,l], taint[n,l], hasLabelLevel[taint[n,l]])));
 
-constraint :: "EdgeSourceEnclave"             forall (e in PDGEdgeIdx)        (forall (l in nonNullLevel) (esEnclave[e,l]==nodeEnclave[hasSource[e],l]));
-constraint :: "EdgeDestEnclave"               forall (e in PDGEdgeIdx)        (forall (l in nonNullLevel) (edEnclave[e,l]==nodeEnclave[hasDest[e],l]));
-constraint :: "EdgeInEnclaveCut"              forall (e in PDGEdgeIdx)         (forall (l in nonNullLevel) (xdedge[e,l]==(esEnclave[e,l]!=edEnclave[e,l])));
+constraint :: "EdgeSourceEnclave"             
+forall (e in PDGEdgeIdx)        
+(forall (l in nonNullLevel) 
+(esEnclave[e,l]==nodeEnclave[hasSource[e],l]));
+
+constraint :: "EdgeDestEnclave"               
+forall (e in PDGEdgeIdx)        
+(forall (l in nonNullLevel) 
+(edEnclave[e,l]==nodeEnclave[hasDest[e],l]));
+
+% constraint :: "EdgeInEnclaveCut"              
+% forall (e in PDGEdgeIdx)         
+% (forall (l in nonNullLevel) 
+% (xdedge[e,l]==(esEnclave[e,l]!=edEnclave[e,l])));
+
+constraint :: "EdgeInEnclaveCut"              
+forall (e in PDGEdgeIdx )         
+(forall (l in nonNullLevel) 
+(xdedge[e,l]== 
+(if isFunCall(e) \/ isFunRet(e)
+then(esEnclave[e,l]!=edEnclave[e,l])
+else false endif)));
+
+constraint :: "EdgeInEnclaveCut"              
+forall (e in PDGEdgeIdx )         
+(forall (l in nonNullLevel) 
+(xdedge[e,l]== 
+(if isFunCall(e) \/ isFunRet(e)
+then(esEnclave[e,l]!=edEnclave[e,l])
+else false endif)));
 
 constraint :: "SourceFunctionAnnotation"
- forall (e in ControlDep_CallInv union ControlDep_CallRet) (forall (l in nonNullLevel) (esFunTaint[e,l] == (if sourceAnnotFun(e) then taint[hasFunction[hasSource[e]],l] else nullCleLabel endif)));
+ forall (e in ControlDep_CallInv union ControlDep_CallRet) 
+ (forall (l in nonNullLevel) 
+ (esFunTaint[e,l] == 
+ (if sourceAnnotFun(e) 
+ then taint[hasFunction[hasSource[e]],l] 
+ else nullCleLabel endif)));
 
 constraint :: "DestFunctionAnnotation"
- forall (e in ControlDep_CallInv union ControlDep_CallRet) (forall (l in nonNullLevel)(edFunTaint[e,l] == (if destAnnotFun(e) then taint[hasFunction[hasDest[e]],l] else nullCleLabel endif)));
+ forall (e in ControlDep_CallInv union ControlDep_CallRet) 
+ (forall (l in nonNullLevel)(edFunTaint[e,l] == 
+ (if destAnnotFun(e) 
+ then taint[hasFunction[hasDest[e]],l] 
+ else nullCleLabel endif)));
 
 constraint :: "SourceCdfForDestLevel"
- forall (e in ControlDep_CallInv union ControlDep_CallRet) (forall (l in nonNullLevel)(esFunCdf[e,l] == (if sourceAnnotFun(e) then cdfForRemoteLevel[esFunTaint[e,l], hasLabelLevel[taint[hasDest[e],l]]] else nullCdf endif)));
+ forall (e in ControlDep_CallInv union ControlDep_CallRet) 
+ (forall (l in nonNullLevel)(esFunCdf[e,l] == 
+ (if sourceAnnotFun(e) 
+ then cdfForRemoteLevel[esFunTaint[e,l], hasLabelLevel[taint[hasDest[e],l]]] 
+ else nullCdf endif)));
 
 constraint :: "DestCdfForSourceLevel"
- forall (e in ControlDep_CallInv union ControlDep_CallRet) (forall (l in nonNullLevel) (edFunCdf[e,l] == (if destAnnotFun(e) then cdfForRemoteLevel[edFunTaint[e,l], hasLabelLevel[taint[hasSource[e],l]]] else nullCdf endif)));
+ forall (e in ControlDep_CallInv union ControlDep_CallRet) 
+ (forall (l in nonNullLevel) (edFunCdf[e,l] == 
+ (if destAnnotFun(e) then 
+ cdfForRemoteLevel[edFunTaint[e,l], hasLabelLevel[taint[hasSource[e],l]]] 
+ else nullCdf endif)));
 
 constraint :: "XDCDataReturnAllowed"
- forall (e in DataDepEdge_Ret) (forall (l in nonNullLevel)  (
+ forall (e in DataDepEdge_Ret) 
+ (forall (l in nonNullLevel)  (
   xdedge[e,l] -> allowOrRedact(cdfForRemoteLevel[esFunTaint[e,l], hasLabelLevel[edTaint[e,l]]])));
 
 
-constraint :: "XDCallBlest"                   forall (e in ControlDep_CallInv) (forall (l in nonNullLevel) (xdedge[e,l] -> userAnnotatedFunction[hasDest[e]]));
+constraint :: "XDCallBlest"                   
+forall (e in ControlDep_CallInv) 
+(forall (l in nonNullLevel) (xdedge[e,l] -> userAnnotatedFunction[hasDest[e]]));
 
 constraint :: "XDCallAllowed"
- forall (e in ControlDep_CallInv) (forall (l in nonNullLevel) (
+ forall (e in ControlDep_CallInv) 
+ (forall (l in nonNullLevel) (
  xdedge[e,l] -> allowOrRedact(cdfForRemoteLevel[edTaint[e,l], hasLabelLevel[esTaint[e,l]]])));
 
 constraint :: "XDCParmAllowed"
- forall (e in Parameter)     (forall (l in nonNullLevel)  (xdedge[e,l] -> allowOrRedact(cdfForRemoteLevel[esFunTaint[e,l], hasLabelLevel[edTaint[e,l]]])));
-
+ forall (e in Parameter)     
+ (forall (l in nonNullLevel)  
+ (xdedge[e,l] -> allowOrRedact(cdfForRemoteLevel[esFunTaint[e,l], hasLabelLevel[edTaint[e,l]]])));
 
 
 constraint :: "ArgumentTaintCoerced"
@@ -99,22 +215,23 @@ constraint :: "ArgumentTaintCoerced"
    endif));
 
 
-
 constraint :: "ReturnTaintCoerced"
  forall (e in DataDepEdge_Ret) 
- (forall (l in nonNullLevel) ((if sourceAnnotFun(e) /\ xdedge[e,l] then hasRettaints[esFunCdf[e,l], taint[hasDest[e],l]]
+ (forall (l in nonNullLevel) 
+ ((if sourceAnnotFun(e) /\ xdedge[e,l] 
+ then hasRettaints[esFunCdf[e,l], taint[hasDest[e],l]]
  else true endif)));
 
 constraint :: "DataTaintCoercedData"
  forall (e in DataEdgeNoRet)
 (forall (l in nonNullLevel)
-  (if ( sourceAnnotFun(e) )
+  (if ( sourceAnnotFun(e))
    then (isInArctaint(esFunTaint[e,l], taint[hasDest[e],l], hasLabelLevel[taint[hasDest[e],l]]) /\
                        isInArctaint(esFunTaint[e,l], taint[hasSource[e],l], hasLabelLevel[taint[hasSource[e],l]]))
    else true
    endif));
 
-
+% todo: add checks for statics and fields
 
 /*
 */
@@ -140,11 +257,12 @@ output [if debug then "Label and Enclave assignments to non-annotation nodes:\n"
 output [" ASSIGN   : " ++
  show(n) ++ " " ++
  (if (n>=FunctionEntry_start /\ n<=FunctionEntry_end) then "FunctionEntry "
+  elseif (n>=Inst_FunCall_start          /\ n<=Inst_FunCall_end)          then "FunCall          "
   elseif (n>=Inst_start          /\ n<=Inst_end)          then "Inst          "
   elseif (n>=Param_start         /\ n<=Param_end)         then "Param         "
   else                                                         "Annotation    "
   endif)
- ++ "[" ++
+ ++ show(l) ++ " [" ++
  show(nodeEnclave[n,l])
  ++ "]::" ++ show(taint[n,l]) ++ "\n"
  | n in PDGNodeIdx, l in nonNullLevel where debug];
@@ -154,6 +272,7 @@ output ["=======================================" ++ "\n" ++ "Assignments for cl
 
 output [" Class : " ++ show(l) ++ " : " ++ show(x) ++ " -> " ++ show(classEnclave[x, l]) ++ "\n" | x in classNames, l in nonNullLevel ] ;
 % output [" Class : " ++ show(x) ++ " -> " ++ show(classEnclave[x]) ++ "\n" | x in classNames where x != sharedClass] ;
+
 output ["Cross-domain cut:" ++ "\n"];
 output [" XDCALL   : "  ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSource[e],l]) ++ " "
                        ++ "--[" ++ show(nodeEnclave[hasFunction[hasSource[e]],l]) ++ "]"
@@ -162,5 +281,7 @@ output [" XDCALL   : "  ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSource[e],
                        ++ show(hasDest[e]) ++ ":" ++ show(taint[hasDest[e],l])
                        ++ "\n"
         | e in ControlDep_CallInv, l in nonNullLevel where fix(xdedge[e,l]==true)] ;
+% output ["Edge Map: \n"];
+% output [" Edge[" ++ show(e) ++", " ++ show(l) ++ "]    : "  ++ show(esEnclave[e,l]) ++ " => " ++ show(edEnclave[e,l]) ++ "\n" | e in PDGEdgeIdx, l in nonNullLevel];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
