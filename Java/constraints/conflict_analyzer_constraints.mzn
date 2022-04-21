@@ -11,6 +11,7 @@
 predicate isFunctionEntry(var PDGNodeIdx: n)   = (n>=FunctionEntry_start /\ n<=FunctionEntry_end);
 predicate isFunCall(var PDGEdgeIdx: e)   = (e>=ControlDep_CallInv_start /\ e<=ControlDep_CallInv_end);
 predicate isFunRet(var PDGEdgeIdx: e)   = (e>=ControlDep_CallRet_start /\ e<=ControlDep_CallRet_end);
+predicate isParameter(var PDGEdgeIdx: e)   = ((e>=Parameter_In_start /\ e<=Parameter_In_end) \/ (e>=Parameter_Out_start /\ e<=Parameter_Out_end));
 predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end);
 predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
 predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
@@ -32,18 +33,18 @@ predicate destAnnotFun(var PDGEdgeIdx: e) =
 
 
 constraint :: "ClassHasEnclave"               
-forall (cl in classNames)
+forall (cl in ClassNames)
 ( forall(l in nonNullLevel) 
 (nullEnclave!=classEnclave[cl, l]));
 
 constraint :: "BindAnnoClassToEnclaveLevel"
-forall (cl in classNames)
+forall (cl in ClassNames)
 ( forall(l1 in nonNullLevel) 
 (forall(l2 in nonNullLevel) 
 ((isClassAnnotated[cl]) -> classEnclave[cl, l1] == classEnclave[cl, l2])));
 
 constraint :: "BindUnannoClassToEnclaveLevel"       
-forall (cl in classNames)
+forall (cl in ClassNames)
 ( forall(l in nonNullLevel) 
 ((not isClassAnnotated[cl]) -> l == hasEnclaveLevel[classEnclave[cl, l]]));
 
@@ -83,7 +84,7 @@ constraint :: "UnannotatedClassSinglyTainted"
  ((not isClassAnnotated[hasClass[n]]) -> ctaint[hasClass[n],l] == taint[n,l]));
 
 
-constraint :: "BindFieldTaints"
+constraint :: "BindFieldTaintstoFunctions"
 forall (method in FunctionEntry)
 (
   forall(field in methodsFieldAccess[method])
@@ -92,15 +93,15 @@ forall (method in FunctionEntry)
     (
       if userAnnotatedFunction[method]==false
       then
-      (fieldTaint[field,l] == ftaint[method,l])
+        (fieldTaint[field,l] == ftaint[method,l])
       else
         % reject any annotated function that accesses a static field
         (if fieldIsStatic[field]
         then
-        false
+          false
         else
-        % (isInArctaint(ftaint[method,l], fieldTaint[field,l], hasLabelLevel[fieldTaint[field,l]]))
-        true
+          % (isInArctaint(ftaint[method,l], fieldTaint[field,l], hasLabelLevel[fieldTaint[field,l]]))
+          true
         endif)
       endif
     )
@@ -144,7 +145,7 @@ constraint :: "EdgeInEnclaveCut"
 forall (e in PDGEdgeIdx )         
 (forall (l in nonNullLevel) 
 (xdedge[e,l]== 
-(if isFunCall(e) \/ isFunRet(e)
+(if (isFunCall(e) \/ isFunRet(e) \/ isParameter(e))
 then(esEnclave[e,l]!=edEnclave[e,l])
 else false endif)));
 
@@ -152,7 +153,7 @@ constraint :: "EdgeInEnclaveCut"
 forall (e in PDGEdgeIdx )         
 (forall (l in nonNullLevel) 
 (xdedge[e,l]== 
-(if isFunCall(e) \/ isFunRet(e)
+(if (isFunCall(e) \/ isFunRet(e) \/ isParameter(e))
 then(esEnclave[e,l]!=edEnclave[e,l])
 else false endif)));
 
@@ -270,8 +271,8 @@ output [" ASSIGN   : " ++
 output [" Enclaves : " ++ show(hasEnclaveLevel[x]) ++ ":" ++ show(x) ++ "\n" | x in Enclave ] ;
 output ["=======================================" ++ "\n" ++ "Assignments for classes:\n" ++ "=======================================" ++ "\n"];
 
-output [" Class : " ++ show(l) ++ " : " ++ show(x) ++ " -> " ++ show(classEnclave[x, l]) ++ "\n" | x in classNames, l in nonNullLevel ] ;
-% output [" Class : " ++ show(x) ++ " -> " ++ show(classEnclave[x]) ++ "\n" | x in classNames where x != sharedClass] ;
+output [" Class : " ++ show(l) ++ " : " ++ show(x) ++ " -> " ++ show(classEnclave[x, l]) ++ "\n" | x in ClassNames, l in nonNullLevel ] ;
+% output [" Class : " ++ show(x) ++ " -> " ++ show(classEnclave[x]) ++ "\n" | x in ClassNames where x != sharedClass] ;
 
 output ["Cross-domain cut:" ++ "\n"];
 output [" XDCALL   : "  ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSource[e],l]) ++ " "

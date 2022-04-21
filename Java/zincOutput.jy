@@ -27,8 +27,12 @@ import subprocess
 
 #globals
 methodName2ID = {}
+classNames = []
+className2Idx = OrderedDict()
 classFields = []
+classField2Idx = OrderedDict()
 classMethods = []
+classMethod2Idx = OrderedDict()
 methodsFieldAccess = {}
 
 nodes   = {}
@@ -163,41 +167,86 @@ def createZincArray(array, values):
     print(result)
     return result
 
-def createZincEnum(enum, values):
-    result =  enum + " = {"
-    first = True
-    for i in values:
-        if first:
-            first = False
-            result = result + i
-        else:
-            result = result + ", " + i
-    result += "}; \n"
-    result = result.replace(".", "__")
-    print("Enum: ")
-    print(result)
+def createZincSet(setName, values):
+    result = setName + "_start = 1;\n"
+    result += setName + "_end = " + str(len(values)) + ";\n"
     return result
 
 def collectStatics(cp,bname):
     global methodsFieldAccess
-    classNames = []
+    global classNames
+    global className2Idx
+    global classMethods
+    global classMethod2Idx
     global classFields
+    global classField2Idx
+    # classNames = []
+    
     # classFields = []
-    fieldOfClass = []
+    fieldOfClass = {}
+    staticFields = {}
     fieldIsStatic = []
     # Does not handle overloaded methods.
     # classMethods = []
     global classMethods
+    staticMethods = {}
     methodIsStatic = []
-    methodOfClass = []
+    methodOfClass = {}
 
-    methodAnnotation = []
-    fieldAnnotation = []
+    methodAnnotation = {}
+    fieldAnnotation = {}
 
-    immediateParent = []
-    immediateSubclass = []
-    allParents = []
-    allSubclasses = []
+    immediateParent = {}
+    immediateSubclass = {}
+    allParents = {}
+    allSubclasses = {}
+
+    clIdx = 0
+    flIdx = 0
+    meIdx = 0
+    for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
+        # print(Class.forName(cnm).getCanonicalName())
+        programClassName = Class.forName(cnm)
+        
+        isAnnotated = False
+        
+        if not "annotations" in programClassName.getCanonicalName():
+            clIdx += 1
+            currentClassName = str(programClassName.getCanonicalName().encode('utf-8'))
+            classNames.append(currentClassName)
+            className2Idx[currentClassName] = clIdx
+            fields = programClassName.getDeclaredFields()
+            methods = programClassName.getDeclaredMethods()
+            constructors = programClassName.getConstructors()
+
+            allMethods = []
+            for method in methods:
+                allMethods.append(method)
+            for method in constructors:
+                allMethods.append(method)
+
+            for method in allMethods:
+                meIdx+=1
+                # check if method is a constructor
+                if  method.getName().encode('utf-8') == currentClassName:
+                    print("constructor")
+                    methodName = currentClassName
+                else:
+                    methodName = currentClassName + "." + method.getName().encode('utf-8')
+                print("CHECKING METHOD NAME 232: ")
+                print(methodName)
+                classMethods.append(methodName)
+                classMethod2Idx[methodName] = meIdx
+            
+            for field in fields:
+                flIdx += 1
+                fieldName = currentClassName + "." + field.getName().encode('utf-8')
+                classFields.append(fieldName) 
+                classField2Idx[fieldName] = flIdx
+    print("classField2Idx")     
+    print(classField2Idx)
+    classNames.append("ExternalClass")
+    className2Idx["ExternalClass"] = clIdx
 
     statics = {"methods" : [], "fields" : []}
     for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
@@ -206,33 +255,32 @@ def collectStatics(cp,bname):
         
         isAnnotated = False
         if not "annotations" in programClassName.getCanonicalName():
-            classNames.append(str(programClassName.getCanonicalName().encode('utf-8')))
-            methods = programClassName.getDeclaredMethods()
+            currentClassName = str(programClassName.getCanonicalName().encode('utf-8'))
             fields = programClassName.getDeclaredFields()
+            methods = programClassName.getDeclaredMethods()
             constructors = programClassName.getConstructors()
-
             allMethods = []
             for method in methods:
                 allMethods.append(method)
             for method in constructors:
-                allMethods.append(method)  
+                allMethods.append(method)
             
             superClass = programClassName.getSuperclass()
             
             noSuperClass = False
-            if classNames[-1] == str(superClass.getCanonicalName().encode('utf-8')):
+            if currentClassName == str(superClass.getCanonicalName().encode('utf-8')):
                 noSuperClass = True
             if noSuperClass == False:
                 superName = str(superClass.getCanonicalName().encode('utf-8'))
                 if not bname in superName:
-                    immediateParent.append("External_Class")
+                    immediateParent[currentClassName] = "ExternalClass"
                 else:
-                    immediateParent.append(superName)
+                    immediateParent[currentClassName] = superName
             else:
-                immediateParent.append("None")
+                immediateParent[currentClassName] = "None"
             if noSuperClass == False:
                 if not bname in str(superClass.getCanonicalName().encode('utf-8')):
-                    allSupers = ["External_Class"]
+                    allSupers = ["ExternalClass"]
                 else:
                     allSupers = [str(superClass.getCanonicalName().encode('utf-8'))]
                 
@@ -245,26 +293,26 @@ def collectStatics(cp,bname):
                         break
                     # print(str(superClass.getCanonicalName().encode('utf-8')))
                     if not bname in str(superClass.getCanonicalName().encode('utf-8')):
-                        allSupers.append("External_Class")
+                        allSupers.append("ExternalClass")
                     else:
                         allSupers.append(str(superClass.getCanonicalName().encode('utf-8')))
-                allParents.append(allSupers)
+                allParents[currentClassName] = allSupers
             else:
-                allParents.append(["None"])
+                allParents[currentClassName] = ["None"]
 
             for method in allMethods:
                 # check if method is a constructor
-                if  method.getName().encode('utf-8') == classNames[-1]:
-                    methodName = classNames[-1]
+                if  method.getName().encode('utf-8') == currentClassName:
+                    methodName = currentClassName
                 else:
-                    methodName = classNames[-1] + "." + method.getName().encode('utf-8')
+                    methodName = currentClassName + "." + method.getName().encode('utf-8')
                 methodsFieldAccess[methodName] = []
-                classMethods.append(methodName) 
-                methodOfClass.append(classNames[-1])
+                # classMethods.append(methodName) 
+                methodOfClass[methodName] = currentClassName
                 # print(method.getName())
                 if Modifier.isStatic(method.getModifiers()):
                     methodIsStatic.append("true")
-                    statics["methods"].append(str(method))
+                    statics["methods"].append(methodName)
                 else:
                     methodIsStatic.append("false")
                 annotations = method.getDeclaredAnnotations()
@@ -276,14 +324,15 @@ def collectStatics(cp,bname):
                         # annoStr = annoStr.replace("@com.peratonlabs.closure.tests.annotations.","")
                         annoStr = annoStr.replace("()","")
                         annots.append(annoStr)
-                methodAnnotation.append(annots)
+                methodAnnotation[methodName] = annots
 
             for field in fields:
-                classFields.append(classNames[-1] + "." + field.getName().encode('utf-8')) 
-                fieldOfClass.append(classNames[-1])
+                fieldName = currentClassName + "." + field.getName().encode('utf-8')
+                # classFields.append(fieldName) 
+                fieldOfClass[fieldName] = currentClassName
                 if Modifier.isStatic(field.getModifiers()):
                     fieldIsStatic.append("true")
-                    statics["fields"].append(str(field))
+                    statics["fields"].append(fieldName)
                 else:
                     fieldIsStatic.append("false")
                 annotations = field.getDeclaredAnnotations()
@@ -295,20 +344,167 @@ def collectStatics(cp,bname):
                         # annoStr = annoStr.replace("@com.peratonlabs.closure.tests.annotations.","")
                         annoStr = annoStr.replace("()","")
                         annots.append(annoStr)
-                fieldAnnotation.append(annots)
+                fieldAnnotation[fieldName] =  annots
+
+    
 
     classInfoFile = open("./classInfo.mzn", "w")
-    # classInfoFile.write(createZincEnum("classNames", classNames))
-    classInfoFile.write(createZincEnum("classFields", classFields))
-    classInfoFile.write(createZincArray("fieldOfClass", fieldOfClass))
-    classInfoFile.write(createZincArray("fieldIsStatic", fieldIsStatic))
-    # classInfoFile.write(createZincEnum("classMethods", classMethods))
-    # classInfoFile.write(createZincArray("methodIsStatic", methodIsStatic))
-    # classInfoFile.write(createZincArray("methodOfClass", methodOfClass))
-    # classInfoFile.write(createZincArray2DSets("methodAnnotation", methodAnnotation))
-    classInfoFile.write(createZincArray2DSets("fieldAnnotation", fieldAnnotation))
-    # classInfoFile.write(createZincArray("immediateParent", immediateParent))
-    # classInfoFile.write(createZincArray2DSets("allParents", allParents))
+    result = "ClassNames" + "_start = 1;\n"
+    result += "ClassNames" + "_end = " + str(len(classNames)-1) + ";\n"
+    result += "ExternalClass = " + str(len(classNames)) + ";\n"
+
+    classInfoFile.write(result)
+
+    classInfoFile.write(createZincSet("ClassFields", classFields))
+    classInfoFile.write(createZincSet("ClassMethods", classMethods))
+    
+    outString = ""
+    result =  "fieldOfClass" + " = ["
+    first = True
+    for field in classField2Idx:
+        clIdx = str(className2Idx[fieldOfClass[field]])
+        if first:
+            first = False
+            result = result + clIdx
+        else:
+            result = result + ", " + clIdx
+    result += "]; \n"
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "methodOfClass" + " = ["
+    first = True
+    for method in classMethod2Idx:
+        clIdx = str(className2Idx[methodOfClass[method]])
+        if first:
+            first = False
+            result = result + clIdx
+        else:
+            result = result + ", " + clIdx
+    result += "]; \n"
+    classInfoFile.write(result)
+    
+    outString = ""
+    result =  "fieldIsStatic" + " = ["
+    first = True
+    for field in classField2Idx:
+        isStatic = None
+        if field in statics["fields"]:
+            isStatic = "true"
+        else:
+            isStatic = "false"
+        if first:
+            first = False
+            result = result + isStatic
+        else:
+            result = result + ", " + isStatic
+    result += "]; \n"
+
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "methodIsStatic" + " = ["
+    first = True
+    for method in classMethod2Idx:
+        isStatic = None
+        if method in statics["methods"]:
+            isStatic = "true"
+        else:
+            isStatic = "false"
+        if first:
+            first = False
+            result = result + isStatic
+        else:
+            result = result + ", " + isStatic
+    result += "]; \n"
+    classInfoFile.write(result)
+    
+    outString = ""
+    result =  "fieldAnnotation" + " = ["
+    first = True
+    for field in classField2Idx:
+        annos = fieldAnnotation[field]
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for anno in annos:
+            if first2:
+                first2 = False
+                result = result + anno
+            else:
+                result = result + ", " + anno
+        
+        result += "} "
+        
+    result += "]; \n"
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "methodAnnotation" + " = ["
+    first = True
+    for method in classMethod2Idx:
+        annos = methodAnnotation[method]
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for anno in annos:
+            if first2:
+                first2 = False
+                result = result + anno
+            else:
+                result = result + ", " + anno
+        
+        result += "} "
+        
+    result += "]; \n"
+    classInfoFile.write(result)
+
+
+    outString = ""
+    result =  "immediateParent" + " = ["
+    first = True
+    for clss in className2Idx:
+        if clss == "ExternalClass":
+            continue
+        imPrnt = str(className2Idx[immediateParent[clss]])
+        if first:
+            first = False
+            result = result + imPrnt
+        else:
+            result = result + ", " + imPrnt
+    result += "]; \n"
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "allParents" + " = ["
+    first = True
+    for clss in className2Idx:
+        if clss == "ExternalClass":
+            continue
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for ancestor in allParents[clss]:
+            if first2:
+                first2 = False
+                result = result + str(className2Idx[ancestor])
+            else:
+                result = result + ", " + str(className2Idx[ancestor])
+        
+        result += "} "
+        
+    result += "]; \n"
+    classInfoFile.write(result)
+
     classInfoFile.close()
     return statics
 
@@ -419,7 +615,7 @@ def removeCall():
 
 def isClassAnnotated(className,cp):
     for dummy,cnm in getClasses(cp):
-        programClassName = str(cnm.getCanonicalName()).replace(".","__")
+        programClassName = str(cnm.getCanonicalName())
         if programClassName == className:
             break
     if programClassName != className:
@@ -1524,7 +1720,11 @@ if __name__ == '__main__':
         outString = outString + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " 
   outString = outString[:-2] + "];\n"
 
-  classNames = []
+#   classNames = []
+  global className
+  global className2Idx
+  global classField2Idx
+
   outString += "hasClass = [ \n"
   for kind in nodesZinc:
     for node in nodesZinc[kind]:
@@ -1536,31 +1736,34 @@ if __name__ == '__main__':
         print("LABEL CHECK: ")
         print(label)
 
-        className = getClassName(y)
-        classNames.append(className)
-        outString = outString + className + ", " 
+        className = getClassName(y).replace("__",".")
+        classIdx = str(className2Idx[className])
+        # classNames.append(className)
+        outString = outString + classIdx + ", " 
         field = checkFieldInLabel(label, className)
         print("FIELD CHECK: ")
         print(field)
         if "None" != field:
             if getFQNMethodName(y) in methodsFieldAccess: 
-                methodsFieldAccess[getFQNMethodName(y)].append(field)
+                methodsFieldAccess[getFQNMethodName(y)].append(classField2Idx[field])
 
         dbgStr = str(nodeID2Idx[int(nid)]) + ", " + nid + ", " + kind + ", " + label + ", " + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " + y.getSource().encode('utf-8') + ", " + str(y.getSr()) + ", " + str(y.getSc()) + ", " + str(y.getEr()) + ", " + str(y.getEc()) + "\n"
         dbgFileNode.write(dbgStr)
     
   outString = outString[:-2] + "];\n"
 
-  classNames = set(classNames)
+#   classNames = set(classNames)
 #   outString += "classNames = {"
-  outString += "AllClassNames = {"
-  for n in classNames:
-      outString = outString + n + ", " 
-  outString = outString + "External_Class, "
-  outString = outString[:-2] + "};\n"
-
+#   outString += "AllClassNames = {"
+#   for n in classNames:
+#       outString = outString + n + ", " 
+#   outString = outString + "ExternalClass, "
+#   outString = outString[:-2] + "};\n"
+  global className2Idx
   outString += "isClassAnnotated = ["
-  for className in classNames:
+  for className in className2Idx:
+      if className == "ExternalClass":
+          continue
       if isClassAnnotated(className,cp):
           outString = outString +"true, "
       else:
@@ -1696,9 +1899,9 @@ if __name__ == '__main__':
             for j in methodsFieldAccess[i]:
                 if first2:
                     first2 = False
-                    result = result + j
+                    result = result + str(j)
                 else:
-                    result = result + ", " + j
+                    result = result + ", " + jstr(j)
         
         result += "} "
     

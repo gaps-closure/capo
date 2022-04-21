@@ -160,27 +160,48 @@ set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 % Java OO Features
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Try slicing off last element of enum
+% Drop enums for sets of ints
 
-enum AllClassNames;
-set of AllClassNames: classNames = { x | x in AllClassNames where x!=External_Class };
-
-enum classFields;
-array[classFields]     of classNames:  fieldOfClass;
-array[classFields]     of bool:  fieldIsStatic;
-
-% enum classMethods;
-% array[classMethods]     of classNames:  methodOfClass;
-% array[classMethods]     of bool:  methodIsStatic;
-
-array[classFields]     of set of cleLabel:  fieldAnnotation;
-% array[classMethods]     of set of cleLabel:  methodAnnotation;
+% enum AllClassNames;
+% set of AllClassNames: classNames = { x | x in AllClassNames where x!=External_Class };
 
 
+int: ClassNames_start;
+int: ClassNames_end;
+int: ExternalClass;
 
-% array[classNames]     of classNames:  immediateParent;
-% array[classNames]     of set of classNames:  allParents;
+int: ClassFields_start;
+int: ClassFields_end;
 
-array[FunctionEntry]     of set of classFields:  methodsFieldAccess;
+int: ClassMethods_start;
+int: ClassMethods_end;
+
+set of int: ClassNames = ClassNames_start .. ClassNames_end;
+set of int: AllClassNames = ClassNames_start .. ClassNames_end union {ExternalClass};
+
+set of int: ClassFields = ClassFields_start .. ClassFields_end;
+
+set of int: ClassMethods = ClassMethods_start .. ClassMethods_end;
+
+
+
+array[ClassFields]     of ClassNames:  fieldOfClass;
+array[ClassFields]     of bool:  fieldIsStatic;
+
+
+array[ClassMethods]     of ClassNames:  methodOfClass;
+array[ClassMethods]     of bool:  methodIsStatic;
+
+array[ClassFields]     of set of cleLabel:  fieldAnnotation;
+array[ClassMethods]     of set of cleLabel:  methodAnnotation;
+
+
+
+array[ClassNames]     of AllClassNames:  immediateParent;
+array[ClassNames]     of set of AllClassNames:  allParents;
+
+array[FunctionEntry]     of set of ClassFields:  methodsFieldAccess;
 
 % From the input model we need to know fields to class
 % In the input model we must have:
@@ -199,7 +220,7 @@ array[FunctionEntry]     of set of classFields:  methodsFieldAccess;
 % Containing Class for PDG Nodes, Containing Function for PDG Nodes, Endpoints for PDG Edges, Indices of Fucntion Formal Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-array[PDGNodeIdx]     of classNames:  hasClass;
+array[PDGNodeIdx]     of ClassNames:  hasClass;
 array[PDGNodeIdx]     of FunctionEntry:  hasFunction;
 array[PDGEdgeIdx]     of int:  hasSource;
 array[PDGEdgeIdx]     of int:  hasDest;
@@ -242,7 +263,7 @@ int: MaxFuncParms;  % Max number of function parameters in the program (C<128, C
 set of int: parmIdx = 1..MaxFuncParms;
 
 array[cleLabel]                       of Level:          hasLabelLevel;
-array[classNames]                     of bool:           isClassAnnotated;
+array[ClassNames]                     of bool:           isClassAnnotated;
 array[cleLabel]                       of bool:           isFunctionAnnotation;
 
 array[cdf]                            of cleLabel:       fromCleLabel;
@@ -268,17 +289,17 @@ bool:                                                    debug;
 debug = true;
 
 
-% array[classNames]                     of var Enclave:    classEnclave;
-% array[classNames,nonNullLevel]                of var Enclave:    classEnclave;
+% array[ClassNames]                     of var Enclave:    classEnclave;
+% array[ClassNames,nonNullLevel]                of var Enclave:    classEnclave;
 
-array[classNames,nonNullLevel]                     of var Enclave:    classEnclave;
+array[ClassNames,nonNullLevel]                     of var Enclave:    classEnclave;
 array[PDGNodeIdx,nonNullLevel]                     of var Enclave:    nodeEnclave;
 array[PDGNodeIdx,nonNullLevel]                     of var Level:      nodeLevel;
 array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   taint;
 array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   ftaint;
-array[classNames,nonNullLevel]                     of var cleLabel:   ctaint;
+array[ClassNames,nonNullLevel]                     of var cleLabel:   ctaint;
 
-array[classFields,nonNullLevel]                    of var cleLabel:   fieldTaint;
+array[ClassFields,nonNullLevel]                    of var cleLabel:   fieldTaint;
 
 
 array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    esEnclave;
