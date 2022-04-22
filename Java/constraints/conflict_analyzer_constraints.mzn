@@ -12,6 +12,8 @@ predicate isFunctionEntry(var PDGNodeIdx: n)   = (n>=FunctionEntry_start /\ n<=F
 predicate isFunCall(var PDGEdgeIdx: e)   = (e>=ControlDep_CallInv_start /\ e<=ControlDep_CallInv_end);
 predicate isFunRet(var PDGEdgeIdx: e)   = (e>=ControlDep_CallRet_start /\ e<=ControlDep_CallRet_end);
 predicate isParameter(var PDGEdgeIdx: e)   = ((e>=Parameter_In_start /\ e<=Parameter_In_end) \/ (e>=Parameter_Out_start /\ e<=Parameter_Out_end));
+predicate isCDOther(var PDGEdgeIdx: e)   = (e>=ControlDep_Other_start /\ e<=ControlDep_Other_end);
+
 predicate isParam_ActualIn(var PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end);
 predicate isParam_ActualOut(var PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end);
 predicate allowOrRedact(var cdf: c)            = (hasGuardOperation[c]==allow \/ hasGuardOperation[c]==redact);
@@ -136,26 +138,15 @@ forall (e in PDGEdgeIdx)
 (forall (l in nonNullLevel) 
 (edEnclave[e,l]==nodeEnclave[hasDest[e],l]));
 
-% constraint :: "EdgeInEnclaveCut"              
-% forall (e in PDGEdgeIdx)         
-% (forall (l in nonNullLevel) 
-% (xdedge[e,l]==(esEnclave[e,l]!=edEnclave[e,l])));
-
 constraint :: "EdgeInEnclaveCut"              
-forall (e in PDGEdgeIdx )         
+forall (e in PDGEdgeIdx)         
 (forall (l in nonNullLevel) 
-(xdedge[e,l]== 
-(if (isFunCall(e) \/ isFunRet(e) \/ isParameter(e))
-then(esEnclave[e,l]!=edEnclave[e,l])
-else false endif)));
+((isClassAnnotated[hasClass[hasDest[e]]] == true) -> xdedge[e,l]==(esEnclave[e,l]!=edEnclave[e,l])));
 
-constraint :: "EdgeInEnclaveCut"              
-forall (e in PDGEdgeIdx )         
+constraint :: "OnlyCallsParamsAndRetsInCut"              
+forall (e in ControlDep_NonCall)         
 (forall (l in nonNullLevel) 
-(xdedge[e,l]== 
-(if (isFunCall(e) \/ isFunRet(e) \/ isParameter(e))
-then(esEnclave[e,l]!=edEnclave[e,l])
-else false endif)));
+(xdedge[e,l]==false));
 
 constraint :: "SourceFunctionAnnotation"
  forall (e in ControlDep_CallInv union ControlDep_CallRet) 
@@ -191,10 +182,9 @@ constraint :: "XDCDataReturnAllowed"
  (forall (l in nonNullLevel)  (
   xdedge[e,l] -> allowOrRedact(cdfForRemoteLevel[esFunTaint[e,l], hasLabelLevel[edTaint[e,l]]])));
 
-
 constraint :: "XDCallBlest"                   
 forall (e in ControlDep_CallInv) 
-(forall (l in nonNullLevel) (xdedge[e,l] -> userAnnotatedFunction[hasDest[e]]));
+(forall (l in nonNullLevel) ( ( xdedge[e,l]) -> userAnnotatedFunction[hasDest[e]]));
 
 constraint :: "XDCallAllowed"
  forall (e in ControlDep_CallInv) 
@@ -283,6 +273,6 @@ output [" XDCALL   : "  ++ show(hasSource[e]) ++ ":" ++ show(taint[hasSource[e],
                        ++ "\n"
         | e in ControlDep_CallInv, l in nonNullLevel where fix(xdedge[e,l]==true)] ;
 % output ["Edge Map: \n"];
-% output [" Edge[" ++ show(e) ++", " ++ show(l) ++ "]    : "  ++ show(esEnclave[e,l]) ++ " => " ++ show(edEnclave[e,l]) ++ "\n" | e in PDGEdgeIdx, l in nonNullLevel];
-
+% output [" Edge["++ "<" ++ show(isFunCall(e) == false /\ isFunRet(e) == false /\ isParameter(e) == false) ++ ">" ++ show(e) ++", " ++ show(l) ++ "]    : "  ++ show(esEnclave[e,l]) ++ " => " ++ show(edEnclave[e,l]) ++ "\n" | e in PDGEdgeIdx, l in nonNullLevel];
+% output["EXEDGE["++ show(xdedge[e,l]) ++ "]\n"| e in PDGEdgeIdx, l in nonNullLevel];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

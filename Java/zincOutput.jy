@@ -29,10 +29,13 @@ import subprocess
 methodName2ID = {}
 classNames = []
 className2Idx = OrderedDict()
+classId2Name = {}
 classFields = []
 classField2Idx = OrderedDict()
+classId2FieldName = {}
 classMethods = []
 classMethod2Idx = OrderedDict()
+classId2MethodName = {}
 methodsFieldAccess = {}
 
 nodes   = {}
@@ -215,6 +218,7 @@ def collectStatics(cp,bname):
             currentClassName = str(programClassName.getCanonicalName().encode('utf-8'))
             classNames.append(currentClassName)
             className2Idx[currentClassName] = clIdx
+            classId2Name[clIdx] = currentClassName
             fields = programClassName.getDeclaredFields()
             methods = programClassName.getDeclaredMethods()
             constructors = programClassName.getConstructors()
@@ -237,12 +241,18 @@ def collectStatics(cp,bname):
                 print(methodName)
                 classMethods.append(methodName)
                 classMethod2Idx[methodName] = meIdx
+                classId2MethodName[meIdx] = methodName
             
             for field in fields:
                 flIdx += 1
                 fieldName = currentClassName + "." + field.getName().encode('utf-8')
                 classFields.append(fieldName) 
                 classField2Idx[fieldName] = flIdx
+                classId2MethodName[flIdx] = fieldName
+    print("className2Idx")     
+    print(className2Idx)
+    print("classMethod2Idx")     
+    print(classMethod2Idx)
     print("classField2Idx")     
     print(classField2Idx)
     classNames.append("ExternalClass")
@@ -347,6 +357,19 @@ def collectStatics(cp,bname):
                 fieldAnnotation[fieldName] =  annots
 
     
+
+    dbgFileEdge = open("./dbg_classinfo.csv", "w")
+    for className in className2Idx:
+        outStr = className + ", " + str(className2Idx[className])
+        dbgFileEdge.write(outStr)
+    for fieldName in classId2FieldName:
+        outStr = fieldName + ", " + str(classId2FieldName[fieldName])
+        dbgFileEdge.write(outStr) 
+    for methodName in methodName2ID:
+        outStr = className + ", " + str(methodName2ID[methodName])
+        dbgFileEdge.write(outStr)  
+    dbgFileEdge.close()
+
 
     classInfoFile = open("./classInfo.mzn", "w")
     result = "ClassNames" + "_start = 1;\n"
@@ -651,6 +674,8 @@ def isClassAnnotated(className,cp):
     return isAnnotated
 
 def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
+    global classId2Name
+
     dirPath = os.path.dirname(os.path.realpath(__file__))
     jar = jarLoc.split("/")[-1]
     rootDir = dirPath
@@ -678,6 +703,7 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
     enclaveToLevel = {}
 
     enclaveAssingments = {}
+    inlineUpdates = []
     for line in zincOutput.split("\n"):
         sLine = line.split(" ")
         if len(sLine) > 1:
@@ -688,8 +714,12 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
             if sLine[1] == "Class":
                 enclave = sLine[-1]
                 
+                # className = sLine[-3]
+                
+                sLine[-3] = classId2Name[int(sLine[-3])] 
+                line = " ".join(sLine)
                 className = sLine[-3]
-                className = className.replace("__", ".")
+                # className = className.replace("__", ".")
                 # print("Looking for classname:")
                 # print(className)
                 # print(entryMethod)
@@ -764,7 +794,7 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 cutEntry["callee"] = callee
                 cutEntry["allowedCallers"] = allowedCallers
                 cuts.append(cutEntry)
-    
+        inlineUpdates.append(line)
     for assingment in enclaveAssingments:
         asng = {"name":assingment, "assignedClasses": enclaveAssingments[assingment], "level":enclaveToLevel[assingment]}
         enclaves.append(asng)
@@ -791,6 +821,9 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
     cutJson["assingments"] = assingments
     cutJson["cuts"] = cuts
     dump(cutJson,open("cut.json","wb"), indent=4)
+    for line in inlineUpdates:
+        print(line)
+
     return cutJson
 
 
@@ -1924,7 +1957,7 @@ if __name__ == '__main__':
   f = open("result.txt", "r")
   output = f.read()
   f.close()
-  print(output)
+#   print(output)
   cutJson = getCutJson(output,sdg,cles,args.entrymethod, args.clpath, args.mainLoc)
   print(cutJson)
   
