@@ -10,19 +10,19 @@ from shutil import copyfile
 #####################################################################################################################################################
 def argparser():
   parser = ArgumentParser(description='CLOSURE RPC File and Wrapper Generator')
-  parser.add_argument('-a','--hal', required=True, type=str, help='HAL Api Directory Path')
-  parser.add_argument('-e','--edir', required=True, type=str, help='Input Directory')
-  parser.add_argument('-f','--subfuncs', required=False, action='store_true', help='NB: DEPRICATED (Not fixed to work with subfuncs - must pass result back, after pass by value replaced pass by ref)')
-  parser.add_argument('-g','--gedl', required=True, type=str, help='Input GEDL Filepath')
-  parser.add_argument('-i','--ipc', required=True, type=str, help='IPC Type (Singlethreaded/Multithreaded)')
-  parser.add_argument('-m','--mainprog', required=True, type=str, help='Application program name, <mainprog>.c must exsit')
-  parser.add_argument('-n','--inuri', required=True, type=str, help='Input URI')
-  parser.add_argument('-o','--odir', required=True, type=str, help='Output Directory')
-  parser.add_argument('-s','--schema', required=False, type=str, help='override location of cle schema if required', default='/opt/closure/schemas/cle-schema.json')
-  parser.add_argument('-t','--outuri', required=True, type=str, help='Output URI')
-  parser.add_argument('-v','--verbose', required=False, action='store_true')
-  parser.add_argument('-x','--xdconf', required=True, type=str, help='Hal Config Map Filename')
-  parser.add_argument('-E','--enclave_list', required=True, type=str, nargs='+', help='List of enclaves')
+  parser.add_argument('-a','--hal',      required=True,  type=str, help='HAL Api Directory Path')
+  parser.add_argument('-e','--edir',     required=True,  type=str, help='Input Directory')
+  parser.add_argument('-c','--cle',      required=False, type=str, help='Input Filepath for CLE user annotations', default='/workspaces/build/example1.all.clemap.json')   # XXX Change to path of combined CLE map: jsons/?
+  parser.add_argument('-g','--gedl',     required=True,  type=str, help='Input GEDL Filepath')
+  parser.add_argument('-i','--ipc',      required=True,  type=str, help='IPC Type (Singlethreaded/Multithreaded)')
+  parser.add_argument('-m','--mainprog', required=True,  type=str, help='Application program name, <mainprog>.c must exsit')
+  parser.add_argument('-n','--inuri',    required=True,  type=str, help='Input URI')
+  parser.add_argument('-o','--odir',     required=True,  type=str, help='Output Directory')
+  parser.add_argument('-s','--schema',   required=False, type=str, help='override location of cle schema if required', default='/opt/closure/schemas/cle-schema.json')
+  parser.add_argument('-t','--outuri',   required=True,  type=str, help='Output URI')
+  parser.add_argument('-v','--verbose',  required=False, action='store_true')
+  parser.add_argument('-x','--xdconf',   required=True,  type=str, help='Hal Config Map Filename')
+  parser.add_argument('-E','--enclave_list', required=True,  type=str, nargs='+', help='List of enclaves')
   parser.add_argument('-M','--mux_base', required=False, type=int, default=0, help='Application mux base index for tags')
   parser.add_argument('-S','--sec_base', required=False, type=int, default=0, help='Application sec base index for tags')
   parser.add_argument('-T','--typ_base', required=False, type=int, default=0, help='Application typ base index for tags')
@@ -39,7 +39,7 @@ def gotMain(fn): # XXX: will fail on #ifdef'd out main, consider using clang.cin
 
 #####################################################################################################################################################
 class GEDLProcessor:
-  def __init__(self, gedlfile, enclaveList, muxbase, secbase, typbase, schemafile, subfuncs):
+  def __init__(self, gedlfile, enclaveList, muxbase, secbase, typbase, schemafile, clefile):
     with open(gedlfile) as edl_file: self.gedl = json.load(edl_file)['gedl']
     self.xdcalls     = [c['func'] for x in self.gedl for c in x['calls']]   # RPC call instances
     self.spcalls     = [sFuncg(x) for x in self.gedl]                       # special call instances
@@ -49,15 +49,20 @@ class GEDLProcessor:
     self.secbase     = secbase
     self.typbase     = typbase
     self.enclaveList = enclaveList
-    self.subfuncs    = subfuncs                                             # DEPRICATED Flag if requestor has two subfunctions
-    # generate mux and sec assigmets per enclave pairs (e.g., orange, purple and purple, orange)
+    self.clefile     = clefile                                             # DEPRICATED Flag if requestor has two subfunctions
+    # Auto-generate mux and sec assigmets per enclave pairs (e.g., orange, purple and purple, orange)
     cartesian        = [(i,j) for i in enclaveList for j in enclaveList if i != j]
     self.muxAssign   = {x: i for i,x in enumerate(cartesian)}
     self.secAssign   = {x: i for i,x in enumerate(cartesian)}
     self.masters     = []
     self.affected    = {}
+    # ARQ parameters (default and user defied) from JSON files
     self.schemafile  = schemafile
-# Get ARQ Params per function...    self.clelabels   = {c['func'] : c['clelabel'] for x in self.gedl for c in x['calls']}
+    with open(clefile)    as j_file: self.j_dict     = json.load(j_file)
+    with open(schemafile) as s_file: dict_lossndelay = json.load(s_file)['definitions']['cdfType']['properties']
+    self.default_param = {}
+    self.param_list  = ['num_tries', 'timeout']
+    for p in self.param_list: self.default_param[p] = dict_lossndelay[p]['default']
     # Check for errors
     y = [x for x in self.gedl if x['caller'] not in enclaveList or x['callee'] not in enclaveList]
     if len(y) > 0: raise Exception('Enclaves referenced in GEDL not in provided enclave list: ' + ','.join(y))
@@ -73,6 +78,8 @@ class GEDLProcessor:
             self.affected[canon][line].append(c['func'])
 
   ##############################################################################################################
+  # A) Call (caller, callee, func, direction) information
+  ##############################################################################################################
   # List of calls (in and out) of an enclave [caller, callee, func type, other call info]
   def callees(self, e):   return [x['callee']                                       for x in self.gedl if x['caller'] == e]
   def callers(self, e):   return [x['caller']                                       for x in self.gedl if x['callee'] == e]
@@ -82,7 +89,17 @@ class GEDLProcessor:
   def sOutCalls(self, e): return [(x['caller'],x['callee'],sFuncg(x),x['calls'][0]) for x in self.gedl if x['caller'] == e]
   def allCalls(self, e):  return self.sOutCalls(e) + self.sInCalls(e) + self.outCalls(e) + self.inCalls(e)
   
-  # Call assigment (caller, callee, func, direction) dictionary
+  # Get Call ARQ parameters (e.g., num_tries) from JSON dictionaries: CLE user annotations or CLE schema
+  def get_param(self, caller, callee, func, param):
+    for a in self.j_dict:
+      if 'XDLINKAGE_' + func.upper() in a['cle-label']:  # func matches user label?
+        if callee == a['cle-json']['level']:  # Callee matches RPC responder (server)?
+          for d in a['cle-json']['cdf']:      # Loop all cdf dictionaries in cdf list
+            if caller == d['remotelevel']:    # Caller matches RPC requestor (client)?
+              if param in d: return d[param]  # Get user specified param (if specified)
+    return self.default_param[param]          # Else use default (if user does not specify)
+    
+  # Costruct dictioary with a call's parameters
   def const(self, caller, callee, func, outgoing=True):
     if func in self.spcalls:
       dni =  self.sptypes[0] + '_' + func if outgoing else  self.sptypes[1] + '_' + func
@@ -95,23 +112,25 @@ class GEDLProcessor:
     y['to']      = callee if outgoing else caller
     y['dni']     = dni
     y['dnm']     = dnm
-    y['muxdef']  = 'MUX_'      + dnm
-    y['secdef']  = 'SEC_'      + dnm
-    y['typdef']  = 'DATA_TYP_' + dnm
-    y['clelabl'] = 'TAG_'      + dnm
+    y['muxdef']  = 'MUX_'       + dnm
+    y['secdef']  = 'SEC_'       + dnm
+    y['typdef']  = 'DATA_TYP_'  + dnm
+    y['clelabl'] = 'TAG_'       + dnm
     y['mux']     = (self.muxAssign[(caller,callee)] + 1) if outgoing else (self.muxAssign[(callee,caller)] + 1)
     y['sec']     = (self.secAssign[(caller,callee)] + 1) if outgoing else (self.secAssign[(callee,caller)] + 1)
     y['typ']     = self.spcalls.index(func) * 2 + (1 if outgoing else 2) if func in self.spcalls else len(self.spcalls) * 2 + self.xdcalls.index(func) * 2 + (1 if outgoing else 2)
     return y
-
-  # Print Calls from and to enclave e using the const module
+    
+  # Debug Print of Call parameters for enclave 'e'
   def constPrint(self, e):
     for (x,y,f,fd) in self.allCalls(e):
-      for o in [True,False]:
-        print ('Call to and from enclave', e, 'for', f, '=', json.dumps(self.const(x,y,f,o), indent=2, default=str))
+      print ('Call to and from enclave', e, 'for', f, end=': ')
+      for p in self.param_list:  print (p + '=' + str(self.get_param(x,y,f,p)), end=' ')
+      print('')
+      for o in [True,False]: print (json.dumps(self.const(x,y,f,o), indent=2, default=str))
 
   ##############################################################################################################
-  # A) Generate dictionary with info needed for HAL cofiguration (and put into xdconf.ini json file)
+  # B) Generate HAL cofiguration dictionary (later put into xdconf.ini json file)
   ##############################################################################################################
   def genXDConf(self, inu, outu):
     def amap(caller,callee,func,o):
@@ -126,7 +145,7 @@ class GEDLProcessor:
     return dict(enclaves=[dict(enclave=e,inuri=inu+e,outuri=outu+e,halmaps=getmaps(e)) for e in self.enclaveList])
 
   ##############################################################################################################
-  # B) Generate .h information for each enclave (e.g., purple_rpc.h)
+  # C) Generate header file for each enclave (e.g., purple_rpc.h)
   ##############################################################################################################
   def genrpcH(self, e, inu, outu, ipc):
     n,t = '\n','    '
@@ -136,39 +155,10 @@ class GEDLProcessor:
       s += '#include "codec.h"' + n
       s += '#include <limits.h>' + n    # ARQ mod:
       s += '#include <pthread.h>' + n if ipc != 'Singlethreaded' and e not in self.masters else n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += '#include <assert.h>'  + n
-      s += '#include <zmq.h>'  + n
-      s += '#else' + n
       s += '#include "xdcomms.h"' + n
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
+
       s += '#define INURI "' + inu + e + '"' + n
       s += '#define OUTURI "' + outu + e + '"' + n + n
-      s += '#ifndef __LEGACY_XDCOMMS__' + n
-      s += '#define MY_IPC_ADDR_DEFAULT_IN  "ipc:///tmp/halpub1"' + n
-      s += '#define MY_IPC_ADDR_DEFAULT_OUT "ipc:///tmp/halsub1"' + n + n
-      s += '#define ADU_SIZE_MAX_C  2000' + n
-      s += '#define MY_DATA_TYP_MAX 200' + n
-      s += '#define RX_FILTER_LEN   12' + n + n
-      s += '/* Closure tag structure */' + n
-      s += 'typedef struct _tag {' + n
-      s += t + 'uint32_t mux;      /* APP ID */' + n
-      s += t + 'uint32_t sec;      /* Security tag */' + n
-      s += t + 'uint32_t typ;      /* data type */' + n
-      s += '} gaps_tag;' + n + n
-      s += '/* CLOSURE packet */' + n
-      s += 'typedef struct _sdh_ha_v1 {' + n
-      s += t + 'gaps_tag tag;' + n
-      s += t + 'uint32_t data_len;' + n
-      s += t + 'uint8_t   data[ADU_SIZE_MAX_C];' + n
-      s += '} sdh_ha_v1;' + n + n
-      s += 'typedef void (*codec_func_ptr)(void *, void *, size_t *);' + n
-      s += 'typedef struct _codec_map {' + n
-      s += t + 'int valid;' + n
-      s += t + 'codec_func_ptr encode;' + n
-      s += t + 'codec_func_ptr decode;' + n
-      s += '} codec_map;' + n
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
       s += '#define MUX_BASE ' + str(self.muxbase) + n
       s += '#define SEC_BASE ' + str(self.secbase) + n
       s += '#define TYP_BASE ' + str(self.typbase) + n + n
@@ -178,8 +168,7 @@ class GEDLProcessor:
       
     def muxsec(l): return '#define ' + l['muxdef'] + ' MUX_BASE + ' + str(l['mux']) + n + '#define ' + l['secdef'] + ' SEC_BASE + ' + str(l['sec']) + n
     # XXX should all be egress? Can use outgoing True,False or chage to ingress/egress
-    def tagcle(x,y,f,outgoing=True): 
-      l  = self.const(x,y,f,outgoing)
+    def tagcle(l):
       s  = '#pragma cle def ' + l['clelabl'] + ' {"level": "' + e + '", \\' + n
       # remove "direction": "egress",
       s += t + '"cdf": [{"remotelevel": "' + l['to'] + '", "direction": "egress", \\' + n
@@ -198,160 +187,31 @@ class GEDLProcessor:
     def trailer(): return n + '#endif /* _' + e.upper() + '_RPC_ */' + n
     
     s = boiler()   # QQQ ARQ mod: for all RPC functions????
+    s2 = ''
     for (x,y,f,fd) in self.allCalls(e):
       for o in [True,False]:
-        s += tagcle(x,y,f,o)
-    for (x,y,f,fd) in self.allCalls(e):
-      for o in [True,False]:
-        s += muxsec(self.const(x,y,f,o))
-    s += n
+        l = self.const(x,y,f,o)
+        s  += tagcle(l)
+        s2 += muxsec(l)
+    s += s2 + n
     for (x,y,f,fd) in self.outCalls(e): s += fundecl(fd, wrap=True)
     for (x,y,f,fd) in self.inCalls(e):  s += fundecl(fd, wrap=False)
     s += trailer()
     return s
 
   ##############################################################################################################
-  # C) Create Cross Domain RPC source program (string) for each enclave (e.g., purple_rpc.c)
+  # D) Create Cross Domain RPC source program (string) for each enclave (e.g., purple_rpc.c)
   ##############################################################################################################
   def genrpcC(self, e, ipc, DB):
-    # Get default ARQ parameters (num_tries, num_tries) from JSON CLE schema file
-    with open(self.schemafile,) as sch_file: dict_lossndelay = json.load(sch_file)['definitions']['cdfType']['properties']
-    num_tries = dict_lossndelay['num_tries']['default']
-    timeout   = dict_lossndelay['timeout']['default']
     n,t = '\n','    '
     def boiler():
       s  = '#include "' + e + '_rpc.h"' + n
       s += '#define TAG_MATCH(X, Y) (X.mux == Y.mux && X.sec == Y.sec && X.typ == Y.typ)' + n
       s += '#define WRAP(X) void *_wrapper_##X(void *tag) { while(1) { _handle_##X(); } }' + n + n
       return s
+
     ##############################################################################################################
-    # C1) HAL API (my_) functions to support a 0MQ Socket per RPC call (non-legacy XDComms)
-    ##############################################################################################################
-    def xdclib():
-      s  = ''
-      s += '#ifndef __LEGACY_XDCOMMS__' + n + n
-      s += 'void my_type_check(uint32_t typ, codec_map *cmap) {' + n
-      s += t + 'if ( (typ >= MY_DATA_TYP_MAX) || (cmap[typ].valid==0) ) {' + n
-      s += t + t + 'exit (1);' + n
-      s += t + '}' + n
-      s += '}' + n + n
-      s += 'void my_xdc_register(codec_func_ptr encode, codec_func_ptr decode, int typ, codec_map *cmap) {' + n
-      s += t + 'cmap[typ].valid=1;' + n
-      s += t + 'cmap[typ].encode=encode;' + n
-      s += t + 'cmap[typ].decode=decode;' + n
-      s += '}' + n + n
-      s += '/* Serialize tag onto wire (TODO, Use DFDL schema) */' + n
-      s += 'void my_tag_encode (gaps_tag *tag_out, gaps_tag *tag_in) {' + n
-      s += t + 'tag_out->mux = htonl(tag_in->mux);' + n
-      s += t + 'tag_out->sec = htonl(tag_in->sec);' + n
-      s += t + 'tag_out->typ = htonl(tag_in->typ);' + n
-      s += '}' + n + n
-      s += '/* Convert tag to local host format (TODO, Use DFDL schema) */' + n
-      s += 'void my_tag_decode (gaps_tag *tag_out, gaps_tag *tag_in) {' + n
-      s += t + 'tag_out->mux = ntohl(tag_in->mux);' + n
-      s += t + 'tag_out->sec = ntohl(tag_in->sec);' + n
-      s += t + 'tag_out->typ = ntohl(tag_in->typ);' + n
-      s += '}' + n + n
-      s += '/* Convert tag to local host format (TODO, Use DFDL schema) */' + n
-      s += 'void my_len_encode (uint32_t *out, size_t len) {' + n
-      s += t + '*out = ntohl((uint32_t) len);' + n
-      s += '}' + n + n
-      s += '/* Convert tag to local host format (TODO, Use DFDL schema) */' + n
-      s += 'void my_len_decode (size_t *out, uint32_t in) {' + n
-      s += t + '*out = (uint32_t) htonl(in);' + n
-      s += '}' + n + n
-      s += 'void my_gaps_data_encode(sdh_ha_v1 *p, size_t *p_len, uint8_t *buff_in, size_t *len_out, gaps_tag *tag, codec_map *cmap) {' + n
-      s += t + 'uint32_t typ = tag->typ;' + n
-      s += t + 'my_type_check(typ, cmap);' + n
-      s += t + 'cmap[typ].encode (p->data, buff_in, len_out);' + n
-      s += t + 'my_tag_encode(&(p->tag), tag);' + n
-      s += t + 'my_len_encode(&(p->data_len), *len_out);' + n
-      s += t + '*p_len = (*len_out) + sizeof(p->tag) + sizeof(p->data_len);' + n
-      s += '}' + n + n
-      s += '/* Decode data from packet */' + n
-      s += 'void my_gaps_data_decode(sdh_ha_v1 *p, size_t p_len, uint8_t *buff_out, size_t *len_out, gaps_tag *tag, codec_map *cmap) {' + n
-      s += t + 'uint32_t typ = tag->typ;' + n
-      s += t + 'my_type_check(typ, cmap);' + n
-      s += t + 'my_tag_decode(tag, &(p->tag));' + n
-      s += t + 'my_len_decode(len_out, p->data_len);' + n
-      s += t + 'cmap[typ].decode (buff_out, p->data, &p_len);' + n
-      s += t + '}' + n + n
-      s += 'void my_xdc_asyn_send(void *socket, void *adu, gaps_tag *tag, codec_map *cmap) {' + n
-      s += t + 'sdh_ha_v1    packet, *p=&packet;' + n
-      s += t + 'size_t       packet_len;' + n
-      s += t + 'size_t adu_len;         /* Size of ADU is calculated by encoder */' + n
-      s += t + 'my_gaps_data_encode(p, &packet_len, adu, &adu_len, tag, cmap);' + n
-      s += t + 'int bytes = zmq_send (socket, (void *) p, packet_len, 0);' + n
-      s += t + 'if (bytes <= 0) fprintf(stderr, "send error %s %d ", zmq_strerror(errno), bytes);' + n
-      s += '}' + n + n
-      s += 'void my_xdc_blocking_recv(void *socket, void *adu, gaps_tag *tag, codec_map *cmap) {' + n
-      s += t + 'sdh_ha_v1 packet;' + n
-      s += t + 'void *p = &packet;' + n
-      s += t + 'int size = zmq_recv(socket, p, sizeof(sdh_ha_v1), 0);' + n
-      s += t + 'size_t adu_len;' + n
-      s += t + 'my_gaps_data_decode(p, size, adu, &adu_len, tag, cmap);' + n
-      s += '}' + n + n
-      # ARQ mod: recv function returns size
-      s += 'int my_xdc_recv(void *socket, void *adu, gaps_tag *tag, codec_map *cmap) {' + n
-      s += t + 'sdh_ha_v1 packet;' + n
-      s += t + 'void *p = &packet;' + n
-      s += t + 'int size = zmq_recv(socket, p, sizeof(sdh_ha_v1), 0);' + n
-      s += t + 'size_t adu_len;' + n
-      s += t + 'my_gaps_data_decode(p, size, adu, &adu_len, tag, cmap);' + n
-      s += t + 'return size;' + n
-      s += '}' + n + n
-      s += 'void *my_xdc_pub_socket(void *ctx) {' + n
-      s += t + 'int err;' + n
-      s += t + 'void *socket;' + n
-      s += t + 'socket = zmq_socket(ctx, ZMQ_PUB);' + n
-      s += t + 'err = zmq_connect(socket, OUTURI);' + n
-      s += t + 'return socket;' + n
-      s += '}' + n + n
-      s += 'void *my_xdc_sub_socket(gaps_tag tag, void *ctx) {' + n
-      s += t + 'int err;' + n
-      s += t + 'gaps_tag tag4filter;' + n
-      s += t + 'void *socket;' + n
-      s += t + 'socket = zmq_socket(ctx, ZMQ_SUB);' + n
-      s += t + 'err = zmq_connect(socket, INURI);' + n
-      s += t + 'my_tag_encode(&tag4filter, &tag);' + n
-      s += t + 'err = zmq_setsockopt(socket, ZMQ_SUBSCRIBE, (void *) &tag4filter, RX_FILTER_LEN);' + n
-      s += t + 'assert(err == 0);' + n
-      s += t + 'return socket;' + n
-      s += '}' + n + n
-      s += 'void my_tag_write (gaps_tag *tag, uint32_t mux, uint32_t sec, uint32_t typ) {' + n
-      s += t + 'tag->mux = mux;' + n
-      s += t + 'tag->sec = sec;' + n
-      s += t + 'tag->typ = typ;' + n
-      s += '}' + n + n
-      # ARQ mod:  subscribe with timeout
-      s += 'void *my_xdc_sub_socket_non_blocking(gaps_tag tag, void *ctx, int timeout) {' + n
-      s += t + 'int  err, len;' + n
-      s += t + 'void    *socket;' + n
-      s += t + 'gaps_tag tag4filter;' + n
-      s += t + 'void    *filter;' + n
-      s += t + 'socket = zmq_socket(ctx, ZMQ_SUB);' + n
-      s += t + 'if (timeout>=0) {' + n
-      s += t + t + 'err = zmq_setsockopt(socket, ZMQ_RCVTIMEO, &timeout, sizeof(timeout));' + n
-      s += t + t + 'assert(err == 0);' + n
-      s += t + '}' + n
-      s += t + 'err = zmq_connect(socket, INURI);' + n
-      s += t + 'if ((tag.mux) != 0) {' + n
-      s += t + t + 'len = RX_FILTER_LEN;' + n
-      s += t + t + 'my_tag_encode(&tag4filter, &tag);' + n
-      s += t + t + 'filter = (void *) &tag4filter;' + n
-      s += t + '} else {' + n
-      s += t + t + 'len = 0;' + n
-      s += t + t + 'filter = (void *) "";' + n
-      s += t + '}' + n
-      s += t + 'err = zmq_setsockopt(socket, ZMQ_SUBSCRIBE, filter, len);' + n
-      s += t + 'assert(err == 0);' + n
-      s += t + 'return socket;' + n
-      s += '}' + n
-      s += '#endif /* __LEGACY_XDCOMMS__ */' + n + n
-      return s
-      
-    ##############################################################################################################
-    # C2) REQ/RES CLOSURE API Initialization (register encode and decode functios)
+    # D1) REQ/RES CLOSURE API Initialization (register encode and decode functios)
     ##############################################################################################################
     # Register XDC encode and decode functions (e.g. for get_a) with HAL API (legacy and non-legacy)
     def regdtyp(x,y,f,outgoing=True,pfx='',sfx=''):
@@ -370,6 +230,8 @@ class GEDLProcessor:
       if DB[0]:
         s += t + 'xdc_log_level(0);' + n
         s += t + 'fprintf(stderr, "API URIs: in=%s out=%s\\n", inuri, outuri);' + n
+      else:
+        s += t + 'xdc_log_level(2);' + n
       s += '#ifdef __LEGACY_XDCOMMS__' + n
       s += t + 'xdc_set_in(inuri);' + n
       s += t + 'xdc_set_out(outuri);' + n
@@ -388,7 +250,7 @@ class GEDLProcessor:
         s += '#endif /* __LEGACY_XDCOMMS__ */' + n
         if ipc == "Singlethreaded": s += t + 'fprintf(stderr, "THR=single, ");' + n
         else:                       s += t + 'fprintf(stderr, "THR=multi, ");' + n
-        s += t + 'fprintf(stderr, "ARQ={n:' + str(num_tries) + ' t:' + str(timeout) + ')\\n");' + n
+        s += t + 'fprintf(stderr, "ARQ default={n:' + str(self.default_param['num_tries']) + ' t:' + str(self.default_param['timeout']) + ')\\n");' + n
       s += '}' + n + n
       return s
 
@@ -402,18 +264,19 @@ class GEDLProcessor:
     def cc_xdc_open(tag, use_timeout):
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += t + 'void * ctx = zmq_ctx_new();' + n
-      s += t + 'psocket = my_xdc_pub_socket(ctx);' + n
+      s += t + 'psocket = my_xdc_pub_socket(ctx, (char *)OUTURI);' + n
       if (use_timeout) :
-        s += t + 'ssocket = my_xdc_sub_socket_non_blocking(' + tag + ', ctx, ' + str(timeout) + ');' + n
+        param = str(self.get_param(x,y,f,'timeout'))
+        s += t + 'ssocket = my_xdc_sub_socket_non_blocking(' + tag + ', ctx, ' + param + ', (char*)INURI);' + n
       else:
-        s += t + 'ssocket = my_xdc_sub_socket(' + tag + ', ctx);' + n
+        s += t + 'ssocket = my_xdc_sub_socket(' + tag + ', ctx, (char*)INURI);' + n
       s += cc_join_delay(tag, use_timeout)
       s += '#else' + n
       s += t + 'if (!inited) {' + n
       s += t + t + 'inited = 1;' + n
       s += t + t + 'psocket = xdc_pub_socket();' + n
       if (use_timeout) :
-        s += t + t + 'ssocket = xdc_sub_socket_non_blocking(' + tag + ', ' + str(timeout) + ');' + n
+        s += t + t + 'ssocket = xdc_sub_socket_non_blocking(' + tag + ', ' + param + ');' + n
       else:
         s += t + t + 'ssocket = xdc_sub_socket(' + tag + ');' + n
       s += cc_join_delay(tag, use_timeout, 2)
@@ -428,7 +291,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C3) REQ/RES: Define C code variables
+    # D2) REQ/RES: Define C code variables
     ##############################################################################################################
     def tagsPrint(tc, ptr=False):
       z = '->' if ptr else '.'
@@ -472,8 +335,8 @@ class GEDLProcessor:
     # Register non-legacy XDC encode and decode functions
     def cc_define_my_cmap():
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += t + 'codec_map  mycmap[MY_DATA_TYP_MAX];' + n
-      s += t + 'for (int i=0; i < MY_DATA_TYP_MAX; i++)  mycmap[i].valid=0;' + n
+      s += t + 'codec_map  mycmap[DATA_TYP_MAX];' + n
+      s += t + 'for (int i=0; i < DATA_TYP_MAX; i++)  mycmap[i].valid=0;' + n
       s += cc_reg_xdc('my_', ', mycmap')
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
@@ -481,7 +344,7 @@ class GEDLProcessor:
 
     # Get packet type and name for each XD function (e.g. f='get_a') and special (e.g. f='purple_orange')
     def pkt_name(o=True):
-      l  = self.const(x,y,f,o)
+      l = self.const(x,y,f,o)
       return l['dnm'].lower()
     def pkt_type(o=True):
       return pkt_name(o) + '_datatype'
@@ -493,8 +356,6 @@ class GEDLProcessor:
         s += t + '#pragma cle begin ' + l['clelabl'] + n
         s += t + pkt_type(o) + ' ' + pkt_name(o) + ';' + n
         s += t + '#pragma cle end ' + l['clelabl'] + n
-# DEPRICATED        ptr = 'req_ptr' if o else 'res_ptr'
-# DEPRICATED        s += t + pkt_type(o) + ' *' + ptr + ' = &' + pkt_name(o) + ';' + n
       return s;
 
     def cc_get_seq_req():  return  pkt_name(True)  + '.trailer.seq'
@@ -508,7 +369,7 @@ class GEDLProcessor:
       return t + fd['return']['type'] + ' result;' + n
     
     ##############################################################################################################
-    # C4) REQ: Send RPC Request and wait for Responnse (with ARQ): a) SYNC (get SN), b) DATA (RPC params and result)
+    # D3) REQ: Send RPC Request and wait for Responnse (with ARQ): a) SYNC (get SN), b) DATA (RPC params and result)
     ##############################################################################################################
     def cc_call_type_and_name(outbound):
       l  = self.const(x,y,f,outbound)
@@ -540,8 +401,10 @@ class GEDLProcessor:
       return s
     # Start ARQ retransmission loop end send request and wait for response (if not oneway)
     def cc_req_send_reliably (tc=1, pfx='', sfx='') :
-      s  = t*tc + 'int tries_remaining = ' + str(num_tries) + ';' + n
+      l  = self.const(x,y,f,True)
+      s  = t*tc + 'int tries_remaining = ' + str(self.get_param(x, y, f, 'num_tries')) + ';' + n
       s += t*tc + 'while(tries_remaining != 0){' + n
+      if DB[0]: s += t*tc + t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'Calling ' + pfx +'xdc_asyn_send\\n");' + n
       s += t*tc + t + pfx +'xdc_asyn_send(psocket, &' + pkt_name(True) + ', &t_tag' + sfx + ');' + n
       s += '#ifndef __ONEWAY_RPC__' + n
       s += cc_req_recv_response(tc, pfx, sfx)
@@ -551,48 +414,9 @@ class GEDLProcessor:
       s += '#endif /* __ONEWAY_RPC__ */' + n
       s += cc_req_loop_end(tc)
       return s
-      
-    ##############################################################################################################
-    # C5) REQ: Define RPC as a subfunction (rather than inline) - DEPRICATED SECTION AFTER PASS BY VALUE (no ptrs)
-    ##############################################################################################################
-    def cc_subfunc_one(type, pfx='', sfx=''):
-      s  = pfx + 'rpc_' + f + type         # Name of subfunction
-      s += '(void* psocket, void* ssocket, gaps_tag t_tag, gaps_tag o_tag, '
-      if pfx == 'my_':  s += 'void * ctx, codec_map *mycmap, '
-      s += pkt_type(True) + ' ' + pkt_name(True) + ', ' + pkt_type(False) + ' ' + pkt_name(False)
-      s += ', int *error)' + '{' + n
-      s += cc_req_send_reliably (1, pfx, sfx)
-      s += '}' + n + n
-      return s
-    def cc_subfunc_pair(pfx='', sfx=''):
-      s  = cc_subfunc_one('_req_sync', pfx, sfx)    # Define SYNC Request subfunction
-      s += cc_subfunc_one('_remote_call', pfx, sfx) # Define RPC  Request subfunction
-      return s
-    def cc_define_req_subfunctions(x,y,f,fd) :
-      s = ''
-      if self.subfuncs:
-        s += '#ifndef __LEGACY_XDCOMMS__' + n
-        s += cc_subfunc_pair('my_', ' , mycmap')
-        s += '#else' + n
-        s += cc_subfunc_pair()
-        s += '#endif /* __LEGACY_XDCOMMS__ */' + n
-      return s
-
-    def cc_rpc_params(pfx=''):
-      s  = '(psocket, ssocket, t_tag, o_tag, '
-      if pfx == 'my_':  s += 'ctx, mycmap, '
-      s += pkt_name(True) + ', ' + pkt_name(False) + ', error);' + n
-      return s
-    def cc_call_req_subfunctions(req_type, tc=1, pfx='', sfx=''):  # DEPRICATED (replace calls with cc_req_send_reliably(tc, pfx, sfx)
-      if self.subfuncs:
-        s  = t*tc + pfx + 'rpc_' + f + req_type
-        s += cc_rpc_params(pfx)                   # DEPRICATED
-      else:
-        s  = cc_req_send_reliably(tc, pfx, sfx)
-      return s
         
     ##############################################################################################################
-    # C6 REQ: Creates and reads SYNC and DATA packets (in req/res_packet struct)
+    # D4 REQ: Creates and reads SYNC and DATA packets (in req/res_packet struct)
     ##############################################################################################################
     def cc_create_req_packet(fill=True):
       s = ''
@@ -632,7 +456,7 @@ class GEDLProcessor:
       s  = t + 'if (req_counter == INT_MIN) {' + n
 #      s  = t + 'if (inited < 2) {' + n
 #      s += t + t + 'inited = 2;' + n
-      s += cc_call_req_subfunctions('_req_sync', 2, pfx, sfx)  # DEPRICATED
+      s += cc_req_send_reliably(2, pfx, sfx)
 #      s += cc_status_check(2)
       s += cc_modify_req_counter(2)
       s += t + '}' + n
@@ -642,18 +466,18 @@ class GEDLProcessor:
     def cc_sync() :
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += cc_sync_once('my_', ' , mycmap')
-      s += '#else' + n
+      s += '#else /* __LEGACY_XDCOMMS__ */' + n
       s += cc_sync_once()
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       return s
       
     def cc_data():
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
-      s += cc_call_req_subfunctions('_remote_call', 1, 'my_', ' , mycmap') # DEPRICATED
+      s += cc_req_send_reliably(1, 'my_', ' , mycmap')
 #      s += cc_status_check(1)
       s += cc_sockets_close()
-      s += '#else' + n
-      s += cc_call_req_subfunctions('_remote_call') # DEPRICATED
+      s += '#else /* __LEGACY_XDCOMMS__ */' + n
+      s += cc_req_send_reliably()
 #      s += cc_status_check(1)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'req_counter++;' + n
@@ -725,7 +549,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C7) RES: handlers waits for RPC request and sends RPC Responnse
+    # D5) RES: handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
     def cc_res_print():
       s  = t + t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'ReqId=%d ResId=%d err=%d (seq=0x%x) ", req_counter, res_counter, proc_error, last_processed_error);' + n
@@ -805,7 +629,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # C8) REQ/RES: Slave starts thread per app function handler and Master waits for APP function calls)
+    # D6) REQ/RES: Slave starts thread per app function handler and Master waits for APP function calls)
     ##############################################################################################################
     def slavedispatch(e,ipc):
       s = ''
@@ -854,26 +678,23 @@ class GEDLProcessor:
       return 'void _master_rpc_init() {' + n + t + '_hal_init((char*)INURI, (char *)OUTURI);' +n + '}' + n + n
 
     ##############################################################################################################
-    # C9) REQ/RES: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
+    # D7) REQ/RES: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
     ##############################################################################################################
-    s = boiler() + xdclib() + halinit(e, ipc, DB)
-#    s = boiler() + halinit(e, ipc, DB)
+    s = boiler() + halinit(e, ipc, DB)
     if ipc == "Singlethreaded":
       for (x,y,f,fd) in self.sInCalls(e):
         s += handlernextrpc(x,y,f,fd)
       for (x,y,f,fd) in self.sOutCalls(e):
-        s += cc_define_req_subfunctions(x,y,f,fd)  # DEPRICATED
         s += notify_nxtag(x,y,f,fd)
     for (x,y,f,fd) in self.inCalls(e):
       s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e):
-      s += cc_define_req_subfunctions(x,y,f,fd)   # DEPRICATED
       s += rpcwrapdef(x,y,f,fd,ipc)
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
     return s
 
   ##############################################################################################################
-  # D) Process Source FIle(s)
+  # E) Process Source FIle(s)
   ##############################################################################################################
   def findMaster(self,enclaves,idirp,prog):
     idir   = idirp.rstrip('/')
@@ -907,7 +728,7 @@ class GEDLProcessor:
           oldfLines = list(oldf)
           for index, line in enumerate(oldfLines):
             if "int main(" in line:
-              print('Adding rpc init to master main in: ' + canonnew)
+              if DB[1]: print('Adding rpc init to master main in: ' + canonnew)
               newf.write(line)
               newf.write("  _master_rpc_init();\n")
               continue
@@ -938,16 +759,16 @@ class GEDLProcessor:
       copyfile(idir + '/' + rel + '/' + fname, odir + '/' + rel + '/' + fname)
 
 ##############################################################################################################
-# E) Main
+# F) Main
 ##############################################################################################################
 def main():
   args = argparser()
-  DB = [False, True, True] if args.verbose else [False, False, True]   # Print Debugs when c code runs (levels 0,1,2)
-  gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base,args.schema,args.subfuncs)
+  DB = [False, True, True] if args.verbose else [False, False, True]  # Print Debugs at levels: 0(Trace), 1(Debug), 2(Info)?
+  gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base,args.schema,args.cle)
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
   if len(gp.masters) != 1: raise Exception('Need one master, got:' + ' '.join(gp.masters))
-  print('2022 Merged (April) Version: Processing source tree from ' + args.edir + ' to ' + args.odir)
+  print('2022 Merged (April 20) Version: Processing source tree from ' + args.edir + ' to ' + args.odir)
   gp.processSourceTree(args.mainprog,args.enclave_list,args.edir,args.odir, DB)
 
   for e in args.enclave_list:
@@ -959,8 +780,8 @@ def main():
   with open(args.odir + "/" + args.xdconf, "w") as xf: json.dump(gp.genXDConf(args.inuri, args.outuri), xf, indent=2)
   if DB[1]:
     for e in args.enclave_list: gp.constPrint(e)
-  #for e in args.enclave_list: gp.constPrint(e)
-  #xyz
+#  for e in args.enclave_list: gp.constPrint(e)
+#  xyz
 
 if __name__ == '__main__':
   main()
