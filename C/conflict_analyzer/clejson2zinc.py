@@ -322,8 +322,8 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
                             if label == labelTaint:
                                 paramEntry.append("true")
                                 found = 1
-                            else:
-                                paramEntry.append("false")
+                        if found == 0:
+                            paramEntry.append("false")
                     ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
                     taintEntry.append(paramEntry)
                     paramCount +=1
