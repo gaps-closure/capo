@@ -148,6 +148,7 @@ class GEDLProcessor:
   # C) Generate header file for each enclave (e.g., purple_rpc.h)
   ##############################################################################################################
   def genrpcH(self, e, inu, outu, ipc):
+    # TODO: generate function annotations for master/slave rpc calls 
     n,t = '\n','    '
     def boiler():    # ARQ mod: for each RPC functions (in and out)
       s  = '#ifndef _' + e.upper() + '_RPC_' + n
@@ -174,6 +175,23 @@ class GEDLProcessor:
       s += t + '"cdf": [{"remotelevel": "' + l['to'] + '", "direction": "egress", \\' + n
       s += t + t + t + '"guarddirective": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.muxbase),str(l['sec']+self.secbase),str(l['typ']+self.typbase)]) + ']}}]}' + n + n
       return s
+    def funcle(f, ls):
+      pre = "RPC" if e in self.masters else "HANDLE"
+      lbls = [ l['clelabl'] for (l, o) in ls ]
+      ret = json.dumps([ l['clelabl'] for (l, o) in ls if not o]) if e in self.masters else "[]"
+      s = f"#pragma cle def _{pre}_{f.upper()} " 
+      s += ("\\" + n).join([
+        '{"level": "' + e + '", ',
+        t + '"cdf": [{"remotelevel":"' + e + '", "direction": "bidirectional", ',
+        t + t + t + '"guarddirective": {"operation": "allow"}, ',
+        t + t + t + f'"argtaints": [{ json.dumps(lbls) if e in self.masters else ""}],',
+        t + t + t + f'"codtaints": { json.dumps(lbls) },',
+        t + t + t + f'"rettaints": { ret }',
+        t + t + t + "}]}"
+      ])
+      s += n
+      return s 
+
     def fundecl(fd, wrap=True):
       s  = 'extern ' + fd['return']['type'] + ' ' + ('_rpc_' if wrap else '') + fd['func'] + '('
       # ARQ mod:
@@ -188,6 +206,18 @@ class GEDLProcessor:
     
     s = boiler()   # QQQ ARQ mod: for all RPC functions????
     s2 = ''
+    
+    for (x,y,f,fd) in self.allCalls(e):
+      if f not in self.spcalls:
+        ls = [
+          (self.const(x,y,f,o), o)
+          for (x,y,g,fd) in self.allCalls(e) 
+          for o in [True, False] 
+          if g not in self.spcalls 
+          if f == g 
+        ]
+        s += funcle(f, ls)
+
     for (x,y,f,fd) in self.allCalls(e):
       for o in [True,False]:
         l = self.const(x,y,f,o)
@@ -524,13 +554,15 @@ class GEDLProcessor:
       
     # Common RPC exteral Request function: e.g., _rpc_get_a()
     def rpcwrapdef(x,y,f,fd,ipc):
-      s  = fd['return']['type'] + ' _rpc_' + f + '('
+      s = "#pragma cle begin _RPC_" + f.upper() + n
+      s += fd['return']['type'] + ' _rpc_' + f + '('
       def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
       s += ','.join([mparam(q) for q in fd['params']])
       # ARQ adds an error parameter (not used yet)
       if s[-1] != '(': s += ', '
       s += 'int *error) {' + n
-    
+      s += "#pragma cle end _RPC_" + f.upper() + n
+
       s += cc_define_vars('req_counter', 'INT_MIN')
       s += cc_define_req_res()
       s += cc_define_result()
@@ -614,7 +646,9 @@ class GEDLProcessor:
       return s
     # Listen for RPC Requests
     def handlerdef(x,y,f,fd,ipc):
-      s  = 'void _handle_request_' + f + '() {' + n
+      s  = "#pragma cle begin _HANDLE_REQUEST_" + f.upper() + n
+      s += 'void _handle_request_' + f + '() {' + n
+      s += "#pragma cle end _HANDLE_REQUEST_" + f.upper() + n
       s += cc_define_vars('res_counter', '0')
       s += cc_define_req_res()
       s += cc_define_my_cmap()
