@@ -157,6 +157,7 @@ def main() -> None:
         if result == "Success":
             output_fn(json.dumps(out["topology"], indent=2))
         elif result == "Conflict":
+            print(out["conflicts"])
             print(json.dumps(out["conflicts"], indent=2))
         else:
             logger.error("Internal error")
