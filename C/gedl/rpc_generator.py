@@ -176,10 +176,10 @@ class GEDLProcessor:
       s += t + t + t + '"guarddirective": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.muxbase),str(l['sec']+self.secbase),str(l['typ']+self.typbase)]) + ']}}]}' + n + n
       return s
     def funcle(f, ls):
-      pre = "RPC" if e in self.masters else "HANDLE"
+      pre = "RPC" if e in self.masters else "HANDLE_REQUEST"
       lbls = [ l['clelabl'] for (l, o) in ls ]
       ret = json.dumps([ l['clelabl'] for (l, o) in ls if not o]) if e in self.masters else "[]"
-      s = f"#pragma cle def _{pre}_{f.upper()} " 
+      s = f"#pragma cle def {pre}_{f.upper()} " 
       s += ("\\" + n).join([
         '{"level": "' + e + '", ',
         t + '"cdf": [{"remotelevel":"' + e + '", "direction": "bidirectional", ',
@@ -554,14 +554,14 @@ class GEDLProcessor:
       
     # Common RPC exteral Request function: e.g., _rpc_get_a()
     def rpcwrapdef(x,y,f,fd,ipc):
-      s = "#pragma cle begin _RPC_" + f.upper() + n
+      s = "#pragma cle begin RPC_" + f.upper() + n
       s += fd['return']['type'] + ' _rpc_' + f + '('
       def mparam(q): return q['type'] + ' ' + q['name'] + ('[]' if 'sz' in q else '') # XXX: check array/pointer issues
       s += ','.join([mparam(q) for q in fd['params']])
       # ARQ adds an error parameter (not used yet)
       if s[-1] != '(': s += ', '
       s += 'int *error) {' + n
-      s += "#pragma cle end _RPC_" + f.upper() + n
+      s += "#pragma cle end RPC_" + f.upper() + n
 
       s += cc_define_vars('req_counter', 'INT_MIN')
       s += cc_define_req_res()
@@ -646,9 +646,9 @@ class GEDLProcessor:
       return s
     # Listen for RPC Requests
     def handlerdef(x,y,f,fd,ipc):
-      s  = "#pragma cle begin _HANDLE_REQUEST_" + f.upper() + n
+      s  = "#pragma cle begin HANDLE_REQUEST_" + f.upper() + n
       s += 'void _handle_request_' + f + '() {' + n
-      s += "#pragma cle end _HANDLE_REQUEST_" + f.upper() + n
+      s += "#pragma cle end HANDLE_REQUEST_" + f.upper() + n
       s += cc_define_vars('res_counter', '0')
       s += cc_define_req_res()
       s += cc_define_my_cmap()
