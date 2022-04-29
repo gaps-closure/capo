@@ -1,137 +1,161 @@
+
+
 # Constraint model for CLE for JOANA SDG based on Java/JVM
+# SDG Graph
+## SDG Nodes
+A node in the SDG represents an abstraction of IR components used by JOANA. This results in the following node types on the left and are translated to our own abstraction on the right: (TODO: likely need to create a static node for static fields and maybe staic methods)
+    "NORM" : "Inst_Other"
+    "PRED" : "Inst_Br"
+    "EXPR" : "Inst_Other"
+    "SYNC" : "Inst_Other"
+    "FOLD" : "Inst_Other"
+    "CALL" : "Inst_FunCall"
+    "ENTR" : "FunctionEntry"
+    "EXIT" : "Inst_Ret"
+    "ACTI" : "Param_ActualIn"
+    "ACTO" : "Param_ActualOut"
+    "FRMI" : "Param_FormalIn"
+    "FRMO" : "Param_FormalOut"
+## SDG Edges
+An edge in the SDG connects two nodes together and has a type. Note that in the SDG model, exceptions are modeled as parameter edges. The following shows the edge types in the SDG on the left and our abstraction on the left: (TODO: define set of source and dest node types.) 
+    "CD" : "ControlDep_Other"
+    "CE" : "ControlDep_Other"
+    "UN" : "ControlDep_Other"
+    "CF" : "ControlDep_Other"
+    "NF" : "ControlDep_Other"
+    "RF" : "ControlDep_CallRet"
+    "CC" : "ControlDep_CallInv"
+    "CL" : "ControlDep_CallInv"
+    "SD" : "ControlDep_Other"
+    "JOIN" : "ControlDep_Other"
+    "FORK" : "ControlDep_Other"
+    "DD" : "DataDepEdge_Other"
+    "DH" : "DataDepEdge_Other"
+    "DA" : "DataDepEdge_Alias"
+    "SU" : "DataDepEdge_Other"
+    "SH" : "DataDepEdge_Other"
+    "SF" : "DataDepEdge_Other"
+    "FD" : "DataDepEdge_Other"
+    "FI" : "DataDepEdge_Other"
+    "PI" : "Parameter_In"
+    "PO" : "Parameter_Out"
+    "PS" : "Parameter_Field"
+    "PE" : "DataDepEdge_Alias"
+    "FORK_IN" : "DataDepEdge_Other"
+    "FORK_OUT" : "DataDepEdge_Other"
+    "ID" : "DataDepEdge_Other"
+    "IW" : "DataDepEdge_Other"
+
 
 ## Constraint Model in MiniZinc
 
-Class annotations are currently not used by CLE, but this can change in the future.
-Instance and class fields can be annotated by the user with node annotations.
-Instance and class methods can be annotated by the user with method annotations.
-Constructors can be be annotated by the user with constructor annotations.
-Only node annotations can be assigned by the solver to unannotated fields, methods are constructors.
+### Limitations
 
+* A limitation of the current model is that it supports at most one enclave per level.
 
+### General Constraints:
 
-### General Constraints on Output and Setup of Auxiliary Decision Variables
+* Class annotations are currently not used by CLE, but this can change in the future.
 
-Every class must be assigned to a valid enclave.
-All instance methods of a Class must be assigned to the same enclave as the Class.
-All instance fields  of a Class must be assigned to the same enclave as the Class.
-All static methods of a Class must be assigned to the same enclave as the Class.
-All static fields of a Class must be assigned to the same enclave as the Class.
+* Instance and class fields can be annotated by the user with node annotations.
 
-Contained nodes and parameters are assigned the same enclave as their containing
+* Instance and class methods can be annotated by the user with method annotations.
+
+* Constructors can be annotated by the user with constructor annotations.
+
+* Only node annotations can be assigned by the solver to unannotated fields, methods or constructors.
+
+* Method or constructor annotations cannot be assigned by the solver (these can only be assigned by the user). 
+
+* Every class must be assigned to at least one valid enclave.
+
+* Each class containing one or more annotated elements (constructor, method, or field) must be assigned to exactly one enclave. 
+
+* Each class containing no annotated elements must be assigned to at least one enclave and at most every enclave.
+
+* Across all accesses/invocations of an unannotated element, it may touch at most one label at each level.
+
+All elements (constructor, method, or field) of a class instance must be assigned the same enclave as the instance itself.
+
+This entails separate constraints for constructors, instance methods, instance fields, static methods and static fields.
+
+Contained nodes and parameters are assigned the same enclave(s) as their containing
 methods.  
 
-Annotations can not assigned to a valid enclave and they must be
+Annotations can not be assigned to a valid enclave and they must be
 assigned to `nullEnclave`.
 
-The level of every node that is not an annotation must match:
- * the level of the label (taint) assigned to the node
- * the level of the enclave the node is assigned to 
+Each (node,level) pair is assigned at most one valid enclave at that level.
+Each (node,level) pair is assigned at most one valid label with that level.
 
 Only method entry nodes can be assigned a method annotation label.
-Only constructor method entry nodes can be assigned a constructor annotation label.
-
-Furthermore, only the user can bless a method or constructor with a method or constructor annotation 
-respectively (that gets be passed to the solver through the input).  
-
-Set up a number of auxiliary decision variables as needed. 
-
-If a node is contained in an unannotated method or constructor then the CLE label taint
-assigned to the node must match that of the containing method or constructor. In other
-words, since unannotated methods/constructors must be singly tainted, all nodes contained
-within the methods/constructors must have the same taint as the method/constructor.
-
-
-XXX: remaining needs to be worked on for Java/SDG
-
-If a node is contained in an user annotated method, then the CLE label
-taint assigned to the node must be allowed by the CLE JSON of the method
-annotation in the argument taints, return taints, or code body taints. In other
-words, any node contained within a method blessed with a method-annotation
-by the user can only contain nodes with taints that are explicitly permitted
-(to be coerced) by the method annotation.
-
+Only constructor entry nodes can be assigned a constructor annotation label.
 
 ### 2.2 Constraints on the Cross-Domain Control Flow
 
 The control flow can never leave an enclave, unless it is done through an
-approved cross-domain call, as expressed in the following three constraints.
-The only control edges allowed in the cross-domain cut are either call
-invocations or returns. For any call invocation edge in the cut, the method
-annotation of the method entry being called must have a CDF that allows (with
-or without redaction) the level of the label assigned to the callsite.  The
-label assigned to the callsite must have a node annotation with a CDF that
-allows the data to be shared with the level of the (taint of the) method
-entry being called.
+approved cross-domain call, as expressed in the following constraints.
 
-Notes: 
-  1. No additional constraint is needed for control call return edges; checking
-     the corresponding call invocation suffices, however, later on we will check the
-     data return edge when checking label coercion.  
-  2. The conflict analyzer is working with the annotated unpartitioned
-     code and not the fully partitioned code which will includes autogenerated
-     code. The actual cut in the partitioned code with autogenerated code to
-     handle cross-domain communications will be between the cross-domain send 
-     and receive methods that are several steps removed from the cut in the
-     `xdedge` (cross domain edge) variable at this stage of analysis. The autogenerated code will 
-     apply annotations to cross-domain data annotations that contain GAPS tags,
-     and they will have a different label. So we cannot check whether the label 
-     of the arguments passed from the caller matches the argument taints allowed by
-     the called method, or if the return taints match the value to which the 
-     return value is assigned. A downstream verification tool will check this.
+1) The only control edges allowed in the cross-domain cut are either call
+invocations or returns. 
+
+2) For any call invocation edge in the cut, the method annotation of the method entry being called must have a CDF that allows (with or without redaction) the level of the label assigned to the callsite (caller).  
+
 
 ### 2.3 Constraints on the Cross-Domain Data Flow
 
 Data can only leave an enclave through parameters or return of valid
 cross-domain call invocations, as expressed in the following three constraints. 
 
-Any data dependency edge that is not a data return cannot be in the
-cross-domain cut.  For any data return edge in the cut, the taint of the source
+1) Any data dependency edge that is not a parameter or data return cannot be in the
+cross-domain cut.  
+
+2) For any data return edge in the cut, the taint of the source
 node (the returned value in the callee) must have a CDF that allows the data to
 be shared with the level of the taint of the destination node (the return site 
-in the caller). For any parameter passing edge in the cut, the taint of the source
-node (what is passed by the callee) must have a CDF that allows the data to be
-shared with the level of the taint of the destination node (the corresponding
-actual parameter node of the callee function).
+in the caller). 
+
+3) For any parameter passing edge in the cut, the taint of the source
+node must have a CDF that allows the data to be shared with the level of the taint of the destination node. This applies to the input parameters going from caller to callee and output parameters going from callee back to the caller.
+
+Note: For cross domain calls, the callee is assigned to a fixed enclave level. The caller may be unannotated and the label to be considered (e.g. for argument passing checks) would corrsepond to the label applicable at the level of the caller (instance).
 
 
 ### 2.4 Constraints on Taint Coercion Within Each Enclave
 
-While the constraints on the control dependency and data depdendency that
-we discussed governed data sharing at the cross-domain cut, we still need
-to perform taint checking to ensure that data annotated with different 
-labels inside each enclave are managed correctly and only when the
-mixing of the taints is explcitly allowed by the user.
+For each level, each node in an unannotated method or constructor must have the same taint as the containing unannotated method or constructor itself.
 
-Labels can be cooerced (i.e., nodes of a given SDG edge can be permitted to
-have different label assigments) inside an enclave only through user annotated
-methods.  To track valid label coercion across a SDG edge `e`, the model uses
-an additional auxiliary decision variable called `coerced[e]`.
+For each level, for each parameter or data dependency (including returns) edges with at least one end point in an unannotated method or constructor, both end points must have the same taint.
 
-Any data dependency or parameter edge that is intra-enclave (not in the
-cross-domain cut) and with different CLE label taints assigned to the source
-and destination nodes must be coerced (through an annotated method).
+Unannotated methods can be assigned to multiple enclaves as long as they touch only one taint within that enclave. Annotated methods, on the other hand, can only be assigned to a single enclave/level.
 
-If the edge is a paremeter in or parameter out edege, then it can be coerced if
-and only if the associated method annotation has the taint of the other node
-in the argument taints for the corresponding parameter index. In other words,
-what is passed in through this parameter has a taint allowed by the method
-annotation.
+Each node in an annotated method or constructor must have a taint that is allowed by the argument taints (argtaints), code taints (codtaints), or the return taints (rettaints) of the corresponding method/constructor annotation.
 
-If the edge is a data return edge, then it can be coerced if and only if the
-associated method annotation has the taint of the other node in the return
-taints.
+For each parameter-in or parameter-out edge connected to an argument of an annotated method or constructor, the taint of the remote (caller side) endpoint must be allowed by the argument taints (argtaints) for that argument in the annotation applied to the method or constructor.
 
-If the edge is a data dependency edge (and not a return or parameter edge),
-then it can be coerced if and only if the associated method annotation allows
-the taint of the other node in the argument taints of any parameter.
+For each data return edge of an annotated method or constructor, the taint of remote (caller side) endpoint must be allowed by the return taints (rettaints) of the annotation applied to the method or constructor.
 
-### To be worked out
- - if a subclass is assigned to an enclave, what about all instance of all its parent classes?
- - what about annotations on methods in interfaces?
- - Do exceptions require a special treatment?
- - Do parameter edges resulting from class fields require special treatment?
- - Is our current formulation too restrictive/impractical?
+For each data dependency edge (that is not a return or parameter edge) of an annotated method or constructor, the taint of both endpoints must be allowed by at least one of the following: argument taints (argtaints), code taints (codtaints), or return taints (rettaints) of the annotation applied to the method or constructor.
+
+### 2.5 Class Constraints
+
+
+* For each level, all elements of a class that contains no annotated elements must have the same taint.
+
+* All taints on a static field must be at the same level. Unfortunately this means that a class with a static field can only be assigned to a single enclave. This can be relaxed for final static variables because they will not change.
+
+
+* A class that contains no unannotated elements is assigned only to the enclaves/levels in which it is singly tainted. If no taint is touched at a level by any element, then the class is not assigned to that enclave/level.
+
+* The taint(s) of the object reference (this) must be allowed by the code taints (codtaints) of annotated methods. (If the object reference can take multiple labels, then unannotated methods are not possible within that class.)
+
+* The taints of all elements of a class that contains an annotated element must have the same level, and the class is assigned to that enclave/level.
+
+### Future Work
+* Can we relax this in cases where this is not actually touched.
+* How to support multiple enclaves per level
+* How can we allow unannotated classes with static fields to be assigned to multiple enclaves.
+
 
 
 

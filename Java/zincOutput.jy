@@ -1,0 +1,1981 @@
+from json                                   import loads,dump
+from argparse                               import ArgumentParser
+from pprint                                 import PrettyPrinter
+
+from java.lang                              import Runtime
+from java.lang                              import Class
+from java.lang.reflect                      import Modifier
+from java.lang                              import System
+from java.lang                              import Process,ProcessBuilder
+from java.io                                import FileOutputStream
+from com.ibm.wala.util                      import NullProgressMonitor
+from edu.kit.joana.api.sdg                  import SDGConfig
+from edu.kit.joana.api.sdg                  import SDGProgram
+from edu.kit.joana.ifc.sdg.graph            import SDGSerializer
+from edu.kit.joana.ifc.sdg.mhpoptimization  import MHPType
+from edu.kit.joana.ifc.sdg.util             import JavaMethodSignature
+from edu.kit.joana.util                     import Stubs
+from edu.kit.joana.wala.core.SDGBuilder     import PointsToPrecision
+from edu.kit.joana.wala.core.SDGBuilder     import ExceptionAnalysis
+from edu.kit.joana.ifc.sdg.io.dot           import JoanaGraph2Dot
+from java.util.jar                          import JarFile;
+from collections import defaultdict
+from collections import OrderedDict
+import os
+
+import subprocess
+
+#globals
+methodName2ID = {}
+classNames = []
+className2Idx = OrderedDict()
+classId2Name = {}
+classFields = []
+classField2Idx = OrderedDict()
+classId2FieldName = {}
+classMethods = []
+classMethod2Idx = OrderedDict()
+classId2MethodName = {}
+methodsFieldAccess = {}
+
+nodes   = {}
+edges   = {}
+anns    = {}
+
+nodesZinc = OrderedDict()
+edgesZinc = OrderedDict()
+
+
+nodesZinc["Inst_FunCall"] = []
+nodesZinc["Inst_Ret"] = []
+nodesZinc["Inst_Br"] = []
+nodesZinc["Inst_Other"] = []
+nodesZinc["FunctionEntry"] = []
+nodesZinc["Param_FormalIn"] = []
+nodesZinc["Param_FormalOut"] = []
+nodesZinc["Param_ActualIn"] = []
+nodesZinc["Param_ActualOut"] = []
+
+edgesZinc["ControlDep_CallInv"] = []
+edgesZinc["ControlDep_CallRet"] = []
+edgesZinc["ControlDep_Other"] = []
+edgesZinc["DataDepEdge_Ret"] = []
+edgesZinc["DataDepEdge_Alias"] = []
+edgesZinc["DataDepEdge_Other"] = []
+edgesZinc["Parameter_In"] = []
+edgesZinc["Parameter_Out"] = []
+edgesZinc["Parameter_Field"] = []
+
+nodeConversion = {
+    "NORM" : "Inst_Other",
+    "PRED" : "Inst_Br",
+    "EXPR" : "Inst_Other",
+    "SYNC" : "Inst_Other",
+    "FOLD" : "Inst_Other",
+    "CALL" : "Inst_FunCall",
+    "ENTR" : "FunctionEntry",
+    "EXIT" : "Inst_Ret",
+    "ACTI" : "Param_ActualIn",
+    "ACTO" : "Param_ActualOut",
+    "FRMI" : "Param_FormalIn",
+    "FRMO" : "Param_FormalOut",
+}
+
+edgeConversion = {
+    "CD" : "ControlDep_Other",
+    "CE" : "ControlDep_Other",
+    "UN" : "ControlDep_Other",
+    "CF" : "ControlDep_Other",
+    "NF" : "ControlDep_Other",
+    "RF" : "ControlDep_CallRet",
+    "CC" : "ControlDep_CallInv",
+    "CL" : "ControlDep_CallInv",
+    "SD" : "ControlDep_Other",
+    "JOIN" : "ControlDep_Other",
+    "FORK" : "ControlDep_Other",
+    "DD" : "DataDepEdge_Other",
+    "DH" : "DataDepEdge_Other",
+    "DA" : "DataDepEdge_Alias",
+    "SU" : "DataDepEdge_Other",
+    "SH" : "DataDepEdge_Other",
+    "SF" : "DataDepEdge_Other",
+    "FD" : "DataDepEdge_Other",
+    "FI" : "DataDepEdge_Other",
+    "PI" : "Parameter_In",
+    "PO" : "Parameter_Out",
+    "PS" : "Parameter_Field",
+    "PE" : "DataDepEdge_Alias",
+    "FORK_IN" : "DataDepEdge_Other",
+    "FORK_OUT" : "DataDepEdge_Other",
+    "ID" : "DataDepEdge_Other",
+    "IW" : "DataDepEdge_Other",
+}
+
+funcID2Entry = {}
+Entry2funcID = {}
+funcID2EntryVal = {}
+
+def writePDG(sdg, pdgFile): 
+  SDGSerializer.toPDGFormat(sdg, FileOutputStream(pdgFile))
+
+def writeDOT(sdg, dotFile): 
+  JoanaGraph2Dot.writeDotToOutputStream(sdg, FileOutputStream(dotFile))
+
+def writeCLE(cles, jsonFile): 
+  with open(args.jsonfile,'w') as of: dump(cles, of, indent=2, sort_keys=True)
+
+def getClasses(cp):
+  for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
+    try:                   yield cnm,Class.forName(cnm)
+    except Exception as e: print('Error getting class ' + cnm + ':' + str(e))
+
+
+def createZincArray2DSets(arry, values):
+    result =  arry + " = ["
+    first = True
+    for i in values:
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for j in i:
+            if first2:
+                first2 = False
+                result = result + j
+            else:
+                result = result + ", " + j
+        
+        result += "} "
+        
+    result += "]; \n"
+    result = result.replace(".", "__")
+    print("array: ")
+    print(result)
+    return result
+
+def createZincArray(array, values):
+    result =  array + " = ["
+    first = True
+    for i in values:
+        if first:
+            first = False
+            result = result + i
+        else:
+            result = result + ", " + i
+    result += "]; \n"
+    result = result.replace(".", "__")
+    print("Array: ")
+    print(result)
+    return result
+
+def createZincSet(setName, values):
+    result = setName + "_start = 1;\n"
+    result += setName + "_end = " + str(len(values)) + ";\n"
+    return result
+
+def collectStatics(cp,bname):
+    global methodsFieldAccess
+    global classNames
+    global className2Idx
+    global classMethods
+    global classMethod2Idx
+    global classFields
+    global classField2Idx
+    # classNames = []
+    
+    # classFields = []
+    fieldOfClass = {}
+    staticFields = {}
+    fieldIsStatic = []
+    # Does not handle overloaded methods.
+    # classMethods = []
+    global classMethods
+    staticMethods = {}
+    methodIsStatic = []
+    methodOfClass = {}
+
+    methodAnnotation = {}
+    fieldAnnotation = {}
+
+    immediateParent = {}
+    immediateSubclass = {}
+    allParents = {}
+    allSubclasses = {}
+
+    clIdx = 0
+    flIdx = 0
+    meIdx = 0
+    for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
+        # print(Class.forName(cnm).getCanonicalName())
+        programClassName = Class.forName(cnm)
+        
+        isAnnotated = False
+        
+        if not "annotations" in programClassName.getCanonicalName():
+            clIdx += 1
+            currentClassName = str(programClassName.getCanonicalName().encode('utf-8'))
+            classNames.append(currentClassName)
+            className2Idx[currentClassName] = clIdx
+            classId2Name[clIdx] = currentClassName
+            fields = programClassName.getDeclaredFields()
+            methods = programClassName.getDeclaredMethods()
+            constructors = programClassName.getConstructors()
+
+            allMethods = []
+            for method in methods:
+                allMethods.append(method)
+            for method in constructors:
+                allMethods.append(method)
+
+            for method in allMethods:
+                meIdx+=1
+                # check if method is a constructor
+                if  method.getName().encode('utf-8') == currentClassName:
+                    print("constructor")
+                    methodName = currentClassName
+                else:
+                    methodName = currentClassName + "." + method.getName().encode('utf-8')
+                print("CHECKING METHOD NAME 232: ")
+                print(methodName)
+                classMethods.append(methodName)
+                classMethod2Idx[methodName] = meIdx
+                classId2MethodName[meIdx] = methodName
+            
+            for field in fields:
+                flIdx += 1
+                fieldName = currentClassName + "." + field.getName().encode('utf-8')
+                classFields.append(fieldName) 
+                classField2Idx[fieldName] = flIdx
+                classId2MethodName[flIdx] = fieldName
+    print("className2Idx")     
+    print(className2Idx)
+    print("classMethod2Idx")     
+    print(classMethod2Idx)
+    print("classField2Idx")     
+    print(classField2Idx)
+    classNames.append("ExternalClass")
+    className2Idx["ExternalClass"] = clIdx
+
+    statics = {"methods" : [], "fields" : []}
+    for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
+        # print(Class.forName(cnm).getCanonicalName())
+        programClassName = Class.forName(cnm)
+        
+        isAnnotated = False
+        if not "annotations" in programClassName.getCanonicalName():
+            currentClassName = str(programClassName.getCanonicalName().encode('utf-8'))
+            fields = programClassName.getDeclaredFields()
+            methods = programClassName.getDeclaredMethods()
+            constructors = programClassName.getConstructors()
+            allMethods = []
+            for method in methods:
+                allMethods.append(method)
+            for method in constructors:
+                allMethods.append(method)
+            
+            superClass = programClassName.getSuperclass()
+            
+            noSuperClass = False
+            if currentClassName == str(superClass.getCanonicalName().encode('utf-8')):
+                noSuperClass = True
+            if noSuperClass == False:
+                superName = str(superClass.getCanonicalName().encode('utf-8'))
+                if not bname in superName:
+                    immediateParent[currentClassName] = "ExternalClass"
+                else:
+                    immediateParent[currentClassName] = superName
+            else:
+                immediateParent[currentClassName] = "None"
+            if noSuperClass == False:
+                if not bname in str(superClass.getCanonicalName().encode('utf-8')):
+                    allSupers = ["ExternalClass"]
+                else:
+                    allSupers = [str(superClass.getCanonicalName().encode('utf-8'))]
+                
+                previousSuperClass = superClass
+                while True:
+                    
+                    superClass = programClassName.getSuperclass()
+                    
+                    if previousSuperClass == superClass:
+                        break
+                    # print(str(superClass.getCanonicalName().encode('utf-8')))
+                    if not bname in str(superClass.getCanonicalName().encode('utf-8')):
+                        allSupers.append("ExternalClass")
+                    else:
+                        allSupers.append(str(superClass.getCanonicalName().encode('utf-8')))
+                allParents[currentClassName] = allSupers
+            else:
+                allParents[currentClassName] = ["None"]
+
+            for method in allMethods:
+                # check if method is a constructor
+                if  method.getName().encode('utf-8') == currentClassName:
+                    methodName = currentClassName
+                else:
+                    methodName = currentClassName + "." + method.getName().encode('utf-8')
+                methodsFieldAccess[methodName] = []
+                # classMethods.append(methodName) 
+                methodOfClass[methodName] = currentClassName
+                # print(method.getName())
+                if Modifier.isStatic(method.getModifiers()):
+                    methodIsStatic.append("true")
+                    statics["methods"].append(methodName)
+                else:
+                    methodIsStatic.append("false")
+                annotations = method.getDeclaredAnnotations()
+                annots = []
+                for annotation in annotations:
+                    annoStr = str(annotation)
+                    if "@com.peratonlabs.closure" in annoStr:
+                        annoStr = annoStr.split(".")[-1]
+                        # annoStr = annoStr.replace("@com.peratonlabs.closure.tests.annotations.","")
+                        annoStr = annoStr.replace("()","")
+                        annots.append(annoStr)
+                methodAnnotation[methodName] = annots
+
+            for field in fields:
+                fieldName = currentClassName + "." + field.getName().encode('utf-8')
+                # classFields.append(fieldName) 
+                fieldOfClass[fieldName] = currentClassName
+                if Modifier.isStatic(field.getModifiers()):
+                    fieldIsStatic.append("true")
+                    statics["fields"].append(fieldName)
+                else:
+                    fieldIsStatic.append("false")
+                annotations = field.getDeclaredAnnotations()
+                annots = []
+                for annotation in annotations:
+                    annoStr = str(annotation)
+                    if "@com.peratonlabs.closure" in annoStr:
+                        annoStr = annoStr.split(".")[-1]
+                        # annoStr = annoStr.replace("@com.peratonlabs.closure.tests.annotations.","")
+                        annoStr = annoStr.replace("()","")
+                        annots.append(annoStr)
+                fieldAnnotation[fieldName] =  annots
+
+    
+
+    dbgFileEdge = open("./dbg_classinfo.csv", "w")
+    for className in className2Idx:
+        outStr = className + ", " + str(className2Idx[className])
+        dbgFileEdge.write(outStr)
+    for fieldName in classId2FieldName:
+        outStr = fieldName + ", " + str(classId2FieldName[fieldName])
+        dbgFileEdge.write(outStr) 
+    for methodName in methodName2ID:
+        outStr = className + ", " + str(methodName2ID[methodName])
+        dbgFileEdge.write(outStr)  
+    dbgFileEdge.close()
+
+
+    classInfoFile = open("./classInfo.mzn", "w")
+    result = "ClassNames" + "_start = 1;\n"
+    result += "ClassNames" + "_end = " + str(len(classNames)-1) + ";\n"
+    result += "ExternalClass = " + str(len(classNames)) + ";\n"
+
+    classInfoFile.write(result)
+
+    classInfoFile.write(createZincSet("ClassFields", classFields))
+    classInfoFile.write(createZincSet("ClassMethods", classMethods))
+    
+    outString = ""
+    result =  "fieldOfClass" + " = ["
+    first = True
+    for field in classField2Idx:
+        clIdx = str(className2Idx[fieldOfClass[field]])
+        if first:
+            first = False
+            result = result + clIdx
+        else:
+            result = result + ", " + clIdx
+    result += "]; \n"
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "methodOfClass" + " = ["
+    first = True
+    for method in classMethod2Idx:
+        clIdx = str(className2Idx[methodOfClass[method]])
+        if first:
+            first = False
+            result = result + clIdx
+        else:
+            result = result + ", " + clIdx
+    result += "]; \n"
+    classInfoFile.write(result)
+    
+    outString = ""
+    result =  "fieldIsStatic" + " = ["
+    first = True
+    for field in classField2Idx:
+        isStatic = None
+        if field in statics["fields"]:
+            isStatic = "true"
+        else:
+            isStatic = "false"
+        if first:
+            first = False
+            result = result + isStatic
+        else:
+            result = result + ", " + isStatic
+    result += "]; \n"
+
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "methodIsStatic" + " = ["
+    first = True
+    for method in classMethod2Idx:
+        isStatic = None
+        if method in statics["methods"]:
+            isStatic = "true"
+        else:
+            isStatic = "false"
+        if first:
+            first = False
+            result = result + isStatic
+        else:
+            result = result + ", " + isStatic
+    result += "]; \n"
+    classInfoFile.write(result)
+    
+    outString = ""
+    result =  "fieldAnnotation" + " = ["
+    first = True
+    for field in classField2Idx:
+        annos = fieldAnnotation[field]
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for anno in annos:
+            if first2:
+                first2 = False
+                result = result + anno
+            else:
+                result = result + ", " + anno
+        
+        result += "} "
+        
+    result += "]; \n"
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "methodAnnotation" + " = ["
+    first = True
+    for method in classMethod2Idx:
+        annos = methodAnnotation[method]
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for anno in annos:
+            if first2:
+                first2 = False
+                result = result + anno
+            else:
+                result = result + ", " + anno
+        
+        result += "} "
+        
+    result += "]; \n"
+    classInfoFile.write(result)
+
+
+    outString = ""
+    result =  "immediateParent" + " = ["
+    first = True
+    for clss in className2Idx:
+        if clss == "ExternalClass":
+            continue
+        imPrnt = str(className2Idx[immediateParent[clss]])
+        if first:
+            first = False
+            result = result + imPrnt
+        else:
+            result = result + ", " + imPrnt
+    result += "]; \n"
+    classInfoFile.write(result)
+
+    outString = ""
+    result =  "allParents" + " = ["
+    first = True
+    for clss in className2Idx:
+        if clss == "ExternalClass":
+            continue
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for ancestor in allParents[clss]:
+            if first2:
+                first2 = False
+                result = result + str(className2Idx[ancestor])
+            else:
+                result = result + ", " + str(className2Idx[ancestor])
+        
+        result += "} "
+        
+    result += "]; \n"
+    classInfoFile.write(result)
+
+    classInfoFile.close()
+    return statics
+
+def getFQNMethodName(node):
+    # className = getClassName(node)
+    if type(node) != str:
+        method = node.getBytecodeMethod()
+    else:
+        method = node
+    print("CHECKING METHOD NAME: ")
+    print(str(method))
+    methodName = str(method)
+    if "(" in methodName:
+        methodName = methodName[:methodName.find("(")]
+    methodName = methodName.replace(".<init>","")
+    print(str(methodName))
+    return methodName
+
+def checkFieldInLabel(lbl,className):
+    print("CHECK FIELD LABEL: ")
+    print(methodsFieldAccess.keys())
+    print(lbl)
+    print(className)
+    
+    for field in classFields:
+        print(field)
+        if className.replace("__",".") == ".".join(field.split(".")[:-1]) and field.split(".")[-1] in lbl:
+            return field
+    return "None"
+
+def collectCLE(cp):
+  cles = []
+  labels = []
+  for cnm,cls in getClasses(cp):
+    if cls.isAnnotation():
+      for y in [x for x in cls.getDeclaredAnnotations() if x.annotationType().getName().endswith('Cledef')]: 
+        try:
+            # don't add duplicate labels
+            if cnm in labels:
+              continue                   
+            cles.append(dict(clelabel=cnm,clejson=loads(y.clejson()))) 
+            labels.append(cnm)
+        except Exception as e: print('CLE JSON failed for ' + y.toString())
+  return cles
+
+def dumpCLE(cp):
+  cles = {}
+  for cnm,cls in getClasses(cp):
+    if cls.isAnnotation():
+      for y in [x for x in cls.getDeclaredAnnotations() if x.annotationType().getName().endswith('Cledef')]: 
+        try:                   
+            # Throw error if label already exists
+            if cnm in cles.keys():
+              raise
+            else:
+              cles[cnm] = loads(y.clejson())
+              
+
+        except Exception as e: print('CLE JSON failed for ' + y.toString())
+  return cles
+
+def cleAnnotationsForNode(node, prog, clabels):
+  return [q for q in [str(x.getType().getName()).lstrip('L').replace('/','.') for x in prog.getMiscAnnotations(node)] if q in clabels]
+
+def makeSDG(cp, em):
+  classPath   = cp
+  entryMethod = JavaMethodSignature.mainMethodOfClass(em)
+  config      = SDGConfig(classPath, entryMethod.toBCString(), Stubs.JRE_15)
+  config.setComputeInterferences(True)
+  config.setMhpType(MHPType.PRECISE)
+  config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED)
+  config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC)
+  # The summary edges add additional data flows that we do not want
+  config.setComputeSummaryEdges(False)
+  config.setIgnoreIndirectFlows(False)
+  program = SDGProgram.createSDGProgram(config, System.out, NullProgressMonitor())
+  return program
+
+def isExternal(node):
+    nodeSource = str(node.getSource())
+
+    if not "closure" in nodeSource:
+        return True
+    else:
+        return False
+
+def getClassName(node):
+    pid   = node.getProc()
+    global funcID2EntryVal
+    # import pdb; pdb.set_trace()
+    className = str(funcID2EntryVal[pid].getBytecodeName()).split(".")
+    # find first index containing a parenthesis, this indicates end of class name
+    iterations = 0
+    for token in className:
+        if "(" in token  or ")" in token:
+            break
+        iterations +=1
+
+    nameCheck = ".".join(className[:iterations])
+    className = "__".join(className[:iterations])
+    print("Class Name " + str(className))
+    if not bname in nameCheck:
+        className = "sharedClass" 
+    return className
+
+def removeCall():
+    pass 
+
+def isClassAnnotated(className,cp):
+    for dummy,cnm in getClasses(cp):
+        programClassName = str(cnm.getCanonicalName())
+        if programClassName == className:
+            break
+    if programClassName != className:
+        print("Failed to find class when checking anno")
+        return False
+    isAnnotated = False
+    if not "annotations" in programClassName:
+        methods = cnm.getMethods()
+        fields = cnm.getFields()
+            
+        for method in methods:
+            # print(method.getName())
+            annos = method.getDeclaredAnnotations()
+            for anno in annos:
+                if "annotations" in str(anno.toString()):
+                    # print("Found user annotated function")
+                    isAnnotated = True
+                    break
+                    
+        for field in fields:
+            # print(field.getName())
+            annos = field.getDeclaredAnnotations()
+            for anno in annos:
+                if "annotations" in str(anno.toString()):
+                    # print("Found user annotated field")
+                    isAnnotated = True
+                    break
+
+        # if isAnnotated:
+        #     print("Class is annotated")
+        # else:
+        #     print("Class is not annotated")
+    return isAnnotated
+
+def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
+    global classId2Name
+
+    dirPath = os.path.dirname(os.path.realpath(__file__))
+    jar = jarLoc.split("/")[-1]
+    rootDir = dirPath
+    codeDir = jarLoc.split("/")[1]
+    entryMethod = JavaMethodSignature.mainMethodOfClass(mainCl)
+    # sourceLoc = entryMethod.getSourceLocation()
+    entryMethod = str(entryMethod).split(".")
+    # remove function from string
+    idxRmv = 0
+    for i in range(len(entryMethod)-1,0,-1):
+        idxRmv +=1
+        if "(" in entryMethod[i]:
+            break
+    # case where there was not a method in label
+    if idxRmv == len(entryMethod)-1:
+        entryMethod = ".".join(entryMethod)
+    else:
+        entryMethod = ".".join(entryMethod[:(-1*idxRmv)])
+    
+    entryMethod = entryMethod.split()[1]
+    entry_main = {"mainClass" : str(entryMethod), "filepath": mainLoc}
+    enclaves = []
+    assingments = []
+    cuts = []
+    enclaveToLevel = {}
+
+    enclaveAssingments = {}
+    inlineUpdates = []
+    for line in zincOutput.split("\n"):
+        sLine = line.split(" ")
+        if len(sLine) > 1:
+            if sLine[1] == "Enclaves":
+                enclaveLevel = sLine[-1].split(":")[0]
+                enclave = sLine[-1].split(":")[1]
+                enclaveToLevel[enclave] = enclaveLevel
+            if sLine[1] == "Class":
+                enclave = sLine[-1]
+                
+                # className = sLine[-3]
+                
+                sLine[-3] = classId2Name[int(sLine[-3])] 
+                line = " ".join(sLine)
+                className = sLine[-3]
+                # className = className.replace("__", ".")
+                # print("Looking for classname:")
+                # print(className)
+                # print(entryMethod)
+                if className == entryMethod:
+                    entry_main["enclave"] = enclave
+                if enclave in enclaveAssingments.keys():
+                    enclaveAssingments[enclave].append(className)
+                else:
+                    enclaveAssingments[enclave] = [className]
+            if sLine[1] == "XDCALL":
+                cutEntry = {}
+                methodSignature = {}
+                pidCallee = sLine[-1].split(":")[0]
+                labelCallee = sLine[-1].split(":")[1]
+                pidCaller = sLine[-3].split(":")[0]
+                labelCaller = sLine[-1].split(":")[1]
+                
+                global funcID2EntryVal
+                fullName = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeName()).split(".")
+                print("FULLNAME:")
+                print(fullName)
+                fqcn = ".".join(fullName[:-1])
+                name = fullName[-1]
+                lineNum = 99999999999
+                for param in sdg.outgoingEdgesOf(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]]):
+                    curlineNum = param.getTarget().getSr()
+                    if curlineNum != 0  and curlineNum < lineNum:
+                        lineNum = curlineNum
+
+                method = funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeMethod()
+                sig = JavaMethodSignature.fromString(method)
+                paramList = []
+                for paramType in sig.getArgumentTypes():
+                    paramList.append(str(paramType.toHRString()))
+                retType = str(sig.getReturnType().toHRString())
+                print(paramList)
+                print(retType)
+                methodSignature["fqcn"] = fqcn
+                methodName = str(sig.getMethodName())
+                # Replace constructor name <init> with the name of the class
+                if "<init>" in methodName:
+                    methodName = str(fqcn).split(".")[-1]
+                    retType = "CONSTRUCTOR"
+                methodSignature["name"] = methodName
+                # methodSignature["name"] = name
+                methodSignature["returnType"] = retType
+                methodSignature["parameterTypes"] = paramList
+                # methodSignature["lineNum"] = lineNum
+
+                callee = {}
+                calleeType = fqcn
+                callee["type"] = calleeType
+                calleeLevel = ""
+                for entry in cleJson:
+                    if entry["clelabel"].split(".")[-1] == labelCallee:
+                        calleeLevel = entry["clejson"]["level"]
+
+                callee["level"] = str(calleeLevel)
+
+                fullNameCaller = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCaller)]]].getBytecodeName()).split(".")
+                fqcnCaller = ".".join(fullName[:-1])
+                callerDict = {}
+                callerDict["type"] = fqcnCaller
+                levelCaller = ""
+                for entry in cleJson:
+                    if entry["clelabel"].split(".")[-1] == labelCaller:
+                        levelCaller = entry["clejson"]["level"]
+                callerDict["level"] = str(levelCaller)
+                allowedCallers = [callerDict]
+
+                cutEntry["methodSignature"] = methodSignature
+                cutEntry["callee"] = callee
+                cutEntry["allowedCallers"] = allowedCallers
+                cuts.append(cutEntry)
+        inlineUpdates.append(line)
+    for assingment in enclaveAssingments:
+        asng = {"name":assingment, "assignedClasses": enclaveAssingments[assingment], "level":enclaveToLevel[assingment]}
+        enclaves.append(asng)
+        for cl in enclaveAssingments[assingment]:
+            assingments.append({"className":cl, "enclave":assingment})
+    print("Jar: " + str(jar))
+    print("rootDir: " + str(rootDir))
+    print("codeDir: " + str(codeDir))
+    print("\n")
+    print("entry: " + str(entry_main))
+    print("\n")
+    print("assingments: " + str(assingments))
+    print("\n")
+    print("cuts: " + str(cuts))
+    print("\n")
+    
+    cutJson = {} 
+    cutJson["jar"] = jar
+    cutJson["rootDir"] = rootDir
+    cutJson["codeDir"] = codeDir
+    # cutJson["destDir"] = dest
+    cutJson["entry"] = entry_main
+    cutJson["enclaves"] = enclaves
+    cutJson["assingments"] = assingments
+    cutJson["cuts"] = cuts
+    dump(cutJson,open("cut.json","wb"), indent=4)
+    for line in inlineUpdates:
+        print(line)
+
+    return cutJson
+
+
+def compute_zinc(cleJson, maxArgIdx):
+    
+    functions2back = []
+    functionJsons = []
+    nonFunctionJsons = []
+    for entry in range(len(cleJson)):
+        if "clejson" in cleJson[entry].keys() and "cdf" in cleJson[entry]["clejson"].keys() and "codtaints" in cleJson[entry]["clejson"]["cdf"][0]: 
+            functionJsons.append(cleJson[entry])
+        else:
+            nonFunctionJsons.append(cleJson[entry])
+
+    for entry in nonFunctionJsons:
+        functions2back.append(entry) 
+    for entry in functionJsons:
+        functions2back.append(entry) 
+    
+    cleJson = functions2back
+    
+    hasCDF = []
+    hasArgTaints = []
+    listOfLevels = []
+    
+
+    # one_way_map = {}
+    # print(one_way)
+    # for line in one_way.splitlines():
+    #     print(line)
+    #     one_way_map[line.split()[0]] =  line.split()[1]
+
+    noneCount = 0
+    enums = defaultdict(lambda: [])
+    arrays = defaultdict(lambda: [])
+    enums["cleLabel"].append("nullCleLabel")
+    arrays['hasLabelLevel'].append("nullLevel") 
+    arrays['isFunctionAnnotation'].append("false") 
+    enums['cdf'].append("nullCdf")
+    hasCDF.append([])
+    hasCDF[-1].append("None" + "_cdf_" + str(noneCount))
+    
+    enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
+    enums['direction'].append("None" + "_direction_" + str(noneCount))
+    enums['operation'].append("None" + "_operation_" + str(noneCount))
+    arrays["fromCleLabel"].append("nullCleLabel")
+    arrays["hasRemotelevel"].append("nullLevel")
+    arrays["hasDirection"].append("nullDirection")
+    arrays["hasGuardOperation"].append("nullGuardOperation")
+    arrays["isOneway"].append("false")
+    arrays["hasARCtaints"] = []
+    noneCount +=1
+    
+    maxCDFIdx = 0
+    # data = pdg_instance.splitlines()
+    # for d in data:
+    #     if 'MaxFuncParms' in d:
+    #         maxArgIdx = int(d.split()[-1][:-1])
+    #         break
+    # print(maxArgIdx)
+
+    # fun2ArgCount = {}
+    # data = function_args.splitlines()
+    # for d in data:
+    #     fun2ArgCount[d.split()[0]] = int(d.split()[1])
+
+    listOfLevels.append("nullLevel")
+    for entry in cleJson:
+        if "clejson" in entry.keys() and "level" in entry["clejson"].keys():
+            listOfLevels.append(entry["clejson"]['level'])
+        else:
+            listOfLevels.append("nullLevel")
+    
+    listOfLevels = set(listOfLevels)
+    listOfLevels = list(listOfLevels)
+    listOfLevels.sort()
+    listOfLevels.remove("nullLevel")
+    listOfLevels.insert(0,"nullLevel")
+    nullLevel = ["nullCdf" for x in range(len(listOfLevels))]
+    arrays["cdfForRemoteLevel"].append(nullLevel)
+    print(listOfLevels)
+
+    #Need to add this fix to C implementation too
+    labelList = []
+    for entry in cleJson:
+      labelList.append(entry["clelabel"].split(".")[-1])
+    
+    #group function annotations
+    cleJson2 = cleJson[:]
+    for entry in cleJson:
+        # print("Updating Order")
+        if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
+            print("Updating Order")
+            print("moving " + str(entry["clelabel"].split(".")[-1]))
+            cleJson2.insert(0,cleJson2.pop(cleJson.index(entry)))
+    cleJson = cleJson2
+
+    for entry in cleJson:
+        CDF_flag = False
+        print("ENTRY")
+        print(entry)
+        
+        if not entry["clelabel"].split(".")[-1] in enums["cleLabel"]:
+            enums["cleLabel"].append(entry["clelabel"].split(".")[-1])
+            print("Adding Label:" + str(entry["clelabel"].split(".")[-1]))
+        if "clejson" in entry.keys() and "level" in entry["clejson"].keys():
+            arrays['hasLabelLevel'].append(entry["clejson"]['level'])
+        else:
+            arrays['hasLabelLevel'].append("nullLevel")
+        
+        # only checks if the first cdf has function taints, assumes they all do
+        if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
+            arrays['isFunctionAnnotation'].append("true")
+        else:
+            arrays['isFunctionAnnotation'].append("false")
+
+        CDFforEntry = [] 
+        #assumes only one cdf in the label has a certaint remote level
+        for j in listOfLevels:
+            found = 0
+            if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys():
+                cdfIdx = 0
+                for cdf in entry["clejson"]["cdf"]:
+                    cdfStr = entry["clelabel"].split(".")[-1] + "_cdf_" + str(cdfIdx)
+                    if "remotelevel" in cdf.keys():
+                        if cdf["remotelevel"] == j:
+                            CDFforEntry.append(cdfStr)
+                            temp = cdf["remotelevel"]
+                            # print("Found remote level: {j}")
+                            found = 1
+                    cdfIdx+=1
+            if found == 0:
+                CDFforEntry.append("nullCdf")
+        arrays["cdfForRemoteLevel"].append(CDFforEntry)
+
+        if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys():
+            cdfIdx = 0
+            for cdf in entry["clejson"]["cdf"]:
+                cdfStr = entry["clelabel"].split(".")[-1] + "_cdf_" + str(cdfIdx)
+                enums["cdf"].append(cdfStr)
+                arrays['fromCleLabel'].append(entry["clelabel"].split(".")[-1])
+
+                if "remotelevel" in cdf.keys():
+                    arrays['hasRemotelevel'].append(cdf["remotelevel"])
+                else:
+                    arrays['hasRemotelevel'].append("nullLevel")
+
+                if "direction" in cdf.keys():
+                    arrays['hasDirection'].append(cdf["direction"])
+                else:
+                    arrays['hasDirection'].append("nullDirection")
+
+                if "guarddirective" in cdf.keys():
+                    arrays['hasGuardOperation'].append(cdf["guarddirective"]["operation"])
+                else:
+                    arrays['hasGuardOperation'].append("nullGuardOperation")
+
+                if "oneway" in cdf.keys():
+                    if entry["clelabel"].split(".")[-1] in one_way_map.keys() and one_way_map[entry["clelabel"].split(".")[-1]] == "false":
+                        print("Error, oneway function has uses!")
+                        raise
+                    arrays['isOneway'].append(cdf["oneway"])
+                else:
+                    arrays['isOneway'].append("false")
+
+                if "rettaints" in cdf.keys():
+                    for label in cdf['rettaints']:
+                        splLbl = label.split(".")[-1]
+                        if not label.split(".")[-1] in enums["cleLabel"] and not label.split(".")[-1] in labelList:
+                            enums["cleLabel"].append(label.split(".")[-1])
+                            arrays['hasLabelLevel'].append("nullLevel") 
+                            arrays['isFunctionAnnotation'].append("false")
+                            arrays["cdfForRemoteLevel"].append(nullLevel)
+                if "codtaints" in cdf.keys():
+                    for label in cdf['codtaints']:
+                        splLbl = label.split(".")[-1]
+                        print("Checking Code Taints" + str(splLbl))
+                        print(enums["cleLabel"])
+                        if not label.split(".")[-1] in enums["cleLabel"] and not label.split(".")[-1] in labelList:
+                            enums["cleLabel"].append(label.split(".")[-1])
+                            arrays['hasLabelLevel'].append("nullLevel") 
+                            arrays['isFunctionAnnotation'].append("false")
+                            arrays["cdfForRemoteLevel"].append(nullLevel)
+                if "argtaints" in cdf.keys():
+                    for param in cdf['argtaints']:
+                        for label in param:
+                            splLbl = label.split(".")[-1]
+                            if not label.split(".")[-1] in enums["cleLabel"] and not label.split(".")[-1] in labelList:
+                                enums["cleLabel"].append(label.split(".")[-1])
+                                arrays['hasLabelLevel'].append("nullLevel") 
+                                arrays['isFunctionAnnotation'].append("false")
+                                arrays["cdfForRemoteLevel"].append(nullLevel)
+                cdfIdx+=1
+   
+    
+    for level in listOfLevels:
+        if level == "nullLevel":
+            continue
+        newLabelStr = level+"DFLT"
+        enums["cleLabel"].append(newLabelStr)
+        arrays['hasLabelLevel'].append(level) 
+        arrays['isFunctionAnnotation'].append("false")
+        arrays["cdfForRemoteLevel"].append(nullLevel)
+
+    anyFunctionCdfs = False
+    for i in arrays['isFunctionAnnotation']:
+        if i == "true":
+            anyFunctionCdfs = True
+            break
+    
+    if not anyFunctionCdfs:
+        enums["cleLabel"].append("EmptyFunction")
+        arrays['hasLabelLevel'].append("nullLevel") 
+        arrays['isFunctionAnnotation'].append("true")
+        cdfStr = "EmptyFunction_cdf_0"
+        enums["cdf"].append(cdfStr)
+        arrays['fromCleLabel'].append("EmptyFunction")
+        arrays['hasRemotelevel'].append("nullLevel")
+        arrays['hasDirection'].append("nullDirection")
+        arrays['hasGuardOperation'].append("nullGuardOperation")
+        arrays['isOneway'].append("false")
+
+        emptyFunLevel = ["nullCdf" for x in range(len(listOfLevels))]
+        emptyFunLevel[0] = "EmptyFunction_cdf_0"
+        arrays["cdfForRemoteLevel"].append(emptyFunLevel)
+
+        entry = {}
+        entry["clelabel"] = "EmptyFunction"
+        entry["clejson"] = {}
+        entry["clejson"]["level"] = "nullLevel"
+        entry["clejson"]["cdf"] = []
+        cdf = {}
+        cdf["remotelevel"] = "nullLevel"
+        cdf["argtaints"] = []
+        cdf["codtaints"] = []
+        cdf["rettaints"] = []
+        entry["clejson"]["cdf"].append(cdf)
+        cleJson.append(entry)
+
+
+    
+    for entry in cleJson:
+        print("ENTRY")
+        print(entry)
+        
+        #if codtaints is defined, all taints need to be defined
+        if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys():
+            if "codtaints" in entry["clejson"]["cdf"][0] or "rettaints" in entry["clejson"]["cdf"][0] or "argtaints" in entry["clejson"]["cdf"][0]:
+                if not("codtaints" in entry["clejson"]["cdf"][0] and "rettaints" in entry["clejson"]["cdf"][0] and "argtaints" in entry["clejson"]["cdf"][0]):
+                    print("Missing 1 or more function taints!")
+                    raise
+
+        # if entry["clelabel"] != "EmptyFunction" and entry["clelabel"] in fun2ArgCount.keys():
+        #     if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys():
+        #         if not("codtaints" in entry["clejson"]["cdf"][0] and "rettaints" in entry["clejson"]["cdf"][0] and "argtaints" in entry["clejson"]["cdf"][0]):
+        #             print("Function Annotation missing function taints!")
+        #             raise
+        #     else:
+        #         print("Function Annotation missing CDF!")
+        #         raise
+
+        if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]:
+            ARCTaint = ["false" if label != entry["clelabel"] else "true" for label in enums["cleLabel"] ]
+            for cdf in entry["clejson"]["cdf"]:
+                # code taints
+                taintEntry = []  
+                for label in enums["cleLabel"]:
+                    found = 0
+                    for labelTaint in cdf["codtaints"]:
+                        if label == labelTaint:
+                            taintEntry.append("true")
+                            found = 1
+                    if found == 0:
+                        taintEntry.append("false")
+                arrays["hasCodtaints"].append(taintEntry)
+                ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, taintEntry)]
+                
+                # ret Taints
+                taintEntry = []  
+                for label in enums["cleLabel"]:
+                    found = 0
+                    for labelTaint in cdf["rettaints"]:
+                        if label == labelTaint:
+                            taintEntry.append("true")
+                            found = 1
+                    if found == 0:
+                        taintEntry.append("false")
+                arrays["hasRettaints"].append(taintEntry)
+                ARCTaint = [str(a=='true' or b=='true').lower() for a, b in zip(ARCTaint, taintEntry)]
+                hasArgFlag = 1
+                # Arg Taints
+                taintEntry = []
+                print(cdf["argtaints"])
+                paramCount = 0
+                for param in cdf["argtaints"]:
+                    if len(param) == 0:
+                        hasArgFlag = 0
+                        break
+                    paramEntry = []  
+                    for label in enums["cleLabel"]:
+                        found = 0
+                        for labelTaint in param:
+                            if label == labelTaint:
+                                paramEntry.append("true")
+                                found = 1
+                            else:
+                                paramEntry.append("false")
+                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
+                    taintEntry.append(paramEntry)
+                    paramCount +=1
+                
+
+                # if entry["clelabel"] in fun2ArgCount.keys() and entry["clelabel"] != "EmptyFunction" and fun2ArgCount[entry["clelabel"]] < paramCount and hasArgFlag:
+                #     print("ERROR! Function annotation argument mismatch!")
+                #     raise
+
+                while paramCount < maxArgIdx:
+                    paramEntry = []  
+                    for label in enums["cleLabel"]:
+                        paramEntry.append("false")
+                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
+                    taintEntry.append(paramEntry)
+                    paramCount +=1
+                
+                arrays["hasArgtaints"].append(taintEntry)
+                arrays["hasARCtaints"].append(ARCTaint)
+
+    # if len(enums["cleLabel"]) > len(set(enums["cleLabel"])):
+    #     print("Error! Duplicate CLE Lables detected.")
+    #     raise
+
+    maxCodTaint = 0
+    # maxArgIdx = 0
+    maxNumArgsTaints = 0
+    maxRetTaint = 0
+
+    # for taints in arrays["hasargtaints"]: 
+    #     if len(taints) > maxArgIdx:
+    #         maxArgIdx = len(taints)
+
+    for taints in arrays["hasargtaints"]: 
+        for args in taints:
+            if len(args) > maxNumArgsTaints:
+                maxNumArgsTaints = len(args)
+
+    for taints in arrays["hasrettaints"]: 
+        if len(taints) > maxRetTaint:
+            maxRetTaint = len(taints)
+
+    for taints in arrays["hascodtaints"]: 
+        if len(taints) > maxCodTaint:
+            maxCodTaint = len(taints)
+
+    enclave_instance = ""
+    Levels = "Level = {"
+    Enclave = "Enclave = {"
+    hasEnclaveLevel = "hasEnclaveLevel = ["
+    for level in listOfLevels:
+        Levels += level + ","
+        if level == "nullLevel":
+            Enclave +=  "nullEnclave, "
+        else:
+            Enclave += level + "_E,"
+        hasEnclaveLevel += level + ","
+    Levels = Levels[:-1]
+    Enclave = Enclave[:-1]
+    hasEnclaveLevel = hasEnclaveLevel[:-1]
+    Levels += "};\n"
+    Enclave += "};\n"
+    hasEnclaveLevel += "];\n"
+
+    enclave_instance += Levels 
+    enclave_instance += Enclave
+    enclave_instance += hasEnclaveLevel
+
+
+    cle_instance = ""
+
+    cle_instance += "cleLabel = {"
+    first = True
+    for j in enums["cleLabel"]:
+        if first:
+            first = False
+            cle_instance += j
+        else:
+             cle_instance = cle_instance + ", " + j
+    cle_instance += ("}; \n")
+
+    cle_instance += ("hasLabelLevel = [")
+    first = True
+    for j in arrays["hasLabelLevel"]:
+        if first:
+            first = False
+            cle_instance +=  j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("]; \n")
+    
+    cle_instance += ("isFunctionAnnotation = [")
+    first = True
+    for j in arrays["isFunctionAnnotation"]:
+        if first:
+            first = False
+            cle_instance = cle_instance + j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("]; \n")
+
+    cle_instance += "cdf = {"
+    first = True
+    for j in enums["cdf"]:
+        if first:
+            first = False
+            cle_instance = cle_instance + j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("}; \n")
+
+    cle_instance += ("fromCleLabel = [")
+    first = True
+    for j in arrays["fromCleLabel"]:
+        if first:
+            first = False
+            cle_instance = cle_instance  + j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("]; \n")
+
+    cle_instance += ("hasRemotelevel = [")
+    first = True
+    for j in arrays["hasRemotelevel"]:
+        if first:
+            first = False
+            cle_instance = cle_instance + j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("]; \n")
+
+    cle_instance += ("hasDirection = [")
+    first = True
+    for j in arrays["hasDirection"]:
+        if first:
+            first = False
+            cle_instance = cle_instance + j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("]; \n")
+
+    cle_instance += ("hasGuardOperation = [")
+    first = True
+    for j in arrays["hasGuardOperation"]:
+        if first:
+            first = False
+            cle_instance = cle_instance + j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("]; \n")
+
+    cle_instance += ("isOneway = [")
+    first = True
+    for j in arrays["isOneway"]:
+        if first:
+            first = False
+            cle_instance = cle_instance + j
+        else:
+            cle_instance = cle_instance + ", " + j
+    cle_instance += ("]; \n")
+
+    cle_instance += ("cdfForRemoteLevel = [|\n ")
+    for row in arrays["cdfForRemoteLevel"]:
+        print(row)
+        first = True
+        for j in row:
+            if first:
+                first = False
+                cle_instance = cle_instance + j
+            else:
+                cle_instance = cle_instance + ", " + j
+        cle_instance += ("\n|")
+    cle_instance += ("]; \n")
+
+    numFunctionCDFS = len(arrays["hasRettaints"])
+    # print("Num Function CDFs: {numFunctionCDFS}")
+    numCleLabels = len(enums["cleLabel"])
+    # print("Num CLE Labels: {numCleLabels}")
+
+
+    cle_instance += ("hasRettaints = array2d(functionCdf, cleLabel, [\n ")
+    first = True
+    for row in arrays["hasRettaints"]:
+        print(row)
+        for j in row:
+            if j == "true":
+                j = "true "
+            if first:
+                first = False
+                cle_instance += j
+            else:
+                 cle_instance = cle_instance + ", " + j
+        cle_instance += ("\n")
+    cle_instance += (" ]); \n")
+    numElts = 0
+    for i in arrays["hasRettaints"]:
+        for j in i:
+            numElts+=1
+    if numFunctionCDFS * numCleLabels != numElts:
+        print("hasRettaints has incorrect dimensions")
+
+
+    cle_instance += ("hasCodtaints = array2d(functionCdf, cleLabel, [\n ")
+    first = True
+    for row in arrays["hasCodtaints"]:
+        print(row)
+        for j in row:
+            if j == "true":
+                j = "true "
+            if first:
+                first = False
+                cle_instance += j
+            else:
+                 cle_instance = cle_instance + ", " + j
+        cle_instance += ("\n")
+    cle_instance += (" ]); \n")
+    numElts = 0
+    for i in arrays["hasCodtaints"]:
+        for j in i:
+            numElts+=1
+    if numFunctionCDFS * numCleLabels != numElts:
+        print("hasCodtaints has incorrect dimensions")
+
+    cle_instance += ("hasArgtaints = array3d(functionCdf, parmIdx, cleLabel, [\n ")
+    first = True
+    for row in arrays["hasArgtaints"]:
+        print(row)
+        argCount = 0
+        for nested in row:
+            for j in nested:
+                if j == "true":
+                    j = "true "
+                if first:
+                    first = False
+                    cle_instance += j
+                else:
+                     cle_instance = cle_instance + ", " + j
+
+                if argCount % maxArgIdx == maxArgIdx -1:
+                    cle_instance += ("\t\t")
+                argCount+=1
+        cle_instance += ("\n")
+    cle_instance += (" ]); \n")
+    numElts = 0
+    for i in arrays["hasArgtaints"]:
+        for j in i:
+            for k in j:
+                numElts+=1
+    if numFunctionCDFS * maxArgIdx * numCleLabels != numElts:
+        print("hasArgtaints has incorrect dimensions")
+
+    cle_instance += ("hasARCtaints = array2d(functionCdf, cleLabel, [\n ")
+    first = True
+    for row in arrays["hasARCtaints"]:
+        print(row)
+        for j in row:
+            if j == "true":
+                j = "true "
+            if first:
+                first = False
+                cle_instance += j
+            else:
+                 cle_instance = cle_instance + ", " + j
+        cle_instance += ("\n")
+    cle_instance += (" ]); \n")
+
+    numElts = 0
+    for i in arrays["hasARCtaints"]:
+        for j in i:
+            numElts+=1
+    if numFunctionCDFS * numCleLabels != numElts:
+        print("hasARCtaints has incorrect dimensions")
+
+    print(enums)
+    print(arrays)
+
+    return (cle_instance, enclave_instance)   
+
+def computeParamIdx(node):
+    paramID = -1
+    if str(node.getKind().toString()) == "FRMI":
+      # print(idx2nodeID[int(node)])
+      label = str(node.getLabel().encode('utf-8'))
+      if "param" in label:
+        paramID = int(label.split()[1])
+        
+    if str(node.getKind().toString()) == "FRMO":
+      paramID = -1
+      for incoming in sdg.incomingEdgesOf(y):
+        if str(incoming.getKind().toString()) == "FRMI":
+            label = str(incoming.getLabel().encode('utf-8'))
+            if "param" in label:
+              paramID = int(label.split()[1])
+
+      
+    if str(node.getKind().toString()) == "ACTI":
+      paramID = -1
+      for outgoing in sdg.getFormalIns(y):
+        if str(outgoing.getKind().toString()) == "FRMI":
+            label = str(outgoing.getLabel().encode('utf-8'))
+            if "param" in label:
+              paramID = int(label.split()[1])
+
+    if str(node.getKind().toString()) == "ACTO":
+        paramID = -1
+        for formalOut in sdg.getFormalOuts(y):
+            if str(formalOut.getKind().toString()) == "FRMO":
+                for incoming in sdg.incomingEdgesOf(y):
+                    if str(incoming.getKind().toString()) == "FRMI":
+                        label = str(incoming.getLabel().encode('utf-8'))
+                        if "param" in label:
+                            paramID = int(label.split()[1])
+    return paramID
+
+def isParameterNode(node):
+    kind  = str(node.getKind().toString())
+    label  = str(node.getLabel().encode('utf-8'))
+    # don't consider exception nodes as parameters
+    if "except" in label:
+        return False
+    
+    if "ACT" in kind or "FRM" in kind:
+        return True
+    else:
+        return False
+
+def isRetConnectedNode(node):
+    # for e in sdg.outgoingEdgesOf(node): 
+    #     kind  = str(e.getTarget().getKind().toString())
+    #     if "EXIT" == kind:
+    #         return True
+    # kind  = str(node.getKind().toString())
+    for e in sdg.incomingEdgesOf(node): 
+        ekind = str(e.getKind().toString())
+        skind  = str(e.getSource().getKind().toString())
+        slab = str(e.getSource().getLabel().encode('utf-8'))
+        # if "EXIT" == skind and ekind == "PO" or "except" in slab:
+        if "EXIT" == skind and ekind == "PO":
+            return True
+        if "excep" in slab:
+            return True
+
+    return False
+
+def get_args():
+  p = ArgumentParser(description='CLOSURE System Dependence Graph Builder for Java')
+  p.add_argument('-e', '--entrymethod', required=True, type=str, help='Entry Method')
+  p.add_argument('-b', '--bname', required=True, type=str, help='Base name for classes of interest ')
+#   p.add_argument('-t', '--dest', required=True, type=str, help='Destination directory ') # no longer used
+  p.add_argument('-m', '--mainLoc', required=True, type=str, help='File location of main class ')
+  p.add_argument('-c', '--clpath', required=True, type=str, help='Jar file for program to be analyzed')
+  p.add_argument('-p', '--pdg', help='Dump Program Dependence Graph in native format',
+                 default=False, action='store_true') 
+  p.add_argument('-P', '--pdgfile', help='PDG filename', 
+                 required=False, type=str, default='yourSDGFile.pdg')
+  p.add_argument('-d', '--dot',help='Dump Program Dependence Graph in Dot format',
+                 default=False, action='store_true') 
+  p.add_argument('-D', '--dotfile', help='DOT filename',
+                 required=False, type=str, default='yourSDGFile.dot')
+  p.add_argument('-j', '--json',help='Dump CLE JSON',
+                 default=False, action='store_true') 
+  p.add_argument('-J', '--jsonfile', help='CLE JSON output filename', 
+                 required=False, type=str, default='yourSDGFile.clemap.json')
+  return p.parse_args()
+
+
+if __name__ == '__main__':
+  args   = get_args()
+  zincFile = open("./pdg_instance.mzn", "w")
+  print('Options selected:')
+  for x in sorted(vars(args).items()): print('  %s: %s' % x)
+  bname = args.bname
+  prog = makeSDG(args.clpath, args.entrymethod)
+  sdg  = prog.getSDG()
+  cles = collectCLE(args.clpath)
+  
+  cp = args.clpath
+  print
+  print(collectStatics(cp,bname))
+#   exit(1)
+  if args.pdg:  writePDG(sdg, args.pdgfile)
+  if args.dot:  writeDOT(sdg, args.dotfile)
+  if args.json: writeCLE(cles, args.jsonfile)
+  print('SDG Done\n')
+
+  global clabels
+  clabels = list([q['clelabel'] for q in cles])
+  global nodes
+  global edges
+  global anns
+
+  global nodesZinc
+  global edgesZin
+
+  global nodeConversion
+  global edgeConversion 
+
+  global funcID2Entry 
+  global Entry2funcID
+  global funcID2EntryVal
+ 
+  for y in sorted(set(sdg.vertexSet()),key=lambda x: x.getId()):
+    kind  = str(y.getKind().toString())
+    nid   = str(y.getId())
+    label = y.getLabel().encode('utf-8')
+    oper  = str(y.getOperation())
+
+    if "UNIQ" in label or "MERGE" in label:
+        continue
+
+    # if "except" in label:
+    #     continue
+
+    # if "except" in label and not "ret" in label:
+    #     continue
+    
+    if isExternal(y):
+          continue
+
+    # Don't remove return edges
+    if isParameterNode(y) and not isRetConnectedNode(y):
+        if computeParamIdx(y) < 0:
+            continue
+        
+
+    kind_temp = kind
+    if "except" in label:
+        if "ret" in label:
+            kind = "EXIT"
+        else:
+            kind = "NORM"
+
+    nkind = kind + '_' + oper
+    
+    if not nkind in nodes: 
+        nodes[nkind] = []
+    nodes[nkind].append((nid,label))
+    hasFunction = y.getBytecodeMethod()
+
+    
+    if "except" in label:
+        if "ret" in label:
+            if not "Inst_Ret" in nodesZinc: 
+                nodesZinc["Inst_Ret"] = []
+            nodesZinc["Inst_Ret"].append((nid,oper, y))
+        else:
+            if not "Inst_Other" in nodesZinc: 
+                nodesZinc["Inst_Other"] = []
+            nodesZinc["Inst_Other"].append((nid,oper, y))
+    else:
+        if not nodeConversion[kind] in nodesZinc: nodesZinc[nodeConversion[kind]] = []
+        nodesZinc[nodeConversion[kind]].append((nid,oper, y))
+
+    myann = cleAnnotationsForNode(y, prog, clabels)
+    if len(myann) > 0: anns[nid] = myann 
+
+    for e in sdg.outgoingEdgesOf(y): 
+      tar_label = str(e.getTarget().getLabel().encode('utf-8'))
+      tar_nid = str(e.getTarget().getId())
+      tar_kind = str(e.getTarget().getKind().toString())
+
+      # Remove verbose edges and edge from command line params coming into main
+      if "UNIQ" in tar_label or "MERGE" in tar_label or "$args" in tar_label:
+        continue
+    #   if "except" in tar_label:
+    #     continue
+      
+      if isExternal(e.getTarget()):
+          continue
+
+      # Don't remove return edges  
+      if isParameterNode(e.getTarget()) and not isRetConnectedNode(e.getTarget()):
+        if computeParamIdx(e.getTarget()) < 0:
+            print(tar_nid)
+            continue
+      
+      ekind = str(e.getKind().toString())
+      if not ekind in edges: edges[ekind] = []
+      edges[ekind].append((nid,str(e.getTarget().getId())))
+
+      # We do not care about helper edges "HE"
+      if ekind == "HE":
+          continue
+
+      # Remove parameter edges that connect to params that are not param edges
+      # May need to switch these to data_dep other
+      if isParameterNode(e.getTarget()) or isParameterNode(y):
+          if ekind != "PO" and ekind != "PI" and ekind != "PS":
+              continue
+
+      # Remove parameter edges that do not connect to parameters
+      # May need to switch these to data_dep other
+      if ekind == "PO" or ekind == "PI" or ekind == "PS":
+        if not(isParameterNode(e.getTarget()) or isParameterNode(y)):
+              continue
+      
+      if ekind == "PO" and (kind == "EXIT" or "except" in label):
+          if not "DataDepEdge_Ret" in edgesZinc : edgesZinc["DataDepEdge_Ret"] = []
+          edgesZinc["DataDepEdge_Ret"].append((nid,str(e.getTarget().getId()),y,e.getTarget()))
+      else:
+            if not edgeConversion[ekind] in edgesZinc : edgesZinc[edgeConversion[ekind]] = []
+            edgesZinc[edgeConversion[ekind]].append((nid,str(e.getTarget().getId()),y,e.getTarget()))
+
+            
+
+    Entry2funcID[int(nid)] = y.getProc()
+    if kind == "ENTR":
+      funcID2Entry[y.getProc()] = int(nid)
+      funcID2EntryVal[y.getProc()] = y
+      numArgs = len(sdg.incomingEdgesOf(y))
+
+  idx = 1
+  nodeIdx = OrderedDict()
+  edgeIdx = OrderedDict()
+  nodeID2Idx = OrderedDict()
+  idx2nodeID = OrderedDict()
+
+  paramNodes = []
+
+  nodeIdx["Inst"] = []
+  nodeIdx["Param"] = []
+  nodeIdx["PDGNode"] = []
+  for kind in nodesZinc:
+    for node in nodesZinc[kind]:
+      if kind in nodeIdx:
+        nodeIdx[kind].append(idx)
+      else:
+        nodeIdx[kind] = [idx]
+      if "Inst" in kind:
+          nodeIdx["Inst"].append(idx)
+      if "Param" in kind:
+          nodeIdx["Param"].append(idx)
+          paramNodes.append(node[2])
+      nodeIdx["PDGNode"].append(idx)
+      nodeID2Idx[int(node[0])] = idx
+      idx2nodeID[idx] =  int(node[0])
+      idx+=1
+
+  hasSource = []
+  hasDest = []
+  edgeIdx["ControlDep"] = []
+  edgeIdx["DataDepEdge"] = []
+  edgeIdx["Parameter"] = []
+  edgeIdx["PDGEdge"] = []
+
+  dbgFileEdge = open("./dbg_edge.csv", "w")
+  dbgFileEdge.write("Index, Kind, Node_IDX_Src, Node_IDX_Dest, diffFuncs \n")
+  idx = 1
+  for kind in edgesZinc:
+    for edge in edgesZinc[kind]:
+      
+      if int(edge[0]) in nodeID2Idx and int(edge[1]) in nodeID2Idx:
+
+        if kind in edgeIdx:
+            edgeIdx[kind].append(idx)
+        else:
+            edgeIdx[kind] = [idx]
+        if "ControlDep" in kind:
+            edgeIdx["ControlDep"].append(idx)
+        if "DataDepEdge" in kind:
+            edgeIdx["DataDepEdge"].append(idx)
+        if "Parameter" in kind:
+            edgeIdx["Parameter"].append(idx)
+        edgeIdx["PDGEdge"].append(idx)
+        
+
+        hasSource.append(nodeID2Idx[int(edge[0])])
+        hasDest.append(nodeID2Idx[int(edge[1])])
+
+        dbgStr = str(idx) + ", " + str(kind) + ", " + str(nodeID2Idx[int(edge[0])]) + ", " + str(nodeID2Idx[int(edge[1])])+ ", " + str(edge[2].getProc()!=edge[3].getProc()) + "\n"
+        dbgFileEdge.write(dbgStr)
+        idx+=1
+  
+  
+  dbgFileNode = open("./dbg_node.csv", "w")
+  dbgFileNode.write("Index, ID, Type, Label, hasFunction, Source, Start_Row, Start_Column, End_Row, End_Column \n")
+  
+  allNodeLables = []
+  for kind in nodeIdx:
+      allNodeLables.append(kind)
+  for kind in nodesZinc:
+      if not kind in allNodeLables:
+          allNodeLables.append(kind)
+
+  allEdgeLables = []
+  for kind in edgeIdx:
+      allEdgeLables.append(kind)
+  for kind in edgesZinc:
+      if not kind in allEdgeLables:
+          allEdgeLables.append(kind)
+#   for kind in nodeIdx:
+  for kind in allNodeLables:
+    if kind in nodeIdx:
+        zincFile.write(kind + "_start = " + str(nodeIdx[kind][0]) + "; \n" )
+        zincFile.write(kind + "_end = " + str(nodeIdx[kind][-1]) + "; \n" )
+    else:
+        zincFile.write(kind + "_start = 0; \n")
+        zincFile.write(kind + "_end = -1; \n" )
+#   for kind in edgeIdx:
+  for kind in allEdgeLables:
+    if kind in edgeIdx:
+        zincFile.write(kind + "_start = " + str(edgeIdx[kind][0]) + "; \n" )
+        zincFile.write(kind + "_end = " + str(edgeIdx[kind][-1]) + "; \n" )
+    else:
+        zincFile.write(kind + "_start = 0; \n")
+        zincFile.write(kind + "_end = -1; \n" )
+  outString = ""
+  outString += "hasFunction = [ \n"
+  for kind in nodesZinc:
+    for node in nodesZinc[kind]:
+        y = node[2]
+        pid   = y.getProc()
+        if kind == "FunctionEntry":
+            methodName2ID[str(y.getBytecodeName())] = str(nodeID2Idx[int(funcID2Entry[pid])])
+            print("ADDING FUNCTIONS:")
+            print(str(y.getBytecodeName()))
+            print(str(nodeID2Idx[int(funcID2Entry[pid])]))
+        # import pdb; pdb.set_trace()
+        print("Function ID " + str(funcID2Entry[pid]))
+        outString = outString + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " 
+  outString = outString[:-2] + "];\n"
+
+#   classNames = []
+  global className
+  global className2Idx
+  global classField2Idx
+
+  outString += "hasClass = [ \n"
+  for kind in nodesZinc:
+    for node in nodesZinc[kind]:
+        y = node[2]
+        pid   = y.getProc()
+        nid   = str(y.getId())
+        # kind  = str(y.getKind().toString())
+        label = str(y.getLabel().encode('utf-8'))
+        print("LABEL CHECK: ")
+        print(label)
+
+        className = getClassName(y).replace("__",".")
+        classIdx = str(className2Idx[className])
+        # classNames.append(className)
+        outString = outString + classIdx + ", " 
+        field = checkFieldInLabel(label, className)
+        print("FIELD CHECK: ")
+        print(field)
+        if "None" != field:
+            if getFQNMethodName(y) in methodsFieldAccess: 
+                methodsFieldAccess[getFQNMethodName(y)].append(classField2Idx[field])
+
+        dbgStr = str(nodeID2Idx[int(nid)]) + ", " + nid + ", " + kind + ", " + label + ", " + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " + y.getSource().encode('utf-8') + ", " + str(y.getSr()) + ", " + str(y.getSc()) + ", " + str(y.getEr()) + ", " + str(y.getEc()) + "\n"
+        dbgFileNode.write(dbgStr)
+    
+  outString = outString[:-2] + "];\n"
+
+#   classNames = set(classNames)
+#   outString += "classNames = {"
+#   outString += "AllClassNames = {"
+#   for n in classNames:
+#       outString = outString + n + ", " 
+#   outString = outString + "ExternalClass, "
+#   outString = outString[:-2] + "};\n"
+  global className2Idx
+  outString += "isClassAnnotated = ["
+  for className in className2Idx:
+      if className == "ExternalClass":
+          continue
+      if isClassAnnotated(className,cp):
+          outString = outString +"true, "
+      else:
+          outString = outString +"false, "
+  outString = outString[:-2] + "];\n"
+
+
+  outString = outString + "hasSource = [ \n"
+  for source in hasSource:
+    outString = outString + str(source) + ", "
+  outString = outString[:-2] + "];\n"
+  outString = outString + "hasDest = [ \n"
+  for dest in hasDest:
+    outString = outString + str(dest) + ", "
+  outString = outString[:-2] +"];\n"
+
+  maxFuncParams = 0
+  outString += "hasParamIdx = array1d(Param, ["
+#   for y in sorted(set(sdg.vertexSet()),key=lambda x: x.getId()):
+  for y in paramNodes:
+    paramID =  computeParamIdx(y)
+    outString = outString + str(paramID) + ", "
+    if paramID > maxFuncParams:
+          maxFuncParams = paramID
+
+  outString = outString[:-2] +"]);\n" 
+  zincFile.write(outString)
+  outString = ""
+  zincFile.write("userAnnotatedFunction = array1d(FunctionEntry, [ \n")
+  for node in nodeIdx["FunctionEntry"]:
+    # print(idx2nodeID[int(node)])
+    # print(node)
+    if str(idx2nodeID[int(node)]) in anns.keys():
+      outString = outString +"true, "
+    else:
+      outString = outString + "false, "
+
+  outString = outString[:-2] +"]);\n" 
+
+  
+  outString += "MaxFuncParms = " + str(maxFuncParams) + ";\n"
+
+  # outString = outString[:-2] +"]);\n" 
+
+  zincFile.write(outString)
+  # print("=======")
+  CleLabels =  ["nullCleLabel"]
+  for annot in anns:
+    label = anns[annot][0].split(".")[-1]
+    print("Checking label: " + str(label))
+    zid = nodeID2Idx[int(annot)]
+    
+    # check if function annotation is applied to a function
+    flagNotFunction = False
+    for entry in cles:
+        if entry["clelabel"].split(".")[-1] == label:
+            if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
+                if not zid in nodeIdx["FunctionEntry"]:
+                    flagNotFunction = True
+                    break
+    if flagNotFunction:
+        continue
+    
+    
+    CleLabels.append(label)
+    
+    listOfLevels = []
+    listOfLevels.append("nullLevel")
+    for entry in cles:
+        if "clejson" in entry.keys() and "level" in entry["clejson"].keys():
+            listOfLevels.append(entry["clejson"]['level'])
+        else:
+            listOfLevels.append("nullLevel")
+    
+    listOfLevels = set(listOfLevels)
+    listOfLevels = list(listOfLevels)
+    # print(zid)
+    for l in listOfLevels:
+        if l != "nullLevel":
+            zincFile.write("constraint ::  \"TaintOnNodeIdx" + str(zid) + "\" taint[" + str(zid) + "," + str(l) + "]=" + label + ";\n" )
+    # print(anns)      
+  zincFile.write("\n\n" )
+  
+  CleLabels = set(CleLabels)
+  outString = ""
+  
+#   outString = "cleLabel = {"
+#   for label in CleLabels:
+#     outString = outString + label + ", "
+#   outString = outString[:-2] +"};\n"
+#   zincFile.write(outString)
+
+  cleOutput = compute_zinc(cles,maxFuncParams)
+  zincFile.close()
+  with open("cle_instance.mzn", "w") as cle_f:
+    cle_f.write(cleOutput[0])
+  with open("enclave_instance.mzn", "w") as enclave_f:
+    enclave_f.write(cleOutput[1])
+
+  classInfoFile = open("./classInfo.mzn", "a")
+  print("DUMPING FUNCTION ENTRIES")
+  for node in nodeIdx["FunctionEntry"]:
+    print(idx2nodeID[int(node)])
+    print(node)
+    print(str(idx2nodeID[int(node)]))
+  
+  print("UNSORTED METHODS")
+  print(methodName2ID)
+  orderMethodNames = []
+  for m in methodName2ID:
+      orderMethodNames.append((m,int(methodName2ID[m])))
+  sorted(orderMethodNames, key=lambda x: x[1])
+  sortedMethodNames = []
+  for t in orderMethodNames:
+      sortedMethodNames.append(getFQNMethodName(t[0]))
+  print("SORTED METHODS")
+  print(sortedMethodNames)
+  print("methodsFieldAccess")
+  print(methodsFieldAccess)
+  result =  "methodsFieldAccess =  array1d(FunctionEntry, ["
+  first = True
+  for i in sortedMethodNames:
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        
+        # We do not need duplicates in the output
+        if i in methodsFieldAccess:
+            methodsFieldAccess[i] = set(methodsFieldAccess[i])
+            for j in methodsFieldAccess[i]:
+                if first2:
+                    first2 = False
+                    result = result + str(j)
+                else:
+                    result = result + ", " + jstr(j)
+        
+        result += "} "
+    
+  result += "]); \n"
+  result = result.replace(".", "__")
+  print("array: ")
+  classInfoFile.write(result)
+  classInfoFile.close()
+
+#   process = Runtime.getRuntime().exec("minizinc --solver Gecode ./*.mzn ./constraints/*.mzn > ~/WIP/result.txt")
+  
+#   cmd = ["bash", "./runCA.sh"]
+#   output = subprocess.call(cmd)
+#   proc = subprocess.Popen(mycmd, shell=True).communicate()
+#   proc.wait()
+
+  cmd = "bash ./runCA.sh"
+  proc = subprocess.Popen(cmd ,bufsize=0, executable=None, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None, close_fds=True, shell=True)
+  out = str(proc.communicate(proc.stdout))
+  f = open("result.txt", "r")
+  output = f.read()
+  f.close()
+#   print(output)
+  cutJson = getCutJson(output,sdg,cles,args.entrymethod, args.clpath, args.mainLoc)
+  print(cutJson)
+  
+  
+  
+
+  # rawCle = dumpCLE(args.clpath)
+  # rawCle["nullCleLabel"] = "null"
+  # #grab all levels
+  # levels = ["nullLevel"]
+  # for lbl in rawCle:
+  #   print(rawCle[lbl])
+
+  # print(cles)
+  
+  # pp = PrettyPrinter(indent=2)
+  # pp.pprint(nodesZinc)
+#   pp.pprint(edgesZinc)
+#   print(anns)
+
+

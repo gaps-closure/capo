@@ -27,6 +27,8 @@ int: Inst_end;
 int: FunctionEntry_start;
 int: FunctionEntry_end;
 
+
+% Need to check that there isn't an issue with non-contiguious arg indicies
 int: Param_FormalIn_start;
 int: Param_FormalIn_end;
 int: Param_FormalOut_start;
@@ -51,6 +53,7 @@ int: PDGNode_start;
 int: PDGNode_end;
 
 set of int: Inst = Inst_start .. Inst_end;
+set of int: FunCall = Inst_FunCall_start .. Inst_FunCall_end;
 
 % set of int: VarNode_StaticGlobal = VarNode_StaticGlobal_start .. VarNode_StaticGlobal_end;
 % set of int: VarNode_StaticModule = VarNode_StaticModule_start .. VarNode_StaticModule_end;
@@ -96,8 +99,10 @@ int: ControlDep_end;
 % int: DataDepEdge_RAW_end;
 int: DataDepEdge_Ret_start;
 int: DataDepEdge_Ret_end;
+% Find example of alias in program
 int: DataDepEdge_Alias_start;
 int: DataDepEdge_Alias_end;
+
 int: DataDepEdge_Other_start;
 int: DataDepEdge_Other_end;
 int: DataDepEdge_start;
@@ -152,10 +157,94 @@ set of int: Parameter = Parameter_start .. Parameter_end;
 set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Java OO Features
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Try slicing off last element of enum
+% Drop enums for sets of ints
+
+% enum AllClassNames;
+% set of AllClassNames: classNames = { x | x in AllClassNames where x!=External_Class };
+
+
+int: ClassNames_start;
+int: ClassNames_end;
+int: ExternalClass;
+
+% int: ClassFields_start;
+% int: ClassFields_end;
+
+% int: ClassMethods_start;
+% int: ClassMethods_end;
+
+int: ClassFields_Instance_start;
+int: ClassFields_Instance_end;
+int: ClassFields_Static_start;
+int: ClassFields_Static_end;
+int: ClassMethods_Instance_start;
+int: ClassMethods_Instance_end;
+int: ClassMethods_Static_start;
+int: ClassMethods_Static_end;
+
+set of int: ClassNames = ClassNames_start .. ClassNames_end;
+set of int: AllClassNames = ClassNames_start .. ClassNames_end union {ExternalClass};
+
+set of int: ClassFields_Instance = ClassFields_Instance_start .. ClassFields_Instance_end;
+set of int: ClassFields_Static = ClassFields_Static_start .. ClassFields_Static_end;
+set of int: ClassFields = ClassFields_Instance_start .. ClassFields_Static_end;
+
+set of int: ClassMethods_Instance = ClassMethods_Instance_start .. ClassMethods_Instance_end;
+set of int: ClassMethods_Static = ClassMethods_Static_start .. ClassMethods_Static_end;
+set of int: ClassMethods = ClassMethods_Instance_start .. ClassMethods_Static_end;
+
+set of int: ClassElements = ClassFields_Instance_start .. ClassMethods_Static_end;
+
+% set of int: ClassFields = ClassFields_start .. ClassFields_end;
+
+% set of int: ClassMethods = ClassMethods_start .. ClassMethods_end;
+
+
+
+% array[ClassNames]     of set of ClassFields:  classOfField;
+% array[ClassNames]     of set of ClassMethods:  classOfMethod;
+
+
+array[ClassFields]     of ClassNames:  fieldOfClass;
+
+% array[ClassFields]     of bool:  fieldIsStatic;
+% array[ClassMethods]     of bool:  methodIsStatic;
+
+array[ClassMethods]     of ClassNames:  methodOfClass;
+
+
+array[ClassNames]     of AllClassNames:  immediateParent;
+array[ClassNames]     of set of AllClassNames:  allParents;
+% array[ClassNames]     of set of Implementers:  allParents;
+
+
+array[FunctionEntry]     of set of ClassFields:  methodsFieldAccess;
+% array[FunctionEntry]     of set of ClassInstanceFields:  methodsFieldAccess;
+% array[FunctionEntry]     of set of ClassStaticFields:  methodsFieldAccess;
+
+% From the input model we need to know fields to class
+% In the input model we must have:
+    % Enumeration of classes
+    % Enumeration of fields
+    % Relationship of fields to classes
+    % Whether a field is an instance or class field
+    % Enumeration of methods
+    % Relationship of methods to classes
+    % Whether a method is an instance or a class method
+    % Inheritance Relationship between classes
+        % Is immediate parent-subclass relationship
+        % Is ancestor successor relationship
+        % Implementer to interface relationship
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Containing Class for PDG Nodes, Containing Function for PDG Nodes, Endpoints for PDG Edges, Indices of Fucntion Formal Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-array[PDGNodeIdx]     of classNames:  hasClass;
+array[PDGNodeIdx]     of ClassNames:  hasClass;
 array[PDGNodeIdx]     of FunctionEntry:  hasFunction;
 array[PDGEdgeIdx]     of int:  hasSource;
 array[PDGEdgeIdx]     of int:  hasDest;
@@ -179,8 +268,9 @@ set of int: DataEdgeParam       = DataDepEdge union Parameter;
 % Security Levels and Enclaves
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-enum classNames;
+
 enum Level;
+set of Level: nonNullLevel = { x | x in Level where x!=nullLevel };
 enum Enclave;
 array[Enclave] of Level: hasEnclaveLevel;
 
@@ -197,6 +287,7 @@ int: MaxFuncParms;  % Max number of function parameters in the program (C<128, C
 set of int: parmIdx = 1..MaxFuncParms;
 
 array[cleLabel]                       of Level:          hasLabelLevel;
+array[ClassNames]                     of bool:           isClassAnnotated;
 array[cleLabel]                       of bool:           isFunctionAnnotation;
 
 array[cdf]                            of cleLabel:       fromCleLabel;
@@ -221,28 +312,39 @@ array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 bool:                                                    debug;
 debug = true;
 
-array[classNames]                     of var Enclave:    classEnclave;
-array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
-array[PDGNodeIdx]                     of var Level:      nodeLevel;
-array[PDGNodeIdx]                     of var cleLabel:   taint;
-array[PDGNodeIdx]                     of var cleLabel:   ftaint;
 
-array[PDGEdgeIdx]                     of var Enclave:    esEnclave;
-array[PDGEdgeIdx]                     of var Enclave:    edEnclave;
+% array[ClassNames]                     of var Enclave:    classEnclave;
+% array[ClassNames,nonNullLevel]                of var Enclave:    classEnclave;
 
-array[PDGEdgeIdx]                     of var cleLabel:   esTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edTaint;
+array[ClassNames,nonNullLevel]                     of var Enclave:    classEnclave;
+array[PDGNodeIdx,nonNullLevel]                     of var Enclave:    nodeEnclave;
+array[PDGNodeIdx,nonNullLevel]                     of var Level:      nodeLevel;
+array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   taint;
+array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   ftaint;
+array[ClassNames,nonNullLevel]                     of var cleLabel:   ctaint;
 
-array[PDGEdgeIdx]                     of var cleLabel:   esFunTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edFunTaint;
+array[ClassFields,nonNullLevel]                    of var cleLabel:   fieldTaint;
 
-array[PDGEdgeIdx]                     of var cdf:        esFunCdf;
-array[PDGEdgeIdx]                     of var cdf:        edFunCdf;
 
-array[PDGEdgeIdx]                     of var bool:       xdedge;
-array[PDGEdgeIdx]                     of var bool:       tcedge;
+array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    esEnclave;
+array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    edEnclave;
 
-array[PDGEdgeIdx]                     of var bool:       coerced;
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   esTaint;
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   edTaint;
+
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   esFunTaint;
+array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   edFunTaint;
+
+
+array[PDGEdgeIdx,nonNullLevel]                     of var cdf:        esFunCdf;
+array[PDGEdgeIdx,nonNullLevel]                     of var cdf:        edFunCdf;
+
+array[PDGEdgeIdx,nonNullLevel]                     of var bool:       xdedge;
+array[PDGEdgeIdx,nonNullLevel]                     of var bool:       tcedge;
+
+array[PDGEdgeIdx,nonNullLevel]                     of var bool:       coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% array[ClassFields]     of cleLabel:  fieldAnnotation;
+% array[ClassMethods]     of cleLabel:  methodAnnotation;
