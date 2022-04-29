@@ -98,10 +98,12 @@ forall (method in FunctionEntry)
         (fieldTaint[field,l] == ftaint[method,l])
       else
         % reject any annotated function that accesses a static field
-        (if fieldIsStatic[field]
+        % (if fieldIsStatic[field]
+        (if field in ClassFields_Static
         then
           false
         else
+          % TODO: Need to consider if this need to be strengthend
           % (isInArctaint(ftaint[method,l], fieldTaint[field,l], hasLabelLevel[fieldTaint[field,l]]))
           true
         endif)
