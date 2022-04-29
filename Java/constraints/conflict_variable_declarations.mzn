@@ -171,37 +171,60 @@ int: ClassNames_start;
 int: ClassNames_end;
 int: ExternalClass;
 
-int: ClassFields_start;
-int: ClassFields_end;
+% int: ClassFields_start;
+% int: ClassFields_end;
 
-int: ClassMethods_start;
-int: ClassMethods_end;
+% int: ClassMethods_start;
+% int: ClassMethods_end;
+
+int: ClassFields_Instance_start;
+int: ClassFields_Instance_end;
+int: ClassFields_Static_start;
+int: ClassFields_Static_end;
+int: ClassMethods_Instance_start;
+int: ClassMethods_Instance_end;
+int: ClassMethods_Static_start;
+int: ClassMethods_Static_end;
 
 set of int: ClassNames = ClassNames_start .. ClassNames_end;
 set of int: AllClassNames = ClassNames_start .. ClassNames_end union {ExternalClass};
 
-set of int: ClassFields = ClassFields_start .. ClassFields_end;
+set of int: ClassFields_Instance = ClassFields_Instance_start .. ClassFields_Instance_end;
+set of int: ClassFields_Static = ClassFields_Static_start .. ClassFields_Static_end;
+set of int: ClassFields = ClassFields_Instance_start .. ClassFields_Static_end;
 
-set of int: ClassMethods = ClassMethods_start .. ClassMethods_end;
+set of int: ClassMethods_Instance = ClassMethods_Instance_start .. ClassMethods_Instance_end;
+set of int: ClassMethods_Static = ClassMethods_Static_start .. ClassMethods_Static_end;
+set of int: ClassMethods = ClassMethods_Instance_start .. ClassMethods_Static_end;
 
+set of int: ClassElements = ClassFields_Instance_start .. ClassMethods_Static_end;
+
+% set of int: ClassFields = ClassFields_start .. ClassFields_end;
+
+% set of int: ClassMethods = ClassMethods_start .. ClassMethods_end;
+
+
+
+% array[ClassNames]     of set of ClassFields:  classOfField;
+% array[ClassNames]     of set of ClassMethods:  classOfMethod;
 
 
 array[ClassFields]     of ClassNames:  fieldOfClass;
-array[ClassFields]     of bool:  fieldIsStatic;
 
+% array[ClassFields]     of bool:  fieldIsStatic;
+% array[ClassMethods]     of bool:  methodIsStatic;
 
 array[ClassMethods]     of ClassNames:  methodOfClass;
-array[ClassMethods]     of bool:  methodIsStatic;
-
-array[ClassFields]     of set of cleLabel:  fieldAnnotation;
-array[ClassMethods]     of set of cleLabel:  methodAnnotation;
-
 
 
 array[ClassNames]     of AllClassNames:  immediateParent;
 array[ClassNames]     of set of AllClassNames:  allParents;
+% array[ClassNames]     of set of Implementers:  allParents;
+
 
 array[FunctionEntry]     of set of ClassFields:  methodsFieldAccess;
+% array[FunctionEntry]     of set of ClassInstanceFields:  methodsFieldAccess;
+% array[FunctionEntry]     of set of ClassStaticFields:  methodsFieldAccess;
 
 % From the input model we need to know fields to class
 % In the input model we must have:
@@ -209,7 +232,8 @@ array[FunctionEntry]     of set of ClassFields:  methodsFieldAccess;
     % Enumeration of fields
     % Relationship of fields to classes
     % Whether a field is an instance or class field
-    % Enumeration of methods to classes
+    % Enumeration of methods
+    % Relationship of methods to classes
     % Whether a method is an instance or a class method
     % Inheritance Relationship between classes
         % Is immediate parent-subclass relationship
@@ -322,3 +346,5 @@ array[PDGEdgeIdx,nonNullLevel]                     of var bool:       coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% array[ClassFields]     of cleLabel:  fieldAnnotation;
+% array[ClassMethods]     of cleLabel:  methodAnnotation;
