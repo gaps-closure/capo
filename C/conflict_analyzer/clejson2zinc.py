@@ -313,11 +313,14 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
                 taintEntry = []
                 logger.debug(cdf["argtaints"])
                 
+                arcParamCount = 0
+                arcEntry = []
                 for param in cdf["argtaints"]:
+                    arcParamCount+=1
                     if len(param) == 0:
                         hasArgFlag = 0
                         break
-                    arcEntry = []  
+                      
                     for label in enums["cleLabel"]:
                         found = 0
                         for labelTaint in param:
@@ -326,6 +329,11 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
                                 found = 1
                         if found == 0:
                             arcEntry.append("false")
+
+                while arcParamCount < maxArgIdx:
+                    for label in enums["cleLabel"]:
+                        arcEntry.append("false")
+                    arcParamCount += 1
 
                 
                 actualParamCount = len(cdf["argtaints"]) -1
