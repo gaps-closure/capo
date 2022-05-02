@@ -312,37 +312,66 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
                 # Arg Taints
                 taintEntry = []
                 logger.debug(cdf["argtaints"])
-                paramCount = 0
+                
+                arcParamCount = 0
+                arcEntry = []
                 for param in cdf["argtaints"]:
+                    arcParamCount+=1
                     if len(param) == 0:
                         hasArgFlag = 0
                         break
-                    paramEntry = []  
+                      
                     for label in enums["cleLabel"]:
                         found = 0
                         for labelTaint in param:
                             if label == labelTaint:
-                                paramEntry.append("true")
+                                arcEntry.append("true")
                                 found = 1
                         if found == 0:
+                            arcEntry.append("false")
+
+                while arcParamCount < maxArgIdx:
+                    for label in enums["cleLabel"]:
+                        arcEntry.append("false")
+                    arcParamCount += 1
+
+                
+                actualParamCount = len(cdf["argtaints"]) -1
+                for label in enums["cleLabel"]:
+                    # print(f"Checking label:{label}")
+                    paramCount = 0
+                    paramEntry = []
+                    while paramCount < maxArgIdx:
+                        if paramCount < len(cdf["argtaints"]):
+                            param = cdf["argtaints"][paramCount]
+                            # print(f"Checking Param{param}")
+                            if label in param:
+                                paramEntry.append("true")
+                            else:
+                                paramEntry.append("false")
+                        else:
                             paramEntry.append("false")
-                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
+                        paramCount +=1
                     taintEntry.append(paramEntry)
-                    paramCount +=1
+
+                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, arcEntry)]
+                    
+                    print(taintEntry)
+                    
                 
 
-                if entry["cle-label"] in fun2ArgCount.keys() and entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < paramCount and hasArgFlag:
+                if entry["cle-label"] in fun2ArgCount.keys() and entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < actualParamCount and hasArgFlag:
                     errorLabel = entry["cle-label"]
                     logger.error(f"Label: {errorLabel} ERROR! Function annotation argument mismatch!")
                     raise CLEUsageError(f"Label: {errorLabel} Function annotation argument mismatch!")
 
-                while paramCount < maxArgIdx:
-                    paramEntry = []  
-                    for label in enums["cleLabel"]:
-                        paramEntry.append("false")
-                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
-                    taintEntry.append(paramEntry)
-                    paramCount +=1
+                # while paramCount < maxArgIdx:
+                #     paramEntry = []  
+                #     for label in enums["cleLabel"]:
+                #         paramEntry.append("false")
+                #     ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
+                #     taintEntry.append(paramEntry)
+                #     paramCount +=1
                 
                 arrays["hasArgtaints"].append(taintEntry)
                 arrays["hasARCtaints"].append(ARCTaint)
