@@ -82,11 +82,31 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
     enclaves : Set[str] = set() 
     levels : Set[str] = set() 
 
+    artifact_function_entries : List[Dict[str, Any]] = []
+    artifact_global_var_entries : List[Dict[str, Any]] = []
+    artifact_assignments : List[Dict[str, Any]] = []
+
     nodes = sorted(
         [ (int(num), source, llvm, line) for [type_, num, _, _, llvm, *_, source, line, _]  in pdg_csv if type_ == 'Node' ], 
         key=lambda x: x[0]
     )
 
+    def add_artifact_entry(line: str, entries: List[Dict[str, Any]], entry_type: str) -> None:
+        parts = [ s.strip() for s in line.split(" ") if s != '' ]
+        node, [enclave, label, level] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
+        node_, source, llvm, line = nodes[node-1]
+        line_no = int(line)
+        source = None if (stripped := source.strip()) == 'Not Found' else stripped
+        assert node == node_ 
+        match = re.search(r'@((\w|\.)*)', llvm)
+        assert match is not None
+        name = match.group(1)
+        enclaves.add(enclave)
+        levels.add(level)
+        source, line_no = lookup_with_default(source_map_resolved, Path(source), line_no) 
+        entries.append({ "node": node, "label": label, "enclave": enclave, "level": level, "debug": { "line": str(line_no), "name": name } })
+
+        
     def add_entry(line: str, entries: List[Dict[str, str]], entry_type: str) -> None:
         parts = [ s.strip() for s in line.split(" ") if s != '' ]
         node, [enclave, _label, level] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
@@ -102,14 +122,62 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
         source, line_no = lookup_with_default(source_map_resolved, Path(source), line_no) 
         entries.append({ "name": name, "enclave": enclave, "level": level, "line": str(line_no) })
         logger.info(f"{entry_type} {name} is in {enclave}{'' if not source else f' @ {source}:{str(line_no)}'}")
-    
+
+    def parse_xd_line(line: str) -> Dict[str, Any]:
+        parts = [ s.strip() for s in line.split(" ") if s != '' ]
+        desc = parts[2] 
+        match = re.search(r'\((\d+)\:((\w|_)+)\)--\[((\w|_)+)\]--\|\|-->\[((\w|_)+)\]--\((\d+)\:((\w|_)+)\)', desc)
+        assert match is not None
+        source_node, source_lbl, source_enc, dest_enc, dest_node, dest_lbl = match.group(1,2,4,6,8,9) 
+        return {
+            "summary": desc,
+            "source-node": int(source_node),
+            "source-label": source_lbl,
+            "source-enclave": source_enc,
+            "dest-node": int(dest_node),
+            "dest-label": dest_lbl,
+            "dest-enclave": dest_enc
+        }  
+
+    def parse_assign(line: str) -> Dict[str, Any]:
+        parts = [ s.strip() for s in line.split(" ") if s != '' ]
+        node, node_type, [enc, label, level] = parts[2], parts[3], [ s.strip('[]') for s in parts[-1].split('::') ]     
+        node = int(node)
+        node_, source, llvm, line = nodes[node-1]
+        line_no = int(line)
+        source = None if (stripped := source.strip()) == 'Not Found' else stripped
+        assert node == node_ 
+        match = re.search(r'@((\w|\.)*)', llvm)
+        name = None
+        if match:
+            name = match.group(1)
+        return {
+            "node": node,
+            "node_type": node_type,
+            "enclave": enc,
+            "level": level,
+            "label": label,
+            "debug": {
+                "line": int(line),
+                "name": name
+            }
+        } 
+
+    xd_call = None    
+
     out = mzn_output.splitlines() 
     for line in out:
         if line.find('FunctionEntry') != -1:
             add_entry(line, function_entries, 'function')
+            add_artifact_entry(line, artifact_function_entries, 'function')
         elif line.find('VarNode') != -1:
             add_entry(line, global_var_entries, 'variable')
-         
+            add_artifact_entry(line, artifact_global_var_entries, 'variable')
+        if line.find('XDCALL') != -1:
+            xd_call = parse_xd_line(line)
+        elif line.find('ASSIGN') != -1:
+            artifact_assignments.append(parse_assign(line))
+
     topology = {
         "source_path": str(source_path), 
         "enclaves": list(enclaves),
@@ -118,7 +186,15 @@ def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_
         "functions": function_entries
     }
 
-    return { "result": "Success", "topology": topology } 
+    artifact = {
+        "source_path": str(source_path),
+        "function-assignments": artifact_function_entries,
+        "variable-assignments": artifact_global_var_entries,
+        "cut": xd_call,
+        "all-assignments": artifact_assignments 
+    }
+
+    return { "result": "Success", "topology": topology, "artifact": artifact } 
 
 def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
     pdg_csv = list(pdg_csv)

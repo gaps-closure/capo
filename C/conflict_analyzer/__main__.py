@@ -18,6 +18,8 @@ import zmq
 
 @dataclass
 class Args:
+    def __init__(self):
+        pass
     sources: List[Path]
     temp_dir: Path
     clang_args: str
@@ -27,6 +29,7 @@ class Args:
     output: Optional[Path]
     zmq: Optional[str]
     constraint_files: List[Path]
+    artifact: Optional[Path]
     log_level: str 
 
 def preprocess(source: Path, clang_args: List[str], schema: Optional[Any], logger: Logger) -> Transform:
@@ -61,7 +64,7 @@ def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tup
     return src_map
 
 
-def start(args: Type[Args], logger: Logger) -> Optional[Dict[str, Any]]:
+def start(args: Args, logger: Logger) -> Optional[Dict[str, Any]]:
     schema = None
     log_level_map = {
         "INFO": logging.INFO,
@@ -124,9 +127,10 @@ def main() -> None:
         type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
     parser.add_argument('--output', help="Output path for topology json",
         type=Path)
+    parser.add_argument('--artifact', help="artifact json path", type=Path, required=False)
     parser.add_argument('--zmq', help="zmq url to post result to", type=str, nargs="?")
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
-    args = parser.parse_args(namespace=Args)
+    args = parser.parse_args(namespace=Args())
     
     logger = logging.getLogger()
     handler = logging.StreamHandler(sys.stderr)
@@ -139,9 +143,9 @@ def main() -> None:
         # logger.error(str(e))
     # else: 
     def output_to_file(path: Path):
-        def _out(top: Any):
+        def _out(s: Any):
             with open(path, "w") as f:
-                f.write(top)
+                f.write(s)
         return _out
     def err_fn(err: Any):
         print(err) 
@@ -156,6 +160,19 @@ def main() -> None:
         result = out["result"]
         if result == "Success":
             output_fn(json.dumps(out["topology"], indent=2))
+            s = "{\n"
+            if args.artifact: 
+                for k, v in out["artifact"].items():
+                    if k != "source_path" and k != "cut":
+                        s += f'\t"{k}": [\n'
+                        for l in v: 
+                            s += f'\t\t{json.dumps(l)},\n'
+                        s = s[:-2] + "\n"
+                        s += "\t],\n"
+                    else:
+                        s += f'\t"{k}": {json.dumps(v)},\n' 
+            s = s[:-2] + "\n}\n"
+            output_to_file(args.artifact)(s)
         elif result == "Conflict":
             print(out["conflicts"])
             print(json.dumps(out["conflicts"], indent=2))
