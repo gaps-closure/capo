@@ -1,9 +1,8 @@
-
-
 # Constraint model for CLE for JOANA SDG based on Java/JVM
 # SDG Graph
 ## SDG Nodes
 A node in the SDG represents an abstraction of IR components used by JOANA. This results in the following node types on the left and are translated to our own abstraction on the right: (TODO: likely need to create a static node for static fields and maybe staic methods)
+
     - "NORM" : "Inst_Other"
     - "PRED" : "Inst_Br"
     - "EXPR" : "Inst_Other"
@@ -18,6 +17,7 @@ A node in the SDG represents an abstraction of IR components used by JOANA. This
     - "FRMO" : "Param_FormalOut"
 ## SDG Edges
 An edge in the SDG connects two nodes together and has a type. Note that in the SDG model, exceptions are modeled as parameter edges. The following shows the edge types in the SDG on the left and our abstraction on the left: (TODO: define set of source and dest node types.) 
+
     - "CD" : "ControlDep_Other"
     - "CE" : "ControlDep_Other"
     - "UN" : "ControlDep_Other"
