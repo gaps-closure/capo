@@ -55,33 +55,20 @@ An edge in the SDG connects two nodes together and has a type. Note that in the 
  
 * Class annotations are currently not used by CLE, but this can change in the future.
 
-### General Constraints:
+### General Constraints
 
 * Instance and class fields can be annotated by the user with node annotations.
-
 * Instance and class methods can be annotated by the user with method annotations.
-
 * Constructors can be annotated by the user with constructor annotations.
-
 * Only node annotations can be assigned by the solver to unannotated fields, methods or constructors.
-
 * Method or constructor annotations cannot be assigned by the solver (these can only be assigned by the user). 
-
 * ~~Every class must be assigned to at least one valid enclave.~~
-
 * Each class containing one or more annotated elements (constructor, method, or field) must be assigned to exactly one enclave. 
-
 * Each class containing no annotated elements must be assigned to at least one enclave and at most every enclave.
-
 * Across all accesses/invocations of an unannotated element, it may touch at most one label at each level.
-
 * All elements (constructor, method, or field) of a class instance must be assigned the same enclave as the instance itself. This entails separate constraints for constructors, instance methods, instance fields, static methods and static fields.
-
-* Contained nodes and parameters are assigned the same enclave(s) as their containing
-methods.  
-
-* Annotations can not be assigned to a valid enclave and they must be
-assigned to `nullEnclave`.
+* Contained nodes and parameters are assigned the same enclave(s) as their containing methods.  
+* Annotations can not be assigned to a valid enclave and they must be assigned to `nullEnclave`.
 
 * ~~Each (node,level) pair is assigned at most one valid enclave at that level.~~
 
