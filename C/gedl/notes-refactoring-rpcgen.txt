@@ -1,22 +1,19 @@
-RPCGenerator
+RPC Generator Notes (2/22/2022)
  -- located in build/capo/C/gedl
  -- inputs: 
-    partitioned application code including name of main program
-    GEDL: JSON with function signatures of functions to be wrapped 
-          in cross-domain RPC plus information about which parameters
-          are inputs/outputs/both, and size of arrays etc.
-          currently function arguments must be primitive types or 
-          fixed size arrays of primitive types
-    base value for mux, sec, and typ assignments for this progam
-    list of enclaves and their levels
-    URI to use for HAL configuration
-
-    UPenn also needs the collated CLE-JSON file as input
-    (two reasons: UPenn has additional parameters in the CLE used for
-     reliable RPC generation; limitation of our old version applied 
-     oneway or bidirection uniformly to all functions and did not 
-     consider the respect CLE annotation for each individual function.)
-
+    CODE:    Partitioned application code including name of main program
+             Also contains CLE annotations for each individual function
+             (e.g, Not oneway or bidirection uniformly to all functions
+    GEDL:    JSON with function signatures of functions to be wrapped 
+             in cross-domain RPC plus information about which parameters
+             are inputs/outputs/both, and size of arrays etc.
+             currently function arguments must be primitive types or 
+             fixed size arrays of primitive types
+    Base:    Value for mux, sec, and typ assignments for this progam
+    ENCLAVE: List and their levels
+    URIs:    To use for HAL configuration
+    CLE:     JSON file with reliability default values 
+    
     (note: separately an IDL is generated from the GEDL for the
      cross-domain data types, and from the IDL serialization codecs
      are genreated for use with HAL API. RPCGenerator must be consistent
@@ -35,47 +32,51 @@ RPCGenerator
     (note: separate script takes the proto-HAL config plus a user-provided 
      device.json to generate complete HAL config for each side)
   
-  -- modes (instantiated using C preprocessor macros for conditional compilation):
-
-     1. singlethreaded vs. multithreaded (default)
+ -- modes 
+     ***********************************************************************
+     1. Receiver uses singlethreaded vs. multithreaded (default)
+     ***********************************************************************
       - latter provides one RPC listener/subscriber thread per XD function 
         RPC protocol is simply get request, run function, send response
       - former special case for completely singlethreaded programs;
-        extra message exchange is required in the single listener thread
-          callee (litener thread) waits for nextrpc message
+        Currently adds extra message exchange (NEXT/OKAY) for single listener thread:
+          callee (listener thread) waits for nextrpc message
           caller first sends nextrpc type
-          callee (litener thread) sends okay
-          callee (litener thread) waits for message specified in prev nextrpc 
+          callee (listener thread) sends okay
+          callee (listener thread) waits for message specified in prev nextrpc 
           caller sends actual request
           callee gets requests, runs function, send response
           continue looping
      (note: here because Columbia requested this for ease of analysis, sees 
       little usage currently, but support for single-threaded apps is nice to
-      have)
+      have. The oneAPI generated binary may also need)
 
-      2. legacy vs. my_xdc
+     ***********************************************************************
+     2. Receive Sockets are 1/APP (legacy) vs. 1/function (my_xdc)
+     ***********************************************************************
       - original design was based on one persistent listener that handled
         cross-domain messages -- this thread opened a zeromq socket once
         and reused it for the life of the program: 0MQ sockets are not
         thread-safe (0MQ contexts are thread-safe)
       - original design did not work in the case of secdesk, which used
         a web application framework that assigned each HTTP request to
-        an arbitrary therad, which had to XD calls. So we needed an 
+        an arbitrary thread, which had to XD calls. So we needed an 
         alternative where the socket is opened and closed just in time
         within the thread in question -- less efficent, but thread-safe
 
       (note: legacy put the code in hal/api/xdcomms.[ch], however my_xdc 
        includes a complete alternative thread-safe implementation if
-       xdcomms within the genreated <foo>_rpc[.ch].  Somewhat asymmetric.
+       xdcomms within the genereated <foo>_rpc[.ch].  Somewhat asymmetric.
        xdcomms.[ch] is also used by the Java toolchain. Perhaps the best
        thing is to move my_xdc with conditional compilation into xdcomms.[ch]
        If this done then RPCGenerator will be simplified. When building the
        XDCOMMS library build two versions -- one for legacy one for myxdc)
 
-      3. with and without UPenn reliability
-     
-      - to be integrated (UPenn code is in a separate branch)
-      - Phase 1 RPC genreator is not tolerant to delay/loss -- upon
+     ***********************************************************************
+      3. Reliability (one vs UPenn ARQ)
+     ***********************************************************************
+      - Integrates UPenn code in 'rpc_merge' branch
+      - Phase 1 RPC genereator is not tolerant to delay/loss -- upon
         loss, the RPC call will hang forever -- we added a variant of
         xdc_blocking_recv which allowed timeouts. UPenn uses this and
         modified each generated RPC wrapper and handler to include 
@@ -89,52 +90,16 @@ RPCGenerator
       - change in invocation syntax in .vscode/build scripts to include 
         pass the additional input param
 
-      4. oneway
-      - for each function, the CLE may specify that the guard is a strict diode, 
-        which means, no return value can come back!
-      - our Phase 1 RC genreator had a one-size fits all -- provided a conditional
-        compilation path for ONEWAY using a macro; the build woudl define or undefine
-        that macro and it applied to all functions uniformly
-      - UPenn code is supposed to consult he CLE JSON and make only those
-        RPCs one-way if explicitly specified so in the corresponding CLE
-        JSON for that function's annotation label
+     ***********************************************************************
+    4. Request-Response vs One-way RPC 
+     ***********************************************************************
+      - Requestor can send call (with parameters) and either: a) wait for a 
+        response (with results) or b) continue without waiting for a response
+      - In both cases the responder will run the cross-domain function and 
+        will either: a) send the result back to the requestor (for the former 
+        Request-Response mode) or will not send any response (for the latter
+        One way True Diode).
 
-
-
-# Error Handling
-
-Any errors that happen during XD RPC must be handled and passed back to the caller (for
-any application-specific recovery behavior).
-
-C does not have a concept of exceptions. So errors will have to be passed using the return value,
-an argument, or a global variable. 
-
-A global variable will not support concurrency well.  Since the function to be wrapped may already
-use the return value to return application specific data, we cannot assume it is available to
-CLOSURE.
-
-Suppose, the function to be wrapped in RPC is
-  double foo (int arg1, int arg2[static 10]);
-where arg1 is in an input parameter, arg2 is both an input and output parameter.
-
-Our initial RPC wrapper would have the following signature:
-  double _rpc_foo (int arg1, int arg2[static 10]);
-and it will marshall arg1 and arg2 in the request and send to remote side, and unmarshall arg2 
-and return received in the response.
-
-In order to accommodate error, one approach is to instead append an extra output argument:
-  double _rpc_foo (int arg1, int arg2[static 10], int *error);
-
-At the caller, we need to declare a variable to pass for the error argument, and change the callsite
-to pass this additional argument). We will add a macro that will check the error value and exit upon
-error, the developer can rewrite this macro for other behaviors.
-
-   x = foo (a1, a2);
-
-will become:
-
-   int _my_xdc_err;
-   x = _rpc_foo (a1, a2, &_my_xdc_err);
-   CHECK_XDC_ERRORS();
-
-
+    The modes are currently all instantiated using C preprocessor macros for 
+    conditional compilation (e.g,, Makefile CFLAGS, CLAG_FLAGS or IPC_MODE) or
+    by setting the default value (for the ARQ options) in the cle_schema.json 
