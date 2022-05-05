@@ -160,8 +160,8 @@ def main() -> None:
         result = out["result"]
         if result == "Success":
             output_fn(json.dumps(out["topology"], indent=2))
-            s = "{\n"
             if args.artifact: 
+                s = "{\n"
                 for k, v in out["artifact"].items():
                     if k != "source_path" and k != "cut":
                         s += f'\t"{k}": [\n'
@@ -171,8 +171,8 @@ def main() -> None:
                         s += "\t],\n"
                     else:
                         s += f'\t"{k}": {json.dumps(v)},\n' 
-            s = s[:-2] + "\n}\n"
-            output_to_file(args.artifact)(s)
+                s = s[:-2] + "\n}\n"
+                output_to_file(args.artifact)(s)
         elif result == "Conflict":
             print(out["conflicts"])
             print(json.dumps(out["conflicts"], indent=2))
