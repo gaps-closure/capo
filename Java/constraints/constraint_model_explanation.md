@@ -4,58 +4,58 @@
 # SDG Graph
 ## SDG Nodes
 A node in the SDG represents an abstraction of IR components used by JOANA. This results in the following node types on the left and are translated to our own abstraction on the right: (TODO: likely need to create a static node for static fields and maybe staic methods)
-    "NORM" : "Inst_Other"
-    "PRED" : "Inst_Br"
-    "EXPR" : "Inst_Other"
-    "SYNC" : "Inst_Other"
-    "FOLD" : "Inst_Other"
-    "CALL" : "Inst_FunCall"
-    "ENTR" : "FunctionEntry"
-    "EXIT" : "Inst_Ret"
-    "ACTI" : "Param_ActualIn"
-    "ACTO" : "Param_ActualOut"
-    "FRMI" : "Param_FormalIn"
-    "FRMO" : "Param_FormalOut"
+    - "NORM" : "Inst_Other"
+    - "PRED" : "Inst_Br"
+    - "EXPR" : "Inst_Other"
+    - "SYNC" : "Inst_Other"
+    - "FOLD" : "Inst_Other"
+    - "CALL" : "Inst_FunCall"
+    - "ENTR" : "FunctionEntry"
+    - "EXIT" : "Inst_Ret"
+    - "ACTI" : "Param_ActualIn"
+    - "ACTO" : "Param_ActualOut"
+    - "FRMI" : "Param_FormalIn"
+    - "FRMO" : "Param_FormalOut"
 ## SDG Edges
 An edge in the SDG connects two nodes together and has a type. Note that in the SDG model, exceptions are modeled as parameter edges. The following shows the edge types in the SDG on the left and our abstraction on the left: (TODO: define set of source and dest node types.) 
-    "CD" : "ControlDep_Other"
-    "CE" : "ControlDep_Other"
-    "UN" : "ControlDep_Other"
-    "CF" : "ControlDep_Other"
-    "NF" : "ControlDep_Other"
-    "RF" : "ControlDep_CallRet"
-    "CC" : "ControlDep_CallInv"
-    "CL" : "ControlDep_CallInv"
-    "SD" : "ControlDep_Other"
-    "JOIN" : "ControlDep_Other"
-    "FORK" : "ControlDep_Other"
-    "DD" : "DataDepEdge_Other"
-    "DH" : "DataDepEdge_Other"
-    "DA" : "DataDepEdge_Alias"
-    "SU" : "DataDepEdge_Other"
-    "SH" : "DataDepEdge_Other"
-    "SF" : "DataDepEdge_Other"
-    "FD" : "DataDepEdge_Other"
-    "FI" : "DataDepEdge_Other"
-    "PI" : "Parameter_In"
-    "PO" : "Parameter_Out"
-    "PS" : "Parameter_Field"
-    "PE" : "DataDepEdge_Alias"
-    "FORK_IN" : "DataDepEdge_Other"
-    "FORK_OUT" : "DataDepEdge_Other"
-    "ID" : "DataDepEdge_Other"
-    "IW" : "DataDepEdge_Other"
+    - "CD" : "ControlDep_Other"
+    - "CE" : "ControlDep_Other"
+    - "UN" : "ControlDep_Other"
+    - "CF" : "ControlDep_Other"
+    - "NF" : "ControlDep_Other"
+    - "RF" : "ControlDep_CallRet"
+    - "CC" : "ControlDep_CallInv"
+    - "CL" : "ControlDep_CallInv"
+    - "SD" : "ControlDep_Other"
+    - "JOIN" : "ControlDep_Other"
+    - "FORK" : "ControlDep_Other"
+    - "DD" : "DataDepEdge_Other"
+    - "DH" : "DataDepEdge_Other"
+    - "DA" : "DataDepEdge_Alias"
+    - "SU" : "DataDepEdge_Other"
+    - "SH" : "DataDepEdge_Other"
+    - "SF" : "DataDepEdge_Other"
+    - "FD" : "DataDepEdge_Other"
+    - "FI" : "DataDepEdge_Other"
+    - "PI" : "Parameter_In"
+    - "PO" : "Parameter_Out"
+    - "PS" : "Parameter_Field"
+    - "PE" : "DataDepEdge_Alias"
+    - "FORK_IN" : "DataDepEdge_Other"
+    - "FORK_OUT" : "DataDepEdge_Other"
+    - "ID" : "DataDepEdge_Other"
+    - "IW" : "DataDepEdge_Other"
 
 
 ## Constraint Model in MiniZinc
 
-### Limitations
+### Remarks and Limitations
 
 * A limitation of the current model is that it supports at most one enclave per level.
+ 
+* Class annotations are currently not used by CLE, but this can change in the future.
 
 ### General Constraints:
-
-* Class annotations are currently not used by CLE, but this can change in the future.
 
 * Instance and class fields can be annotated by the user with node annotations.
 
@@ -67,7 +67,7 @@ An edge in the SDG connects two nodes together and has a type. Note that in the 
 
 * Method or constructor annotations cannot be assigned by the solver (these can only be assigned by the user). 
 
-* Every class must be assigned to at least one valid enclave.
+* ~~Every class must be assigned to at least one valid enclave.~~
 
 * Each class containing one or more annotated elements (constructor, method, or field) must be assigned to exactly one enclave. 
 
@@ -75,21 +75,20 @@ An edge in the SDG connects two nodes together and has a type. Note that in the 
 
 * Across all accesses/invocations of an unannotated element, it may touch at most one label at each level.
 
-All elements (constructor, method, or field) of a class instance must be assigned the same enclave as the instance itself.
+* All elements (constructor, method, or field) of a class instance must be assigned the same enclave as the instance itself. This entails separate constraints for constructors, instance methods, instance fields, static methods and static fields.
 
-This entails separate constraints for constructors, instance methods, instance fields, static methods and static fields.
-
-Contained nodes and parameters are assigned the same enclave(s) as their containing
+* Contained nodes and parameters are assigned the same enclave(s) as their containing
 methods.  
 
-Annotations can not be assigned to a valid enclave and they must be
+* Annotations can not be assigned to a valid enclave and they must be
 assigned to `nullEnclave`.
 
-Each (node,level) pair is assigned at most one valid enclave at that level.
-Each (node,level) pair is assigned at most one valid label with that level.
+* ~~Each (node,level) pair is assigned at most one valid enclave at that level.~~
 
-Only method entry nodes can be assigned a method annotation label.
-Only constructor entry nodes can be assigned a constructor annotation label.
+* Each (node,level) pair is assigned at most one valid label with that level.
+
+* Only method entry nodes can be assigned a method annotation label.
+* Only constructor entry nodes can be assigned a constructor annotation label.
 
 ### 2.2 Constraints on the Cross-Domain Control Flow
 
