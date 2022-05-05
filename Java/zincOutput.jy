@@ -22,8 +22,16 @@ from java.util.jar                          import JarFile;
 from collections import defaultdict
 from collections import OrderedDict
 import os
+import logging
+import sys
 
 import subprocess
+
+class DimensionError(Exception):
+    pass
+
+class CLEUsageError(Exception):
+    pass
 
 #globals
 methodName2ID = {}
@@ -37,6 +45,11 @@ classMethods = []
 classMethod2Idx = OrderedDict()
 classId2MethodName = {}
 methodsFieldAccess = {}
+instanceFields = []
+staticFields = []
+instanceMethods = []
+staticMethods = []
+implementsInterface = {}
 
 nodes   = {}
 edges   = {}
@@ -127,7 +140,7 @@ def writeCLE(cles, jsonFile):
 def getClasses(cp):
   for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
     try:                   yield cnm,Class.forName(cnm)
-    except Exception as e: print('Error getting class ' + cnm + ':' + str(e))
+    except Exception as e: logger.debug('Error getting class ' + cnm + ':' + str(e))
 
 
 def createZincArray2DSets(arry, values):
@@ -151,8 +164,8 @@ def createZincArray2DSets(arry, values):
         
     result += "]; \n"
     result = result.replace(".", "__")
-    print("array: ")
-    print(result)
+    logger.debug("array: ")
+    logger.debug(result)
     return result
 
 def createZincArray(array, values):
@@ -166,13 +179,13 @@ def createZincArray(array, values):
             result = result + ", " + i
     result += "]; \n"
     result = result.replace(".", "__")
-    print("Array: ")
-    print(result)
+    logger.debug("Array: ")
+    logger.debug(result)
     return result
 
-def createZincSet(setName, values):
-    result = setName + "_start = 1;\n"
-    result += setName + "_end = " + str(len(values)) + ";\n"
+def createZincSet(setName, values, start):
+    result = setName + "_start = "+ str(start) + ";\n"
+    result += setName + "_end = " + str(start + len(values)-1) + ";\n"
     return result
 
 def collectStatics(cp,bname):
@@ -184,15 +197,18 @@ def collectStatics(cp,bname):
     global classFields
     global classField2Idx
     # classNames = []
-    
+    global instanceFields
+    global staticFields
+    global instanceMethods
+    global staticMethods
+    global implementsInterface
+
     # classFields = []
     fieldOfClass = {}
-    staticFields = {}
     fieldIsStatic = []
     # Does not handle overloaded methods.
     # classMethods = []
     global classMethods
-    staticMethods = {}
     methodIsStatic = []
     methodOfClass = {}
 
@@ -208,7 +224,7 @@ def collectStatics(cp,bname):
     flIdx = 0
     meIdx = 0
     for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
-        # print(Class.forName(cnm).getCanonicalName())
+        # logger.debug(Class.forName(cnm).getCanonicalName())
         programClassName = Class.forName(cnm)
         
         isAnnotated = False
@@ -230,37 +246,70 @@ def collectStatics(cp,bname):
                 allMethods.append(method)
 
             for method in allMethods:
-                meIdx+=1
+                # meIdx+=1
                 # check if method is a constructor
                 if  method.getName().encode('utf-8') == currentClassName:
-                    print("constructor")
+                    logger.debug("constructor")
                     methodName = currentClassName
                 else:
                     methodName = currentClassName + "." + method.getName().encode('utf-8')
-                print("CHECKING METHOD NAME 232: ")
-                print(methodName)
-                classMethods.append(methodName)
-                classMethod2Idx[methodName] = meIdx
-                classId2MethodName[meIdx] = methodName
+                # logger.debug(methodName)
+                # classMethods.append(methodName)
+                # classMethod2Idx[methodName] = meIdx
+                # classId2MethodName[meIdx] = methodName
+                if Modifier.isStatic(method.getModifiers()):
+                    staticMethods.append(methodName)
+                else:
+                    instanceMethods.append(methodName)
             
             for field in fields:
-                flIdx += 1
+                # flIdx += 1
                 fieldName = currentClassName + "." + field.getName().encode('utf-8')
-                classFields.append(fieldName) 
-                classField2Idx[fieldName] = flIdx
-                classId2MethodName[flIdx] = fieldName
-    print("className2Idx")     
-    print(className2Idx)
-    print("classMethod2Idx")     
-    print(classMethod2Idx)
-    print("classField2Idx")     
-    print(classField2Idx)
+                # classFields.append(fieldName) 
+                # classField2Idx[fieldName] = flIdx
+                # classId2MethodName[flIdx] = fieldName
+                if Modifier.isStatic(field.getModifiers()):
+                    staticFields.append(fieldName)
+                else:
+                    instanceFields.append(fieldName)
+
+    classElementIdx = 0
+    for field in instanceFields:
+        classElementIdx+=1
+        classFields.append(field)
+        classField2Idx[field] = classElementIdx
+        classId2MethodName[classElementIdx] = field
+    for field in staticFields:
+        classElementIdx+=1
+        classFields.append(field)
+        classField2Idx[field] = classElementIdx
+        classId2MethodName[classElementIdx] = field
+
+    for method in instanceMethods:
+        classElementIdx+=1
+        classMethods.append(method)
+        classMethod2Idx[method] = classElementIdx
+        classId2MethodName[classElementIdx] = method
+    for method in staticMethods:
+        classElementIdx+=1
+        classMethods.append(method)
+        classMethod2Idx[method] = classElementIdx
+        classId2MethodName[classElementIdx] = method
+
+
+    logger.debug("className2Idx")     
+    logger.debug(className2Idx)
+    logger.debug("classMethod2Idx")     
+    logger.debug(classMethod2Idx)
+    logger.debug("classField2Idx")     
+    logger.debug(classField2Idx)
     classNames.append("ExternalClass")
-    className2Idx["ExternalClass"] = clIdx
+    className2Idx["ExternalClass"] = clIdx + 1
 
     statics = {"methods" : [], "fields" : []}
+    # TODO This loop can likely be removed
     for cnm in [x.getName().replace('/','.').replace('.class','') for x in JarFile(cp).entries() if x.getName().endswith('.class')]:
-        # print(Class.forName(cnm).getCanonicalName())
+        # logger.debug(Class.forName(cnm).getCanonicalName())
         programClassName = Class.forName(cnm)
         
         isAnnotated = False
@@ -288,6 +337,19 @@ def collectStatics(cp,bname):
                     immediateParent[currentClassName] = superName
             else:
                 immediateParent[currentClassName] = "None"
+            
+            interfaces = programClassName.getInterfaces()
+            interface_list = []
+            for interface in interfaces: 
+                interfaceName = str(interface.getCanonicalName().encode('utf-8'))
+                if not bname in interfaceName:
+                    interfaceName = "ExternalClass"
+                else:
+                    interfaceName = interfaceName
+                interface_list.append(interfaceName)
+            implementsInterface[currentClassName] = interface_list
+
+
             if noSuperClass == False:
                 if not bname in str(superClass.getCanonicalName().encode('utf-8')):
                     allSupers = ["ExternalClass"]
@@ -301,7 +363,7 @@ def collectStatics(cp,bname):
                     
                     if previousSuperClass == superClass:
                         break
-                    # print(str(superClass.getCanonicalName().encode('utf-8')))
+                    # logger.debug(str(superClass.getCanonicalName().encode('utf-8')))
                     if not bname in str(superClass.getCanonicalName().encode('utf-8')):
                         allSupers.append("ExternalClass")
                     else:
@@ -319,7 +381,7 @@ def collectStatics(cp,bname):
                 methodsFieldAccess[methodName] = []
                 # classMethods.append(methodName) 
                 methodOfClass[methodName] = currentClassName
-                # print(method.getName())
+                # logger.debug(method.getName())
                 if Modifier.isStatic(method.getModifiers()):
                     methodIsStatic.append("true")
                     statics["methods"].append(methodName)
@@ -360,13 +422,13 @@ def collectStatics(cp,bname):
 
     dbgFileEdge = open("./dbg_classinfo.csv", "w")
     for className in className2Idx:
-        outStr = className + ", " + str(className2Idx[className])
+        outStr = className + ", " + str(className2Idx[className]) + "\n"
         dbgFileEdge.write(outStr)
-    for fieldName in classId2FieldName:
-        outStr = fieldName + ", " + str(classId2FieldName[fieldName])
+    for fieldName in classField2Idx:
+        outStr = fieldName + ", " + str(classField2Idx[fieldName]) + "\n"
         dbgFileEdge.write(outStr) 
-    for methodName in methodName2ID:
-        outStr = className + ", " + str(methodName2ID[methodName])
+    for methodName in classMethod2Idx:
+        outStr = methodName + ", " + str(classMethod2Idx[methodName]) + "\n"
         dbgFileEdge.write(outStr)  
     dbgFileEdge.close()
 
@@ -378,8 +440,11 @@ def collectStatics(cp,bname):
 
     classInfoFile.write(result)
 
-    classInfoFile.write(createZincSet("ClassFields", classFields))
-    classInfoFile.write(createZincSet("ClassMethods", classMethods))
+    #TODO: May need additional error handling when there are none of one of these types
+    classInfoFile.write(createZincSet("ClassFields_Instance", instanceFields,classField2Idx[instanceFields[0]] ))
+    classInfoFile.write(createZincSet("ClassFields_Static", staticFields,classField2Idx[staticFields[0]]))
+    classInfoFile.write(createZincSet("ClassMethods_Instance", instanceMethods,classMethod2Idx[instanceMethods[0]]))
+    classInfoFile.write(createZincSet("ClassMethods_Static", staticMethods,classMethod2Idx[staticMethods[0]]))
     
     outString = ""
     result =  "fieldOfClass" + " = ["
@@ -395,7 +460,7 @@ def collectStatics(cp,bname):
     classInfoFile.write(result)
 
     outString = ""
-    result =  "methodOfClass" + " = ["
+    result =  "methodOfClass" + " = array1d(ClassMethods, ["
     first = True
     for method in classMethod2Idx:
         clIdx = str(className2Idx[methodOfClass[method]])
@@ -404,89 +469,89 @@ def collectStatics(cp,bname):
             result = result + clIdx
         else:
             result = result + ", " + clIdx
-    result += "]; \n"
+    result += "]); \n"
     classInfoFile.write(result)
     
-    outString = ""
-    result =  "fieldIsStatic" + " = ["
-    first = True
-    for field in classField2Idx:
-        isStatic = None
-        if field in statics["fields"]:
-            isStatic = "true"
-        else:
-            isStatic = "false"
-        if first:
-            first = False
-            result = result + isStatic
-        else:
-            result = result + ", " + isStatic
-    result += "]; \n"
+    # outString = ""
+    # result =  "fieldIsStatic" + " = ["
+    # first = True
+    # for field in classField2Idx:
+    #     isStatic = None
+    #     if field in statics["fields"]:
+    #         isStatic = "true"
+    #     else:
+    #         isStatic = "false"
+    #     if first:
+    #         first = False
+    #         result = result + isStatic
+    #     else:
+    #         result = result + ", " + isStatic
+    # result += "]; \n"
 
-    classInfoFile.write(result)
+    # classInfoFile.write(result)
 
-    outString = ""
-    result =  "methodIsStatic" + " = ["
-    first = True
-    for method in classMethod2Idx:
-        isStatic = None
-        if method in statics["methods"]:
-            isStatic = "true"
-        else:
-            isStatic = "false"
-        if first:
-            first = False
-            result = result + isStatic
-        else:
-            result = result + ", " + isStatic
-    result += "]; \n"
-    classInfoFile.write(result)
+    # outString = ""
+    # result =  "methodIsStatic" + " = ["
+    # first = True
+    # for method in classMethod2Idx:
+    #     isStatic = None
+    #     if method in statics["methods"]:
+    #         isStatic = "true"
+    #     else:
+    #         isStatic = "false"
+    #     if first:
+    #         first = False
+    #         result = result + isStatic
+    #     else:
+    #         result = result + ", " + isStatic
+    # result += "]; \n"
+    # classInfoFile.write(result)
     
-    outString = ""
-    result =  "fieldAnnotation" + " = ["
-    first = True
-    for field in classField2Idx:
-        annos = fieldAnnotation[field]
-        if first:
-            first = False
-            result += "{ "
-        else:
-            result += ",{ "
-        first2 = True
-        for anno in annos:
-            if first2:
-                first2 = False
-                result = result + anno
-            else:
-                result = result + ", " + anno
+    # outString = ""
+    # result =  "fieldAnnotation" + " = ["
+    # first = True
+    # for field in classField2Idx:
+    #     annos = fieldAnnotation[field]
+    #     if first:
+    #         first = False
+    #         result += "{ "
+    #     else:
+    #         result += ",{ "
+    #     first2 = True
+    #     for anno in annos:
+    #         if first2:
+    #             first2 = False
+    #             result = result + anno
+    #         else:
+    #             result = result + ", " + anno
         
-        result += "} "
+    #     result += "} "
         
-    result += "]; \n"
-    classInfoFile.write(result)
+    # result += "]; \n"
+    # classInfoFile.write(result)
 
-    outString = ""
-    result =  "methodAnnotation" + " = ["
-    first = True
-    for method in classMethod2Idx:
-        annos = methodAnnotation[method]
-        if first:
-            first = False
-            result += "{ "
-        else:
-            result += ",{ "
-        first2 = True
-        for anno in annos:
-            if first2:
-                first2 = False
-                result = result + anno
-            else:
-                result = result + ", " + anno
+    # outString = ""
+    # result =  "methodAnnotation" + " = ["
+    # first = True
+    # for method in classMethod2Idx:
+    #     annos = methodAnnotation[method]
+    #     if first:
+    #         first = False
+    #         result += "{ "
+    #     else:
+    #         result += ",{ "
+    #     first2 = True
+    #     for anno in annos:
+    #         if first2:
+    #             first2 = False
+    #             result = result + anno
+    #         else:
+    #             result = result + ", " + anno
         
-        result += "} "
+    #     result += "} "
         
-    result += "]; \n"
-    classInfoFile.write(result)
+    # result += "]; \n"
+    # classInfoFile.write(result)
 
 
     outString = ""
@@ -528,6 +593,30 @@ def collectStatics(cp,bname):
     result += "]; \n"
     classInfoFile.write(result)
 
+    outString = ""
+    result =  "implementsInterface" + " = ["
+    first = True
+    for clss in className2Idx:
+        if clss == "ExternalClass":
+            continue
+        if first:
+            first = False
+            result += "{ "
+        else:
+            result += ",{ "
+        first2 = True
+        for interface in implementsInterface[clss]:
+            if first2:
+                first2 = False
+                result = result + str(className2Idx[interface])
+            else:
+                result = result + ", " + str(className2Idx[interface])
+        
+        result += "} "
+        
+    result += "]; \n"
+    classInfoFile.write(result)
+
     classInfoFile.close()
     return statics
 
@@ -537,23 +626,23 @@ def getFQNMethodName(node):
         method = node.getBytecodeMethod()
     else:
         method = node
-    print("CHECKING METHOD NAME: ")
-    print(str(method))
+    logger.debug("CHECKING METHOD NAME: ")
+    logger.debug(str(method))
     methodName = str(method)
     if "(" in methodName:
         methodName = methodName[:methodName.find("(")]
     methodName = methodName.replace(".<init>","")
-    print(str(methodName))
+    logger.debug(str(methodName))
     return methodName
 
 def checkFieldInLabel(lbl,className):
-    print("CHECK FIELD LABEL: ")
-    print(methodsFieldAccess.keys())
-    print(lbl)
-    print(className)
+    logger.debug("CHECK FIELD LABEL: ")
+    logger.debug(methodsFieldAccess.keys())
+    logger.debug(lbl)
+    logger.debug(className)
     
     for field in classFields:
-        print(field)
+        logger.debug(field)
         if className.replace("__",".") == ".".join(field.split(".")[:-1]) and field.split(".")[-1] in lbl:
             return field
     return "None"
@@ -570,7 +659,7 @@ def collectCLE(cp):
               continue                   
             cles.append(dict(clelabel=cnm,clejson=loads(y.clejson()))) 
             labels.append(cnm)
-        except Exception as e: print('CLE JSON failed for ' + y.toString())
+        except Exception as e: logger.debug('CLE JSON failed for ' + y.toString())
   return cles
 
 def dumpCLE(cp):
@@ -586,7 +675,7 @@ def dumpCLE(cp):
               cles[cnm] = loads(y.clejson())
               
 
-        except Exception as e: print('CLE JSON failed for ' + y.toString())
+        except Exception as e: logger.debug('CLE JSON failed for ' + y.toString())
   return cles
 
 def cleAnnotationsForNode(node, prog, clabels):
@@ -628,7 +717,7 @@ def getClassName(node):
 
     nameCheck = ".".join(className[:iterations])
     className = "__".join(className[:iterations])
-    print("Class Name " + str(className))
+    logger.debug("Class Name " + str(className))
     if not bname in nameCheck:
         className = "sharedClass" 
     return className
@@ -642,7 +731,7 @@ def isClassAnnotated(className,cp):
         if programClassName == className:
             break
     if programClassName != className:
-        print("Failed to find class when checking anno")
+        logger.debug("Failed to find class when checking anno")
         return False
     isAnnotated = False
     if not "annotations" in programClassName:
@@ -650,27 +739,27 @@ def isClassAnnotated(className,cp):
         fields = cnm.getFields()
             
         for method in methods:
-            # print(method.getName())
+            # logger.debug(method.getName())
             annos = method.getDeclaredAnnotations()
             for anno in annos:
                 if "annotations" in str(anno.toString()):
-                    # print("Found user annotated function")
+                    # logger.debug("Found user annotated function")
                     isAnnotated = True
                     break
                     
         for field in fields:
-            # print(field.getName())
+            # logger.debug(field.getName())
             annos = field.getDeclaredAnnotations()
             for anno in annos:
                 if "annotations" in str(anno.toString()):
-                    # print("Found user annotated field")
+                    # logger.debug("Found user annotated field")
                     isAnnotated = True
                     break
 
         # if isAnnotated:
-        #     print("Class is annotated")
+        #     logger.debug("Class is annotated")
         # else:
-        #     print("Class is not annotated")
+        #     logger.debug("Class is not annotated")
     return isAnnotated
 
 def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
@@ -720,9 +809,9 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 line = " ".join(sLine)
                 className = sLine[-3]
                 # className = className.replace("__", ".")
-                # print("Looking for classname:")
-                # print(className)
-                # print(entryMethod)
+                # logger.debug("Looking for classname:")
+                # logger.debug(className)
+                # logger.debug(entryMethod)
                 if className == entryMethod:
                     entry_main["enclave"] = enclave
                 if enclave in enclaveAssingments.keys():
@@ -739,8 +828,8 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 
                 global funcID2EntryVal
                 fullName = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeName()).split(".")
-                print("FULLNAME:")
-                print(fullName)
+                logger.debug("FULLNAME:")
+                logger.debug(fullName)
                 fqcn = ".".join(fullName[:-1])
                 name = fullName[-1]
                 lineNum = 99999999999
@@ -755,8 +844,8 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 for paramType in sig.getArgumentTypes():
                     paramList.append(str(paramType.toHRString()))
                 retType = str(sig.getReturnType().toHRString())
-                print(paramList)
-                print(retType)
+                logger.debug(paramList)
+                logger.debug(retType)
                 methodSignature["fqcn"] = fqcn
                 methodName = str(sig.getMethodName())
                 # Replace constructor name <init> with the name of the class
@@ -800,16 +889,16 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
         enclaves.append(asng)
         for cl in enclaveAssingments[assingment]:
             assingments.append({"className":cl, "enclave":assingment})
-    print("Jar: " + str(jar))
-    print("rootDir: " + str(rootDir))
-    print("codeDir: " + str(codeDir))
-    print("\n")
-    print("entry: " + str(entry_main))
-    print("\n")
-    print("assingments: " + str(assingments))
-    print("\n")
-    print("cuts: " + str(cuts))
-    print("\n")
+    logger.debug("Jar: " + str(jar))
+    logger.debug("rootDir: " + str(rootDir))
+    logger.debug("codeDir: " + str(codeDir))
+    logger.debug("\n")
+    logger.debug("entry: " + str(entry_main))
+    logger.debug("\n")
+    logger.debug("assingments: " + str(assingments))
+    logger.debug("\n")
+    logger.debug("cuts: " + str(cuts))
+    logger.debug("\n")
     
     cutJson = {} 
     cutJson["jar"] = jar
@@ -822,7 +911,7 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
     cutJson["cuts"] = cuts
     dump(cutJson,open("cut.json","wb"), indent=4)
     for line in inlineUpdates:
-        print(line)
+        logger.debug(line)
 
     return cutJson
 
@@ -851,9 +940,9 @@ def compute_zinc(cleJson, maxArgIdx):
     
 
     # one_way_map = {}
-    # print(one_way)
+    # logger.debug(one_way)
     # for line in one_way.splitlines():
-    #     print(line)
+    #     logger.debug(line)
     #     one_way_map[line.split()[0]] =  line.split()[1]
 
     noneCount = 0
@@ -883,7 +972,7 @@ def compute_zinc(cleJson, maxArgIdx):
     #     if 'MaxFuncParms' in d:
     #         maxArgIdx = int(d.split()[-1][:-1])
     #         break
-    # print(maxArgIdx)
+    # logger.debug(maxArgIdx)
 
     # fun2ArgCount = {}
     # data = function_args.splitlines()
@@ -904,7 +993,7 @@ def compute_zinc(cleJson, maxArgIdx):
     listOfLevels.insert(0,"nullLevel")
     nullLevel = ["nullCdf" for x in range(len(listOfLevels))]
     arrays["cdfForRemoteLevel"].append(nullLevel)
-    print(listOfLevels)
+    logger.debug(listOfLevels)
 
     #Need to add this fix to C implementation too
     labelList = []
@@ -914,21 +1003,21 @@ def compute_zinc(cleJson, maxArgIdx):
     #group function annotations
     cleJson2 = cleJson[:]
     for entry in cleJson:
-        # print("Updating Order")
+        # logger.debug("Updating Order")
         if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
-            print("Updating Order")
-            print("moving " + str(entry["clelabel"].split(".")[-1]))
+            logger.debug("Updating Order")
+            logger.debug("moving " + str(entry["clelabel"].split(".")[-1]))
             cleJson2.insert(0,cleJson2.pop(cleJson.index(entry)))
     cleJson = cleJson2
 
     for entry in cleJson:
         CDF_flag = False
-        print("ENTRY")
-        print(entry)
+        logger.debug("ENTRY")
+        logger.debug(entry)
         
         if not entry["clelabel"].split(".")[-1] in enums["cleLabel"]:
             enums["cleLabel"].append(entry["clelabel"].split(".")[-1])
-            print("Adding Label:" + str(entry["clelabel"].split(".")[-1]))
+            logger.debug("Adding Label:" + str(entry["clelabel"].split(".")[-1]))
         if "clejson" in entry.keys() and "level" in entry["clejson"].keys():
             arrays['hasLabelLevel'].append(entry["clejson"]['level'])
         else:
@@ -952,7 +1041,7 @@ def compute_zinc(cleJson, maxArgIdx):
                         if cdf["remotelevel"] == j:
                             CDFforEntry.append(cdfStr)
                             temp = cdf["remotelevel"]
-                            # print("Found remote level: {j}")
+                            # logger.debug("Found remote level: {j}")
                             found = 1
                     cdfIdx+=1
             if found == 0:
@@ -983,8 +1072,8 @@ def compute_zinc(cleJson, maxArgIdx):
 
                 if "oneway" in cdf.keys():
                     if entry["clelabel"].split(".")[-1] in one_way_map.keys() and one_way_map[entry["clelabel"].split(".")[-1]] == "false":
-                        print("Error, oneway function has uses!")
-                        raise
+                        logger.debug("Error, oneway function has uses!")
+                        raise CLEUsageError("Oneway function has uses!") 
                     arrays['isOneway'].append(cdf["oneway"])
                 else:
                     arrays['isOneway'].append("false")
@@ -1000,8 +1089,8 @@ def compute_zinc(cleJson, maxArgIdx):
                 if "codtaints" in cdf.keys():
                     for label in cdf['codtaints']:
                         splLbl = label.split(".")[-1]
-                        print("Checking Code Taints" + str(splLbl))
-                        print(enums["cleLabel"])
+                        logger.debug("Checking Code Taints" + str(splLbl))
+                        logger.debug(enums["cleLabel"])
                         if not label.split(".")[-1] in enums["cleLabel"] and not label.split(".")[-1] in labelList:
                             enums["cleLabel"].append(label.split(".")[-1])
                             arrays['hasLabelLevel'].append("nullLevel") 
@@ -1066,23 +1155,23 @@ def compute_zinc(cleJson, maxArgIdx):
 
     
     for entry in cleJson:
-        print("ENTRY")
-        print(entry)
+        logger.debug("ENTRY")
+        logger.debug(entry)
         
         #if codtaints is defined, all taints need to be defined
         if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys():
             if "codtaints" in entry["clejson"]["cdf"][0] or "rettaints" in entry["clejson"]["cdf"][0] or "argtaints" in entry["clejson"]["cdf"][0]:
                 if not("codtaints" in entry["clejson"]["cdf"][0] and "rettaints" in entry["clejson"]["cdf"][0] and "argtaints" in entry["clejson"]["cdf"][0]):
-                    print("Missing 1 or more function taints!")
-                    raise
+                    logger.debug("Missing 1 or more function taints!")
+                    raise CLEUsageError("Missing 1 or more function taints!")
 
         # if entry["clelabel"] != "EmptyFunction" and entry["clelabel"] in fun2ArgCount.keys():
         #     if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys():
         #         if not("codtaints" in entry["clejson"]["cdf"][0] and "rettaints" in entry["clejson"]["cdf"][0] and "argtaints" in entry["clejson"]["cdf"][0]):
-        #             print("Function Annotation missing function taints!")
+        #             logger.debug("Function Annotation missing function taints!")
         #             raise
         #     else:
-        #         print("Function Annotation missing CDF!")
+        #         logger.debug("Function Annotation missing CDF!")
         #         raise
 
         if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]:
@@ -1116,43 +1205,73 @@ def compute_zinc(cleJson, maxArgIdx):
                 hasArgFlag = 1
                 # Arg Taints
                 taintEntry = []
-                print(cdf["argtaints"])
-                paramCount = 0
+                logger.debug(cdf["argtaints"])
+                
+                arcParamCount = 0
+                arcEntry = []
                 for param in cdf["argtaints"]:
+                    arcParamCount+=1
                     if len(param) == 0:
                         hasArgFlag = 0
                         break
-                    paramEntry = []  
+                      
                     for label in enums["cleLabel"]:
                         found = 0
                         for labelTaint in param:
                             if label == labelTaint:
-                                paramEntry.append("true")
+                                arcEntry.append("true")
                                 found = 1
+                        if found == 0:
+                            arcEntry.append("false")
+
+                while arcParamCount < maxArgIdx:
+                    for label in enums["cleLabel"]:
+                        arcEntry.append("false")
+                    arcParamCount += 1
+
+                
+                actualParamCount = len(cdf["argtaints"]) -1
+                for label in enums["cleLabel"]:
+                    # print(f"Checking label:{label}")
+                    paramCount = 0
+                    paramEntry = []
+                    while paramCount < maxArgIdx:
+                        if paramCount < len(cdf["argtaints"]):
+                            param = cdf["argtaints"][paramCount]
+                            # print(f"Checking Param{param}")
+                            if label in param:
+                                paramEntry.append("true")
                             else:
                                 paramEntry.append("false")
-                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
+                        else:
+                            paramEntry.append("false")
+                        paramCount +=1
                     taintEntry.append(paramEntry)
-                    paramCount +=1
+
+                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, arcEntry)]
+                    
+                    logger.debug(taintEntry)
+                    
                 
 
-                # if entry["clelabel"] in fun2ArgCount.keys() and entry["clelabel"] != "EmptyFunction" and fun2ArgCount[entry["clelabel"]] < paramCount and hasArgFlag:
-                #     print("ERROR! Function annotation argument mismatch!")
-                #     raise
+                # if entry["cle-label"] in fun2ArgCount.keys() and entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < actualParamCount and hasArgFlag:
+                #     errorLabel = entry["cle-label"]
+                #     logger.error("ERROR! Function annotation argument mismatch!")
+                #     raise CLEUsageError("Function annotation argument mismatch!")
 
-                while paramCount < maxArgIdx:
-                    paramEntry = []  
-                    for label in enums["cleLabel"]:
-                        paramEntry.append("false")
-                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
-                    taintEntry.append(paramEntry)
-                    paramCount +=1
+                # while paramCount < maxArgIdx:
+                #     paramEntry = []  
+                #     for label in enums["cleLabel"]:
+                #         paramEntry.append("false")
+                #     ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
+                #     taintEntry.append(paramEntry)
+                #     paramCount +=1
                 
                 arrays["hasArgtaints"].append(taintEntry)
                 arrays["hasARCtaints"].append(ARCTaint)
 
     # if len(enums["cleLabel"]) > len(set(enums["cleLabel"])):
-    #     print("Error! Duplicate CLE Lables detected.")
+    #     logger.debug("Error! Duplicate CLE Lables detected.")
     #     raise
 
     maxCodTaint = 0
@@ -1294,7 +1413,7 @@ def compute_zinc(cleJson, maxArgIdx):
 
     cle_instance += ("cdfForRemoteLevel = [|\n ")
     for row in arrays["cdfForRemoteLevel"]:
-        print(row)
+        logger.debug(row)
         first = True
         for j in row:
             if first:
@@ -1306,15 +1425,15 @@ def compute_zinc(cleJson, maxArgIdx):
     cle_instance += ("]; \n")
 
     numFunctionCDFS = len(arrays["hasRettaints"])
-    # print("Num Function CDFs: {numFunctionCDFS}")
+    # logger.debug("Num Function CDFs: {numFunctionCDFS}")
     numCleLabels = len(enums["cleLabel"])
-    # print("Num CLE Labels: {numCleLabels}")
+    # logger.debug("Num CLE Labels: {numCleLabels}")
 
 
     cle_instance += ("hasRettaints = array2d(functionCdf, cleLabel, [\n ")
     first = True
     for row in arrays["hasRettaints"]:
-        print(row)
+        logger.debug(row)
         for j in row:
             if j == "true":
                 j = "true "
@@ -1330,13 +1449,14 @@ def compute_zinc(cleJson, maxArgIdx):
         for j in i:
             numElts+=1
     if numFunctionCDFS * numCleLabels != numElts:
-        print("hasRettaints has incorrect dimensions")
+        logger.debug("hasRettaints has incorrect dimensions")
+        raise DimensionError("hasRettaints has incorrect dimensions")
 
 
     cle_instance += ("hasCodtaints = array2d(functionCdf, cleLabel, [\n ")
     first = True
     for row in arrays["hasCodtaints"]:
-        print(row)
+        logger.debug(row)
         for j in row:
             if j == "true":
                 j = "true "
@@ -1352,12 +1472,13 @@ def compute_zinc(cleJson, maxArgIdx):
         for j in i:
             numElts+=1
     if numFunctionCDFS * numCleLabels != numElts:
-        print("hasCodtaints has incorrect dimensions")
+        logger.debug("hasCodtaints has incorrect dimensions")
+        raise DimensionError("hasCodtaints has incorrect dimensions")
 
     cle_instance += ("hasArgtaints = array3d(functionCdf, parmIdx, cleLabel, [\n ")
     first = True
     for row in arrays["hasArgtaints"]:
-        print(row)
+        logger.debug(row)
         argCount = 0
         for nested in row:
             for j in nested:
@@ -1380,12 +1501,13 @@ def compute_zinc(cleJson, maxArgIdx):
             for k in j:
                 numElts+=1
     if numFunctionCDFS * maxArgIdx * numCleLabels != numElts:
-        print("hasArgtaints has incorrect dimensions")
+        logger.debug("hasArgtaints has incorrect dimensions")
+        raise DimensionError("hasArgtaints has incorrect dimensions")
 
     cle_instance += ("hasARCtaints = array2d(functionCdf, cleLabel, [\n ")
     first = True
     for row in arrays["hasARCtaints"]:
-        print(row)
+        logger.debug(row)
         for j in row:
             if j == "true":
                 j = "true "
@@ -1402,17 +1524,18 @@ def compute_zinc(cleJson, maxArgIdx):
         for j in i:
             numElts+=1
     if numFunctionCDFS * numCleLabels != numElts:
-        print("hasARCtaints has incorrect dimensions")
+        logger.debug("hasARCtaints has incorrect dimensions")
+        raise DimensionError("hasARCtaints has incorrect dimensions")
 
-    print(enums)
-    print(arrays)
+    logger.debug(enums)
+    logger.debug(arrays)
 
     return (cle_instance, enclave_instance)   
 
 def computeParamIdx(node):
     paramID = -1
     if str(node.getKind().toString()) == "FRMI":
-      # print(idx2nodeID[int(node)])
+      # logger.debug(idx2nodeID[int(node)])
       label = str(node.getLabel().encode('utf-8'))
       if "param" in label:
         paramID = int(label.split()[1])
@@ -1498,10 +1621,14 @@ def get_args():
 
 
 if __name__ == '__main__':
+  logger = logging.getLogger()
+  handler = logging.StreamHandler(sys.stdout)
+  logger.addHandler(handler)
+  logger.setLevel(logging.DEBUG)
   args   = get_args()
   zincFile = open("./pdg_instance.mzn", "w")
-  print('Options selected:')
-  for x in sorted(vars(args).items()): print('  %s: %s' % x)
+  logger.debug('Options selected:')
+  for x in sorted(vars(args).items()): logger.debug('  %s: %s' % x)
   bname = args.bname
   prog = makeSDG(args.clpath, args.entrymethod)
   sdg  = prog.getSDG()
@@ -1509,12 +1636,12 @@ if __name__ == '__main__':
   
   cp = args.clpath
   print
-  print(collectStatics(cp,bname))
+  logger.debug(collectStatics(cp,bname))
 #   exit(1)
   if args.pdg:  writePDG(sdg, args.pdgfile)
   if args.dot:  writeDOT(sdg, args.dotfile)
   if args.json: writeCLE(cles, args.jsonfile)
-  print('SDG Done\n')
+  logger.debug('SDG Done\n')
 
   global clabels
   clabels = list([q['clelabel'] for q in cles])
@@ -1604,7 +1731,7 @@ if __name__ == '__main__':
       # Don't remove return edges  
       if isParameterNode(e.getTarget()) and not isRetConnectedNode(e.getTarget()):
         if computeParamIdx(e.getTarget()) < 0:
-            print(tar_nid)
+            logger.debug(tar_nid)
             continue
       
       ekind = str(e.getKind().toString())
@@ -1745,11 +1872,11 @@ if __name__ == '__main__':
         pid   = y.getProc()
         if kind == "FunctionEntry":
             methodName2ID[str(y.getBytecodeName())] = str(nodeID2Idx[int(funcID2Entry[pid])])
-            print("ADDING FUNCTIONS:")
-            print(str(y.getBytecodeName()))
-            print(str(nodeID2Idx[int(funcID2Entry[pid])]))
+            logger.debug("ADDING FUNCTIONS:")
+            logger.debug(str(y.getBytecodeName()))
+            logger.debug(str(nodeID2Idx[int(funcID2Entry[pid])]))
         # import pdb; pdb.set_trace()
-        print("Function ID " + str(funcID2Entry[pid]))
+        logger.debug("Function ID " + str(funcID2Entry[pid]))
         outString = outString + str(nodeID2Idx[int(funcID2Entry[pid])]) + ", " 
   outString = outString[:-2] + "];\n"
 
@@ -1766,16 +1893,18 @@ if __name__ == '__main__':
         nid   = str(y.getId())
         # kind  = str(y.getKind().toString())
         label = str(y.getLabel().encode('utf-8'))
-        print("LABEL CHECK: ")
-        print(label)
+        logger.debug("LABEL CHECK: ")
+        logger.debug(label)
 
         className = getClassName(y).replace("__",".")
         classIdx = str(className2Idx[className])
         # classNames.append(className)
         outString = outString + classIdx + ", " 
         field = checkFieldInLabel(label, className)
-        print("FIELD CHECK: ")
-        print(field)
+        logger.debug("FIELD CHECK: ")
+        logger.debug(field)
+        logger.debug(classField2Idx.keys())
+        logger.debug(classFields)
         if "None" != field:
             if getFQNMethodName(y) in methodsFieldAccess: 
                 methodsFieldAccess[getFQNMethodName(y)].append(classField2Idx[field])
@@ -1827,8 +1956,8 @@ if __name__ == '__main__':
   outString = ""
   zincFile.write("userAnnotatedFunction = array1d(FunctionEntry, [ \n")
   for node in nodeIdx["FunctionEntry"]:
-    # print(idx2nodeID[int(node)])
-    # print(node)
+    # logger.debug(idx2nodeID[int(node)])
+    # logger.debug(node)
     if str(idx2nodeID[int(node)]) in anns.keys():
       outString = outString +"true, "
     else:
@@ -1842,11 +1971,11 @@ if __name__ == '__main__':
   # outString = outString[:-2] +"]);\n" 
 
   zincFile.write(outString)
-  # print("=======")
+  # logger.debug("=======")
   CleLabels =  ["nullCleLabel"]
   for annot in anns:
     label = anns[annot][0].split(".")[-1]
-    print("Checking label: " + str(label))
+    logger.debug("Checking label: " + str(label))
     zid = nodeID2Idx[int(annot)]
     
     # check if function annotation is applied to a function
@@ -1873,11 +2002,11 @@ if __name__ == '__main__':
     
     listOfLevels = set(listOfLevels)
     listOfLevels = list(listOfLevels)
-    # print(zid)
+    # logger.debug(zid)
     for l in listOfLevels:
         if l != "nullLevel":
-            zincFile.write("constraint ::  \"TaintOnNodeIdx" + str(zid) + "\" taint[" + str(zid) + "," + str(l) + "]=" + label + ";\n" )
-    # print(anns)      
+            zincFile.write("constraint ::  \"TaintOnNodeIdx" + str(zid) + "\" taint[" + str(zid) + "," + str(l) + "_E" + "]=" + label + ";\n" )
+    # logger.debug(anns)      
   zincFile.write("\n\n" )
   
   CleLabels = set(CleLabels)
@@ -1897,14 +2026,14 @@ if __name__ == '__main__':
     enclave_f.write(cleOutput[1])
 
   classInfoFile = open("./classInfo.mzn", "a")
-  print("DUMPING FUNCTION ENTRIES")
+  logger.debug("DUMPING FUNCTION ENTRIES")
   for node in nodeIdx["FunctionEntry"]:
-    print(idx2nodeID[int(node)])
-    print(node)
-    print(str(idx2nodeID[int(node)]))
+    logger.debug(idx2nodeID[int(node)])
+    logger.debug(node)
+    logger.debug(str(idx2nodeID[int(node)]))
   
-  print("UNSORTED METHODS")
-  print(methodName2ID)
+  logger.debug("UNSORTED METHODS")
+  logger.debug(methodName2ID)
   orderMethodNames = []
   for m in methodName2ID:
       orderMethodNames.append((m,int(methodName2ID[m])))
@@ -1912,10 +2041,10 @@ if __name__ == '__main__':
   sortedMethodNames = []
   for t in orderMethodNames:
       sortedMethodNames.append(getFQNMethodName(t[0]))
-  print("SORTED METHODS")
-  print(sortedMethodNames)
-  print("methodsFieldAccess")
-  print(methodsFieldAccess)
+  logger.debug("SORTED METHODS")
+  logger.debug(sortedMethodNames)
+  logger.debug("methodsFieldAccess")
+  logger.debug(methodsFieldAccess)
   result =  "methodsFieldAccess =  array1d(FunctionEntry, ["
   first = True
   for i in sortedMethodNames:
@@ -1940,7 +2069,7 @@ if __name__ == '__main__':
     
   result += "]); \n"
   result = result.replace(".", "__")
-  print("array: ")
+  logger.debug("array: ")
   classInfoFile.write(result)
   classInfoFile.close()
 
@@ -1950,16 +2079,16 @@ if __name__ == '__main__':
 #   output = subprocess.call(cmd)
 #   proc = subprocess.Popen(mycmd, shell=True).communicate()
 #   proc.wait()
-
+  logger.info("Running CA")
   cmd = "bash ./runCA.sh"
   proc = subprocess.Popen(cmd ,bufsize=0, executable=None, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=None, close_fds=True, shell=True)
   out = str(proc.communicate(proc.stdout))
   f = open("result.txt", "r")
   output = f.read()
   f.close()
-#   print(output)
+#   logger.debug(output)
   cutJson = getCutJson(output,sdg,cles,args.entrymethod, args.clpath, args.mainLoc)
-  print(cutJson)
+  logger.info(cutJson)
   
   
   
@@ -1969,13 +2098,13 @@ if __name__ == '__main__':
   # #grab all levels
   # levels = ["nullLevel"]
   # for lbl in rawCle:
-  #   print(rawCle[lbl])
+  #   logger.debug(rawCle[lbl])
 
-  # print(cles)
+  # logger.debug(cles)
   
   # pp = PrettyPrinter(indent=2)
-  # pp.pprint(nodesZinc)
-#   pp.pprint(edgesZinc)
-#   print(anns)
+  # pp.plogger.debug(nodesZinc)
+#   pp.plogger.debug(edgesZinc)
+#   logger.debug(anns)
 
 

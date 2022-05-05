@@ -219,7 +219,7 @@ array[ClassMethods]     of ClassNames:  methodOfClass;
 
 array[ClassNames]     of AllClassNames:  immediateParent;
 array[ClassNames]     of set of AllClassNames:  allParents;
-% array[ClassNames]     of set of Implementers:  allParents;
+array[ClassNames]     of set of AllClassNames:  implementsInterface;
 
 
 array[FunctionEntry]     of set of ClassFields:  methodsFieldAccess;
@@ -272,6 +272,8 @@ set of int: DataEdgeParam       = DataDepEdge union Parameter;
 enum Level;
 set of Level: nonNullLevel = { x | x in Level where x!=nullLevel };
 enum Enclave;
+set of Enclave: nonNullEnclave = { x | x in Enclave where x!=nullEnclave };
+
 array[Enclave] of Level: hasEnclaveLevel;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -316,33 +318,33 @@ debug = true;
 % array[ClassNames]                     of var Enclave:    classEnclave;
 % array[ClassNames,nonNullLevel]                of var Enclave:    classEnclave;
 
-array[ClassNames,nonNullLevel]                     of var Enclave:    classEnclave;
-array[PDGNodeIdx,nonNullLevel]                     of var Enclave:    nodeEnclave;
-array[PDGNodeIdx,nonNullLevel]                     of var Level:      nodeLevel;
-array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   taint;
-array[PDGNodeIdx,nonNullLevel]                     of var cleLabel:   ftaint;
-array[ClassNames,nonNullLevel]                     of var cleLabel:   ctaint;
+% array[ClassNames,nonNullEnclave]                     of var Enclave:    classEnclave;
+array[PDGNodeIdx,nonNullEnclave]                     of var Enclave:    nodeEnclave;
+array[PDGNodeIdx,nonNullEnclave]                     of var Level:      nodeLevel;
+array[PDGNodeIdx,nonNullEnclave]                     of var cleLabel:   taint;
+array[PDGNodeIdx,nonNullEnclave]                     of var cleLabel:   ftaint;
+array[ClassNames,nonNullEnclave]                     of var cleLabel:   ctaint;
 
-array[ClassFields,nonNullLevel]                    of var cleLabel:   fieldTaint;
-
-
-array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    esEnclave;
-array[PDGEdgeIdx,nonNullLevel]                     of var Enclave:    edEnclave;
-
-array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   esTaint;
-array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   edTaint;
-
-array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   esFunTaint;
-array[PDGEdgeIdx,nonNullLevel]                     of var cleLabel:   edFunTaint;
+array[ClassFields,nonNullEnclave]                    of var cleLabel:   fieldTaint;
 
 
-array[PDGEdgeIdx,nonNullLevel]                     of var cdf:        esFunCdf;
-array[PDGEdgeIdx,nonNullLevel]                     of var cdf:        edFunCdf;
+array[PDGEdgeIdx,nonNullEnclave]                     of var Enclave:    esEnclave;
+array[PDGEdgeIdx,nonNullEnclave]                     of var Enclave:    edEnclave;
 
-array[PDGEdgeIdx,nonNullLevel]                     of var bool:       xdedge;
-array[PDGEdgeIdx,nonNullLevel]                     of var bool:       tcedge;
+array[PDGEdgeIdx,nonNullEnclave]                     of var cleLabel:   esTaint;
+array[PDGEdgeIdx,nonNullEnclave]                     of var cleLabel:   edTaint;
 
-array[PDGEdgeIdx,nonNullLevel]                     of var bool:       coerced;
+array[PDGEdgeIdx,nonNullEnclave]                     of var cleLabel:   esFunTaint;
+array[PDGEdgeIdx,nonNullEnclave]                     of var cleLabel:   edFunTaint;
+
+
+array[PDGEdgeIdx,nonNullEnclave]                     of var cdf:        esFunCdf;
+array[PDGEdgeIdx,nonNullEnclave]                     of var cdf:        edFunCdf;
+
+array[PDGEdgeIdx,nonNullEnclave]                     of var bool:       xdedge;
+array[PDGEdgeIdx,nonNullEnclave]                     of var bool:       tcedge;
+
+array[PDGEdgeIdx,nonNullEnclave]                     of var bool:       coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
