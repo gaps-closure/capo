@@ -110,12 +110,16 @@ int: Access_end;
 int: Edge_start;
 int: Edge_end;
 
-set of int: Class   = Class_start   .. Class_end;
-set of int: Field   = Field_start   .. Field_end;
-set of int: Method  = Method_start  .. Method_end;
-set of int: Element = Element_start .. Element_end;
-set of int: Call    = Call_start    ..  Call_end;
-set of int: Access  = Access_start  .. Access_end;
+set of int: Class            = Class_start   .. Class_end;
+set of int: Field            = Field_start   .. Field_end;
+set of int: Method           = Method_start  .. Method_end;
+set of int: Element          = Element_start .. Element_end;
+set of int: Call             = Call_start    ..  Call_end;
+set of int: Access           = Access_start  .. Access_end;
+set of int: AnnotatedElement = AnnotatedInstanceField_start  .. AnnotatedInstanceField_end  union
+                               AnnotatedClassField_start     .. AnnotatedClassField_end     union
+                               AnnotatedInstanceMethod_start .. AnnotatedInstanceMethod_end union
+                               AnnotatedClassMethod_start    .. AnnotatedClassMethod_end;
 
 array[Element] of Class:  hasClass;
 array[Call]    of Method: hasCaller;
@@ -127,7 +131,9 @@ array[Access]  of Field:  toField;
 % Decision and auxiliary variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%array[Class,Enclave] of var bool: classEnclave;
-%array[Class,Level]   of var bool: classTouchesLevel;
+%array[Class,Enclave]   of var bool:     hasEnclave;
+
+array[Class,Level]     of var bool:     touchesLevel;
+array[Element,Level]   of var cleLabel: labelAtLevel;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -284,14 +284,13 @@ class Model():
     ]:
       oup.write('%s=array1d(%s,[\n%s\n]);\n' % (x,z,brklns(y, 10)))
 
-    # XXX: write out constraints for CLE annotated elements
-    # XXX: ought to constraint taintAtLevel for the Node; this needs level for label
-    # XXX: for method this should disallow taints at other levels, what about fields?
     for (x,y) in mdl.userAnnElt:
-      oup.write('%%constraint :: "TaintOn%s" userAnnotation[%s] = %s;\n' % (x,x,y))
+      z = fix(y)
+      oup.write('constraint :: "AnnotateOn%s" labelAtLevel[%s,hasLabelLevel[%s]] = %s;\n' % (x,x,z,z))
+      oup.write('constraint :: "ProhibitOn%s" forall (l in Level where l != hasLabelLevel[%s]) (labelAtLevel[%s,l] = nullCleLabel);\n' % (x,z,x))
 
+def fix(x): return x.rsplit('.',1)[-1]
 def annotsplit(j):
-  def fix(x): return x.rsplit('.',1)[-1]
   for x in j:
     x['cle-label'] = fix(x['cle-label'])
     if 'cdf' in x['cle-json']:
