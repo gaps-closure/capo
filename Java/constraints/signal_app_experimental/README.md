@@ -13,13 +13,16 @@ The CLE annotations are also extracted from the annotated sources into a single 
 We then prepare the input data for constraint solving using Minizinc:
 
 ```
-$ python3 dataprep/gen_mzninstance.py -i test/test1/signal.json.gz -c test/test1/signal-cle.json 
+$ python3 dataprep/gen_mzninstance.py -i test/test1/signal.json.gz -c test/test1/signal-cle.json -o test/test1/instance
 ```
 
-Three files, namely, `instance/pdg_instance.mzn`, `instance/cle_instance.mzn`, and 
-`instance/enclave_instance.mzn` are created. The `instance/` directory is created if 
-needed. These files conform to the variable type declarations specified in 
-`constraints/conflict_variable_declarations.mzn`.
+Three files, namely, `test/test1/instance/pdg_instance.mzn`,
+`test/test1/instance/cle_instance.mzn`, and
+`test/test1/instance/enclave_instance.mzn` are created. The
+`test/test1/instance/` directory is created if needed. These files conform to
+the variable type declarations specified in
+`constraints/conflict_variable_declarations.mzn`.  A debug helper file
+`test/test1/instance/pdg.csv.gz` is also produced.
 
 ## Running the conflict analyzer
 
@@ -34,7 +37,7 @@ Copyright (C) 2014-2021 Monash University, NICTA, Data61
 To run the conflict analyzer on the Signal app model data:
 
 ```
-/opt/minizinc/bin/minizinc --solver Gecode constraints/*.mzn instance/*.mzn
+$ /opt/minizinc/bin/minizinc --solver Gecode constraints/*.mzn test/test1/instance/*.mzn
 ```
 
 

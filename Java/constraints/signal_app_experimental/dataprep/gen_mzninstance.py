@@ -2,6 +2,7 @@
 import os
 import os.path
 import sys
+import csv
 import json
 import gzip
 import logging
@@ -101,7 +102,7 @@ class Model():
     if len(self.eiamth) > 0: raise('External instance method cannot be CLE annotated')
     if len(self.esamth) > 0: raise('External class method cannot be CLE annotated')
 
-    self.allInOrder   = [
+    self.allInOrder    = [
       self.intan,  self.intun,  self.extun, 
       self.iiafld, self.iiufld, self.eiufld, self.isafld, self.isufld, self.esufld, 
       self.iiamth, self.iiumth, self.eiumth, self.isamth, self.isumth, self.esumth,
@@ -109,11 +110,14 @@ class Model():
       self.iiacc,  self.isacc,  self.eiacc,  self.esacc
     ]
 
-    self.allElements  = [
+    self.allElements   = [
       self.iiafld, self.iiufld, self.eiufld, self.isafld, self.isufld, self.esufld, 
       self.iiamth, self.iiumth, self.eiumth, self.isamth, self.isumth, self.esumth
     ]
 
+    self.allClasses    = [ self.intan,  self.intun,  self.extun ]
+    self.allFields     = [ self.iiafld, self.iiufld, self.eiufld, self.isafld, self.isufld, self.esufld ]
+    self.allMethods    = [ self.iiamth, self.iiumth, self.eiumth, self.isamth, self.isumth, self.esumth ]
     self.allCalls      = [ self.iicll, self.iscll, self.eicll, self.escll ]
     self.allFieldRefs  = [ self.iiacc, self.isacc, self.eiacc, self.esacc ]
     self.annotElements = [ self.iiafld, self.isafld, self.iiamth, self.isamth ]
@@ -127,6 +131,34 @@ class Model():
     self.fromMethod = [self.data['methods'][x['F']-1]['q'] for y in self.allFieldRefs  for x in y]
     self.toField    = [self.data['fields'][x['T']-1]['q']  for y in self.allFieldRefs  for x in y]
     self.userAnnElt = [(x['q'], x['G'])                    for y in self.annotElements for x in y]
+
+  def write_debug_csv(self,oup):
+    def mkrec(x,cat,carr,farr,tarr):
+      return list([x['q'],
+                   cat,
+                   x['i'],
+                   x['n'] if 'n' in x else '',
+                   carr[x['c']-1]['n']              if 'c' in x else '',
+                   farr[x['F']-1]['n']              if 'F' in x else '',
+                   carr[farr[x['F']-1]['c']-1]['n'] if 'F' in x else '',
+                   tarr[x['T']-1]['n']              if 'T' in x else '',
+                   carr[tarr[x['T']-1]['c']-1]['n'] if 'T' in x else '',
+                   'static' if 's' in x and x['s'] is True else '',
+                   'external' if x['e'] is True else '',
+                   x['G'] if 'G' in x and x['G'] is not None else ''])
+
+    csvw = csv.writer(oup)
+    csvw.writerow(['mznid','cat','catid','name','class','felement','fclass','telement','tclass','static','external','label'])
+
+    for y,cat,carr,farr,tarr in [
+      (self.allClasses,   'Class',  self.data['classes'], [], []),
+      (self.allFields,    'Field',  self.data['classes'], [], []),
+      (self.allMethods,   'Method', self.data['classes'], [], []),
+      (self.allCalls,     'Call',   self.data['classes'], self.data['methods'], self.data['methods']),
+      (self.allFieldRefs, 'Access', self.data['classes'], self.data['methods'], self.data['fields']),
+    ]:
+      for z in y:
+        for x in z: csvw.writerow(mkrec(x,cat,carr,farr,tarr))
 
   def write_model_mzn(self,oup):
     # Calculate variables for MiniZinc, maintaining same order
@@ -282,7 +314,7 @@ if __name__ == '__main__':
   logger.addHandler(logging.StreamHandler(sys.stderr))
   logger.setLevel(logging.WARN)
   args   = get_args()
-  with gzip.open(args.input_model, 'r') as minp:
+  with gzip.open(args.input_model, 'rt') as minp:
     mdl  = Model(esatrack(json.load(minp)))
   with open(args.cle_json, 'r') as cinp:
     cmz = compute_zinc(annotsplit(json.load(cinp)), mdl.maxnpmth, logger)
@@ -294,7 +326,6 @@ if __name__ == '__main__':
     coup.write(cmz.cle_instance)
   with open(args.output_dir + '/enclave_instance.mzn', 'w') as eoup:
     eoup.write(cmz.enclave_instance)
-
-  # XXX: write out MZN file for CLE JSON, reuse logic from C/Java ??
-  # XXX: write out debug csv file
+  with gzip.open(args.output_dir + '/pdg.csv.gz', 'wt') as csvp:
+    mdl.write_debug_csv(csvp)
 
