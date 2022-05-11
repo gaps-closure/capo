@@ -3,6 +3,7 @@ import os
 import os.path
 import sys
 import json
+import gzip
 import logging
 from   argparse import ArgumentParser
 from   cle2zinc import compute_zinc
@@ -271,7 +272,7 @@ def annotsplit(j):
 
 def get_args():
   p = ArgumentParser(description='Constraint Instance Data Encoder')
-  p.add_argument('-i', '--input_model', required=True, type=str, help='Input Program Model JSON file')
+  p.add_argument('-i', '--input_model', required=True, type=str, help='Gzipped Input Program Model JSON file')
   p.add_argument('-c', '--cle_json', required=True, type=str, help='Input Program Model JSON file')
   p.add_argument('-o', '--output_dir', required=False, default='./instance', type=str, help='Output Model MZN file')
   return p.parse_args()
@@ -281,7 +282,7 @@ if __name__ == '__main__':
   logger.addHandler(logging.StreamHandler(sys.stderr))
   logger.setLevel(logging.WARN)
   args   = get_args()
-  with open(args.input_model, 'r') as minp:
+  with gzip.open(args.input_model, 'r') as minp:
     mdl  = Model(esatrack(json.load(minp)))
   with open(args.cle_json, 'r') as cinp:
     cmz = compute_zinc(annotsplit(json.load(cinp)), mdl.maxnpmth, logger)
