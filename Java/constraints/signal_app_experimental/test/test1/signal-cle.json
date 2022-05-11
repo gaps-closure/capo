@@ -1,0 +1,87 @@
+[
+  {
+    "cle-label": "OrangeMain",
+    "cle-json": {
+      "level": "orange",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [],
+          "codtaints": [
+            "com.peratonlabs.closure.testprog.example1.annotations.OrangeShareable"
+          ],
+          "rettaints": []
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "OrangeShareable",
+    "cle-json": {
+      "level": "orange",
+      "cdf": [
+        {
+          "remotelevel": "purple",
+          "direction": "egress",
+          "guarddirective": {
+            "operation": "allow"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "Purple",
+    "cle-json": {
+      "level": "purple"
+    }
+  },
+  {
+    "cle-label": "PurpleOrangeCallable",
+    "cle-json": {
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [],
+          "codtaints": [
+            "com.peratonlabs.closure.testprog.example1.annotations.Purple"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_GETVALUE"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "cle-label": "PurpleOrangeConstructable",
+    "cle-json": {
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "orange",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [],
+          "codtaints": [
+            "com.peratonlabs.closure.testprog.example1.annotations.Purple"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_EXTRA"
+          ]
+        }
+      ]
+    }
+  }
+]
