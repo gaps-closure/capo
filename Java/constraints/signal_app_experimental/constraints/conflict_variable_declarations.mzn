@@ -93,21 +93,17 @@ set of int: Call             = InternalInstanceCall_start           .. ExternalS
 set of int: Access           = InternalInstanceAccess_start         .. ExternalStaticAccess_end;
 set of int: Edge             = InternalInstanceCall_start           .. ExternalStaticAccess_end;
 
+set of int: AnnotatedClass   = AnnotatedInternalClass_start         .. AnnotatedInternalClass_end;
+set of int: UnannotatedClass = UnannotatedInternalClass_start       .. UnannotatedExternalClass_end;
 set of int: AnnotatedElement = AnnotatedInternalInstanceField_start .. AnnotatedInternalStaticMethod_end;
-set of Level: ValidLevel     = { x | x in Level where x != nullLevel };
 
 array[Node]             of Class:    hasClass;
 array[Edge]             of Node:     hasFrom;
 array[Edge]             of Node:     hasTo;
 array[AnnotatedElement] of cleLabel: hasAnnotation;
 
-%array[Call]             of Node:     callFrom;
-%array[Call]             of Node:     callTo;
-%array[Access]           of Node:     accessFrom;
-%array[Access]           of Node:     accessTo;
-
-set of int: AnnotatedClass   = AnnotatedInternalClass_start         .. AnnotatedInternalClass_end;
-set of int: UnannotatedClass = UnannotatedInternalClass_start       .. UnannotatedExternalClass_end;
+set of Level: ValidLevel     = { x | x in Level   where x != nullLevel };
+set of Enclave: ValidEnclave = { x | x in Enclave where x != nullEnclave };
 
 predicate isAnnotatedClass(var Class: x)   = x >= AnnotatedInternalClass_start   /\ x <= AnnotatedInternalClass_end;
 predicate isUnannotatedClass(var Class: x) = x >= UnannotatedInternalClass_start /\ x <= UnannotatedExternalClass_end;

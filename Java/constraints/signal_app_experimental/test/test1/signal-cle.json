@@ -22,10 +22,10 @@
   {
     "cle-label": "OrangeShareable",
     "cle-json": {
-      "level": "orange",
+      "level": "purple",
       "cdf": [
         {
-          "remotelevel": "purple",
+          "remotelevel": "orange",
           "direction": "egress",
           "guarddirective": {
             "operation": "allow"

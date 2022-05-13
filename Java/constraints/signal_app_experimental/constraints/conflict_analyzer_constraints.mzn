@@ -6,14 +6,19 @@
 % Basic constraints on output decision variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%constraint :: "UserAnnotation"
-%  forall (x in AnnotatedElement)
-%   (forall (l in ValidLevel) (l = hasLabelLevel[hasAnnotation[x]] <-> touchesLevel[hasClass[x],l]));
+% Level of class with annotated elements determined by annotation level, which must match across elements of class
+constraint :: "UserAnnotation"
+ forall (x in AnnotatedElement) (boundLevel[hasClass[x]] = hasLabelLevel[hasAnnotation[x]]);
 
-constraint :: "LevelTouched"
-  forall (x in Class)
-   (forall (l in ValidLevel) 
-    (labelAtLevel[x,l] != nullCleLabel -> touchesLevel[x,l]));
+% A class with no annotated elements touches all 
+%constraint :: "LevelTouched"
+% forall (x in UnannotatedClass)
+%  (forall (l in ValidLevel) 
+%   (labelAtLevel[x,l] != nullCleLabel -> touchesLevel[x,l]));
+
+% For each call edge, if the 
+
+% Two annotated in cut causes peers 
 
 %  forall x in Class
 %    (forall e in Enclave where e != nullEnclave
@@ -23,16 +28,15 @@ constraint :: "LevelTouched"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%var int: objective = sum(e in ControlDep_CallInv, l in nonNullEnclave where xdedge[e,l])(1);
-%solve minimize objective;
 solve satisfy;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-output ["Levels touched by unannotated classes:" ++ "\n"];
-output [" Class: " ++ show(c) ++ " -> " ++ show(l) ++ "\n" | c in Class, l in ValidLevel where fix(touchesLevel[c,l])];
+output ["Enclave assignements:" ++ "\n"];
+output [" AnnotatedClass:   " ++ show(c) ++ " -> [" ++ show(e) ++ "]::" ++ show(hasEnclaveLevel[e]) ++ "\n" 
+        | c in AnnotatedClass, e in ValidEnclave where fix(boundLevel[c]) = hasEnclaveLevel[e]];
+output [" UnannotatedClass: " ++ show(c) ++ " -> [" ++ show(e) ++ "]::" ++ show(hasEnclaveLevel[e]) ++ "\n" 
+        | c in UnannotatedClass, e in ValidEnclave where fix(labelAtLevel[c,hasEnclaveLevel[e]]) != nullCleLabel];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
