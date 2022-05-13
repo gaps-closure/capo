@@ -102,7 +102,7 @@ array[Edge]             of Node:     hasFrom;
 array[Edge]             of Node:     hasTo;
 array[AnnotatedElement] of cleLabel: hasAnnotation;
 
-set of Level: ValidLevel     = { x | x in Level   where x != nullLevel };
+set of Level:   ValidLevel   = { x | x in Level   where x != nullLevel };
 set of Enclave: ValidEnclave = { x | x in Enclave where x != nullEnclave };
 
 predicate isAnnotatedClass(var Class: x)   = x >= AnnotatedInternalClass_start   /\ x <= AnnotatedInternalClass_end;
