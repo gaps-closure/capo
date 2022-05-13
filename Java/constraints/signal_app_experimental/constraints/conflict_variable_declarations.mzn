@@ -39,36 +39,36 @@ array[functionCdf, cleLabel]          of bool:           hasARCtaints;
 % Java Program Model
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-int: Annotated_start;
-int: Annotated_end;
-int: Unannotated_start;
-int: Unannotated_end;
-int: External_start;
-int: External_end;
-int: AnnotatedInstanceField_start;
-int: AnnotatedInstanceField_end;
-int: UnannotatedInstanceField_start;
-int: UnannotatedInstanceField_end;
-int: ExternalInstanceField_start;
-int: ExternalInstanceField_end;
-int: AnnotatedClassField_start;
-int: AnnotatedClassField_end;
-int: UnannotatedClassField_start;
-int: UnannotatedClassField_end;
-int: ExternalClassField_start;
-int: ExternalClassField_end;
-int: AnnotatedInstanceMethod_start;
-int: AnnotatedInstanceMethod_end;
-int: UnannotatedInstanceMethod_start;
-int: UnannotatedInstanceMethod_end;
-int: ExternalInstanceMethod_start;
-int: ExternalInstanceMethod_end;
-int: AnnotatedClassMethod_start;
-int: AnnotatedClassMethod_end;
-int: UnannotatedClassMethod_start;
-int: UnannotatedClassMethod_end;
-int: ExternalClassMethod_start;
-int: ExternalClassMethod_end;
+int: AnnotatedInternalClass_start;
+int: AnnotatedInternalClass_end;
+int: UnannotatedInternalClass_start;
+int: UnannotatedInternalClass_end;
+int: UnannotatedExternalClass_start;
+int: UnannotatedExternalClass_end;
+int: AnnotatedInternalInstanceField_start;
+int: AnnotatedInternalInstanceField_end;
+int: AnnotatedInternalStaticField_start;
+int: AnnotatedInternalStaticField_end;
+int: AnnotatedInternalInstanceMethod_start;
+int: AnnotatedInternalInstanceMethod_end;
+int: AnnotatedInternalStaticMethod_start;
+int: AnnotatedInternalStaticMethod_end;
+int: UnannotatedInternalInstanceField_start;
+int: UnannotatedInternalInstanceField_end;
+int: UnannotatedInternalStaticField_start;
+int: UnannotatedInternalStaticField_end;
+int: UnannotatedInternalInstanceMethod_start;
+int: UnannotatedInternalInstanceMethod_end;
+int: UnannotatedInternalStaticMethod_start;
+int: UnannotatedInternalStaticMethod_end;
+int: UnannotatedExternalInstanceField_start;
+int: UnannotatedExternalInstanceField_end;
+int: UnannotatedExternalStaticField_start;
+int: UnannotatedExternalStaticField_end;
+int: UnannotatedExternalInstanceMethod_start;
+int: UnannotatedExternalInstanceMethod_end;
+int: UnannotatedExternalStaticMethod_start;
+int: UnannotatedExternalStaticMethod_end;
 int: InternalInstanceCall_start;
 int: InternalInstanceCall_end;
 int: InternalStaticCall_start;
@@ -85,55 +85,30 @@ int: ExternalInstanceAccess_start;
 int: ExternalInstanceAccess_end;
 int: ExternalStaticAccess_start;
 int: ExternalStaticAccess_end;
-int: Class_start;
-int: Class_end;
-int: InstanceField_start;
-int: InstanceField_end;
-int: ClassField_start;
-int: ClassField_end;
-int: Field_start;
-int: Field_end;
-int: InstanceMethod_start;
-int: InstanceMethod_end;
-int: ClassMethod_start;
-int: ClassMethod_end;
-int: Method_start;
-int: Method_end;
-int: Element_start;
-int: Element_end;
-int: Node_start;
-int: Node_end;
-int: Call_start;
-int: Call_end;
-int: Access_start;
-int: Access_end;
-int: Edge_start;
-int: Edge_end;
 
-set of int: Class            = Class_start   .. Class_end;
-set of int: Field            = Field_start   .. Field_end;
-set of int: Method           = Method_start  .. Method_end;
-set of int: Element          = Element_start .. Element_end;
-set of int: Call             = Call_start    ..  Call_end;
-set of int: Access           = Access_start  .. Access_end;
-set of int: AnnotatedElement = AnnotatedInstanceField_start  .. AnnotatedInstanceField_end  union
-                               AnnotatedClassField_start     .. AnnotatedClassField_end     union
-                               AnnotatedInstanceMethod_start .. AnnotatedInstanceMethod_end union
-                               AnnotatedClassMethod_start    .. AnnotatedClassMethod_end;
+set of int: Class            = AnnotatedInternalClass_start         .. UnannotatedExternalClass_end;
+set of int: Element          = AnnotatedInternalInstanceField_start .. UnannotatedExternalStaticMethod_end;
+set of int: AnnotatedElement = AnnotatedInternalInstanceField_start ..  AnnotatedInternalStaticMethod_end;
+set of int: Node             = AnnotatedInternalClass_start         .. UnannotatedExternalStaticMethod_end;
+set of int: Call             = InternalInstanceCall_start           .. ExternalStaticCall_end;
+set of int: Access           = InternalInstanceAccess_start         .. ExternalStaticAccess_end;
 
-array[Element] of Class:  hasClass;
-array[Call]    of Method: hasCaller;
-array[Call]    of Method: hasCallee;
-array[Access]  of Method: fromMethod;
-array[Access]  of Field:  toField;
+set of Level: ValidLevel     = { x | x in Level where x != nullLevel };
+
+array[Element]          of Class:    hasClass;
+array[AnnotatedElement] of cleLabel: hasAnnotation;
+array[Call]             of Node:     callFrom;
+array[Call]             of Node:     callTo;
+array[Access]           of Node:     accessFrom;
+array[Access]           of Node:     accessTo;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Decision and auxiliary variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%array[Class,Enclave]   of var bool:     hasEnclave;
+%array[Class,Enclave] of var bool: hasEnclave;
 
-array[Class,Level]     of var bool:     touchesLevel;
-array[Element,Level]   of var cleLabel: labelAtLevel;
+array[Class,ValidLevel]    of var bool:  touchesLevel;
+array[Class,ValidLevel] of var cleLabel: labelAtLevel;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

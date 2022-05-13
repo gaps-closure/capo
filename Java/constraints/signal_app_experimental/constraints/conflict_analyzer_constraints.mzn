@@ -6,12 +6,12 @@
 % Basic constraints on output decision variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "ElementHasNullCleLabel"  forall (x in Element) (labelAtLevel[x,nullLevel] = nullCleLabel);
+%constraint :: "ClassTouchesNullLevel"   forall (x in Class)   (touchesLevel[x,nullLevel] = true);
 
-constraint :: "LevelTouched"
-  forall (x in Element)
-    (forall (l in Level)
-      (labelAtLevel[x,l] != nullCleLabel <-> touchesLevel[hasClass[x],l]));
+%constraint :: "LevelTouched"
+%  forall (x in Element)
+%    (forall (l in Level where l != nullLevel)
+%      (labelAtLevel[x,l] != nullCleLabel -> touchesLevel[hasClass[x],l]));
 
 %constraint :: ""
 %  forall x in Class
@@ -31,7 +31,7 @@ solve satisfy;
 % Solver output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-output ["Levels touched by classes:" ++ "\n"];
-output [" Class: " ++ show(c) ++ " -> " ++ show(l) ++ "\n" | c in Class, l in Level where (l!=nullLevel /\ fix(touchesLevel[c,l]))];
+output ["Levels touched by unannotated classes:" ++ "\n"];
+output [" Class: " ++ show(c) ++ " -> " ++ show(l) ++ "\n" | c in Class, l in ValidLevel where fix(labelAtLevel[c,l] !=nullCleLabel)];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
