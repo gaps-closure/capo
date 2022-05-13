@@ -106,9 +106,9 @@ array[Access]           of Node:     accessTo;
 % Decision and auxiliary variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%array[Class,Enclave] of var bool: hasEnclave;
+%array[Class,Enclave]    of var bool:     hasEnclave;
 
-array[Class,ValidLevel]    of var bool:  touchesLevel;
+array[Class,ValidLevel] of var bool:     touchesLevel;
 array[Class,ValidLevel] of var cleLabel: labelAtLevel;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
