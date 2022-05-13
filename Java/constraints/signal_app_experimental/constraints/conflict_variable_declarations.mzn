@@ -88,27 +88,35 @@ int: ExternalStaticAccess_end;
 
 set of int: Class            = AnnotatedInternalClass_start         .. UnannotatedExternalClass_end;
 set of int: Element          = AnnotatedInternalInstanceField_start .. UnannotatedExternalStaticMethod_end;
-set of int: AnnotatedElement = AnnotatedInternalInstanceField_start ..  AnnotatedInternalStaticMethod_end;
 set of int: Node             = AnnotatedInternalClass_start         .. UnannotatedExternalStaticMethod_end;
 set of int: Call             = InternalInstanceCall_start           .. ExternalStaticCall_end;
 set of int: Access           = InternalInstanceAccess_start         .. ExternalStaticAccess_end;
+set of int: Edge             = InternalInstanceCall_start           .. ExternalStaticAccess_end;
 
+set of int: AnnotatedElement = AnnotatedInternalInstanceField_start .. AnnotatedInternalStaticMethod_end;
 set of Level: ValidLevel     = { x | x in Level where x != nullLevel };
 
-array[Element]          of Class:    hasClass;
+array[Node]             of Class:    hasClass;
+array[Edge]             of Node:     hasFrom;
+array[Edge]             of Node:     hasTo;
 array[AnnotatedElement] of cleLabel: hasAnnotation;
-array[Call]             of Node:     callFrom;
-array[Call]             of Node:     callTo;
-array[Access]           of Node:     accessFrom;
-array[Access]           of Node:     accessTo;
+
+%array[Call]             of Node:     callFrom;
+%array[Call]             of Node:     callTo;
+%array[Access]           of Node:     accessFrom;
+%array[Access]           of Node:     accessTo;
+
+set of int: AnnotatedClass   = AnnotatedInternalClass_start         .. AnnotatedInternalClass_end;
+set of int: UnannotatedClass = UnannotatedInternalClass_start       .. UnannotatedExternalClass_end;
+
+predicate isAnnotatedClass(var Class: x)   = x >= AnnotatedInternalClass_start   /\ x <= AnnotatedInternalClass_end;
+predicate isUnannotatedClass(var Class: x) = x >= UnannotatedInternalClass_start /\ x <= UnannotatedExternalClass_end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Decision and auxiliary variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%array[Class,Enclave]    of var bool:     hasEnclave;
-
-array[Class,ValidLevel] of var bool:     touchesLevel;
-array[Class,ValidLevel] of var cleLabel: labelAtLevel;
+array[AnnotatedClass]              of var Level:    boundLevel;
+array[UnannotatedClass,ValidLevel] of var cleLabel: labelAtLevel;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

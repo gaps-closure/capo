@@ -1,9 +1,9 @@
 cleLabel = {nullCleLabel, PurpleOrangeConstructable , TAG_RESPONSE_EXTRA , PurpleOrangeCallable , TAG_RESPONSE_GETVALUE , OrangeMain , OrangeShareable , Purple , orangeDFLT , purpleDFLT }; 
-hasLabelLevel = [nullLevel, purple , nullLevel , purple , nullLevel , orange , orange , purple , orange , purple ]; 
+hasLabelLevel = [nullLevel, purple , nullLevel , purple , nullLevel , orange , purple , purple , orange , purple ]; 
 isFunctionAnnotation = [false, true , false , true , false , true , false , false , false , false ]; 
 cdf = {nullCdf, PurpleOrangeConstructable_cdf_0 , PurpleOrangeCallable_cdf_0 , OrangeMain_cdf_0 , OrangeShareable_cdf_0 }; 
 fromCleLabel = [nullCleLabel, PurpleOrangeConstructable , PurpleOrangeCallable , OrangeMain , OrangeShareable ]; 
-hasRemotelevel = [nullLevel, orange , orange , orange , purple ]; 
+hasRemotelevel = [nullLevel, orange , orange , orange , orange ]; 
 hasDirection = [nullDirection, bidirectional , bidirectional , bidirectional , egress ]; 
 hasGuardOperation = [nullGuardOperation, allow , allow , allow , allow ]; 
 isOneway = [false, false , false , false , false ]; 
@@ -14,7 +14,7 @@ cdfForRemoteLevel = [|
 |nullCdf, PurpleOrangeCallable_cdf_0 , nullCdf 
 |nullCdf, nullCdf , nullCdf 
 |nullCdf, OrangeMain_cdf_0 , nullCdf 
-|nullCdf, nullCdf , OrangeShareable_cdf_0 
+|nullCdf, OrangeShareable_cdf_0 , nullCdf 
 |nullCdf, nullCdf , nullCdf 
 |nullCdf, nullCdf , nullCdf 
 |nullCdf, nullCdf , nullCdf 

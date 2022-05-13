@@ -44,20 +44,8 @@ def esatrack(data):
   for x in data['classes']:
     x['e'] = True if 'e' in x and x['e'] == True else False
     x['g'] = False
-  for x in data['fields']:
-    x['e'] = True if 'e' in x and x['e'] == True else False
-    x['s'] = True if 's' in x and x['s'] == True else False
-    x['g'] = False
-    x['G'] = None
-    if 'a' in x:
-      for a in x['a']:
-        ann = data['annotations'][a-1]
-        if 'isCLE' in ann and ann['isCLE'] == True: 
-          x['g'] = True
-          if x['G'] is not None: raise('Multiple CLE annotations found')
-          x['G'] = ann['n']
-          data['classes'][x['c']-1]['g'] = True
-  for x in data['methods']:
+    x['c'] = x['i']
+  for x in (data['fields'] + data['methods']):
     x['e'] = True if 'e' in x and x['e'] == True else False
     x['s'] = True if 's' in x and x['s'] == True else False
     x['g'] = False
@@ -155,17 +143,19 @@ class Model():
     self.allCalls      = [x for x,y,_,_,_ in self.allInOrder if y == 'Call']
     self.allFieldRefs  = [x for x,y,_,_,_ in self.allInOrder if y == 'Access']
     self.allElements   = [x for x,y,_,_,_ in self.allInOrder if y == 'Field' or y == 'Method']
+    self.allNodes      = [x for x,y,_,_,_ in self.allInOrder if y == 'Class' or y == 'Field' or y == 'Method']
+    self.allEdges      = [x for x,y,_,_,_ in self.allInOrder if y == 'Call'  or y == 'Access']
+    self.allEdgesT     = [z for z         in self.allInOrder if z[1] == 'Call'  or z[1] == 'Access']
     self.annotElements = [x for x,y,z,_,_ in self.allInOrder if z == 'Annotated' and (y == 'Field' or y == 'Method')]
 
     self.hasAnnotation = [x['G'] for y in self.annotElements for x in y]
-    self.hasClass      = [self.data['classes'][x['c']-1]['q'] for y in self.allElements   for x in y]
-    self.callFrom      = [self.data['methods'][x['F']-1]['q'] for y in self.allCalls      for x in y]
-    self.callTo        = [self.data['methods'][x['T']-1]['q'] for y in self.allCalls      for x in y]
-    self.accessFrom    = [self.data['methods'][x['F']-1]['q'] for y in self.allFieldRefs  for x in y]
-    self.accessTo      = [self.data['fields'][x['T']-1]['q']  for y in self.allFieldRefs  for x in y]
+    self.hasClass      = [self.data['classes'][x['c']-1]['q'] for y in self.allNodes      for x in y]
+    self.hasFrom       = [self.data['methods'][x['F']-1]['q'] for y in self.allEdges      for x in y]
+    self.hasTo         = [self.data['methods'][x['T']-1]['q'] if z[1] == 'Call' else self.data['fields'][x['T']-1]['q'] 
+                          for z in self.allEdgesT for x in z[0]]
 
-    self.colapscals = {self.collaps(x,False):1             for y in self.allCalls      for x in y}
-    self.colapsrefs = {self.collaps(x,True):1              for y in self.allFieldRefs  for x in y}
+    # self.colapscals    = {self.collaps(x,False):1             for y in self.allCalls      for x in y}
+    # self.colapsrefs    = {self.collaps(x,True):1              for y in self.allFieldRefs  for x in y}
 
   def collaps(self, x, isref):
     f  = self.data['methods'][x['F']-1]
@@ -209,11 +199,9 @@ class Model():
 
     for (x,y,z) in [
       ('hasAnnotation', list(map(fix,self.hasAnnotation)), 'AnnotatedElement'),
-      ('hasClass',      self.hasClass,                     'Element'),
-      ('callFrom',      self.callFrom,                     'Call' ),
-      ('callTo',        self.callTo,                       'Call'),
-      ('accessFrom',    self.accessFrom,                   'Access'),
-      ('accessTo',      self.accessTo,                     'Access')
+      ('hasClass',      self.hasClass,                     'Node'),
+      ('hasFrom',       self.hasFrom,                      'Edge' ),
+      ('hasTo',         self.hasTo,                        'Edge'),
     ]:
       oup.write('%s=array1d(%s,[\n%s\n]);\n' % (x,z,brklns(y, 10)))
 
