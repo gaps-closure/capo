@@ -16,6 +16,7 @@ import logging
 import sys
 import zmq
 
+
 @dataclass
 class Args:
     def __init__(self):
@@ -32,12 +33,9 @@ class Args:
     artifact: Optional[Path]
     log_level: str 
 
-def preprocess(source: Path, clang_args: List[str], schema: Optional[Any], logger: Logger) -> Transform:
-    toks = preprocessor.cindex_tokenizer(source, clang_args)
-    tree = preprocessor.cle_parser().parser.parse(toks)
-    tree = preprocessor.CLETransformer().transform(tree)
-    with open(source) as source_f:
-        transform = preprocessor.source_transform(source, source_f.read(), tree, 'naive', schema, logger)
+def preprocess(source: Path, schema: Optional[Path]) -> Transform:
+    pre = preprocessor.Preprocessor(schema=schema)
+    transform = pre.preprocess(source)
     return transform
 
 @dataclass
@@ -83,7 +81,7 @@ def start(args: Args, logger: Logger) -> Optional[Dict[str, Any]]:
         logger.info("No schema provided, using liberal mode in preprocessor") 
 
     def make_source_entity(source: Path) -> SourceEntity:
-        transform = preprocess(source, clang_args, schema, logger)
+        transform = preprocess(source, args.schema)
         logger.info("Preprocessed source file %s", source)
         return SourceEntity(source, transform.preprocessed, transform.cle_json, transform.source_map) 
 

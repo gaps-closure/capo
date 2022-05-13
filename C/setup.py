@@ -17,7 +17,8 @@ setup(
     install_requires=[
         "jsonschema",
         "pyzmq",
-        "lark"
+        "lark",
+        "minizinc"
     ],
     entry_points={
         "console_scripts": [
