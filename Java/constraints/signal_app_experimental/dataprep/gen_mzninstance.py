@@ -205,6 +205,61 @@ class Model():
     ]:
       oup.write('%s=array1d(%s,[\n%s\n]);\n' % (x,z,brklns(y, 10)))
 
+def coarsen_graph(mdl):
+  import networkx as nx
+  G = nx.DiGraph()
+  edges = {}
+  clust = {}
+  nrefs = {}
+  count = 0
+  for y,cat,ann,ext,sta in mdl.allEdgesT:
+    for x in y:
+      # endpoints
+      fe = mdl.data['methods'][x['F']-1]
+      te = mdl.data['methods'][x['T']-1] if cat == 'Call' else mdl.data['fields'][x['T']-1] 
+
+      # classes of endpoints
+      fc = mdl.data['classes'][fe['c']-1]
+      tc = mdl.data['classes'][te['c']-1]
+
+      # use endpoints if class is annotated, else use class 
+      fq,f = (fe['q'],fe) if fc['g'] else (fc['q'],fc)
+      tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
+
+      # put node in dict for access by ID
+      if fq not in nrefs: nrefs[fq] = f
+      if tq not in nrefs: nrefs[tq] = t
+
+      # put fq and tq in own cluster if not already clustered
+      #if fq not in clust: clust[fq] = fq
+      #if tq not in clust: clust[tq] = tq
+
+      if fq not in nrefs: G.add_node(fq)
+      if tq not in nrefs: G.add_node(tq)
+
+      # merge clusters if both endpoints are from unannotated classes 
+      # exclude externals
+      if not fc['g'] and not tc['g'] and not tc['e']: 
+        G.add_edge(fq,tq)
+        #if not (fq,tq) in edges:
+        #  edges[(fq,tq)] = 1
+        #  new = min([clust[fq],clust[tq]])
+        #  old = max([clust[fq],clust[tq]])
+        #  # XXX: this step is the expensive operation
+        #  for k in clust:
+        #    if clust[k] == old: clust[k] = new
+
+      # XXX: keep edges if at least one end point is annotated
+      # XXX: collapse edges by category
+
+      #count = count + 1
+      #if count % 10000 == 0: print('ecount:', count,'ncount:',len(clust))
+
+  print ('Nodes:', G.number_of_nodes())
+  print ('Edges:', G.number_of_edges())
+  print ('Components by size:', [len(c) for c in sorted(nx.weakly_connected_components(G), key=len, reverse=True)]) 
+  print ('Total nodes in components:', sum([len(c) for c in sorted(nx.weakly_connected_components(G), key=len, reverse=True)]))
+
 if __name__ == '__main__':
   logger = logging.getLogger()
   logger.addHandler(logging.StreamHandler(sys.stderr))
@@ -232,3 +287,5 @@ if __name__ == '__main__':
     mdl.write_debug_csv(csvp)
   print('Wrote debug file')
 
+  print('Placeholder for coarsening graph')
+  coarsen_graph(mdl)

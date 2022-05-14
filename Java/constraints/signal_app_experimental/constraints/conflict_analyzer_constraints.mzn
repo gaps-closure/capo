@@ -9,9 +9,44 @@
 constraint :: "UserAnnotationBindsUniqueLevel"
  forall (x in AnnotatedElement) (boundLevel[hasClass[x]] = hasLabelLevel[hasAnnotation[x]]);
 
-%constraint :: "LabelsMatchIfEndpointsUnannotated"
-% forall (x in Edge where isUnannotatedClass(hasClass[hasFrom[x]]) /\ isUnannotatedClass(hasClass[hasTo[x]]))
-%  (forall (l in ValidLevel) (labelAtLevel[hasClass[hasFrom[x]],l] = labelAtLevel[hasClass[hasTo[x]],l]));
+/*
+array[Class,ValidLevel] of var bool: touchesLevel;
+array[Edge,ValidLevel] of var bool: stouchesLevel;
+array[Edge,ValidLevel] of var bool: dtouchesLevel;
+array[Call] of var bool: xdedge;
+
+constraint :: "c1"
+ forall (x in Access) (xdedge[x] = false);
+
+constraint :: "c2"
+ forall (x in Call)
+  (if   (hasFrom[x] in AnnotatedElement /\ hasTo[x] in AnnotatedElement) 
+   then (xdedge[x] <-> hasLabelLevel[hasAnnotation[hasFrom[x]]] != hasLabelLevel[hasAnnotation[hasTo[x]]])
+   else (xdedge[x] = false) 
+   endif);
+
+constraint :: "c5"
+ forall (x in Edge where hasFrom[x] in AnnotatedElement)
+  (stouchesLevel[x, hasLabelLevel[hasAnnotation[hasFrom[x]]]] = true);
+
+constraint :: "c6"
+ forall (x in Edge where hasTo[x] in AnnotatedElement)
+  (dtouchesLevel[x, hasLabelLevel[hasAnnotation[hasTo[x]]]] = true);
+
+constraint :: "c7"
+ forall (x in Edge)
+  (forall (l in ValidLevel) (xdedge[x] = false -> stouchesLevel[x,l] = dtouchesLevel[x,l]));
+
+constraint :: "c8"
+ forall (x in Edge)
+  (let {Class: c = hasClass[hasFrom[x]];} in
+   (forall (l in ValidLevel) (stouchesLevel[x,l] -> touchesLevel[c,l])));
+
+constraint :: "c9"
+ forall (x in Edge)
+  (let {Class: c = hasClass[hasTo[x]];} in
+   (forall (l in ValidLevel) (dtouchesLevel[x,l] -> touchesLevel[c,l])));
+*/
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
