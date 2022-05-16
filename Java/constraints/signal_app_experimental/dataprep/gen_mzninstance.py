@@ -227,27 +227,20 @@ def coarsen_graph(mdl):
       tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
 
       # put node in dict for access by ID
-      if fq not in nrefs: nrefs[fq] = f
-      if tq not in nrefs: nrefs[tq] = t
-
-      # put fq and tq in own cluster if not already clustered
-      #if fq not in clust: clust[fq] = fq
-      #if tq not in clust: clust[tq] = tq
-
-      if fq not in nrefs: G.add_node(fq)
-      if tq not in nrefs: G.add_node(tq)
+      # if fq not in nrefs and not fc['e']: 
+      if fq not in nrefs:
+        nrefs[fq] = f
+        G.add_node(fq)
+      #if tq not in nrefs and not tc['e']: 
+      if tq not in nrefs:
+        nrefs[tq] = t
+        G.add_node(tq)
 
       # merge clusters if both endpoints are from unannotated classes 
-      # exclude externals
-      if not fc['g'] and not tc['g'] and not tc['e']: 
+      # XXX: exclude externals, make this an option 
+      #if not fc['g'] and not tc['g'] and not tc['e']: 
+      if not fc['g'] and not tc['g']:
         G.add_edge(fq,tq)
-        #if not (fq,tq) in edges:
-        #  edges[(fq,tq)] = 1
-        #  new = min([clust[fq],clust[tq]])
-        #  old = max([clust[fq],clust[tq]])
-        #  # XXX: this step is the expensive operation
-        #  for k in clust:
-        #    if clust[k] == old: clust[k] = new
 
       # XXX: keep edges if at least one end point is annotated
       # XXX: collapse edges by category
@@ -258,6 +251,9 @@ def coarsen_graph(mdl):
   print ('Nodes:', G.number_of_nodes())
   print ('Edges:', G.number_of_edges())
   print ('Components by size:', [len(c) for c in sorted(nx.weakly_connected_components(G), key=len, reverse=True)]) 
+  # for each component Y, assign a cluster ID C, and for each member X of Y clust[X] = C
+  # keep a dict of edges by from,to,cat,ext,sta, and deduplicate edges
+  # add collapsed graph node and edges to minizinc model
   print ('Total nodes in components:', sum([len(c) for c in sorted(nx.weakly_connected_components(G), key=len, reverse=True)]))
 
 if __name__ == '__main__':
