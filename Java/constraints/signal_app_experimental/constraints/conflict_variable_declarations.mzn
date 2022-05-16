@@ -112,7 +112,5 @@ predicate isUnannotatedClass(var Class: x) = x >= UnannotatedInternalClass_start
 % Decision and auxiliary variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-array[AnnotatedClass]              of var Level:    boundLevel;
-array[UnannotatedClass,ValidLevel] of var cleLabel: labelAtLevel;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
