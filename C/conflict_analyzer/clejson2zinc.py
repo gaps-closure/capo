@@ -12,7 +12,7 @@ from logging import Logger
 import logging
 import csv
 
-from preprocessor.__main__ import LabelledCleJson
+from preprocessor.preprocess import LabelledCleJson
 
 class DimensionError(Exception):
     pass
