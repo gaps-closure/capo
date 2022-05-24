@@ -8,12 +8,14 @@ import gzip
 import logging
 from   argparse import ArgumentParser
 from   cle2zinc import compute_zinc
+import pickle
 
 def get_args():
   p = ArgumentParser(description='Constraint Instance Data Encoder')
   p.add_argument('-i', '--input_model', required=True, type=str, help='Gzipped Input Program Model JSON file')
   p.add_argument('-c', '--cle_json', required=True, type=str, help='Input Program Model JSON file')
   p.add_argument('-o', '--output_dir', required=False, default='./instance', type=str, help='Output Model MZN file')
+  p.add_argument('-D', '--debug', required=False, action='store_true', help='Include Debug Output')
   return p.parse_args()
 
 def fix(x): return x.rsplit('.',1)[-1]
@@ -133,7 +135,7 @@ class Model():
       (self.iiacc,  'Access', '',            'Internal', 'Instance'),
       (self.isacc,  'Access', '',            'Internal', 'Static'),
       (self.eiacc,  'Access', '',            'External', 'Instance'),
-      (self.esacc,  'Access', '',            'External', 'Static')
+      (self.esacc,  'Access', '',            'External', 'Static'),
     ]
 
     # Assign sequential ID to all data items
@@ -153,6 +155,7 @@ class Model():
     self.hasFrom       = [self.data['methods'][x['F']-1]['q'] for y in self.allEdges      for x in y]
     self.hasTo         = [self.data['methods'][x['T']-1]['q'] if z[1] == 'Call' else self.data['fields'][x['T']-1]['q'] 
                           for z in self.allEdgesT for x in z[0]]
+    
 
     # self.colapscals    = {self.collaps(x,False):1             for y in self.allCalls      for x in y}
     # self.colapsrefs    = {self.collaps(x,True):1              for y in self.allFieldRefs  for x in y}
@@ -202,59 +205,156 @@ class Model():
       ('hasClass',      self.hasClass,                     'Node'),
       ('hasFrom',       self.hasFrom,                      'Edge' ),
       ('hasTo',         self.hasTo,                        'Edge'),
+      ('hasClusterFrom',self.hasClusterFrom,               'ClusterEdge'),
+      ('hasClusterTo',  self.hasClusterTo,                 'ClusterEdge'),
     ]:
       oup.write('%s=array1d(%s,[\n%s\n]);\n' % (x,z,brklns(y, 10)))
 
-def coarsen_graph(mdl):
-  import networkx as nx
-  G = nx.DiGraph()
-  edges = {}
-  clust = {}
-  nrefs = {}
-  count = 0
-  for y,cat,ann,ext,sta in mdl.allEdgesT:
-    for x in y:
-      # endpoints
-      fe = mdl.data['methods'][x['F']-1]
-      te = mdl.data['methods'][x['T']-1] if cat == 'Call' else mdl.data['fields'][x['T']-1] 
+    accum = 0
+    oup.write('ClusterNodes_start=1;\n')
+    oup.write('ClusterNodes_end=%s;\n' % self.clusterNodeCount)
+    oup.write('ClusterEdges_start=%s;\n' %(self.clusterNodeCount + 1))
+    oup.write('ClusterEdges_end= %s;\n' %  (self.clusterNodeCount + len(self.clusterEdges) -1))
 
-      # classes of endpoints
-      fc = mdl.data['classes'][fe['c']-1]
-      tc = mdl.data['classes'][te['c']-1]
+  def coarsen_graph(self):
+    import networkx as nx
+    from networkx.drawing.nx_pydot import write_dot
+    G = nx.DiGraph()
+    ClusterG = nx.DiGraph()
+    edges = {}
+    clust = {}
+    nrefs = {}
+    clusterEdges = []
+    clusterNodes = []
+    self.dbg_componentClass = {}
+    count = 0
+    # y contains all edges of type cat
+    # cat is either call or access
+    # ann is the annotation
+    # ext is a boolean for external
+    # sta is a boolean for static
+    for y,cat,ann,ext,sta in self.allEdgesT:
+      for x in y:
+        # endpoints
+        #from edge
+        fe = self.data['methods'][x['F']-1]
+        #to edge
+        te = self.data['methods'][x['T']-1] if cat == 'Call' else self.data['fields'][x['T']-1] 
+        # classes of endpoints
+        #from edge
+        fc = self.data['classes'][fe['c']-1]
+        #to edge
+        tc = self.data['classes'][te['c']-1]
+        # use endpoints if class is annotated, else use class 
+        fq,f = (fe['q'],fe) if fc['g'] else (fc['q'],fc)
+        tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
+        # put node in dict for access by ID
+        # if fq not in nrefs and not fc['e']: 
+        if fq not in nrefs:
+          nrefs[fq] = f
+          G.add_node(fq)
+          clusterNodes.append(fq)
+        #if tq not in nrefs and not tc['e']: 
+        if tq not in nrefs:
+          nrefs[tq] = t
+          G.add_node(tq)
+          clusterNodes.append(tq)
+        # connect clusters if both endpoints are from unannotated classes 
+        # XXX: exclude externals, make this an option 
+        # tc['e'] means to class external
+        #if not fc['g'] and not tc['g'] and not tc['e']: 
+        if not fc['g'] and not tc['g']:
+          G.add_edge(fq,tq)
+        # since we are only making edges to unannotated classes, nodes of size 1 can be individual annotated elements
 
-      # use endpoints if class is annotated, else use class 
-      fq,f = (fe['q'],fe) if fc['g'] else (fc['q'],fc)
-      tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
 
-      # put node in dict for access by ID
-      # if fq not in nrefs and not fc['e']: 
-      if fq not in nrefs:
-        nrefs[fq] = f
-        G.add_node(fq)
-      #if tq not in nrefs and not tc['e']: 
-      if tq not in nrefs:
-        nrefs[tq] = t
-        G.add_node(tq)
+        # XXX: keep edges if at least one end point is annotated
+        # XXX: collapse edges by category
 
-      # merge clusters if both endpoints are from unannotated classes 
-      # XXX: exclude externals, make this an option 
-      #if not fc['g'] and not tc['g'] and not tc['e']: 
-      if not fc['g'] and not tc['g']:
-        G.add_edge(fq,tq)
+        #count = count + 1
+        #if count % 10000 == 0: print('ecount:', count,'ncount:',len(clust))
 
-      # XXX: keep edges if at least one end point is annotated
-      # XXX: collapse edges by category
+    print ('Nodes:', G.number_of_nodes())
+    print ('Edges:', G.number_of_edges())
+    components = nx.weakly_connected_components(G)
 
-      #count = count + 1
-      #if count % 10000 == 0: print('ecount:', count,'ncount:',len(clust))
+    componentID = 1
 
-  print ('Nodes:', G.number_of_nodes())
-  print ('Edges:', G.number_of_edges())
-  print ('Components by size:', [len(c) for c in sorted(nx.weakly_connected_components(G), key=len, reverse=True)]) 
-  # for each component Y, assign a cluster ID C, and for each member X of Y clust[X] = C
-  # keep a dict of edges by from,to,cat,ext,sta, and deduplicate edges
-  # add collapsed graph node and edges to minizinc model
-  print ('Total nodes in components:', sum([len(c) for c in sorted(nx.weakly_connected_components(G), key=len, reverse=True)]))
+    #Assign each node a cluster
+    for c in sorted(components, key=len, reverse=True):
+      for node in c:
+        classOfNode = self.hasClass[node]
+        # print(f"Node Class: {classOfNode}")
+        if componentID in self.dbg_componentClass:
+          self.dbg_componentClass[componentID].append(classOfNode)
+        else:
+          self.dbg_componentClass[componentID] = [classOfNode]
+
+        nrefs[node]["Component"] = componentID
+        clust[node] = componentID
+      # ClusterG.add_node(componentID)
+      classIDStr = "[[" + str(componentID) + "]]\n"
+      for i in self.dbg_componentClass[componentID][:10]:
+        classIDStr += (str(i) + "\n")  
+      if len(self.dbg_componentClass[componentID]) > 10:
+        classIDStr += "... \n"
+
+      ClusterG.add_node(componentID,   {"xlabel" : classIDStr})
+      componentID += 1
+      
+    self.clusterNodeCount = componentID-1
+    self.clusterEdges = set()
+    cluseterSeenType = {}
+    count = 0
+    for y,cat,ann,ext,sta in self.allEdgesT:
+      for x in y:
+        # endpoints
+        #from edge
+        fe = self.data['methods'][x['F']-1]
+        #to edge
+        te = self.data['methods'][x['T']-1] if cat == 'Call' else self.data['fields'][x['T']-1] 
+        fc = self.data['classes'][fe['c']-1]
+        #to edge
+        tc = self.data['classes'][te['c']-1]
+        # use endpoints if class is annotated, else use class 
+        fq,f = (fe['q'],fe) if fc['g'] else (fc['q'],fc)
+        tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
+        # edge = (fe['q'],te['q'])
+        clusterEdge = (nrefs[fq]['Component'],nrefs[tq]['Component'])
+        if clusterEdge[0] != clusterEdge[1]:
+          if  clusterEdge in cluseterSeenType:
+            if not cat in cluseterSeenType[clusterEdge]:
+              self.clusterEdges.add(clusterEdge)
+              cluseterSeenType[clusterEdge].append(cat)
+          else:
+            self.clusterEdges.add(clusterEdge)
+            cluseterSeenType[clusterEdge] = [cat]
+
+
+    
+    self.hasClusterFrom = []
+    self.hasClusterTo = []
+    for edge in self.clusterEdges:
+      self.hasClusterFrom.append(edge[0])
+      self.hasClusterTo.append(edge[1])
+      ClusterG.add_edge(edge[0],edge[1])
+
+ 
+
+    # for n in clust:
+    #   print(f"Node: {n} in cluster: {clust[n]}")
+    
+    print ('Num ClusterNodes: ', self.clusterNodeCount)
+    print ('Num ClusterEdges: ', len(self.clusterEdges))
+    print ('ClusterEdges: ', self.clusterEdges)
+    for cmpId in self.dbg_componentClass:
+      print (f"Component: {cmpId} has the following classes: {self.dbg_componentClass[cmpId]} ")
+
+    write_dot(ClusterG,"cluster.dot")
+    # for each component Y, assign a cluster ID C, and for each member X of Y clust[X] = C
+    # keep a dict of edges by from,to,cat,ext,sta, and deduplicate edges
+    # add collapsed graph node and edges to minizinc model
+    print ('Total nodes in components:', sum([len(c) for c in sorted(nx.weakly_connected_components(G), key=len, reverse=True)]))
 
 if __name__ == '__main__':
   logger = logging.getLogger()
@@ -271,17 +371,20 @@ if __name__ == '__main__':
   print('Writing data instances ...')
   if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir)
-  with open(args.output_dir + '/pdg_instance.mzn', 'w') as moup:
-    mdl.write_model_mzn(moup)
   with open(args.output_dir + '/cle_instance.mzn', 'w') as coup:
     coup.write(cmz.cle_instance)
   with open(args.output_dir + '/enclave_instance.mzn', 'w') as eoup:
     eoup.write(cmz.enclave_instance)
   print('Wrote data instances')
-  print('Writing debug file ...')
-  with gzip.open(args.output_dir + '/pdg.csv.gz', 'wt') as csvp:
-    mdl.write_debug_csv(csvp)
-  print('Wrote debug file')
+
+  if args.debug:
+    print('Writing debug file ...')
+    with gzip.open(args.output_dir + '/pdg.csv.gz', 'wt') as csvp:
+      mdl.write_debug_csv(csvp)
+    print('Wrote debug file')
 
   print('Placeholder for coarsening graph')
-  coarsen_graph(mdl)
+  mdl.coarsen_graph()
+
+  with open(args.output_dir + '/pdg_instance.mzn', 'w') as moup:
+    mdl.write_model_mzn(moup)

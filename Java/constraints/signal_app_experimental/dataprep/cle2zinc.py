@@ -1,20 +1,105 @@
 #!/usr/bin/python3
 
-import sys
-import json
-import logging
 from   argparse      import ArgumentParser
-from   dataclasses   import dataclass
-from   collections   import defaultdict
+from dataclasses import dataclass
+import json
+import sys
+from collections import defaultdict
+import logging
 
-class DimensionError(Exception): pass
+class DimensionError(Exception):
+    pass
 
-class CLEUsageError(Exception): pass
+class CLEUsageError(Exception):
+    pass
+
 
 @dataclass
 class ZincSrc:
     cle_instance: str
     enclave_instance: str
+
+def createEnum(enumName,enums):
+    zincInput = ""
+    zincInput += f"{enumName} = {{"
+    first = True
+    for j in enums[enumName]:
+        if first:
+            first = False
+            zincInput += (f"{j}")
+        else:
+            zincInput += (f", {j} ")
+    zincInput += ("}; \n")
+
+    return zincInput
+
+def createZincArray(arrayName,arrays):
+    zincInput = ""
+    zincInput += (f"{arrayName} = [")
+    first = True
+    for j in arrays[arrayName]:
+        if first:
+            first = False
+            zincInput += (f"{j}")
+        else:
+            zincInput += (f", {j} ")
+    zincInput += ("]; \n")
+    return zincInput
+
+def create2DzincNoTypes(arrayName,arrays):
+    zincInput = ""
+    zincInput += (f"{arrayName} = [|\n ")
+    for row in arrays[arrayName]:
+        first = True
+        for j in row:
+            if first:
+                first = False
+                zincInput += (f"{j}")
+            else:
+                zincInput += (f", {j} ")
+        zincInput += ("\n|")
+    zincInput += ("]; \n")
+    return zincInput
+
+def create2DzincWithTypes(arrayName,dim1Type,dim2Type,arrays):
+    zincInput = ""
+    zincInput += (f"{arrayName} = array2d({dim1Type}, {dim2Type}, [\n ")
+    first = True
+    for row in arrays[arrayName]:
+        for j in row:
+            if j == "true":
+                j = "true "
+            if first:
+                first = False
+                zincInput += (f" {j} ")
+            else:
+                zincInput += (f", {j} ")
+        zincInput += ("\n")
+    zincInput += (" ]); \n")
+    return zincInput
+
+def create3DzincWithTypes(arrayName,dim1Type,dim2Type,dim3Type,arrays, lineBreak = 20):
+    zincInput = (f"{arrayName} = array3d({dim1Type}, {dim2Type}, {dim3Type}, [\n ")
+    first = True
+    for row in arrays[arrayName]:
+        argCount = 0
+        for nested in row:
+            for j in nested:
+                if j == "true":
+                    j = "true "
+                if first:
+                    first = False
+                    zincInput += (f" {j} ")
+                else:
+                    zincInput += (f", {j} ")
+
+                if argCount % lineBreak == lineBreak -1:
+                    zincInput += ("\t\t")
+                argCount+=1
+        zincInput += ("\n")
+    zincInput += (" ]); \n")
+    return zincInput
+
 
 def compute_zinc(cleJson, maxArgIdx, logger):
     hasCDF = []
@@ -22,6 +107,7 @@ def compute_zinc(cleJson, maxArgIdx, logger):
     listOfLevels = []
 
     logger.debug(maxArgIdx)
+
 
     noneCount = 0
     enums = defaultdict(lambda: [])
@@ -76,6 +162,7 @@ def compute_zinc(cleJson, maxArgIdx, logger):
         CDF_flag = False
         logger.debug("ENTRY")
         logger.debug(entry)
+        
 
         enums["cleLabel"].append(entry["cle-label"])
         if "cle-json" in entry.keys() and "level" in entry["cle-json"].keys():
@@ -159,6 +246,7 @@ def compute_zinc(cleJson, maxArgIdx, logger):
                                 arrays["cdfForRemoteLevel"].append(nullLevel)
                 cdfIdx+=1
    
+    # create default labels for each level
     for level in listOfLevels:
         if level == "nullLevel":
             continue
@@ -168,6 +256,7 @@ def compute_zinc(cleJson, maxArgIdx, logger):
         arrays['isFunctionAnnotation'].append("false")
         arrays["cdfForRemoteLevel"].append(nullLevel)
 
+    # Check if any function annotations exists and if not create a null function annotation
     anyFunctionCdfs = False
     for i in arrays['isFunctionAnnotation']:
         if i == "true":
@@ -301,24 +390,6 @@ def compute_zinc(cleJson, maxArgIdx, logger):
         logger.error("Error! Duplicate CLE Lables detected.")
         raise CLEUsageError("Duplicate CLE Lables detected.")
 
-    maxCodTaint = 0
-    maxNumArgsTaints = 0
-    maxRetTaint = 0
-
-
-    for taints in arrays["hasargtaints"]: 
-        for args in taints:
-            if len(args) > maxNumArgsTaints:
-                maxNumArgsTaints = len(args)
-
-    for taints in arrays["hasrettaints"]: 
-        if len(taints) > maxRetTaint:
-            maxRetTaint = len(taints)
-
-    for taints in arrays["hascodtaints"]: 
-        if len(taints) > maxCodTaint:
-            maxCodTaint = len(taints)
-
     enclave_instance = ""
     Levels = "Level = {"
     Enclave = "Enclave = {"
@@ -343,130 +414,28 @@ def compute_zinc(cleJson, maxArgIdx, logger):
 
 
     cle_instance = ""
-
-    cle_instance += f"cleLabel = {{"
-    first = True
-    for j in enums["cleLabel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("}; \n")
-
-    cle_instance += (f"hasLabelLevel = [")
-    first = True
-    for j in arrays["hasLabelLevel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+    cle_instance+=createEnum("cleLabel", enums)
+    cle_instance+=createZincArray("hasLabelLevel", arrays)
+    cle_instance+=createZincArray("isFunctionAnnotation", arrays)
+    cle_instance+=createEnum("cdf", enums)
+    cle_instance+=createZincArray("fromCleLabel", arrays)
+    cle_instance+=createZincArray("hasRemotelevel", arrays)
+    cle_instance+=createZincArray("hasDirection", arrays)
+    cle_instance+=createZincArray("hasGuardOperation", arrays)
+    cle_instance+=createZincArray("isOneway", arrays)
+    cle_instance+=create2DzincNoTypes("cdfForRemoteLevel", arrays)
+    cle_instance+=create2DzincWithTypes("hasRettaints","functionCdf","cleLabel", arrays)
+    cle_instance+=create2DzincWithTypes("hasCodtaints","functionCdf","cleLabel", arrays)
+    cle_instance+=create3DzincWithTypes("hasArgtaints","functionCdf","parmIdx","cleLabel", arrays, lineBreak= maxArgIdx)
+    cle_instance+=create2DzincWithTypes("hasARCtaints","functionCdf", "cleLabel", arrays)
     
-    cle_instance += (f"isFunctionAnnotation = [")
-    first = True
-    for j in arrays["isFunctionAnnotation"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
-
-    cle_instance += (f"cdf = {{")
-    first = True
-    for j in enums["cdf"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("}; \n")
-
-    cle_instance += (f"fromCleLabel = [")
-    first = True
-    for j in arrays["fromCleLabel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
-
-    cle_instance += (f"hasRemotelevel = [")
-    first = True
-    for j in arrays["hasRemotelevel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
-
-    cle_instance += (f"hasDirection = [")
-    first = True
-    for j in arrays["hasDirection"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
-
-    cle_instance += (f"hasGuardOperation = [")
-    first = True
-    for j in arrays["hasGuardOperation"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
-
-    cle_instance += (f"isOneway = [")
-    first = True
-    for j in arrays["isOneway"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
-
-    cle_instance += (f"cdfForRemoteLevel = [|\n ")
-    for row in arrays["cdfForRemoteLevel"]:
-        logger.debug(row)
-        first = True
-        for j in row:
-            if first:
-                first = False
-                cle_instance += (f"{j}")
-            else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n|")
-    cle_instance += ("]; \n")
+    ### SANITY CHECKS
 
     numFunctionCDFS = len(arrays["hasRettaints"])
     logger.debug(f"Num Function CDFs: {numFunctionCDFS}")
     numCleLabels = len(enums["cleLabel"])
     logger.debug(f"Num CLE Labels: {numCleLabels}")
 
-
-    cle_instance += (f"hasRettaints = array2d(functionCdf, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasRettaints"]:
-        logger.debug(row)
-        for j in row:
-            if j == "true":
-                j = "true "
-            if first:
-                first = False
-                cle_instance += (f" {j} ")
-            else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
     numElts = 0
     for i in arrays["hasRettaints"]:
         for j in i:
@@ -475,21 +444,6 @@ def compute_zinc(cleJson, maxArgIdx, logger):
         logger.error("hasRettaints has incorrect dimensions")
         raise DimensionError("hasRettaints has incorrect dimensions")
 
-
-    cle_instance += (f"hasCodtaints = array2d(functionCdf, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasCodtaints"]:
-        logger.debug(row)
-        for j in row:
-            if j == "true":
-                j = "true "
-            if first:
-                first = False
-                cle_instance += (f" {j} ")
-            else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
     numElts = 0
     for i in arrays["hasCodtaints"]:
         for j in i:
@@ -498,26 +452,6 @@ def compute_zinc(cleJson, maxArgIdx, logger):
         logger.error("hasCodtaints has incorrect dimensions")
         raise DimensionError("hasCodtaints has incorrect dimensions")
 
-    cle_instance += (f"hasArgtaints = array3d(functionCdf, parmIdx, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasArgtaints"]:
-        logger.debug(row)
-        argCount = 0
-        for nested in row:
-            for j in nested:
-                if j == "true":
-                    j = "true "
-                if first:
-                    first = False
-                    cle_instance += (f" {j} ")
-                else:
-                    cle_instance += (f", {j} ")
-
-                if argCount % maxArgIdx == maxArgIdx -1:
-                    cle_instance += ("\t\t")
-                argCount+=1
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
     numElts = 0
     for i in arrays["hasArgtaints"]:
         for j in i:
@@ -526,21 +460,6 @@ def compute_zinc(cleJson, maxArgIdx, logger):
     if numFunctionCDFS * maxArgIdx * numCleLabels != numElts:
         logger.error("hasArgtaints has incorrect dimensions")
         raise DimensionError("hasArgtaints has incorrect dimensions")
-
-    cle_instance += (f"hasARCtaints = array2d(functionCdf, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasARCtaints"]:
-        logger.debug(row)
-        for j in row:
-            if j == "true":
-                j = "true "
-            if first:
-                first = False
-                cle_instance += (f" {j} ")
-            else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
 
     numElts = 0
     for i in arrays["hasARCtaints"]:
@@ -555,11 +474,13 @@ def compute_zinc(cleJson, maxArgIdx, logger):
 
     return ZincSrc(cle_instance, enclave_instance)   
    
+    
 # Parse command line argumets
 def get_args():
   p = ArgumentParser(description='CLOSURE Language Extensions JSON Processor')
   p.add_argument('-f', '--file', required=True, type=str, help='Cle Json')
   return p.parse_args()
+
 
 def main():
     args   = get_args()
@@ -575,6 +496,7 @@ def main():
         cle_f.write(src.cle_instance)
     with open("enclave_instance.mzn", "w") as enclave_f:
         enclave_f.write(src.enclave_instance)
+
 
 if __name__ == '__main__':
   main()

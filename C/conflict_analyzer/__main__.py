@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
 from conflict_analyzer.minizinc import minizinc
-from preprocessor.__main__ import LabelledCleJson, Transform
-import preprocessor.__main__ as preprocessor
+from preprocessor.preprocess import LabelledCleJson, Transform
+import preprocessor.preprocess as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
 from conflict_analyzer.exceptions import SourcedException, Source
 import tempfile
@@ -108,14 +108,13 @@ def start(args: Args, logger: Logger) -> Optional[Dict[str, Any]]:
     return analyze()
    
 
-
-def main() -> None: 
+def parsed_args() -> Args:
     constraints_def = Path(__file__).parent / 'constraints/conflict_analyzer_constraints.mzn'
     decls_def = Path(__file__).parent / 'constraints/conflict_variable_declarations.mzn'
     parser = argparse.ArgumentParser("Conflict Analyzer") 
     parser.add_argument('sources', help=".c or .h to run through conflict analyzer", type=Path, nargs="+")
     parser.add_argument('--temp-dir', help="Temporary directory.", type=Path, default=Path(tempfile.mkdtemp()), required=False)
-    parser.add_argument('--clang-args', help="Arguments to pass to clang", type=str, required=False, default="")
+    parser.add_argument('--clang-args', help="Arguments to pass to clang (paths should be absolute)", type=str, required=False, default="")
     parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
     parser.add_argument('--pdg-lib', help="Path to pdg lib", 
         type=Path, required=True)
@@ -129,17 +128,25 @@ def main() -> None:
     parser.add_argument('--zmq', help="zmq url to post result to", type=str, nargs="?")
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args())
-    
+    args.temp_dir = args.temp_dir.resolve()
+    args.pdg_lib = args.pdg_lib.resolve()
+    return args
+
+def setup_logger() -> Logger:
     logger = logging.getLogger()
     handler = logging.StreamHandler(sys.stderr)
     logger.addHandler(handler)
+    # Alternative logging format 
     # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
     # handler.setFormatter(formatter)
-    # try:
+    return logger
+
+
+def main() -> None: 
+    args = parsed_args()        
+    logger = setup_logger()
     out = start(args, logger)
-    # except Exception as e:
-        # logger.error(str(e))
-    # else: 
+
     def output_to_file(path: Path):
         def _out(s: Any):
             with open(path, "w") as f:
