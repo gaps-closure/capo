@@ -206,41 +206,37 @@ class Model():
     oup.write('ClusterEdges_end= %s;\n' %  (self.clusterNodeCount + len(self.clusterEdges)))
 
   def coarsen_graph(self):
-    def edgen():
+    def edgen(exclude_external=False):
       # y contains all edges of type cat
       # cat is either call or access
       # ann is the annotation
       # ext is a boolean for external
       # sta is a boolean for static
       for y,cat,ann,ext,sta in self.allEdgesT:
+        if exclude_external == True and ext == 'External': continue
         for x in y:
           # endpoints: fe->te, corresponding classes of endpoints: fc->tc
           fe = self.data['methods'][x['F']-1]
           te = self.data['methods'][x['T']-1] if cat == 'Call' else self.data['fields'][x['T']-1] 
           fc = self.data['classes'][fe['c']-1]
           tc = self.data['classes'][te['c']-1]
-          # use endpoints if class is annotated, else use class 
-          #fq,f = (fe['q'],fe) if fc['g'] else (fc['q'],fc)
-          #tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
           # use endpoints if annotated, else use class 
           fq,f = (fe['q'],fe) if fe['g'] else (fc['q'],fc)
           tq,t = (te['q'],te) if te['g'] else (tc['q'],tc)
           yield fq,f,fc,tq,t,tc,cat,ann,ext,sta
 
+    excext = False      # Whether external nodes/edges are included XXX: make cmd line option
     G = nx.DiGraph()
     nrefs = {}
-    for fq,f,fc,tq,t,tc,cat,ann,ext,sta in edgen():
+    for fq,f,fc,tq,t,tc,cat,ann,ext,sta in edgen(excext):
       # XXX: exclude externals, make this an option, fc['e'] means from class is external
-      # if fq not in nrefs and not fc['e']: 
       if fq not in nrefs:
         nrefs[fq] = f
         G.add_node(fq)
-      #if tq not in nrefs and not tc['e']: 
       if tq not in nrefs:
         nrefs[tq] = t
         G.add_node(tq)
       # connect nodes if both endpoints are from unannotated classes 
-      #if not fc['g'] and not tc['g'] and not tc['e']: 
       if not fc['g'] and not tc['g']:
         G.add_edge(fq,tq)
 
@@ -256,7 +252,8 @@ class Model():
         nrefs[n]["Component"] = i+1
 
     self.clusterEdges = set([(nrefs[fq]['Component'],nrefs[tq]['Component'],cat) 
-                              for fq,f,fc,tq,t,tc,cat,ann,ext,sta in edgen() if nrefs[fq]['Component'] != nrefs[tq]['Component'] ])
+                              for fq,f,fc,tq,t,tc,cat,ann,ext,sta in edgen(excext) 
+                              if (nrefs[fq]['Component'] != nrefs[tq]['Component']) ])
 
     self.hasClusterFrom     = [e[0] for e in self.clusterEdges]
     self.hasClusterTo       = [e[1] for e in self.clusterEdges]
@@ -272,7 +269,7 @@ class Model():
     # Write dot file for coarsened graph
     ClusterG = nx.DiGraph()
     for i,c in enumerate(components):
-      lbl = ('[[%s]]\n' % str(i+1)) + ''.join(['%s(%s),\n'%(str(x),str(self.hasClass[x-1])) for x in list(c)[:10]]) + ('...\n' if len(c) > 10 else '')
+      lbl = ('[%s[%s]]\n'%(str(i+1),str(len(c)))) + ''.join(['%s(%s),\n'%(str(x),str(self.hasClass[x-1])) for x in list(c)[:10]]) + ('...\n' if len(c) > 10 else '')
       ClusterG.add_node(i+1, {"xlabel" : lbl})
     for edge in self.clusterEdges:
       ClusterG.add_edge(edge[0],edge[1])
