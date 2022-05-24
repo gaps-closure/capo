@@ -214,15 +214,17 @@ class Model():
       # sta is a boolean for static
       for y,cat,ann,ext,sta in self.allEdgesT:
         for x in y:
-          # endpoints: fe->te
+          # endpoints: fe->te, corresponding classes of endpoints: fc->tc
           fe = self.data['methods'][x['F']-1]
           te = self.data['methods'][x['T']-1] if cat == 'Call' else self.data['fields'][x['T']-1] 
-          # classes of endpoints: fc->tc
           fc = self.data['classes'][fe['c']-1]
           tc = self.data['classes'][te['c']-1]
           # use endpoints if class is annotated, else use class 
-          fq,f = (fe['q'],fe) if fc['g'] else (fc['q'],fc)
-          tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
+          #fq,f = (fe['q'],fe) if fc['g'] else (fc['q'],fc)
+          #tq,t = (te['q'],te) if tc['g'] else (tc['q'],tc)
+          # use endpoints if annotated, else use class 
+          fq,f = (fe['q'],fe) if fe['g'] else (fc['q'],fc)
+          tq,t = (te['q'],te) if te['g'] else (tc['q'],tc)
           yield fq,f,fc,tq,t,tc,cat,ann,ext,sta
 
     G = nx.DiGraph()
@@ -253,18 +255,8 @@ class Model():
       for n in c:
         nrefs[n]["Component"] = i+1
 
-    self.clusterEdges = set()
-    cluseterSeenType = {}
-    for fq,f,fc,tq,t,tc,cat,ann,ext,sta in edgen():
-      clusterEdge = (nrefs[fq]['Component'],nrefs[tq]['Component'])
-      if clusterEdge[0] != clusterEdge[1]:
-        if  clusterEdge in cluseterSeenType:
-          if not cat in cluseterSeenType[clusterEdge]:
-            self.clusterEdges.add(clusterEdge)
-            cluseterSeenType[clusterEdge].append(cat)
-        else:
-          self.clusterEdges.add(clusterEdge)
-          cluseterSeenType[clusterEdge] = [cat]
+    self.clusterEdges = set([(nrefs[fq]['Component'],nrefs[tq]['Component'],cat) 
+                              for fq,f,fc,tq,t,tc,cat,ann,ext,sta in edgen() if nrefs[fq]['Component'] != nrefs[tq]['Component'] ])
 
     self.hasClusterFrom     = [e[0] for e in self.clusterEdges]
     self.hasClusterTo       = [e[1] for e in self.clusterEdges]
@@ -273,16 +265,15 @@ class Model():
 
     print ('Num ClusterNodes: ', self.clusterNodeCount)
     print ('Num ClusterEdges: ', len(self.clusterEdges))
-    print ('ClusterEdges: ',     self.clusterEdges)
-    for componentID in self.dbg_componentClass:
-      print (f"Component: {componentID} has the following classes: {self.dbg_componentClass[componentID]} ")
+    #print ('ClusterEdges: ',     self.clusterEdges)
+    #for componentID in self.dbg_componentClass:
+    #  print (f"Component: {componentID} has the following classes: {self.dbg_componentClass[componentID]} ")
 
     # Write dot file for coarsened graph
     ClusterG = nx.DiGraph()
-    for componentID in self.dbg_componentClass:
-      cnodes = self.dbg_componentClass[componentID]
-      label  = ('[[%s]]\n' % componentID) + '\n'.join(list(map(str,cnodes[:10]))) + '\n' + ('...\n' if len(cnodes) > 10 else '')
-      ClusterG.add_node(componentID, {"xlabel" : label})
+    for i,c in enumerate(components):
+      lbl = ('[[%s]]\n' % str(i+1)) + ''.join(['%s(%s),\n'%(str(x),str(self.hasClass[x-1])) for x in list(c)[:10]]) + ('...\n' if len(c) > 10 else '')
+      ClusterG.add_node(i+1, {"xlabel" : lbl})
     for edge in self.clusterEdges:
       ClusterG.add_edge(edge[0],edge[1])
     write_dot(ClusterG,"cluster.dot")
