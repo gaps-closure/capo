@@ -106,3 +106,17 @@ set of Level:   ValidLevel   = { x | x in Level   where x != nullLevel };
 set of Enclave: ValidEnclave = { x | x in Enclave where x != nullEnclave };
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Clustered Java Program Model
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+int: ClusterNodes_start;
+int: ClusterNodes_end;
+int: ClusterEdges_start;
+int: ClusterEdges_end;
+
+set of int: ClusterNode = ClusterNodes_start .. ClusterNodes_end;
+set of int: ClusterEdge = ClusterEdges_start .. ClusterEdges_end;
+
+array[ClusterEdge] of ClusterNode: hasClusterFrom;
+array[ClusterEdge] of ClusterNode: hasClusterTo;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
