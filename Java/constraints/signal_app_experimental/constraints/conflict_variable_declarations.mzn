@@ -17,7 +17,7 @@ enum Direction = {nullDirection, bidirectional, egress, ingress};
 enum cdf;  % function cdfs must be kept contiguous
 set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel[x]]==true };
 
-int: MaxFuncParms;  % Max number of parameters in any method or constructor in the program 
+int: MaxFuncParms;  % Max number of parameters in any method or constructor in the program
 set of int: parmIdx = 1..MaxFuncParms;
 
 array[cleLabel]                       of Level:          hasLabelLevel;
@@ -104,13 +104,5 @@ array[AnnotatedElement] of cleLabel: hasAnnotation;
 
 set of Level:   ValidLevel   = { x | x in Level   where x != nullLevel };
 set of Enclave: ValidEnclave = { x | x in Enclave where x != nullEnclave };
-
-predicate isAnnotatedClass(var Class: x)   = x >= AnnotatedInternalClass_start   /\ x <= AnnotatedInternalClass_end;
-predicate isUnannotatedClass(var Class: x) = x >= UnannotatedInternalClass_start /\ x <= UnannotatedExternalClass_end;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Decision and auxiliary variables
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

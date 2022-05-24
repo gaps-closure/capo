@@ -30,6 +30,13 @@
           "guarddirective": {
             "operation": "allow"
           }
+        },
+        {
+          "remotelevel": "purple",
+          "direction": "egress",
+          "guarddirective": {
+            "operation": "allow"
+          }
         }
       ]
     }
@@ -37,7 +44,16 @@
   {
     "cle-label": "Purple",
     "cle-json": {
-      "level": "purple"
+      "level": "purple",
+      "cdf": [
+        {
+          "remotelevel": "purple",
+          "direction": "egress",
+          "guarddirective": {
+            "operation": "allow"
+          }
+        }
+      ]
     }
   },
   {
@@ -53,7 +69,23 @@
           },
           "argtaints": [],
           "codtaints": [
-            "com.peratonlabs.closure.testprog.example1.annotations.Purple"
+            "com.peratonlabs.closure.testprog.example1.annotations.Purple",
+            "com.peratonlabs.closure.testprog.example1.annotations.OrangeShareable"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_GETVALUE"
+          ]
+        },
+        {
+          "remotelevel": "purple",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [],
+          "codtaints": [
+            "com.peratonlabs.closure.testprog.example1.annotations.Purple",
+            "com.peratonlabs.closure.testprog.example1.annotations.OrangeShareable"
           ],
           "rettaints": [
             "TAG_RESPONSE_GETVALUE"
@@ -75,7 +107,23 @@
           },
           "argtaints": [],
           "codtaints": [
-            "com.peratonlabs.closure.testprog.example1.annotations.Purple"
+            "com.peratonlabs.closure.testprog.example1.annotations.Purple",
+            "com.peratonlabs.closure.testprog.example1.annotations.OrangeShareable"
+          ],
+          "rettaints": [
+            "TAG_RESPONSE_EXTRA"
+          ]
+        },
+        {
+          "remotelevel": "purple",
+          "direction": "bidirectional",
+          "guarddirective": {
+            "operation": "allow"
+          },
+          "argtaints": [],
+          "codtaints": [
+            "com.peratonlabs.closure.testprog.example1.annotations.Purple",
+            "com.peratonlabs.closure.testprog.example1.annotations.OrangeShareable"
           ],
           "rettaints": [
             "TAG_RESPONSE_EXTRA"
