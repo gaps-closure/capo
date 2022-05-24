@@ -8,7 +8,6 @@ import gzip
 import logging
 from   argparse import ArgumentParser
 from   cle2zinc import compute_zinc
-import pickle
 
 def get_args():
   p = ArgumentParser(description='Constraint Instance Data Encoder')
@@ -210,11 +209,10 @@ class Model():
     ]:
       oup.write('%s=array1d(%s,[\n%s\n]);\n' % (x,z,brklns(y, 10)))
 
-    accum = 0
     oup.write('ClusterNodes_start=1;\n')
     oup.write('ClusterNodes_end=%s;\n' % self.clusterNodeCount)
     oup.write('ClusterEdges_start=%s;\n' %(self.clusterNodeCount + 1))
-    oup.write('ClusterEdges_end= %s;\n' %  (self.clusterNodeCount + len(self.clusterEdges) -1))
+    oup.write('ClusterEdges_end= %s;\n' %  (self.clusterNodeCount + len(self.clusterEdges)))
 
   def coarsen_graph(self):
     import networkx as nx
