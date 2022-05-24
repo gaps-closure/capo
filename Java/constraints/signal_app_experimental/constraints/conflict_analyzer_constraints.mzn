@@ -4,6 +4,7 @@
 array[Edge]                        of var bool:     xdedge;
 array[Class,ValidLevel]            of var bool:     touchesLevel;
 array[Class,ValidLevel]            of var cleLabel: labelAtLevel;
+array[AnnotatedClass]              of var Level:    boundLevel;
 
 predicate isAnnotatedClass(Class: x)    = x >= AnnotatedInternalClass_start           /\ x <= AnnotatedInternalClass_end;
 predicate isUnannotatedClass(Class: x)  = x >= UnannotatedInternalClass_start         /\ x <= UnannotatedExternalClass_end;
@@ -24,14 +25,30 @@ constraint :: "CallEndpointAnnotationLevelsDiffer"
     else (xdedge[x] = false)
     endif));
 
-constraint :: "UserAnnotationBindsUniqueLevel"
+constraint :: "UserAnnotationBindsUniqueLevel1"
+ forall (x in AnnotatedElement)
+  (let {Class: c = hasClass[x];} in (boundLevel[c] = hasLabelLevel[hasAnnotation[x]]));
+
+constraint :: "UserAnnotationBindsUniqueLevel2"
  forall (x in AnnotatedElement, l in ValidLevel)
   (let {Class: c = hasClass[x];} in (touchesLevel[c,l] <-> hasLabelLevel[hasAnnotation[x]] = l));
 
-constraint :: "LevelTouched"
+constraint :: "LevelTouched1"
+ forall (x in Edge)
+  (let { Element: se = hasFrom[x]; Class: sc = hasClass[se]; Element: de = hasTo[x]; Class: dc = hasClass[de]; } in
+   (if (isAnnotatedClass(dc)) then touchesLevel[sc,boundLevel[dc]] endif));
+
+constraint :: "LevelTouched2"
+ forall (x in Edge)
+  (let { Element: se = hasFrom[x]; Class: sc = hasClass[se]; Element: de = hasTo[x]; Class: dc = hasClass[de]; } in
+   (if (isAnnotatedClass(sc)) then touchesLevel[dc,boundLevel[sc]] endif));
+
+constraint :: "LevelTouched3"
  forall (x in Edge, l in ValidLevel)
   (let { Element: se = hasFrom[x]; Class: sc = hasClass[se]; Element: de = hasTo[x]; Class: dc = hasClass[de]; } in
-   (xdedge[x] = false -> touchesLevel[sc,l] = touchesLevel[dc,l]));
+   (if (isUnannotatedClass(sc) /\ isUnannotatedClass(dc))
+    then (xdedge[x] = false -> touchesLevel[sc,l] = touchesLevel[dc,l])
+    endif));
 
 constraint :: "ClassLabelAtLevelTouched"
  forall (x in Class, l in ValidLevel) 
@@ -40,14 +57,30 @@ constraint :: "ClassLabelAtLevelTouched"
 % +--+----+--+--+--+--+-------------------------------------------------------------------
 % |xd|call|sc|se|dc|de|constrain labels on endpoints of edges 
 % +--+----+--+--+--+--+-------------------------------------------------------------------
-% |N |N   |* |U |A |A |sc label matches de label at touched level
-% |N |N   |A |A |A |A |de label in ARCtaints of se label at touched level
-% |N |*   |A |A |* |U |dc label in ARCtaints of se label at touched level
-% |N |*   |* |U |* |U |sc and dc have same label at each touched level
-% |N |Y   |* |U |A |A |unannot calls anno method at applicable level
-% |N |Y   |A |A |A |A |anno internal call 
-% |Y |Y   |A |A |A |A |cut
+% |N |*   |* |U |* |U |EdgeXU2XU:   sc and dc have same label at each touched level
+% |N |*   |A |A |* |U |EdgeAA2XU:   dc label in ARCtaints of se label at touched level
+% |N |N   |* |U |A |A |AccessXU2AA: sc label matches de label at touched level
+% |N |N   |A |A |A |A |AccessAA2AA: de label in ARCtaints of se label at touched level
+% |N |Y   |* |U |A |A |CallXU2AA:   unannot calls anno method at applicable level
+% |N |Y   |A |A |A |A |CallAA2AA:   anno internal call 
+% |Y |Y   |A |A |A |A |XDCallAA2AA: cut
 % +--+----+--+--+--+--+-------------------------------------------------------------------
+
+constraint :: "EdgeXU2XU"
+ forall (x in Edge, l in ValidLevel)
+  (let { Element: se = hasFrom[x]; Class: sc = hasClass[se]; Element: de = hasTo[x]; Class: dc = hasClass[de]; } in
+   (if   (isUnannotatedElement(se) /\ isUnannotatedElement(de)) 
+    then (touchesLevel[sc,l] -> labelAtLevel[sc,l] = labelAtLevel[dc,l])
+    %then (touchesLevel[sc,l] /\ touchesLevel[dc,l] -> labelAtLevel[sc,l] = labelAtLevel[dc,l])
+    endif));
+
+constraint :: "EdgeAA2XU"
+ forall (x in Edge)
+  (let { Element: se = hasFrom[x]; Class: sc = hasClass[se]; Element: de = hasTo[x]; Class: dc = hasClass[de]; } in
+   (if   (isAnnotatedElement(se) /\ isUnannotatedElement(de)) 
+    then (let { cleLabel: st = hasAnnotation[se]; Level: sl = hasLabelLevel[st]; } in
+          (hasARCtaints[cdfForRemoteLevel[st,sl],labelAtLevel[dc,sl]] = true))
+    endif));
 
 constraint :: "AccessXU2AA"
  forall (x in Access)
@@ -63,21 +96,6 @@ constraint :: "AccessAA2AA"
    (if   (isAnnotatedElement(se) /\ isAnnotatedElement(de)) 
     then (let { cleLabel: st = hasAnnotation[se]; Level: sl = hasLabelLevel[st]; cleLabel: dt = hasAnnotation[de]; } in
           (hasARCtaints[cdfForRemoteLevel[st,sl],dt] = true))
-    endif));
-
-constraint :: "EdgeAA2XU"
- forall (x in Edge)
-  (let { Element: se = hasFrom[x]; Class: sc = hasClass[se]; Element: de = hasTo[x]; Class: dc = hasClass[de]; } in
-   (if   (isAnnotatedElement(se) /\ isUnannotatedElement(de)) 
-    then (let { cleLabel: st = hasAnnotation[se]; Level: sl = hasLabelLevel[st]; } in
-          (hasARCtaints[cdfForRemoteLevel[st,sl],labelAtLevel[dc,sl]] = true))
-    endif));
-
-constraint :: "EdgeXU2XU"
- forall (x in Edge, l in ValidLevel)
-  (let { Element: se = hasFrom[x]; Class: sc = hasClass[se]; Element: de = hasTo[x]; Class: dc = hasClass[de]; } in
-   (if   (isUnannotatedElement(se) /\ isUnannotatedElement(de)) 
-    then (touchesLevel[sc,l] /\ touchesLevel[dc,l] -> labelAtLevel[sc,l] = labelAtLevel[dc,l])
     endif));
 
 % internal anno-call check
