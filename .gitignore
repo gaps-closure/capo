@@ -10,6 +10,5 @@ scratch
 dist/
 build/
 *.egg-info
-__pycache__/test/test1/instance/
-dataprep/__pycache__
-../../../C/__pycache__
+__pycache__/
+instance/
