@@ -13,7 +13,7 @@ The CLE annotations are also extracted from the annotated sources into a single 
 We then prepare the input data for constraint solving using Minizinc:
 
 ```
-$ python3 dataprep/gen_mzninstance.py -i test/test1/signal.json.gz -c test/test1/signal-cle.json -o test/test1/instance
+$ python3 dataprep/gen_mzninstance.py -i test/test1/signal.json.gz -c test/test1/signal-cle.json -o test/test1/instance -D
 ```
 
 Three files, namely, `test/test1/instance/pdg_instance.mzn`,
