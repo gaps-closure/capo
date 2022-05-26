@@ -65,10 +65,12 @@ def esatrack(data):
     if data['methods'][x['F']-1]['e'] == True: raise ('External method cannot be caller')
     x['e'] = data['methods'][x['T']-1]['e']
     x['s'] = data['methods'][x['T']-1]['s']
+    x['g'] = data['methods'][x['T']-1]['g']
   for x in data['fieldRefs']:
     if data['methods'][x['F']-1]['e'] == True: raise ('External method cannot be caller')
     x['e'] = data['fields'][x['T']-1]['e']
     x['s'] = data['fields'][x['T']-1]['s']
+    x['g'] = data['methods'][x['T']-1]['g']
   return data
 
 class Model():
@@ -94,14 +96,22 @@ class Model():
     self.eiamth     = [x for x in self.data['methods']   if x['e'] == True  and x['s'] == False and x['g'] == True]
     self.esumth     = [x for x in self.data['methods']   if x['e'] == True  and x['s'] == True  and x['g'] == False]
     self.esamth     = [x for x in self.data['methods']   if x['e'] == True  and x['s'] == True  and x['g'] == True]
-    self.iicll      = [x for x in self.data['calls']     if x['e'] == False and x['s'] == False]
-    self.iscll      = [x for x in self.data['calls']     if x['e'] == False and x['s'] == True ]
-    self.eicll      = [x for x in self.data['calls']     if x['e'] == True  and x['s'] == False]
-    self.escll      = [x for x in self.data['calls']     if x['e'] == True  and x['s'] == True ]
-    self.iiacc      = [x for x in self.data['fieldRefs'] if x['e'] == False and x['s'] == False]
-    self.isacc      = [x for x in self.data['fieldRefs'] if x['e'] == False and x['s'] == True ]
-    self.eiacc      = [x for x in self.data['fieldRefs'] if x['e'] == True  and x['s'] == False]
-    self.esacc      = [x for x in self.data['fieldRefs'] if x['e'] == True  and x['s'] == True ]
+    self.iiucll      = [x for x in self.data['calls']     if x['e'] == False and x['s'] == False and x['g'] == False]
+    self.iiacll      = [x for x in self.data['calls']     if x['e'] == False and x['s'] == False and x['g'] == True]
+    self.isucll      = [x for x in self.data['calls']     if x['e'] == False and x['s'] == True  and x['g'] == False]
+    self.isacll      = [x for x in self.data['calls']     if x['e'] == False and x['s'] == True  and x['g'] == True]
+    self.eiucll      = [x for x in self.data['calls']     if x['e'] == True  and x['s'] == False and x['g'] == False]
+    self.eiacll      = [x for x in self.data['calls']     if x['e'] == True  and x['s'] == False and x['g'] == True]
+    self.esucll      = [x for x in self.data['calls']     if x['e'] == True  and x['s'] == True  and x['g'] == False]
+    self.esacll      = [x for x in self.data['calls']     if x['e'] == True  and x['s'] == True  and x['g'] == True]
+    self.iiuacc      = [x for x in self.data['fieldRefs'] if x['e'] == False and x['s'] == False and x['g'] == False]
+    self.iiaacc      = [x for x in self.data['fieldRefs'] if x['e'] == False and x['s'] == False and x['g'] == True]
+    self.isuacc      = [x for x in self.data['fieldRefs'] if x['e'] == False and x['s'] == True  and x['g'] == False]
+    self.isaacc      = [x for x in self.data['fieldRefs'] if x['e'] == False and x['s'] == True  and x['g'] == True]
+    self.eiuacc      = [x for x in self.data['fieldRefs'] if x['e'] == True  and x['s'] == False and x['g'] == False]
+    self.eiaacc      = [x for x in self.data['fieldRefs'] if x['e'] == True  and x['s'] == False and x['g'] == True]
+    self.esuacc      = [x for x in self.data['fieldRefs'] if x['e'] == True  and x['s'] == True  and x['g'] == True]
+    self.esaacc      = [x for x in self.data['fieldRefs'] if x['e'] == True  and x['s'] == True  and x['g'] == True]
     self.npmth      = [nparms(x) for x in self.data['methods']]
     self.maxnpmth   = max(self.npmth)
 
@@ -112,14 +122,10 @@ class Model():
     if len(self.esafld) > 0: raise('External class field cannot be CLE annotated')
     if len(self.eiamth) > 0: raise('External instance method cannot be CLE annotated')
     if len(self.esamth) > 0: raise('External class method cannot be CLE annotated')
-  
-    # XXX: create parameter and return nodes for each method; use number of parameter nodes from npmth
-    # XXX: create variable nodes in caller for each callee parameter and return for each call 
-    # XXX: add hasMethod for added nodes
-    # XXX: create parameter and return edges 
-    # XXX: create hasParmIdx for parameter edges 
-    # XXX: add hasFrom and hasTo for added edges
-    # XXX: include added nodes and edges in declarations below 
+    if len(self.eiacll) > 0: raise('External instance method callee cannot be CLE annotated')
+    if len(self.esacll) > 0: raise('External class method callee cannot be CLE annotated')
+    if len(self.eiaacc) > 0: raise('External instance field referenced cannot be CLE annotated')
+    if len(self.esaacc) > 0: raise('External class field referenced cannot be CLE annotated')
 
     self.allInOrder    = [
       (self.intan,  'Class',  'Annotated',   'Internal', ''),
@@ -137,14 +143,18 @@ class Model():
       (self.esufld, 'Field',  'Unannotated', 'External', 'Static'),
       (self.eiumth, 'Method', 'Unannotated', 'External', 'Instance'),
       (self.esumth, 'Method', 'Unannotated', 'External', 'Static'),
-      (self.iicll,  'Call',   '',            'Internal', 'Instance'),
-      (self.iscll,  'Call',   '',            'Internal', 'Static'),
-      (self.eicll,  'Call',   '',            'External', 'Instance'),
-      (self.escll,  'Call',   '',            'External', 'Static'),
-      (self.iiacc,  'Access', '',            'Internal', 'Instance'),
-      (self.isacc,  'Access', '',            'Internal', 'Static'),
-      (self.eiacc,  'Access', '',            'External', 'Instance'),
-      (self.esacc,  'Access', '',            'External', 'Static'),
+      (self.iiacll, 'Call',   'Annotated',   'Internal', 'Instance'),
+      (self.isacll, 'Call',   'Annotated',   'Internal', 'Static'),
+      (self.iiucll, 'Call',   'Unannotated', 'Internal', 'Instance'),
+      (self.isucll, 'Call',   'Unannotated', 'Internal', 'Static'),
+      (self.eiucll, 'Call',   'Unannotated', 'External', 'Instance'),
+      (self.esucll, 'Call',   'Unannotated', 'External', 'Static'),
+      (self.iiaacc, 'Access', 'Annotated',   'Internal', 'Instance'),
+      (self.isaacc, 'Access', 'Annotated',   'Internal', 'Static'),
+      (self.iiuacc, 'Access', 'Unannotated', 'Internal', 'Instance'),
+      (self.isuacc, 'Access', 'Unannotated', 'Internal', 'Static'),
+      (self.eiuacc, 'Access', 'Unannotated', 'External', 'Instance'),
+      (self.esuacc, 'Access', 'Unannotated', 'External', 'Static')
     ]
 
     # Assign sequential ID to all data items
@@ -168,7 +178,7 @@ class Model():
     self.clusters        = {}
     self.clustref        = {}
     self.clusterEdges    = set()
-    self.coarsen_graph()              # Coarsen graph and fill self.clusters, self.clustref, self.clusterEdges 
+    self.coarsen_graph() # Coarsen graph and fill self.clusters, self.clustref, self.clusterEdges 
     self.clusterCount    = len(self.clusters)
     self.hasClusterFrom  = [e[0] for e in self.clusterEdges]
     self.hasClusterTo    = [e[1] for e in self.clusterEdges]
@@ -216,10 +226,11 @@ class Model():
     ]:
       oup.write('%s=array1d(%s,[\n%s\n]);\n' % (x,z,brklns(y, 10)))
 
+    # XXX: need to differentiate nodes and edges
     oup.write('ClusterNodes_start=1;\n')
-    oup.write('ClusterNodes_end=%s;\n' % self.clusterCount)
-    oup.write('ClusterEdges_start=%s;\n' %(self.clusterCount + 1))
-    oup.write('ClusterEdges_end= %s;\n' %  (self.clusterCount + len(self.clusterEdges)))
+    oup.write('ClusterNodes_end=%s;\n'   % self.clusterCount)
+    oup.write('ClusterEdges_start=%s;\n' % (self.clusterCount + 1))
+    oup.write('ClusterEdges_end= %s;\n'  % (self.clusterCount + len(self.clusterEdges)))
 
   def edgen(self,exclude_external):
     # y: all edges of type cat; cat: call or access; ann: annotated?; ext: external to APK?; sta: static?
@@ -252,7 +263,7 @@ class Model():
     self.clustref     = {n:i+1 for i,c in enumerate(components) for n in c}
     self.clusterEdges = set([(self.clustref[fq],self.clustref[tq],cat) 
                               for fq,f,fc,tq,t,tc,cat,ann,ext,sta in self.edgen(excext) if self.clustref[fq] != self.clustref[tq]])
-
+    '''
     print ('Nodes:',           G.number_of_nodes())
     print ('Edges:',           G.number_of_edges())
     print ('Nodes clustered:', sum([len(c) for c in components]))
@@ -263,46 +274,36 @@ class Model():
     for i in self.clusters:
       print ('Component %d [%d nodes] contains (node, class):' % (i,len(self.clusters[i])))
       print (brklns(self.clusters[i],10))
+    '''
 
   def write_cluster_dot(self,fname):
-    # Write dot file for coarsened graph
     ClusterG = nx.DiGraph()
     for i,c in self.clusters.items():
       lnc = len(c)
       lbl = '[%d[%d]]\n'%(i,lnc) + ''.join(['%d(%d),\n'%(x,xc) for x,xc in c[:10]]) + ('...\n' if lnc > 10 else '')
       ClusterG.add_node(i, {"xlabel" : lbl})
-    for edge in self.clusterEdges:
-      ClusterG.add_edge(edge[0],edge[1])
+    for e in self.clusterEdges:
+      ClusterG.add_edge(e[0],e[1])
     write_dot(ClusterG,fname)
 
 if __name__ == '__main__':
   logger = logging.getLogger()
   logger.addHandler(logging.StreamHandler(sys.stderr))
   logger.setLevel(logging.WARN)
-  args   = get_args()
-  if not os.path.exists(args.output_dir):
-    os.makedirs(args.output_dir)
+  args = get_args()
+  if not os.path.exists(args.output_dir):                            os.makedirs(args.output_dir)
   print('Loading model ...')
-  with gzip.open(args.input_model, 'rt') as minp:
-    mdl  = Model(esatrack(json.load(minp)))
-  print('Loaded model')
-  print('Coarsened graph')
-  with open(args.cle_json, 'r') as cinp:
-    cmz = compute_zinc(annotsplit(json.load(cinp)), mdl.maxnpmth, logger)
-  print('Loaded cle')
-  print('Writing data instances ...')
-  with open(args.output_dir + '/pdg_instance.mzn', 'w') as moup:
-    mdl.write_model_mzn(moup)
-  with open(args.output_dir + '/cle_instance.mzn', 'w') as coup:
-    coup.write(cmz.cle_instance)
-  with open(args.output_dir + '/enclave_instance.mzn', 'w') as eoup:
-    eoup.write(cmz.enclave_instance)
+  with gzip.open(args.input_model, 'rt') as minp:                    mdl = Model(esatrack(json.load(minp)))
+  print('Loaded model and coarsened graph')
+  with open(args.cle_json, 'r') as cinp:                             cmz = compute_zinc(annotsplit(json.load(cinp)), mdl.maxnpmth, logger)
+  print('Loaded cle, now writing data instances ...')
+  with open(args.output_dir + '/pdg_instance.mzn', 'w') as moup:     mdl.write_model_mzn(moup)
+  with open(args.output_dir + '/cle_instance.mzn', 'w') as coup:     coup.write(cmz.cle_instance)
+  with open(args.output_dir + '/enclave_instance.mzn', 'w') as eoup: eoup.write(cmz.enclave_instance)
   mdl.write_cluster_dot(args.output_dir + '/cluster.dot')
   print('Wrote data instances')
-
   if args.debug:
     print('Writing debug file ...')
-    with gzip.open(args.output_dir + '/pdg.csv.gz', 'wt') as csvp:
-      mdl.write_debug_csv(csvp)
+    with gzip.open(args.output_dir + '/pdg.csv.gz', 'wt') as csvp:    mdl.write_debug_csv(csvp)
     print('Wrote debug file')
 
