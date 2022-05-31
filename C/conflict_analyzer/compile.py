@@ -1,13 +1,12 @@
 from pathlib import Path
 import subprocess
-from typing import Iterable, List, Tuple, Union
+from typing import List, Tuple, Union
 from dataclasses import dataclass
 import csv
 import sys
 
 from conflict_analyzer.exceptions import ProcessException
 csv.field_size_limit(sys.maxsize)
-
 
 def compile_c(sources: List[Tuple[str, str]], temp_dir: Path, clang_flags: List[str]) -> bytes:
     for name, src in sources:
@@ -34,7 +33,6 @@ class OptOutput:
     pdg_csv: list
     one_way: str
 
-
 def opt(pdg_so: Path, bitcode: bytes, temp_dir: Path) -> OptOutput:
     out_bc_path = temp_dir / 'out.bc'
     with open(out_bc_path, "wb") as bc_f:
@@ -44,17 +42,14 @@ def opt(pdg_so: Path, bitcode: bytes, temp_dir: Path) -> OptOutput:
     out = subprocess.run(args, cwd=temp_dir, capture_output=True)
     if out.returncode != 0:
         raise ProcessException("opt failed", out)
-    with open(temp_dir / 'pdg_instance.mzn') as pdg_f:
-        pdg_instance = pdg_f.read()
-    with open(temp_dir / 'functionArgs.txt') as fn_args_f:
-        function_args = fn_args_f.read()
+    pdg_instance = (temp_dir / 'pdg_instance.mzn').read_text()
+    function_args = (temp_dir / 'functionArgs.txt').read_text()
     with open(temp_dir / 'pdg_data.csv') as pdg_f:
         pdg_data = list(csv.reader(
             pdg_f, quotechar='"', skipinitialspace=True))
     # Temporary to easily have or not have oneway.txt
     try:
-        with open(temp_dir / 'oneway.txt') as one_way_f:
-            one_way = one_way_f.read()
+        one_way = (temp_dir / 'oneway.txt').read_text()
     except:
         one_way = ""
     return OptOutput(pdg_instance, function_args, pdg_data, one_way)
