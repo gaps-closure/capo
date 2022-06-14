@@ -29,7 +29,7 @@ def install_verifier(out: Path) -> None:
 
 def install_ect(out: Path) -> None:
     cwd = Path('ect')
-    z3_lib = cwd / 'z3-4.8.8' / 'lib'
+    z3_lib = (cwd / 'z3-4.8.8' / 'lib').resolve()
     env: dict = dict(os.environ, **{'LD_LIBRARY_PATH': z3_lib})
     subprocess.check_call(['stack', 'install', '--local-bin-path', out / 'bin'], cwd=cwd, env=env)
 

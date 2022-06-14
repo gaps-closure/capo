@@ -13,7 +13,7 @@ def submodules() -> None:
 
 def build_ect() -> None:
     cwd = Path('ect')
-    z3_lib = cwd / 'z3-4.8.8' / 'lib'
+    z3_lib = (cwd / 'z3-4.8.8' / 'lib').resolve()
     env = dict(os.environ, **{'LD_LIBRARY_PATH': z3_lib})
     subprocess.check_call(['stack', 'build'], cwd=cwd, env=env)
 
@@ -57,7 +57,7 @@ class Args:
 
 
 def build() -> None:
-    submodules()
+    # submodules()
     build_pdg()
     build_ect()
     build_gedl()
