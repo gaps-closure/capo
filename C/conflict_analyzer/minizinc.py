@@ -75,7 +75,7 @@ Artifact = TypedDict('Artifact', {
     'source_path': str,
     'function-assignments': List[ArtifactAssignment],
     'variable-assignments': List[ArtifactAssignment],
-    'cut': ArtifactCut,
+    'cut': Optional[ArtifactCut],
     'all-assignments': List[ArtifactAssignment],
 })
 
@@ -142,7 +142,7 @@ class MinizincResult:
 
         all_assignments = [*self.function_assignments, *self.global_var_assignments, *self.other_assignments]
 
-        def cut() -> ArtifactCut:
+        def cut() -> Optional[ArtifactCut]:
             xd_edges = [ edge for i, is_xd in enumerate(self.solution.xdedge)
                 if (edge := self.pdg_lookup.edges[i + 1]).edge_type == 'ControlDep_CallInv' and is_xd ]
             assgn_lookup: Dict[int, Assignment] = { assgn.node: assgn for assgn in all_assignments }
@@ -156,7 +156,7 @@ class MinizincResult:
                 "dest-enclave": assgn_lookup[e.dest_node_idx].enclave,
                 }
             for e in xd_edges ]
-            return cut[0]
+            return cut[0] if len(cut) > 0 else None 
 
         fun_assgns = [ from_assignment(assgn) for assgn in self.function_assignments ]
         var_assgns = [ from_assignment(assgn) for assgn in self.global_var_assignments ]

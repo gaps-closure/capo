@@ -206,7 +206,8 @@ class GEDLProcessor:
     def fundecl(fd, outgoing=True):
       s  = 'extern ' + fd['return']['type'] + ' ' + ('_err_handle_rpc_' if outgoing else '') + fd['func'] + '('
       # ARQ mod:
-      s += ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']])  # XXX: check array/pointer
+      params = [p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]
+      s += ','.join(params) if len(params) > 0 else 'void' # XXX: check array/pointer
       # if wrap :
         # if ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]) != "" :
           # s += ', '
@@ -600,7 +601,7 @@ class GEDLProcessor:
         f"{return_type} _err_handle_rpc_{f}({', '.join(params)})" "{\n"
         f"#pragma cle end ERR_HANDLE_RPC_{f.upper()}\n"
         "\tint err_num;\n"
-        f"\t{return_type} res = _rpc_{f}({', '.join(param_names)}, &err_num);\n"
+        f"\t{return_type} res = _rpc_{f}({', '.join(param_names)}{', ' if len(param_names) > 0 else ''}&err_num);\n"
         "\t// err handling code goes here\n"
         f"\treturn res;\n"
         "}\n"
