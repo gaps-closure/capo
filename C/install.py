@@ -27,6 +27,12 @@ def install_verifier(out: Path) -> None:
     copyfile(path / 'verifier', out_bin / 'verifier')
     os.chmod(out_bin / 'verifier', 0o755)
 
+def install_ect(out: Path) -> None:
+    cwd = Path('ect')
+    z3_lib = cwd / 'z3-4.8.8' / 'lib'
+    env: dict = dict(os.environ, **{'LD_LIBRARY_PATH': z3_lib})
+    subprocess.check_call(['stack', 'install', '--local-bin-path', out / 'bin'], cwd=cwd, env=env)
+
 def install_python_package(out: Path) -> None:
     subprocess.run([sys.executable, '-m', 'pip', 'install', '.', '--target', out / 'python'])   
 
@@ -42,15 +48,17 @@ class Args:
     output: Path
 
 def install(args: Type[Args], should_install_python_package: bool = False) -> Dict[str, str]:
+    args.output = args.output.resolve()
     install_pdg(args.output)
     install_gedl(args.output)
     install_verifier(args.output)
     install_gedl_schema(args.output)
+    install_ect(args.output)
     if should_install_python_package:
         install_python_package(args.output)
     return {
-        "PATH": f"{args.output.resolve()}/bin:{args.output.resolve()}/python/bin",
-        "PYTHONPATH": f"{args.output.resolve()}/python",
+        "PATH": f"{args.output}/bin:{args.output}/python/bin",
+        "PYTHONPATH": f"{args.output}/python",
     }
 
 def main() -> None: 
