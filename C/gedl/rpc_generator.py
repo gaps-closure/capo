@@ -825,7 +825,7 @@ class GEDLProcessor:
 ##############################################################################################################
 def main():
   args = argparser()
-  DB = [False, True, True] if args.verbose else [False, False, True]  # Print Debugs at levels: 0(Trace), 1(Debug), 2(Info)?
+  DB = [False, True, True] if args.verbose else [False, False, False]  # Print Debugs at levels: 0(Trace), 1(Debug), 2(Info)?
   gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base,args.schema,args.cle)
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
