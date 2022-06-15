@@ -57,7 +57,7 @@ class Args:
 
 
 def build() -> None:
-    # submodules()
+    submodules()
     build_pdg()
     build_ect()
     build_gedl()
