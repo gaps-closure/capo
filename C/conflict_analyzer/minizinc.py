@@ -211,6 +211,8 @@ def run_findmus(strings: List[str], sources: List[Path], temp_dir: Path) -> List
         'findmus',
         '--subsolver',
         'Gecode',
+        '--depth',
+        '3',
         '--output-json',
         *sources,
         temp_dir / 'instance.mzn'
