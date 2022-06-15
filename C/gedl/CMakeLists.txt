@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13.4)
 project(gedl)
 
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM 10 REQUIRED CONFIG)
 
 set (CMAKE_CXX_STANDARD 14)
 add_compile_options("-fno-rtti")
