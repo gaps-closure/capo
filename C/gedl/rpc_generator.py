@@ -594,7 +594,7 @@ class GEDLProcessor:
 
     def errhandlewrapdef(x,y,f,fd,ipc):
       return_type = fd["return"]["type"]
-      params = [ " ".join([param["type"], param["name"]]) for param in fd["params"] ]
+      params = [ (" ".join([param["type"], param["name"]])) + ('[]' if 'sz' in param else '') for param in fd["params"] ]
       param_names = [ param["name"] for param in fd["params"] ]
       return (
         f"#pragma cle begin ERR_HANDLE_RPC_{f.upper()}\n"
