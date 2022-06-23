@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
 from conflict_analyzer.pdg_table import PdgLookupTable, PdgLookupNode, PdgLookupEdge
-from conflict_analyzer.minizinc import run_model, Topology, MinizincResult, str_artifact
+from conflict_analyzer.minizinc import run_model, run_cmdline, Topology, MinizincResult, str_artifact
 from preprocessor.preprocess import LabelledCleJson, Transform
 import preprocessor.preprocess as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
@@ -85,7 +85,7 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         output_zinc(zinc_src, args.temp_dir)
         collated_map = collate_source_map(entities, args.temp_dir) 
         logger.info("Collated source maps")
-        out = run_model([zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, 
+        out = run_cmdline([zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, 
             *[ f.read_text() for f in args.constraint_files]], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map) 
         logger.info("Produced JSON result from minizinc")
         return out

@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 import os
+import re
 import subprocess
 import json
 from pathlib import Path
@@ -104,6 +105,7 @@ class MinizincResult:
     other_assignments: List[Assignment]
     pdg_lookup: PdgLookupTable
     solution: Solution
+    cut: Optional[ArtifactCut] = None
 
     def levels(self) -> List[str]:
         return list({assgn.level for assgn in self.function_assignments})
@@ -166,7 +168,7 @@ class MinizincResult:
             "function-assignments": fun_assgns,
             "variable-assignments": var_assgns,
             "all-assignments": all_assgns, 
-            "cut": cut() 
+            "cut": self.cut or cut() 
         }
 
 
@@ -186,7 +188,68 @@ def run_model(instances: List[str], constraint_files: List[Path],
         raise FindmusException(res, pdg_lookup, source_map)
     raise RuntimeError("Minizinc return status {result.status}") 
 
+def run_cmdline(instances: List[str], constraint_files: List[Path], 
+    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> MinizincResult:
+    (temp_dir / 'instance.mzn').write_text("\n".join(instances))    
+    
+    mzn_args: List[Union[str, os.PathLike]] = [
+        'minizinc',
+        '--solver',
+        'Gecode',
+        *constraint_files,
+        temp_dir / 'instance.mzn'
+    ]
+    output = subprocess.run(mzn_args, capture_output=True, encoding='utf-8')
+    if output.returncode != 0 or "Error" in output.stdout:
+        raise ProcessException("minizinc failure", output)     
+    if "UNSATISFIABLE" in output.stdout:
+        mus = run_findmus(instances, constraint_files, temp_dir)
+        raise FindmusException(mus, pdg_lookup, source_map)
+    else:
+        soln, cut = parse_solution(output.stdout)
+        res = from_solution(soln, pdg_lookup)
+        res.cut = cut
+        return res
 
+def parse_solution(mzn_out: str) -> Tuple[Solution, Optional[ArtifactCut]]:
+    nodes: Dict[int, Tuple[str, str, str]] = {}
+    cut: Optional[ArtifactCut] = None
+    def parse_line(line: str) -> None: 
+        parts = [ s.strip() for s in line.split(" ") if s != '' ]
+        node, [enclave, label, level] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
+        nodes[node] = enclave, label, level
+
+    def parse_xd(line: str) -> Optional[ArtifactCut]:
+        # XDCALL   : (2:PURPLE)--[purple_E]--||-->[orange_E]--(74:XDLINKAGE_GET_A)
+        reg = r'\((\d+):(\w+)\)--\[(\w+)\]--\|\|-->\[(\w+)\]--\((\d+):(\w+)\)'
+        res = re.search(reg, line)
+        if res is not None:
+            src_node, src_lbl, src_enc, dst_enc, dst_node, dst_lbl = res.groups()
+            return {
+                "summary": f"({src_node}:{src_lbl})--[{src_enc}]--||-->[{dst_enc}]--({dst_node}:{dst_lbl})",
+                "source-node": int(src_node),
+                "source-label": src_lbl, 
+                "source-enclave": src_enc, 
+                "dest-node": int(dst_node), 
+                "dest-label": dst_lbl, 
+                "dest-enclave": dst_enc 
+            }
+
+    out = mzn_out.splitlines()
+    for line in out:
+        if line.find('ASSIGN') != -1:
+            parse_line(line)
+        elif line.find('XDCALL') != -1:
+            cut = parse_xd(line)
+    
+    nodes_list = sorted(nodes.items(), key=lambda x: x[0])
+
+    node_enclaves = [ enclave for _, (enclave, _, _) in nodes_list ] 
+    node_labels = [ label for _, (_, label, _) in nodes_list ] 
+    node_levels = [ level for _, (_, _, level) in nodes_list ] 
+
+    print(cut)
+    return Solution(node_enclaves, node_levels, node_labels, []), cut
       
 def from_solution(soln: Solution, table: PdgLookupTable) -> MinizincResult:
     functions: List[Assignment] = []
