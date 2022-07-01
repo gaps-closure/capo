@@ -84,7 +84,7 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
     for entry in cleJson:
         # print("Updating Order")
         if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]: 
-            print("Updating Order")
+            logger.debug("Updating Order")
             cleJson2.insert(0,cleJson2.pop(cleJson.index(entry)))
     cleJson = cleJson2
     
@@ -356,7 +356,7 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
 
                     ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, arcEntry)]
                     
-                    print(taintEntry)
+                    logger.debug(taintEntry)
                     
                 
 

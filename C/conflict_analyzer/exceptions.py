@@ -1,7 +1,18 @@
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from subprocess import CompletedProcess
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple, TypedDict, Union
+from .pdg_table import PdgLookupTable, PdgLookupNode
+
+class Mus(TypedDict):
+    leaf_name: str
+    name: str
+    path: str
+    assigns: str
+    constraint_name: str
+    expression_name: str
 
 @dataclass
 class Position:
@@ -45,3 +56,52 @@ class ProcessException(Exception):
     
     def __str__(self):
         return f"\n\n{self.message} with returncode {self.proc.returncode}:\n{self.proc.stdout}\n{self.proc.stderr}" 
+
+def parse_assign(mus: Mus) -> Tuple[bool, int]:
+    match = re.match(r'(\w+)=(\d+)', mus['assigns'])
+    assert match is not None
+    node_or_edge, num = match.groups()
+    return node_or_edge == 'e', int(num)
+
+Diag = Union[PdgLookupNode, Tuple[PdgLookupNode, PdgLookupNode]]
+Diags = Dict[str, List[Diag]]
+class FindmusException(Exception):
+    def __init__(self, mus: List[Mus], table: PdgLookupTable, source_map: Dict[Tuple[str, int], Tuple[str, int]]): 
+        votes: Dict[str, Tuple[int, List[Mus]]] = OrderedDict() 
+        for m in mus:
+            if m['constraint_name'] in votes:
+                v, ms = votes[m['constraint_name']]
+                votes[m['constraint_name']] = v + 1, [m, *ms]
+            else:
+                votes[m['constraint_name']] = 0, [m]
+
+        diags: Diags = OrderedDict() 
+        for cname, (v, ms) in votes.items():
+            assigns = [ parse_assign(m) for m in ms ]
+            for is_edge, idx in assigns:
+                if cname not in diags:
+                    diags[cname] = []
+                if is_edge:
+                    edge = table.edges[idx]
+                    source_node = edge.source_node(table).with_source_map(source_map)
+                    dest_node = edge.dest_node(table).with_source_map(source_map)
+                    diags[cname].append((source_node, dest_node))
+                else:
+                    node = table.nodes[idx] 
+                    diags[cname].append(node)
+        self.votes = votes
+        self.diags = diags
+        self.source_map = source_map
+    def __str__(self):
+        def show_diag(diag: Diag) -> str:
+            if type(diag) == tuple:
+                source, dest = diag
+                return f"({source.node_type}) {source.source_file} @ {source.llvm_name()}:{source.source_line}" + \
+                    f" -> ({dest.node_type}) {dest.source_file} @ {dest.llvm_name()}:{dest.source_line}" 
+            elif isinstance(diag, PdgLookupNode):
+                node: PdgLookupNode = diag 
+                return f"({node.node_type}) {node.source_file} @ {node.llvm_name()}:{node.source_line}"
+            raise RuntimeError("Impossible case in show_diag")
+            
+        msg = [ cname + "\n\t\t" + "\n\t\t".join([ show_diag(d) for d in ds ]) for cname, ds in self.diags.items() ]
+        return '\nMUS involving constraints:\n\t' + "\n\t".join(msg)

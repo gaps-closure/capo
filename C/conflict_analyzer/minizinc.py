@@ -1,288 +1,294 @@
 #!/usr/bin/env python3
 
+from dataclasses import dataclass
 import os
-import csv
-import subprocess
-import argparse
-import json
 import re
+import subprocess
+import json
 from pathlib import Path
-from logging import Logger
-from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, Union
+from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, TypedDict, Union
 
-from conflict_analyzer.exceptions import ProcessException
+from minizinc import Instance, Model, Solver
+from numpy import var
+from .pdg_table import PdgLookupTable, PdgLookupNode
+from .exceptions import ProcessException, FindmusException, Mus
 
-def minizinc(temp_dir: Path, cle_instance: str, pdg_instance: str, enclave_instance: str, constraint_files: List[Path], 
-    pdg_csv: list, source_path: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]], logger: Logger) -> Dict[str, Any]:
-    cle_instance_path, pdg_instance_path, enclave_instance_path = \
-        tuple([ temp_dir / name for name in ['cle_instance.mzn', 'pdg_instance.mzn', 'enclave_instance.mzn']])
-    with open(cle_instance_path, 'w') as f:
-        f.write(cle_instance)
-    with open(pdg_instance_path, 'w') as f:
-        f.write(pdg_instance)
-    with open(enclave_instance_path, 'w') as f:
-        f.write(enclave_instance)
-    mzn_args : List[Union[Path, str]] = [
-            'minizinc',
-            '--solver',
-            'Gecode',
-            cle_instance_path,
-            enclave_instance_path,
-            pdg_instance_path,
-            *constraint_files
-    ]  
-    mzn_out = subprocess.run(mzn_args, capture_output=True, encoding='utf-8')
-    if mzn_out.returncode != 0:
-        raise ProcessException("minizinc failure", mzn_out)          
-    if "UNSATISFIABLE" in mzn_out.stdout:
-        findmus_args : List[Union[Path, str]] = [
-            'minizinc',
-            '--solver',
-            'findmus',
-            '--subsolver',
-            'Gecode',
-            '--depth',
-            '3',
-            '--output-json',
-            cle_instance_path,
-            enclave_instance_path,
-            pdg_instance_path,
-            *constraint_files
-        ]  
-        findmus_out = subprocess.run(findmus_args, capture_output=True, encoding='utf-8')
-        if findmus_out.stderr.strip() != '' or findmus_out.returncode != 0:
-            raise ProcessException("minizinc failure", findmus_out)         
-        return parse_findmus(findmus_out.stdout, pdg_csv, logger, source_map)
+class TopologyAssignment(TypedDict):
+    name: str
+    level: str
+    enclave: str
+    line: Optional[int]
+
+class Topology(TypedDict):
+    source_path: str
+    enclaves: List[str]
+    levels: List[str]
+    global_scoped_vars: List[TopologyAssignment]
+    functions: List[TopologyAssignment]
+
+
+@dataclass 
+class Assignment: 
+    node: int 
+    label: str
+    enclave: str
+    level: str
+    name: Optional[str]
+    src: str
+    line: Optional[int]
+
+    def source_line(self, source_map: Dict[int, int]) -> Optional[int]:
+        if self.line:
+            return source_map[self.line] if self.line in source_map else None 
+        else:
+            return None
+
+@dataclass 
+class Solution:
+    nodeEnclave: List[str]
+    nodeLevel: List[str]
+    taint: List[str]
+    xdedge: List[bool]
+
+
+class ArtifactDebug(TypedDict):
+    line: Optional[int] 
+    name: Optional[str] 
+
+class ArtifactAssignment(TypedDict):
+    node: int
+    label: str
+    enclave: str
+    level: str
+    debug: ArtifactDebug
+
+ArtifactCut = TypedDict('ArtifactCut', {
+    'summary': str,
+    'source-node': int,
+    'source-label': str,
+    'source-enclave': str,
+    'dest-node': int,
+    'dest-label': str,
+    'dest-enclave': str
+})
+
+Artifact = TypedDict('Artifact', {
+    'source_path': str,
+    'function-assignments': List[ArtifactAssignment],
+    'variable-assignments': List[ArtifactAssignment],
+    'cut': Optional[ArtifactCut],
+    'all-assignments': List[ArtifactAssignment],
+})
+
+def str_artifact(artifact: Artifact) -> str:
+    s = "{\n"
+    for k, v in artifact.items():
+        val: Any = v
+        if k != "source_path" and k != "cut":
+            if len(val) == 0:
+                s += f'\t"{k}": [],\n'
+            else:
+                s += f'\t"{k}": [\n'
+                for l in val: 
+                    s += f'\t\t{json.dumps(l)},\n'
+                s = s[:-2] + "\n"
+                s += "\t],\n"
+        else:
+            s += f'\t"{k}": {json.dumps(v)},\n' 
+    s = s[:-2] + "\n}\n"
+    return s
+
+@dataclass
+class MinizincResult:
+    function_assignments: List[Assignment]
+    global_var_assignments: List[Assignment]
+    other_assignments: List[Assignment]
+    pdg_lookup: PdgLookupTable
+    solution: Solution
+    cut: Optional[ArtifactCut] = None
+
+    def levels(self) -> List[str]:
+        return list({assgn.level for assgn in self.function_assignments})
+
+    def enclaves(self) -> List[str]:
+        return list({assgn.enclave for assgn in self.function_assignments})
+
+    def topology(self, source_path: os.PathLike) -> Topology:
+        def from_assignment(assgn: Assignment) -> TopologyAssignment:
+            assert assgn.name is not None
+            return {
+                "name": assgn.name,
+                "level": assgn.level,
+                "enclave": assgn.enclave,
+                "line": assgn.line,
+            } 
+        return {
+            "source_path": str(source_path),
+            "enclaves": self.enclaves(),
+            "levels": self.levels(),
+            "functions": [ from_assignment(assgn) for assgn in self.function_assignments ],
+            "global_scoped_vars": [ from_assignment(assgn) for assgn in self.global_var_assignments ],
+        }
+    def artifact(self, source_path: os.PathLike) -> Artifact:  
+        def from_assignment(assgn: Assignment) -> ArtifactAssignment:
+            return {
+                "node": assgn.node,
+                "label": assgn.label,
+                "enclave": assgn.enclave,
+                "level": assgn.level,
+                "debug": {
+                    "line": assgn.line,
+                    "name": assgn.name,
+                }
+            }
+
+        all_assignments = [*self.function_assignments, *self.global_var_assignments, *self.other_assignments]
+
+        def cut() -> Optional[ArtifactCut]:
+            xd_edges = [ edge for i, is_xd in enumerate(self.solution.xdedge)
+                if (edge := self.pdg_lookup.edges[i + 1]).edge_type == 'ControlDep_CallInv' and is_xd ]
+            assgn_lookup: Dict[int, Assignment] = { assgn.node: assgn for assgn in all_assignments }
+            cut: List[ArtifactCut] = [{
+                "summary": f"({e.src_node_idx}:{assgn_lookup[e.src_node_idx].label})--[{assgn_lookup[e.src_node_idx].enclave}]--||-->[{assgn_lookup[e.dest_node_idx].enclave}]--({e.dest_node_idx}:{assgn_lookup[e.dest_node_idx].label})",
+                "source-node": e.src_node_idx,
+                "source-label": assgn_lookup[e.src_node_idx].label,
+                "source-enclave": assgn_lookup[e.src_node_idx].enclave,
+                "dest-node": e.dest_node_idx,
+                "dest-label": assgn_lookup[e.dest_node_idx].label,
+                "dest-enclave": assgn_lookup[e.dest_node_idx].enclave,
+                }
+            for e in xd_edges ]
+            return cut[0] if len(cut) > 0 else None 
+
+        fun_assgns = [ from_assignment(assgn) for assgn in self.function_assignments ]
+        var_assgns = [ from_assignment(assgn) for assgn in self.global_var_assignments ]
+        all_assgns = [ from_assignment(assgn) for assgn in all_assignments ]
+        return {
+            "source_path": str(source_path),
+            "function-assignments": fun_assgns,
+            "variable-assignments": var_assgns,
+            "all-assignments": all_assgns, 
+            "cut": self.cut or cut() 
+        }
+
+
+def run_model(instances: List[str], constraint_files: List[Path], 
+    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> MinizincResult:
+
+    model = Model(constraint_files)
+    gecode = Solver.lookup("gecode")
+    instance = Instance(gecode, model)
+    for inst in instances:
+        instance.add_string(inst)
+    result = instance.solve()
+    if result.status.has_solution():
+        return from_solution(result.solution, pdg_lookup)
+    elif result.status == result.status.UNSATISFIABLE:
+        res = run_findmus(instances, constraint_files, temp_dir)
+        raise FindmusException(res, pdg_lookup, source_map)
+    raise RuntimeError("Minizinc return status {result.status}") 
+
+def run_cmdline(instances: List[str], constraint_files: List[Path], 
+    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> MinizincResult:
+    (temp_dir / 'instance.mzn').write_text("\n".join(instances))    
+    
+    mzn_args: List[Union[str, os.PathLike]] = [
+        'minizinc',
+        '--solver',
+        'Gecode',
+        *constraint_files,
+        temp_dir / 'instance.mzn'
+    ]
+    output = subprocess.run(mzn_args, capture_output=True, encoding='utf-8')
+    if output.returncode != 0 or "Error" in output.stdout:
+        raise ProcessException("minizinc failure", output)     
+    if "UNSATISFIABLE" in output.stdout:
+        mus = run_findmus(instances, constraint_files, temp_dir)
+        raise FindmusException(mus, pdg_lookup, source_map)
     else:
-        return parse_assignment(mzn_out.stdout, pdg_csv, logger, source_path, source_map)
+        soln, cut = parse_solution(output.stdout)
+        res = from_solution(soln, pdg_lookup)
+        res.cut = cut
+        return res
 
-SourceMap = Dict[Tuple[str, int], Tuple[str, int]]
-PathSourceMap = Dict[Tuple[Path, int], Tuple[Path, int]]
-
-def canonicalize_source_map(source_map: SourceMap) -> PathSourceMap:
-    return { 
-        (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) 
-        for ((kpath, kline), (vpath, vline)) in source_map.items() 
-    }
-
-def lookup(source_map: PathSourceMap, path: Path, line: int) -> Optional[Tuple[Path, int]]:
-    return source_map[(path.resolve(), line)] if (path, line) in source_map else None
-
-def lookup_with_default(source_map: PathSourceMap, path: Path, line: int) -> Tuple[Path, int]:
-    result = lookup(source_map, path, line) 
-    return (path, line) if result is None else result
-
-def parse_assignment(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_path: Path, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]:
-    pdg_csv = list(pdg_csv)
-    source_map_resolved = {}
-    if source_map:
-        source_map_resolved = canonicalize_source_map(source_map)
-    function_entries : List[Dict[str, str]] = []
-    global_var_entries : List[Dict[str, str]] = []
-    enclaves : Set[str] = set() 
-    levels : Set[str] = set() 
-
-    artifact_function_entries : List[Dict[str, Any]] = []
-    artifact_global_var_entries : List[Dict[str, Any]] = []
-    artifact_assignments : List[Dict[str, Any]] = []
-
-    nodes = sorted(
-        [ (int(num), source, llvm, line) for [type_, num, _, _, llvm, *_, source, line, _]  in pdg_csv if type_ == 'Node' ], 
-        key=lambda x: x[0]
-    )
-
-    def add_artifact_entry(line: str, entries: List[Dict[str, Any]], entry_type: str) -> None:
+def parse_solution(mzn_out: str) -> Tuple[Solution, Optional[ArtifactCut]]:
+    nodes: Dict[int, Tuple[str, str, str]] = {}
+    cut: Optional[ArtifactCut] = None
+    def parse_line(line: str) -> None: 
         parts = [ s.strip() for s in line.split(" ") if s != '' ]
         node, [enclave, label, level] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
-        node_, source, llvm, line = nodes[node-1]
-        line_no = int(line)
-        source = None if (stripped := source.strip()) == 'Not Found' else stripped
-        assert node == node_ 
-        match = re.search(r'@((\w|\.)*)', llvm)
-        assert match is not None
-        name = match.group(1)
-        enclaves.add(enclave)
-        levels.add(level)
-        source, line_no = lookup_with_default(source_map_resolved, Path(source), line_no) 
-        entries.append({ "node": node, "label": label, "enclave": enclave, "level": level, "debug": { "line": str(line_no), "name": name } })
+        nodes[node] = enclave, label, level
 
-        
-    def add_entry(line: str, entries: List[Dict[str, str]], entry_type: str) -> None:
-        parts = [ s.strip() for s in line.split(" ") if s != '' ]
-        node, [enclave, _label, level] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
-        node_, source, llvm, line = nodes[node-1]
-        line_no = int(line)
-        source = None if (stripped := source.strip()) == 'Not Found' else stripped
-        assert node == node_ 
-        match = re.search(r'@((\w|\.)*)', llvm)
-        assert match is not None
-        name = match.group(1)
-        enclaves.add(enclave)
-        levels.add(level)
-        source, line_no = lookup_with_default(source_map_resolved, Path(source), line_no) 
-        entries.append({ "name": name, "enclave": enclave, "level": level, "line": str(line_no) })
-        logger.info(f"{entry_type} {name} is in {enclave}{'' if not source else f' @ {source}:{str(line_no)}'}")
-
-    def parse_xd_line(line: str) -> Dict[str, Any]:
-        parts = [ s.strip() for s in line.split(" ") if s != '' ]
-        desc = parts[2] 
-        match = re.search(r'\((\d+)\:((\w|_)+)\)--\[((\w|_)+)\]--\|\|-->\[((\w|_)+)\]--\((\d+)\:((\w|_)+)\)', desc)
-        assert match is not None
-        source_node, source_lbl, source_enc, dest_enc, dest_node, dest_lbl = match.group(1,2,4,6,8,9) 
-        return {
-            "summary": desc,
-            "source-node": int(source_node),
-            "source-label": source_lbl,
-            "source-enclave": source_enc,
-            "dest-node": int(dest_node),
-            "dest-label": dest_lbl,
-            "dest-enclave": dest_enc
-        }  
-
-    def parse_assign(line: str) -> Dict[str, Any]:
-        parts = [ s.strip() for s in line.split(" ") if s != '' ]
-        node, node_type, [enc, label, level] = parts[2], parts[3], [ s.strip('[]') for s in parts[-1].split('::') ]     
-        node = int(node)
-        node_, source, llvm, line = nodes[node-1]
-        line_no = int(line)
-        source = None if (stripped := source.strip()) == 'Not Found' else stripped
-        assert node == node_ 
-        match = re.search(r'@((\w|\.)*)', llvm)
-        name = None
-        if match:
-            name = match.group(1)
-        return {
-            "node": node,
-            "node_type": node_type,
-            "enclave": enc,
-            "level": level,
-            "label": label,
-            "debug": {
-                "line": int(line),
-                "name": name
+    def parse_xd(line: str) -> Optional[ArtifactCut]:
+        # XDCALL   : (2:PURPLE)--[purple_E]--||-->[orange_E]--(74:XDLINKAGE_GET_A)
+        reg = r'\((\d+):(\w+)\)--\[(\w+)\]--\|\|-->\[(\w+)\]--\((\d+):(\w+)\)'
+        res = re.search(reg, line)
+        if res is not None:
+            src_node, src_lbl, src_enc, dst_enc, dst_node, dst_lbl = res.groups()
+            return {
+                "summary": f"({src_node}:{src_lbl})--[{src_enc}]--||-->[{dst_enc}]--({dst_node}:{dst_lbl})",
+                "source-node": int(src_node),
+                "source-label": src_lbl, 
+                "source-enclave": src_enc, 
+                "dest-node": int(dst_node), 
+                "dest-label": dst_lbl, 
+                "dest-enclave": dst_enc 
             }
-        } 
 
-    xd_call = None    
-
-    out = mzn_output.splitlines() 
+    out = mzn_out.splitlines()
     for line in out:
-        if line.find('FunctionEntry') != -1:
-            add_entry(line, function_entries, 'function')
-            add_artifact_entry(line, artifact_function_entries, 'function')
-        elif line.find('VarNode') != -1:
-            add_entry(line, global_var_entries, 'variable')
-            add_artifact_entry(line, artifact_global_var_entries, 'variable')
-        if line.find('XDCALL') != -1:
-            xd_call = parse_xd_line(line)
-        elif line.find('ASSIGN') != -1:
-            artifact_assignments.append(parse_assign(line))
+        if line.find('ASSIGN') != -1:
+            parse_line(line)
+        elif line.find('XDCALL') != -1:
+            cut = parse_xd(line)
+    
+    nodes_list = sorted(nodes.items(), key=lambda x: x[0])
 
-    topology = {
-        "source_path": str(source_path), 
-        "enclaves": list(enclaves),
-        "levels": list(levels),
-        "global_scoped_vars": global_var_entries,
-        "functions": function_entries
-    }
+    node_enclaves = [ enclave for _, (enclave, _, _) in nodes_list ] 
+    node_labels = [ label for _, (_, label, _) in nodes_list ] 
+    node_levels = [ level for _, (_, _, level) in nodes_list ] 
 
-    artifact = {
-        "source_path": str(source_path),
-        "function-assignments": artifact_function_entries,
-        "variable-assignments": artifact_global_var_entries,
-        "cut": xd_call,
-        "all-assignments": artifact_assignments 
-    }
+    print(cut)
+    return Solution(node_enclaves, node_levels, node_labels, []), cut
+      
+def from_solution(soln: Solution, table: PdgLookupTable) -> MinizincResult:
+    functions: List[Assignment] = []
+    global_vars: List[Assignment] = []
+    other: List[Assignment] = []
 
-    return { "result": "Success", "topology": topology, "artifact": artifact } 
+    for i, (enc, lvl, lbl) in enumerate(zip(soln.nodeEnclave, soln.nodeLevel, soln.taint)):
+        node_idx = i + 1
+        node = table.nodes[node_idx]
 
-def parse_findmus(mzn_output: str, pdg_csv: Iterable, logger: Logger, source_map: Optional[Dict[Tuple[str, int], Tuple[str, int]]] = None) -> Dict[str, Any]: 
-    pdg_csv = list(pdg_csv)
+        to_append = functions if node.node_type == 'FunctionEntry' else (global_vars if node.node_type == 'VarNode' else other)
+        llvm_name = node.llvm_name()
+        to_append.append(Assignment(node_idx, lbl, enc, lvl, llvm_name, node.source_file, node.source_line))
 
-    source_map_resolved = {}
-    if source_map:
-        source_map_resolved = { (Path(kpath).resolve(), kline): (Path(vpath).resolve(), vline) for ((kpath, kline), (vpath, vline)) in source_map.items() }
+    return MinizincResult(functions, global_vars, other, table, soln)
 
-    nodes = sorted(
-        [ (int(num), source, llvm, line) for [type_, num, _, _, llvm, *_, source, line, _]  in pdg_csv if type_ == 'Node' ], 
-        key=lambda x: x[0]
-    )
-    edges = sorted(
-        [ (int(num), int(source), int(dest)) for [type_, num, _, _, _, _, source, dest, *_] in pdg_csv if type_ == 'Edge' ], 
-        key=lambda x: x[0]
-    )
-    for (i, node) in enumerate(nodes):
-        assert i == node[0] - 1
-    for (i, edge) in enumerate(edges):
-        assert i == edge[0] - 1
-
-    src = mzn_output.splitlines()
+def run_findmus(strings: List[str], sources: List[Path], temp_dir: Path) -> List[Mus]:
+    (temp_dir / 'instance.mzn').write_text("\n".join(strings))
+    mzn_args: List[Union[str, os.PathLike]] = [
+        'minizinc',
+        '--solver',
+        'findmus',
+        '--subsolver',
+        'Gecode',
+        '--depth',
+        '3',
+        '--output-json',
+        *sources,
+        temp_dir / 'instance.mzn'
+    ]
+    output = subprocess.run(mzn_args, capture_output=True, encoding='utf-8')
+    if output.returncode != 0 or "Error" in output.stdout:
+        raise ProcessException("minizinc failure", output)     
+    lines = output.stdout.splitlines()
     start_index, end_index = None, None
-    for i, line in enumerate(src):
+    for i, line in enumerate(lines):
         if line.find('%%%mzn-json-start') != -1:
             start_index = i
         elif line.find('%%%mzn-json-end') != -1:
             end_index = i
     assert start_index is not None and end_index is not None
-    json_out = json.loads("\n".join(src[start_index+1:end_index]))
-    conflicts : List[Dict[str, Any]] = []
-    for item in json_out['constraints']:
-        if item['assigns'] and item['assigns'] != '':
-            match = re.search(r'n=(\d+)', item['assigns'])
-            if match is not None:
-                node_num = int(match.group(1))
-                (_, source, _, line) = nodes[node_num - 1] 
-                line_no = int(line)
-                if line_no > 0:
-                    source, line_no = lookup_with_default(source_map_resolved, Path(source), line_no) 
-                else:
-                    source, _ = lookup_with_default(source_map_resolved, Path(source), line_no) 
-                    line_no = -1 
-                conflicts.append({
-                    "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
-                    "description": "TODO",
-                    "sources": [
-                        {
-                            "file": source,
-                            "range": {
-                                "start": { "line": line_no, "character": -1, },
-                                "end": { "line": line_no, "character": -1, }
-                            }
-                        }
-                    ]
-                })
-            else:
-                match = re.search(r'e=(\d+)', item['assigns'])
-                assert match is not None
-                edge_num = int(match.group(1))
-                if edge_num >= len(edges) - 1:
-                    continue
-                _, first, second  = edges[edge_num - 1]
-                (_, first_source, _, first_line), (_, second_source, _, second_line) = nodes[first - 1], nodes[second - 1]
-                first_line_no = int(first_line)
-                second_line_no = int(second_line)
-                first_source, first_line_no = lookup_with_default(source_map_resolved, Path(first_source), first_line_no)
-                second_source, second_line_no = lookup_with_default(source_map_resolved, Path(second_source), second_line_no) 
-                conflicts.append({
-                    "name": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
-                    "description": item['constraint_name'] if item['constraint_name'] != '' else 'Unknown',
-                    "sources": [
-                        { 
-                            "file": str(first_source), 
-                            "range": { 
-                                "start": { "line": first_line_no, "character": 0 }, 
-                                "end": { "line": first_line_no, "character": 1 }, 
-                            },
-                        },                 
-                        {
-                            "file": str(second_source),
-                            "range": { 
-                                "start": { "line": second_line_no, "character": 0 }, 
-                                "end": { "line": second_line_no, "character": 1 }, 
-                            },
-                        }
-                    ],
-                    "remedies": [],
-                })
-    return { "result": "Conflict", "conflicts": conflicts }
-       
+    return json.loads("\n".join(lines[start_index+1:end_index]))["constraints"]

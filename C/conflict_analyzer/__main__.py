@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
-from conflict_analyzer.minizinc import minizinc
+from conflict_analyzer.pdg_table import PdgLookupTable, PdgLookupNode, PdgLookupEdge
+from conflict_analyzer.minizinc import run_model, run_cmdline, Topology, MinizincResult, str_artifact
 from preprocessor.preprocess import LabelledCleJson, Transform
 import preprocessor.preprocess as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
@@ -31,77 +32,61 @@ class Args:
     zmq: Optional[str]
     constraint_files: List[Path]
     artifact: Optional[Path]
-    log_level: str 
+    log_level: Literal['INFO', 'DEBUG', 'ERROR'] 
 
-def preprocess(source: Path, schema: Optional[Path]) -> Transform:
-    pre = preprocessor.Preprocessor(schema=schema)
-    transform = pre.preprocess(source)
-    return transform
-
-@dataclass
-class SourceEntity:
-    source_path: Path
-    preprocessed: str
-    cle_json: List[LabelledCleJson]
-    source_map: Dict[int, int]
+SourceEntity = Tuple[Path, Transform] 
 
 def collate_json(entities: List[SourceEntity]) -> List[LabelledCleJson]: 
     collated = {}
-    for entity in entities:
-        for obj in entity.cle_json:
-            if obj['cle-label'] in collated:
-                raise SourcedException(f"Label {obj['cle-label']} is defined twice", [Source(entity.source_path, None)])
-            collated[obj['cle-label']] = obj
+    for path, transform in entities:
+        for labelledjson in transform.cle_json:
+            if labelledjson['cle-label'] in collated:
+                raise SourcedException(f"Label {labelledjson['cle-label']} is defined twice", [Source(path, None)])
+            collated[labelledjson['cle-label']] = labelledjson
     return list(collated.values())
 
 def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tuple[str, int], Tuple[str, int]]:
     src_map = {}
-    for entity in entities:
-        for key in entity.source_map:
-            src_map[(str(temp_dir / entity.source_path.name), key)] = (str(entity.source_path), entity.source_map[key])
+    for path, transform in entities:
+        for key in transform.source_map:
+            src_map[(str(temp_dir / path.name), key)] = (str(path), transform.source_map[key])
     return src_map
 
+def output_zinc(src: clejson2zinc.ZincSrc, temp_dir: Path) -> None:
+    (temp_dir / 'cle_instance.mzn').write_text(src.cle_instance)
+    (temp_dir / 'enclave_instance.mzn').write_text(src.enclave_instance)
+    
 
-def start(args: Args, logger: Logger) -> Optional[Dict[str, Any]]:
-    schema = None
-    log_level_map = {
-        "INFO": logging.INFO,
-        "DEBUG": logging.DEBUG,
-        "ERROR": logging.ERROR
-    }
-    level = log_level_map[args.log_level]
-    logger.setLevel(level)
-    logger.info("Set up logger with log level %s", logging.getLevelName(level))
+def start(args: Args, logger: Logger) -> MinizincResult:
+    schema = json.loads(args.schema.read_text()) if args.schema else None
+    pre = preprocessor.Preprocessor(schema=schema)
     clang_args = args.clang_args.split(",")
-    if args.schema:
-        with open(args.schema) as schema_f:
-            schema = json.loads(schema_f.read())
-            logger.info("Schema found at %s", args.schema) 
-    else:
-        logger.info("No schema provided, using liberal mode in preprocessor") 
 
     def make_source_entity(source: Path) -> SourceEntity:
-        transform = preprocess(source, args.schema)
+        transform = pre.preprocess(source)
         logger.info("Preprocessed source file %s", source)
-        return SourceEntity(source, transform.preprocessed, transform.cle_json, transform.source_map) 
+        return source, transform 
 
-    def analyze() -> Dict[str, Any]:
+
+    def analyze() -> MinizincResult:
         entities = [ make_source_entity(source) for source in args.sources ]
         collated = collate_json(entities)
         logger.info("Collated JSON")
         logger.debug("%s", json.dumps(collated, indent=2))
-        bitcode = compile_c([ (entity.source_path.name, entity.preprocessed) for entity in entities if entity.source_path.suffix == ".c" ], args.temp_dir, clang_args)
+        bitcode = compile_c([ (path.name, transform.preprocessed) for path, transform in entities if path.suffix == ".c" ], args.temp_dir, clang_args)
         logger.info("Compiled c files into LLVM IR")
-        opt_out = opt(args.pdg_lib.resolve(), bitcode, args.temp_dir) 
+        opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
         logger.debug(opt_out.pdg_instance)
         logger.info("Produced pdg related data from opt")
         zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger) 
         logger.info("Produced minizinc enclave and cle instances")
         logger.debug(zinc_src.cle_instance)
         logger.debug(zinc_src.enclave_instance)
+        output_zinc(zinc_src, args.temp_dir)
         collated_map = collate_source_map(entities, args.temp_dir) 
         logger.info("Collated source maps")
-        out = minizinc(args.temp_dir, zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, args.constraint_files, opt_out.pdg_csv, args.source_path, collated_map, logger) 
+        out = run_cmdline([zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, 
+            *[ f.read_text() for f in args.constraint_files]], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map) 
         logger.info("Produced JSON result from minizinc")
         return out
 
@@ -119,7 +104,7 @@ def parsed_args() -> Args:
     parser.add_argument('--pdg-lib', help="Path to pdg lib", 
         type=Path, required=True)
     parser.add_argument('--source-path', help="Source path for output topology. Defaults to current directory", 
-        default=Path('.'))
+        default=Path('.').resolve())
     parser.add_argument('--constraint-files', help="Path to constraint files", 
         type=Path, required=False, nargs="*", default=[constraints_def, decls_def])
     parser.add_argument('--output', help="Output path for topology json",
@@ -132,10 +117,18 @@ def parsed_args() -> Args:
     args.pdg_lib = args.pdg_lib.resolve()
     return args
 
-def setup_logger() -> Logger:
+def setup_logger(log_level: Literal['INFO', 'DEBUG', 'ERROR']) -> Logger:
     logger = logging.getLogger()
     handler = logging.StreamHandler(sys.stderr)
     logger.addHandler(handler)
+    log_level_map = {
+        "INFO": logging.INFO,
+        "DEBUG": logging.DEBUG,
+        "ERROR": logging.ERROR
+    }
+    level = log_level_map[log_level]
+    logger.setLevel(level)
+    logger.info("Set up logger with log level %s", logging.getLevelName(level))
     # Alternative logging format 
     # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
     # handler.setFormatter(formatter)
@@ -144,49 +137,20 @@ def setup_logger() -> Logger:
 
 def main() -> None: 
     args = parsed_args()        
-    logger = setup_logger()
+    logger = setup_logger(args.log_level)
     out = start(args, logger)
-
-    def output_to_file(path: Path):
-        def _out(s: Any):
-            with open(path, "w") as f:
-                f.write(s)
-        return _out
-    def err_fn(err: Any):
-        print(err) 
-        if args.zmq:
-            context = zmq.Context()
-            socket = context.socket(zmq.REQ)
-            socket.bind(args.zmq)
-            socket.send(err)
-
-    output_fn = output_to_file(args.output) if args.output else print 
-    if out:
-        result = out["result"]
-        if result == "Success":
-            output_fn(json.dumps(out["topology"], indent=2))
-            if args.artifact: 
-                s = "{\n"
-                for k, v in out["artifact"].items():
-                    if k != "source_path" and k != "cut":
-                        s += f'\t"{k}": [\n'
-                        for l in v: 
-                            s += f'\t\t{json.dumps(l)},\n'
-                        s = s[:-2] + "\n"
-                        s += "\t],\n"
-                    else:
-                        s += f'\t"{k}": {json.dumps(v)},\n' 
-                s = s[:-2] + "\n}\n"
-                output_to_file(args.artifact)(s)
-        elif result == "Conflict":
-            print(out["conflicts"])
-            print(json.dumps(out["conflicts"], indent=2))
-        else:
-            logger.error("Internal error")
+    if args.output:
+        args.output.write_text(
+            json.dumps(out.topology(args.source_path), indent=2)
+        )
+    else:
+        print(out.topology(args.source_path))
+        print(out.artifact(args.source_path))
+    if args.artifact:
+        args.artifact.write_text(
+            str_artifact(out.artifact(args.source_path)) 
+        )
                   
-
-    
-
 if __name__ == '__main__':
     main()
 

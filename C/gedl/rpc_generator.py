@@ -148,7 +148,6 @@ class GEDLProcessor:
   # C) Generate header file for each enclave (e.g., purple_rpc.h)
   ##############################################################################################################
   def genrpcH(self, e, inu, outu, ipc):
-    # TODO: generate function annotations for master/slave rpc calls 
     n,t = '\n','    '
     def boiler():    # ARQ mod: for each RPC functions (in and out)
       s  = '#ifndef _' + e.upper() + '_RPC_' + n
@@ -175,7 +174,7 @@ class GEDLProcessor:
       s += t + '"cdf": [{"remotelevel": "' + l['to'] + '", "direction": "egress", \\' + n
       s += t + t + t + '"guarddirective": {"operation": "allow", "gapstag": [' + ','.join([str(l['mux']+self.muxbase),str(l['sec']+self.secbase),str(l['typ']+self.typbase)]) + ']}}]}' + n + n
       return s
-    def funcle(f, ls):
+    def funcle(f, ls, params):
       pre = "RPC" if e in self.masters else "HANDLE_REQUEST"
       lbls = [ l['clelabl'] for (l, o) in ls ]
       ret = json.dumps([ l['clelabl'] for (l, o) in ls if not o]) if e in self.masters else "[]"
@@ -184,22 +183,35 @@ class GEDLProcessor:
         '{"level": "' + e + '", ',
         t + '"cdf": [{"remotelevel":"' + e + '", "direction": "bidirectional", ',
         t + t + t + '"guarddirective": {"operation": "allow"}, ',
-        t + t + t + f'"argtaints": [{ json.dumps(lbls) if e in self.masters else ""}],',
+        t + t + t + f'"argtaints": [{ ", ".join([json.dumps(lbls)] * (len(params) + 1)) if e in self.masters else ""}],',
         t + t + t + f'"codtaints": { json.dumps(lbls) },',
         t + t + t + f'"rettaints": { ret }',
         t + t + t + "}]}"
       ])
+      if pre == "RPC":
+        s += n
+        s += f"#pragma cle def ERR_HANDLE_{pre}_{f.upper()} "
+        s += ("\\" + n).join([
+          '{"level": "' + e + '", ',
+          t + '"cdf": [{"remotelevel":"' + e + '", "direction": "bidirectional", ',
+          t + t + t + '"guarddirective": {"operation": "allow"}, ',
+          t + t + t + f'"argtaints": [{ ", ".join([json.dumps(lbls)] * len(params)) if e in self.masters else ""}],',
+          t + t + t + f'"codtaints": { json.dumps(lbls) },',
+          t + t + t + f'"rettaints": { ret }',
+          t + t + t + "}]}"
+        ])
       s += n
       return s 
 
-    def fundecl(fd, wrap=True):
-      s  = 'extern ' + fd['return']['type'] + ' ' + ('_rpc_' if wrap else '') + fd['func'] + '('
+    def fundecl(fd, outgoing=True):
+      s  = 'extern ' + fd['return']['type'] + ' ' + ('_err_handle_rpc_' if outgoing else '') + fd['func'] + '('
       # ARQ mod:
-      s += ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']])  # XXX: check array/pointer
-      if wrap :
-        if ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]) != "" :
-          s += ', '
-        s += 'int *error'
+      params = [p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]
+      s += ','.join(params) if len(params) > 0 else 'void' # XXX: check array/pointer
+      # if wrap :
+        # if ','.join([p['type'] + ' ' + p['name'] + ('[]' if 'sz' in p else '') for p in fd['params']]) != "" :
+          # s += ', '
+        # s += 'int *error'
       s += ');' + n
       return s
     def trailer(): return n + '#endif /* _' + e.upper() + '_RPC_ */' + n
@@ -216,7 +228,7 @@ class GEDLProcessor:
           if g not in self.spcalls 
           if f == g 
         ]
-        s += funcle(f, ls)
+        s += funcle(f, ls, fd["params"])
 
     for (x,y,f,fd) in self.allCalls(e):
       for o in [True,False]:
@@ -224,8 +236,8 @@ class GEDLProcessor:
         s  += tagcle(l)
         s2 += muxsec(l)
     s += s2 + n
-    for (x,y,f,fd) in self.outCalls(e): s += fundecl(fd, wrap=True)
-    for (x,y,f,fd) in self.inCalls(e):  s += fundecl(fd, wrap=False)
+    for (x,y,f,fd) in self.outCalls(e): s += fundecl(fd, outgoing=True)
+    for (x,y,f,fd) in self.inCalls(e):  s += fundecl(fd, outgoing=False)
     s += trailer()
     return s
 
@@ -579,7 +591,22 @@ class GEDLProcessor:
       s += cc_read_res_packet()
       s += '}' + n + n
       return s
-      
+
+    def errhandlewrapdef(x,y,f,fd,ipc):
+      return_type = fd["return"]["type"]
+      params = [ (" ".join([param["type"], param["name"]])) + ('[]' if 'sz' in param else '') for param in fd["params"] ]
+      param_names = [ param["name"] for param in fd["params"] ]
+      return (
+        f"#pragma cle begin ERR_HANDLE_RPC_{f.upper()}\n"
+        f"{return_type} _err_handle_rpc_{f}({', '.join(params)})" "{\n"
+        f"#pragma cle end ERR_HANDLE_RPC_{f.upper()}\n"
+        "\tint err_num;\n"
+        f"\t{return_type} res = _rpc_{f}({', '.join(param_names)}{', ' if len(param_names) > 0 else ''}&err_num);\n"
+        "\t// err handling code goes here\n"
+        f"\treturn res;\n"
+        "}\n"
+      )
+
     ##############################################################################################################
     # D5) RES: handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
@@ -724,6 +751,7 @@ class GEDLProcessor:
       s += handlerdef(x,y,f,fd,ipc)
     for (x,y,f,fd) in self.outCalls(e):
       s += rpcwrapdef(x,y,f,fd,ipc)
+      s += errhandlewrapdef(x,y,f,fd,ipc) 
     s += masterdispatch(e, ipc) if e in self.masters else slavedispatch(e, ipc)
     return s
 
@@ -748,6 +776,7 @@ class GEDLProcessor:
           newd = os.path.join(odir, rel, name)
           os.makedirs(newd, mode=0o755, exist_ok=True)  
         for fname in files: self.processFile(prog,e,idir,odir,rel,fname, DB)
+  
 
   # Modify APP (e.g. example1.c), adding prefix to XD (affected) functions (e.g. get_a to _rpc_get_a)
   def processFile(self, prog, e, idir, odir, rel, fname, DB): # XXX: ought to use a C Parser, not regex
@@ -766,25 +795,24 @@ class GEDLProcessor:
               newf.write(line)
               newf.write("  _master_rpc_init();\n")
               continue
-            if canonold in self.affected:
-              if index+1 in self.affected[canonold]:
-                for func in self.affected[canonold][index+1]:
-                  if line.find(func) == -1: raise Exception(func + ' not found in ' + canonold + ' at line ' + str(index) + ':' + line)
-                  err_param = 'error_num_' + func
-                  newline1 = ' ' * (len(line) - len(line.lstrip())) + 'int ' + err_param + ';\n'
-                  newf.write(newline1)
-                  line = line.replace(func, '_rpc_' + func)
-                  if DB[1]:
-                    print('Add error variable line', newline1)
-                    print('Replacing ' + func +' with _rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
+            if canonold in self.affected and index+1 in self.affected[canonold]:
+              for func in self.affected[canonold][index+1]:
+                if line.find(func) == -1: raise Exception(func + ' not found in ' + canonold + ' at line ' + str(index) + ':' + line)
+                # err_param = 'error_num_' + func
+                # newline1 = ' ' * (len(line) - len(line.lstrip())) + 'int ' + err_param + ';\n'
+                # newf.write(newline1)
+                line = line.replace(func, '_err_handle_rpc_' + func)
+                if DB[1]:
+                  # print('Add error variable line', newline1)
+                  print('Replacing ' + func +' with _err_handle_rpc_' + func + ' on line ' + str(index) + ' in file ' + canonnew)
             # ARQ adds an error variable to each XD function call (canonold in self.affected)
-            if len(err_param) > 0:
-                if DB[0]: print('Checking if close rpc function call')
-                if line.find(')') != -1:    # end of (possibly multi-line) XD function call
-                  if line.find('()') == -1: line = line.replace(')', ', &' + err_param + ')')
-                  else:                     line = line.replace(')',   '&' + err_param + ')')
-                  if DB[1]: print('Adding error variable', err_param, 'to XD function')
-                  err_param = ''
+            # if len(err_param) > 0:
+                # if DB[0]: print('Checking if close rpc function call')
+                # if line.find(')') != -1:    # end of (possibly multi-line) XD function call
+                  # if line.find('()') == -1: line = line.replace(')', ', &' + err_param + ')')
+                  # else:                     line = line.replace(')',   '&' + err_param + ')')
+                  # if DB[1]: print('Adding error variable', err_param, 'to XD function')
+                  # err_param = ''
             newf.write(line)
           if e not in self.masters:
             if DB[1]: print('Adding slave main to: ' + canonnew)
@@ -797,7 +825,7 @@ class GEDLProcessor:
 ##############################################################################################################
 def main():
   args = argparser()
-  DB = [False, True, True] if args.verbose else [False, False, True]  # Print Debugs at levels: 0(Trace), 1(Debug), 2(Info)?
+  DB = [False, True, True] if args.verbose else [False, False, False]  # Print Debugs at levels: 0(Trace), 1(Debug), 2(Info)?
   gp   = GEDLProcessor(args.gedl,args.enclave_list,args.mux_base,args.sec_base,args.typ_base,args.schema,args.cle)
   if len(args.enclave_list) != 2: raise Exception('Only supporting two enclaves for now')
   gp.findMaster(args.enclave_list,args.edir,args.mainprog)
