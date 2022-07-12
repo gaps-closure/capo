@@ -11,7 +11,7 @@ from conflict_analyzer.minizinc import run_model, run_cmdline, Topology, Minizin
 from preprocessor.preprocess import LabelledCleJson, Transform
 import preprocessor.preprocess as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
-from conflict_analyzer.exceptions import SourcedException, Source
+from conflict_analyzer.exceptions import SourcedException, FindmusException, Source, ConflictJSON
 import tempfile
 import logging
 import sys
@@ -29,7 +29,8 @@ class Args:
     pdg_lib: Path
     source_path: Path
     output: Optional[Path]
-    zmq: Optional[str]
+    output_json: bool 
+    conflicts: Optional[Path]
     constraint_files: List[Path]
     artifact: Optional[Path]
     log_level: Literal['INFO', 'DEBUG', 'ERROR'] 
@@ -110,7 +111,8 @@ def parsed_args() -> Args:
     parser.add_argument('--output', help="Output path for topology json",
         type=Path)
     parser.add_argument('--artifact', help="artifact json path", type=Path, required=False)
-    parser.add_argument('--zmq', help="zmq url to post result to", type=str, nargs="?")
+    parser.add_argument('--conflicts', help="conflicts json path", type=Path, required=False, default=Path("conflicts.json"))
+    parser.add_argument('--output-json', help="whether to output json", action='store_true')
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args())
     args.temp_dir = args.temp_dir.resolve()
@@ -138,15 +140,42 @@ def setup_logger(log_level: Literal['INFO', 'DEBUG', 'ERROR']) -> Logger:
 def main() -> None: 
     args = parsed_args()        
     logger = setup_logger(args.log_level)
-    out = start(args, logger)
+    out: Optional[MinizincResult] = None
+    try:
+        out = start(args, logger)
+    except FindmusException as e:
+        if args.output_json:
+            conflicts: List[ConflictJSON] = e.to_conflict_json_list()
+        else:
+            raise e
+
     if args.output:
-        args.output.write_text(
-            json.dumps(out.topology(args.source_path), indent=2)
-        )
+        if out:
+            args.output.write_text(
+                json.dumps(out.topology(args.source_path), indent=2)
+            )
+        elif args.conflicts:
+            args.conflicts.write_text(
+                json.dumps(conflicts)
+            )
+    if args.output_json:
+        if out:
+            print(json.dumps({
+                "result": "Success",
+                "topology": out.topology(args.source_path)
+            })) 
+        else:
+            print(json.dumps({
+                "result": "Conflict",
+                "conflicts": conflicts 
+            })) 
     else:
-        print(out.topology(args.source_path))
-        print(out.artifact(args.source_path))
-    if args.artifact:
+        assert out is not None # exception reraised
+        print(json.dumps(out.topology(args.source_path), indent=2))
+        print('\n')
+        print(str_artifact(out.artifact(args.source_path)))
+
+    if args.artifact and out:
         args.artifact.write_text(
             str_artifact(out.artifact(args.source_path)) 
         )
