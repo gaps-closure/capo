@@ -63,6 +63,24 @@ def parse_assign(mus: Mus) -> Tuple[bool, int]:
     node_or_edge, num = match.groups()
     return node_or_edge == 'e', int(num)
 
+class PositionJSON(TypedDict):
+    line: int 
+    character: int 
+
+class RangeJSON(TypedDict):
+    start: PositionJSON
+    end: PositionJSON
+
+class SourceJSON(TypedDict):
+    file: str
+    range: RangeJSON 
+
+class ConflictJSON(TypedDict):
+    name: str
+    description: str 
+    source: List[SourceJSON]
+    remedy: List[str] 
+
 Diag = Union[PdgLookupNode, Tuple[PdgLookupNode, PdgLookupNode]]
 Diags = Dict[str, List[Diag]]
 class FindmusException(Exception):
@@ -96,12 +114,51 @@ class FindmusException(Exception):
         def show_diag(diag: Diag) -> str:
             if type(diag) == tuple:
                 source, dest = diag
-                return f"({source.node_type}) {source.source_file} @ {source.llvm_name()}:{source.source_line}" + \
-                    f" -> ({dest.node_type}) {dest.source_file} @ {dest.llvm_name()}:{dest.source_line}" 
+                return f"({source.node_type}) {source.source_file}@{source.llvm_name()}:{source.source_line}" + \
+                    f" -> ({dest.node_type}) {dest.source_file}@{dest.llvm_name()}:{dest.source_line}" 
             elif isinstance(diag, PdgLookupNode):
                 node: PdgLookupNode = diag 
-                return f"({node.node_type}) {node.source_file} @ {node.llvm_name()}:{node.source_line}"
+                return f"({node.node_type}) {node.source_file}@{node.llvm_name()}:{node.source_line}"
             raise RuntimeError("Impossible case in show_diag")
             
         msg = [ cname + "\n\t\t" + "\n\t\t".join([ show_diag(d) for d in ds ]) for cname, ds in self.diags.items() ]
         return '\nMUS involving constraints:\n\t' + "\n\t".join(msg)
+
+    def to_conflict_json_list(self) -> List[ConflictJSON]: 
+        def to_source(pdg_node: PdgLookupNode) -> SourceJSON:
+            return {
+                "file": pdg_node.source_file,
+                "range": {
+                    "start": {
+                        "line": pdg_node.with_source_map(self.source_map).source_line or -1,
+                        "character": -1 
+                    },
+                    "end": {
+                        "line": pdg_node.with_source_map(self.source_map).source_line or -1,
+                        "character": -1
+                    }
+                }
+            }
+        def from_diag(name: str, diag: Diag) -> ConflictJSON:
+            if type(diag) == tuple:
+                source, dest = diag
+                return {
+                    "name": name,
+                    "description": "TODO",
+                    "source": [to_source(source), to_source(dest)],
+                    "remedy": []
+                }
+            elif isinstance(diag, PdgLookupNode):
+                return {
+                    "name": name,
+                    "description": "TODO",
+                    "source": [to_source(diag)],
+                    "remedy": []
+                }
+            else:
+                raise RuntimeError("Impossible case in from_diag")
+        out = []
+        for name, diags in self.diags.items():
+            for diag in diags:
+               out.append(from_diag(name, diag)) 
+        return out

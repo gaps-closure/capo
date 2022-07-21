@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 import argparse
 import subprocess
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -9,6 +10,12 @@ def submodules() -> None:
     subprocess.check_call(['git', 'submodule', 'init'])
     subprocess.check_call(['git', 'submodule', 'update'])
 
+
+def build_ect() -> None:
+    cwd = Path('ect')
+    z3_lib = (cwd / 'z3-4.8.8' / 'lib').resolve()
+    env = dict(os.environ, **{'LD_LIBRARY_PATH': z3_lib})
+    subprocess.check_call(['stack', 'build'], cwd=cwd, env=env)
 
 def build_pdg() -> None:
     cwd = Path('pdg2')
@@ -52,6 +59,7 @@ class Args:
 def build() -> None:
     submodules()
     build_pdg()
+    build_ect()
     build_gedl()
     build_verifier()
 
