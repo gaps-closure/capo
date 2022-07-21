@@ -769,40 +769,41 @@ def removeCall():
     pass 
 
 def isClassAnnotated(className,cp):
+    logger.debug("Checking is annotated for: " + str(className))
     for dummy,cnm in getClasses(cp):
         programClassName = str(cnm.getCanonicalName())
         if programClassName == className:
             break
     if programClassName != className:
-        logger.debug("Failed to find class when checking anno")
+        logger.debug("Failed to find class when checking anno for: " + str(className))
         return False
     isAnnotated = False
     if not "annotations" in programClassName:
-        methods = cnm.getMethods()
-        fields = cnm.getFields()
+        methods = cnm.getDeclaredMethods()
+        fields = cnm.getDeclaredFields()
             
         for method in methods:
-            # logger.debug(method.getName())
+            logger.debug(method.getName())
             annos = method.getDeclaredAnnotations()
             for anno in annos:
                 if "annotations" in str(anno.toString()):
-                    # logger.debug("Found user annotated function")
+                    logger.debug("Found user annotated function")
                     isAnnotated = True
                     break
                     
         for field in fields:
-            # logger.debug(field.getName())
+            logger.debug(field.getName())
             annos = field.getDeclaredAnnotations()
             for anno in annos:
                 if "annotations" in str(anno.toString()):
-                    # logger.debug("Found user annotated field")
+                    logger.debug("Found user annotated field")
                     isAnnotated = True
                     break
 
-        # if isAnnotated:
-        #     logger.debug("Class is annotated")
-        # else:
-        #     logger.debug("Class is not annotated")
+        if isAnnotated:
+            logger.debug("Class is annotated")
+        else:
+            logger.debug("Class is not annotated")
     return isAnnotated
 
 def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
@@ -848,9 +849,9 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 
                 # className = sLine[-3]
                 
-                sLine[-3] = classId2Name[int(sLine[-3])] 
+                sLine[-1] = classId2Name[int(sLine[-1])] 
                 # line = " ".join(sLine)
-                className = sLine[-3]
+                className = sLine[-1]
                 # className = className.replace("__", ".")
                 # logger.debug("Looking for classname:")
                 # logger.debug(className)

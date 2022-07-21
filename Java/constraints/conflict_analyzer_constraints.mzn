@@ -410,7 +410,7 @@ output [if debug then "Label and Enclave assignments to non-annotation nodes:\n"
 output [" Enclaves : " ++ show(hasEnclaveLevel[x]) ++ ":" ++ show(x) ++ "\n" | x in Enclave ] ;
 output ["=======================================" ++ "\n" ++ "Assignments for classes:\n" ++ "=======================================" ++ "\n"];
 
-output [" Class : " ++ show(l) ++ " : " ++ show(x) ++ " -> " ++ show(classEnclave[x, l]) ++ "\n" | x in ClassNames, l in nonNullEnclave where fix(classEnclave[x, l]==true) ] ;
+output [" Class : " ++ show(l) ++ " : " ++ show(x) ++ "\n" | x in ClassNames, l in nonNullEnclave where fix(classEnclave[x, l]==true) \/ isClassAnnotated[x]==false ] ;
 % output [" Class : " ++ show(x) ++ " -> " ++ show(classEnclave[x]) ++ "\n" | x in ClassNames where x != sharedClass] ;
 
 output ["Cross-domain cut:" ++ "\n"];
