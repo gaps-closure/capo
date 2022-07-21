@@ -1,0 +1,20 @@
+curl -i -X GET http://rest-api.io/items
+curl -i -X GET http://rest-api.io/items/5069b47aa892630aae059584
+curl -i -X DELETE http://rest-api.io/items/5069b47aa892630aae059584
+curl -i -X POST -H 'Content-Type: application/json' -d '{"name": "New item", "year": "2009"}' http://rest-api.io/items
+curl -i -X POST -H 'Content-Type: application/x-www-form-urlencoded' -d 'xxxx' http://localhost:8080/controller/xxx
+curl -i -X POST -H 'Content-Type: application/json' -d '{"frameRate": 30, "delay": 10}' http://localhost:8080/request
+
+# find the IP assigned to the IP camera via DHCP ports
+sudo tcpdump -i any port 67 or port 68 -e -n -vv
+
+# build opencv with FFMPEG, install the following first
+apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev
+
+# IP camera issue
+If a stream is open and then terminated and another stream is open within 30 seconds, then it iwll have issues like
+[rtsp @ 000001ec83b4d840] RTP: PT=61: bad cseq 414e expected=ca0a
+See https://github.com/agsh/rtsp-ffmpeg/issues/35
+
+for TJWS, to set the context root, add the following argument to the VM
+-Dtjws.websocket.container=true

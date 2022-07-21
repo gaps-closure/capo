@@ -1,0 +1,11 @@
+{
+  "cameraType": "WEB_CAMERA",
+  "cameraAddr": "127.0.0.1",
+  "cameraUser": "admin",
+  "cameraPassword": "Boosters",
+  "cameraDevId" : 0,
+  
+  "webroot": "/home/tchen/eop2/eop2-demo/resources",
+  "highPort": 8081,
+  "normalPort": 8080
+}

@@ -27,6 +27,26 @@ import sys
 
 import subprocess
 
+
+# TODO: Deal with method overloading
+'''
+'com.peratonlabs.closure.eop2.video.requester.RequestDecoder.decode'
+>>> a[80]
+'com.peratonlabs.closure.eop2.video.requester.RequestDecoder.decode'
+>>> a[85]
+'com.peratonlabs.closure.eop2.video.requester.RequestEncoder.encode'
+>>> a[86]
+'com.peratonlabs.closure.eop2.video.requester.RequestEncoder.encode'
+>>> a[90]
+'com.peratonlabs.closure.eop2.camera.CameraType.get'
+>>> a[91]
+'com.peratonlabs.closure.eop2.camera.CameraType.get'
+>>> a[112]
+'com.peratonlabs.closure.eop2.video.manager.VideoManager.removeClient'
+>>> a[113]
+'com.peratonlabs.closure.eop2.video.manager.VideoManager.removeClient'
+'''
+
 class DimensionError(Exception):
     pass
 
@@ -229,7 +249,7 @@ def collectStatics(cp,bname):
         
         isAnnotated = False
         
-        if not "annotations" in programClassName.getCanonicalName():
+        if programClassName.getCanonicalName() != None and not "annotations" in programClassName.getCanonicalName():
             clIdx += 1
             currentClassName = str(programClassName.getCanonicalName().encode('utf-8'))
             classNames.append(currentClassName)
@@ -240,11 +260,15 @@ def collectStatics(cp,bname):
             constructors = programClassName.getConstructors()
 
             allMethods = []
+            #TODO: Need to make methods robust to overloaded methods
             for method in methods:
+                # skip method that is already in the list
+                if method in allMethods:
+                    continue
                 allMethods.append(method)
             for method in constructors:
                 allMethods.append(method)
-
+            
             for method in allMethods:
                 # meIdx+=1
                 # check if method is a constructor
@@ -257,9 +281,14 @@ def collectStatics(cp,bname):
                 # classMethods.append(methodName)
                 # classMethod2Idx[methodName] = meIdx
                 # classId2MethodName[meIdx] = methodName
+                #TODO: Need to make methods robust to overloaded methods
                 if Modifier.isStatic(method.getModifiers()):
+                    if methodName in staticMethods:
+                        continue
                     staticMethods.append(methodName)
                 else:
+                    if methodName in instanceMethods:
+                        continue
                     instanceMethods.append(methodName)
             
             for field in fields:
@@ -290,6 +319,7 @@ def collectStatics(cp,bname):
         classMethods.append(method)
         classMethod2Idx[method] = classElementIdx
         classId2MethodName[classElementIdx] = method
+
     for method in staticMethods:
         classElementIdx+=1
         classMethods.append(method)
@@ -299,6 +329,8 @@ def collectStatics(cp,bname):
 
     logger.debug("className2Idx")     
     logger.debug(className2Idx)
+    logger.debug("classMethods")     
+    logger.debug(classMethods)
     logger.debug("classMethod2Idx")     
     logger.debug(classMethod2Idx)
     logger.debug("classField2Idx")     
@@ -313,7 +345,7 @@ def collectStatics(cp,bname):
         programClassName = Class.forName(cnm)
         
         isAnnotated = False
-        if not "annotations" in programClassName.getCanonicalName():
+        if programClassName.getCanonicalName() != None and not "annotations" in programClassName.getCanonicalName():
             currentClassName = str(programClassName.getCanonicalName().encode('utf-8'))
             fields = programClassName.getDeclaredFields()
             methods = programClassName.getDeclaredMethods()
@@ -439,6 +471,10 @@ def collectStatics(cp,bname):
     result += "ExternalClass = " + str(len(classNames)) + ";\n"
 
     classInfoFile.write(result)
+
+    if len(classMethod2Idx) != len(instanceMethods) + len(staticMethods):
+        logger.error("ERROR: methodIdx != instances + statics")
+        exit(1)
 
     #TODO: May need additional error handling when there are none of one of these types
     classInfoFile.write(createZincSet("ClassFields_Instance", instanceFields,classField2Idx[instanceFields[0]] ))
@@ -685,8 +721,10 @@ def makeSDG(cp, em):
   classPath   = cp
   entryMethod = JavaMethodSignature.mainMethodOfClass(em)
   config      = SDGConfig(classPath, entryMethod.toBCString(), Stubs.JRE_15)
-  config.setComputeInterferences(True)
-  config.setMhpType(MHPType.PRECISE)
+  # These two options disable analysis related to threading 
+  config.setComputeInterferences(False)
+  config.setMhpType(MHPType.NONE)
+
   config.setPointsToPrecision(PointsToPrecision.INSTANCE_BASED)
   config.setExceptionAnalysis(ExceptionAnalysis.INTERPROC)
   # The summary edges add additional data flows that we do not want
@@ -697,11 +735,13 @@ def makeSDG(cp, em):
 
 def isExternal(node):
     nodeSource = str(node.getSource())
-
+    # logger.debug("EXTERNAL_CHECK: Node Source  " + nodeSource)
+    #TODO Fix this to be bname
     if not "closure" in nodeSource:
         return True
     else:
         return False
+
 
 def getClassName(node):
     pid   = node.getProc()
@@ -718,8 +758,11 @@ def getClassName(node):
     nameCheck = ".".join(className[:iterations])
     className = "__".join(className[:iterations])
     logger.debug("Class Name " + str(className))
-    if not bname in nameCheck:
-        className = "sharedClass" 
+    # if not bname in nameCheck:
+    #     className = "sharedClass" 
+    # Remove everything after $
+    if "$" in className:
+        className = className[:className.find("$")]
     return className
 
 def removeCall():
@@ -801,12 +844,12 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 enclave = sLine[-1].split(":")[1]
                 enclaveToLevel[enclave] = enclaveLevel
             if sLine[1] == "Class":
-                enclave = sLine[-1]
+                enclave = sLine[3]
                 
                 # className = sLine[-3]
                 
                 sLine[-3] = classId2Name[int(sLine[-3])] 
-                line = " ".join(sLine)
+                # line = " ".join(sLine)
                 className = sLine[-3]
                 # className = className.replace("__", ".")
                 # logger.debug("Looking for classname:")
@@ -884,8 +927,9 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 cutEntry["allowedCallers"] = allowedCallers
                 cuts.append(cutEntry)
         inlineUpdates.append(line)
+    logger.debug("cuts: " + str(cuts))
     for assingment in enclaveAssingments:
-        asng = {"name":assingment, "assignedClasses": enclaveAssingments[assingment], "level":enclaveToLevel[assingment]}
+        asng = {"name":assingment, "assignedClasses": enclaveAssingments[assingment], "level":assingment[:-2]}
         enclaves.append(asng)
         for cl in enclaveAssingments[assingment]:
             assingments.append({"className":cl, "enclave":assingment})
@@ -1582,7 +1626,7 @@ def isParameterNode(node):
 
 def isRetConnectedNode(node):
     # for e in sdg.outgoingEdgesOf(node): 
-    #     kind  = str(e.getTarget().getKind().toString())
+    #     kind  = str(e.getTarget().getKind().toString())bname
     #     if "EXIT" == kind:
     #         return True
     # kind  = str(node.getKind().toString())
@@ -1675,7 +1719,12 @@ if __name__ == '__main__':
     #     continue
     
     if isExternal(y):
-          continue
+        if kind == "ENTR":
+              logger.debug("External Fun: " + getFQNMethodName(y) + " in " + str(y.getSource()))
+        continue
+    else:
+        if kind == "ENTR":
+              logger.debug("Internal Fun: " + getFQNMethodName(y) + " in " + str(y.getSource()))
 
     # Don't remove return edges
     if isParameterNode(y) and not isRetConnectedNode(y):
@@ -1726,7 +1775,12 @@ if __name__ == '__main__':
     #     continue
       
       if isExternal(e.getTarget()):
+          if kind == "ENTR":
+              logger.debug("External Fun: " + str(getFQNMethodName(e.getTarget())) + " in " + str(e.getTarget().getSource()))
           continue
+      else:
+          if kind == "ENTR":
+            logger.debug("Internal Fun: " + getFQNMethodName(y) + " in " + str(y.getSource()))
 
       # Don't remove return edges  
       if isParameterNode(e.getTarget()) and not isRetConnectedNode(e.getTarget()):
@@ -1897,6 +1951,7 @@ if __name__ == '__main__':
         logger.debug(label)
 
         className = getClassName(y).replace("__",".")
+        logger.debug(className2Idx.keys())
         classIdx = str(className2Idx[className])
         # classNames.append(className)
         outString = outString + classIdx + ", " 
@@ -1980,8 +2035,10 @@ if __name__ == '__main__':
     
     # check if function annotation is applied to a function
     flagNotFunction = False
+    annotLvl = ""
     for entry in cles:
         if entry["clelabel"].split(".")[-1] == label:
+            annotLvl = str(entry["clejson"]["level"])
             if "clejson" in entry.keys() and "cdf" in entry["clejson"].keys() and "codtaints" in entry["clejson"]["cdf"][0]: 
                 if not zid in nodeIdx["FunctionEntry"]:
                     flagNotFunction = True
@@ -2005,7 +2062,8 @@ if __name__ == '__main__':
     # logger.debug(zid)
     for l in listOfLevels:
         if l != "nullLevel":
-            zincFile.write("constraint ::  \"TaintOnNodeIdx" + str(zid) + "\" taint[" + str(zid) + "," + str(l) + "_E" + "]=" + label + ";\n" )
+            # if annotLvl in l:
+                zincFile.write("constraint ::  \"TaintOnNodeIdx" + str(zid) + "\" taint[" + str(zid) + "," + str(l) + "_E" + "]=" + label + ";\n" )
     # logger.debug(anns)      
   zincFile.write("\n\n" )
   
@@ -2063,7 +2121,7 @@ if __name__ == '__main__':
                     first2 = False
                     result = result + str(j)
                 else:
-                    result = result + ", " + jstr(j)
+                    result = result + ", " + str(j)
         
         result += "} "
     
