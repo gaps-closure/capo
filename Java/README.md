@@ -2,9 +2,9 @@
 Contents:
 
 * [`Setup`](#Setup)
-* [`Test Joana`](#Test_Joana)
-* [`Produce Program Partition`](#Produce_Program_Partition)
-* [`Run EOP2 Demo`](#Run_EOP2_Demo)
+* [`Test Joana`](#Test-Joana)
+* [`Produce Program Partition`](#Produce-Program-Partition)
+* [`Run EOP2 Demo`](#Run-EOP2-Demo)
 
 
 ## Setup
