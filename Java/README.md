@@ -1,5 +1,5 @@
 # Java Closure
-##Contents:
+## Contents:
 
 * [`Setup`](#Setup)
 * [`Test Joana`](#Test-Joana)
