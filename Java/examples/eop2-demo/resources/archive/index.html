@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CLOSURE Demo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+
+<body>
+  <header>
+    <h1><a href="index.html">CLOSURE Demo</a></h1>
+  </header>
+  
+  <div class="row">
+    <div class="col">
+      <div class="row">
+        <form id="formElem">
+          <div class="row">
+            <label style="width: 200px; text-align: right; margin-right: 0.4cm; display: none;">Delay (ms)</label>
+            <input type="text" id="delay" name="delay" value="0" style="width: 20%; display: none;">
+          </div>
+          <div class="row">
+            <label style="width: 200px; text-align: right; margin-right: 0.4cm; display: none;">Frame Rate (fps)</label>
+            <input type="text" id="frameRate" name="frameRate" value="30" style="width: 20%; display: none;">
+          </div>
+          <div class="row">
+            <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Add Blur</label>
+            <label class="switch">
+              <input type="checkbox" id="blur" name="blur" value="true">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="row">
+            <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Keep Color</label>
+            <label class="switch">
+              <input type="checkbox" id="color" name="color" value="true" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="row">
+            <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Scale Image</label>
+            <label class="switch">
+              <input type="checkbox" id="scale" name="scale" value="true">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="row">
+            <label style="width: 250x; text-align: right; margin-right: 0.4cm;">Scale Percentage(%)</label>
+            <input type="range" min="1" max="100" value="100" id="myRange" name="scalePercentage"
+                       oninput="this.nextElementSibling.value = this.value"  class="slider-width100">
+            <output>100</output>
+          </div>
+          
+          <div class="row">
+            <label></label>
+            <input type="submit" value="Set Quality"  id="submit" style="height: 48px; width: 128px;"/>
+          </div>          
+           
+          <div class="row">
+            <input type="hidden" value="closure" id="id" name="id">
+          </div>
+                                     
+          <div class="row">
+            <label></label>
+            <input type="button" value="Play"  id="btn" height="48" 
+                  style="height: 48px; width: 128px; background: url(image/play.png) no-repeat;"/>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col">
+      <figure>
+        <img id="jpgplayer" style="background-color:gray;"> 
+        <!-- <canvas id="player" width="640" height="480"></canvas><br />  -->
+      </figure>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script async src="js/opencv.js"></script>
+  
+<script>
+    //const player = document.querySelector("#player");
+    //const dCtx = player.getContext('2d');
+    //const caption = document.getElementById("caption");
+    const jpgplayer = document.querySelector("#jpgplayer");
+    const id = document.getElementById("id");
+    id.value = uid();
+    const btn = document.getElementById("btn");
+
+    var socket;
+    var playing = false;
+    
+    btn.addEventListener("click", () => {
+    // function toggleButton() {
+        if (!playing) {
+            playing = true;
+
+            btn.value = "Stop";
+            btn.style.background="url('image/stop.png') no-repeat";
+            //caption.innerHTML = "Playing";
+            //btn.style.background='#00ff00';
+            connect();
+        }
+        else {
+            playing = false;
+        
+            btn.value= "Play";
+            btn.style.background="url('image/play.png') no-repeat";
+            //caption.innerHTML = "Stopped";
+            // btn.style.background='#ff0000';
+            disconnect();
+        }
+    })
+    
+    function convertImageToGray(img) {
+        let dst = new cv.Mat();
+        cv.cvtColor(img, dst, cv.COLOR_RGBA2GRAY, 0);
+        return dst;
+    }
+    
+    async function renderImage(ctx, blob) {
+        var buf = await blob.arrayBuffer();
+        var array = new Uint8ClampedArray(buf);
+  
+        let mat = cv.matFromArray(480, 640, cv.CV_8UC3, array);
+        cv.imshow('player', mat);
+    }
+    
+    async function renderJpgImage(blob) {
+        //var buf = await blob.arrayBuffer();
+        //var arrayBufferView = new Uint8Array( buf );
+        //var blobx = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
+        var urlCreator = window.URL || window.webkitURL;
+        var imageUrl = urlCreator.createObjectURL( blob );
+        jpgplayer.src = imageUrl;
+    }
+
+    function send(message) {
+        if (!window.WebSocket) {
+            return;
+        }
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.send(message);
+        } 
+        else {
+            alert("The socket is not open.");
+        }
+    }
+    
+    function connect() {
+        if (!window.WebSocket) {
+            alert("Your browser does not support Websockets. (Use Chrome)");
+            return;
+        }
+        socket = new WebSocket("ws://localhost:8080/video/" + id.value);
+        socket.onmessage = function(m) {
+            let blob = m.data;
+            //renderImage(dCtx, blob);
+            renderJpgImage(blob);
+        };
+        
+        socket.onopen = function(event) {
+            var cmdJson = {};
+            cmdJson["id"] = id.value;
+            cmdJson["command"] = "start";
+            
+            console.log(cmdJson);
+            socket.send(JSON.stringify(cmdJson));
+        };
+        
+        socket.onclose = function(event) {
+            console.log("Web Socket closed.");
+              
+            //btn.value= "Play";
+            //btn.style.background="url('image/play.png') no-repeat";
+            //caption.innerHTML = "Stopped";
+        };
+        
+        socket.onerror = function(event) {
+            alert("Connection to " + event.target.URL + " failed.");
+        }
+    }
+    
+    function disconnect() {
+        var cmdJson = {};
+        cmdJson["id"] = id.value;
+        cmdJson["command"] = "stop";
+        console.log(cmdJson);
+        socket.send(JSON.stringify(cmdJson));
+
+        setTimeout(delay_close, 3000);
+    }
+    
+    function delay_close() {
+        socket.close();
+        console.log("client close socket");
+    }
+    
+    function uid() {
+        // return (performance.now().toString(36)+Math.random().toString(36)).replace(/\./g,"");
+        return Date.now() + (Math.random().toString(26)).replace(/\./g,"");
+    };
+    
+    formElem.onsubmit = async (e) => {
+        // toggleButton()
+    
+        e.preventDefault();
+
+        fetch('http://localhost:8080/request', {
+            method: "POST",
+            body: JSON.stringify(Object.fromEntries(new FormData(formElem)))
+        })
+        .then((result) => {
+            if (result.status != 200 && result.status != 201) { 
+                throw new Error("Bad Server Response " + result.status); 
+            }
+            return result.text();
+        })
+        .then((response) => {
+            console.log(response);
+        })
+        .catch((error) => { 
+            alert(error); 
+        });
+        return false;
+    };
+
+</script>
+
+</body>
+</html>

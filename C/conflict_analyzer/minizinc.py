@@ -8,8 +8,6 @@ import json
 from pathlib import Path
 from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, TypedDict, Union
 
-from minizinc import Instance, Model, Solver
-from numpy import var
 from .pdg_table import PdgLookupTable, PdgLookupNode
 from .exceptions import ProcessException, FindmusException, Mus
 
@@ -175,6 +173,7 @@ class MinizincResult:
 def run_model(instances: List[str], constraint_files: List[Path], 
     pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> MinizincResult:
 
+    from minizinc import Instance, Model, Solver
     model = Model(constraint_files)
     gecode = Solver.lookup("gecode")
     instance = Instance(gecode, model)
@@ -234,6 +233,8 @@ def parse_solution(mzn_out: str) -> Tuple[Solution, Optional[ArtifactCut]]:
                 "dest-label": dst_lbl, 
                 "dest-enclave": dst_enc 
             }
+        else:
+            return None
 
     out = mzn_out.splitlines()
     for line in out:
@@ -248,7 +249,6 @@ def parse_solution(mzn_out: str) -> Tuple[Solution, Optional[ArtifactCut]]:
     node_labels = [ label for _, (_, label, _) in nodes_list ] 
     node_levels = [ level for _, (_, _, level) in nodes_list ] 
 
-    print(cut)
     return Solution(node_enclaves, node_levels, node_labels, []), cut
       
 def from_solution(soln: Solution, table: PdgLookupTable) -> MinizincResult:
