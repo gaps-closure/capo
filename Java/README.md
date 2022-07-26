@@ -13,8 +13,8 @@
 ### Download Java Closure
 ```
 cd ~/gaps
-git clone ssh://git@github.com/gaps-closure/java-closure.git
-cd java-closure/
+git clone git@github.com:gaps-closure/capo.git
+cd capo/Java/
 ```
 
 ### Install JOANA and dependencies
@@ -32,7 +32,7 @@ sudo apt install build-essential
 which java ant mvn g++
 ```
 
-Download Joana inside java-closure directory
+Download Joana inside capo/Java directory
 
 ```
 git clone ssh://git@github.com/joana-team/joana
@@ -81,7 +81,7 @@ doxygen # optional, takes a long time
 ### Download pre-built jscheme and jython
 
 ```
-cd ./java-closure # Project Home Directory
+cd capo/Java # Project Home Directory
 
 wget https://repo1.maven.org/maven2/org/python/jython-standalone/2.7.2/jython-standalone-2.7.2.jar
 
@@ -125,7 +125,7 @@ java -cp $CLASSPATH edu.kit.joana.ui.ifc.sdg.graphviewer.GraphViewer
 ## Produce Program Partition
 
 ```
-java -cp $CLASSPATH org.python.util.jython zincOuput.jy
+java -cp $CLASSPATH org.python.util.jython zincOutput.jy
  -m './example1/src/example1/Example1.java'
  -c './example1/dist/TESTPROGRAM.jar'   
  -e 'com.peratonlabs.closure.testprog.example1.Example1' 
@@ -159,12 +159,12 @@ java -cp $CLASSPATH org.python.util.jython zincOuput.jy
 
   If the program is properly annotated, a cut.json file is produced showing the class assingments to each enclave and the methods in the cut.
 
-  Since the output of the constraint solver reports edge IDs, useful scripts are available in the java-closure/scripts directory. The edgeDbg.py scripts takes an edge ID as input and produces the debug information for the associated source and destination nodes. Similarly, getclassName.py takes a class ID and produces the correspoinding class name for the ID. Note that these scripts assume the dbg_*.csv files are in the same directory as the scripts.
+  Since the output of the constraint solver reports edge IDs, useful scripts are available in the capo/Java/scripts directory. The edgeDbg.py scripts takes an edge ID as input and produces the debug information for the associated source and destination nodes. Similarly, getclassName.py takes a class ID and produces the correspoinding class name for the ID. Note that these scripts assume the dbg_*.csv files are in the same directory as the scripts.
 
 ## Run EOP2 Demo
 
 Set classpath and java location.
-These commands assume you are in the java-closure based directory. 
+These commands assume you are in the capo/Java based directory. 
 
   ```
   export CLASSPATH="joana/dist/*:examples/eop2-demo//dist/*:jython-standalone-2.7.2.jar:jscheme-7.2.jar:"
@@ -180,15 +180,16 @@ cd ../..
 
 **IMPORTANT** In file 
 ```
-java-closure/examples/eop2-demo/src/com/peratonlabs/closure/eop2/video/manager/config.java 
+capo/Java/examples/eop2-demo/src/com/peratonlabs/closure/eop2/video/manager/config.java 
 ```
 ensure that webroot is initalized to 
 
 ```
-java-closure/examples/eop2-demo/resources
+capo/Java/examples/eop2-demo/resources
 ```
 
-Run Conflict Analyzer
+Run Conflict Analyzer 
+**IMPORTANT** This should be done from capo/Java
 ```
 java -cp $CLASSPATH org.python.util.jython zincOutput.jy -m './examples/eop2-demo/src/com/peratonlabs/closure/eop2/video/manager/VideoManager.java'   -c './examples/eop2-demo/dist/TESTPROGRAM.jar' -e 'com.peratonlabs.closure.eop2.video.manager.VideoManager' -b 'com.peratonlabs.closure.eop2.'
 ```
