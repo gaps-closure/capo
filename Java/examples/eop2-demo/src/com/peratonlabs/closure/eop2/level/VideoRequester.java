@@ -29,7 +29,10 @@ public abstract class VideoRequester
             // this just sends data as is or a clone of the exact size.
             byte[] dataCopy = new byte[data.length + 50480];
             System.arraycopy(data, 0, dataCopy, 0, data.length);
-           
+
+            if (channel == null)  // channel has been closed
+               return;
+            
             channel.getBasicRemote().sendBinary(ByteBuffer.wrap(dataCopy));
         }
         catch (IOException e) {
