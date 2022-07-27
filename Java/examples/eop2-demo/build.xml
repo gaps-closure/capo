@@ -32,7 +32,7 @@
 	<!-- ============ TARGET: COMPILE ================== -->
 	<target name="compile">
 		<mkdir dir="${class_dir}"/>
-		<javac srcdir="${src_dir}" destdir="${class_dir}" debug="on" release="11"
+		<javac srcdir="${src_dir}" destdir="${class_dir}" debug="on" release="8"
 			debuglevel="lines,vars,source" includeantruntime="false">
 			<compilerarg value="-Xlint:unchecked"/> 
 			<classpath>
