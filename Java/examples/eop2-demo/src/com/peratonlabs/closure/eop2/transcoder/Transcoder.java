@@ -27,6 +27,10 @@ public class Transcoder implements Runnable
     @PurpleShareable
     private Mat currFrame;
     private boolean high;
+
+    // when partitioned, HalZmq will catch the interrupt and fail to exit run()
+    private boolean interrupted = false;   
+
     
     public Transcoder(boolean high, String id) {
         this.high = high;
@@ -153,6 +157,7 @@ public class Transcoder implements Runnable
     
     public void interrupt() {
         worker.interrupt();
+        interrupted = true;
     }
     
     public void start() {
@@ -165,6 +170,8 @@ public class Transcoder implements Runnable
         while (true) {
             try {
                 currFrame = queue.take();
+                if (interrupted)
+                    break;
                 if (high)
                 {
                     if (!showHigh(currFrame))
@@ -181,6 +188,7 @@ public class Transcoder implements Runnable
                 break;
             }
         }
+        System.out.println("transcoder interrupted.......");
     }
     
     public void add(Mat mat) {

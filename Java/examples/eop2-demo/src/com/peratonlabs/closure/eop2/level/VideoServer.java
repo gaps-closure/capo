@@ -9,7 +9,7 @@ public abstract class VideoServer implements Runnable
     protected HttpServlet servlet;
     
     public void serve() {
-        @SuppressWarnings("serial")
+       @SuppressWarnings({"serial", "unchecked"})
         class MyServ extends Acme.Serve.Serve {
             // Overriding method for public access
             public void setMappingTable(PathTreeDictionary mappingtable) { 

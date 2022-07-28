@@ -12,3 +12,15 @@ build/
 *.egg-info
 __pycache__/
 instance/
+Java/classInfo.mzn
+Java/cle_instance.mzn
+Java/cut.json
+Java/dbg_classinfo.csv
+Java/dbg_edge.csv
+Java/dbg_node.csv
+Java/enclave_instance.mzn
+Java/joana/
+Java/jscheme-7.2.jar
+Java/jython-standalone-2.7.2.jar
+Java/pdg_instance.mzn
+Java/result.txt
