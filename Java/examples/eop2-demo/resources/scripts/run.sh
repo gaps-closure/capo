@@ -3,16 +3,18 @@
 usage_exit() {
   [[ -n "$1" ]] && echo $1
   echo "Usage: $0 [ -hwx ] "
-  echo "  -w  <hal home directory>"
-  echo "  -x  <partitioned xdcc directory>"
+  echo "  -l  <log level>                  0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR, 5=FATAL (default 2)"
+  echo "  -w  <hal home directory>         (default ~/gaps/hal)"
+  echo "  -x  <partitioned xdcc directory> (default /tmp/xdcc)"
   echo "  -h  Help"
   exit 1
 }
 
 handle_opts() {
   local OPTIND
-  while getopts "hx:w:" options; do
+  while getopts "hl:x:w:" options; do
     case "${options}" in
+      l) LOG_LEVEL=${OPTARG}   ;;
       w) HAL_DIR=${OPTARG}     ;;
       x) XDCC=${OPTARG}        ;;
       h) usage_exit            ;;
@@ -24,16 +26,15 @@ handle_opts() {
   shift $((OPTIND -1))
 }
 
+XDCC=/tmp/xdcc
+HAL_DIR=~/gaps/hal
+LOG_LEVEL=2
+
 args=("$@")
 handle_opts "$@"
 
-if [ -z "$XDCC" ]; then
-    XDCC=/tmp/xdcc
-fi
-
-if [ -z "$HAL_DIR" ]; then
-    HAL_DIR=~/gaps/hal
-fi
+LOG_DIR=${XDCC}/logs
+mkdir -p ${LOG_DIR}
 
 SCRIPT=$(readlink -f "$0")
 THIS_DIR=$(dirname "$SCRIPT")
@@ -48,9 +49,9 @@ PURPLE_CFG=${XDCC}/hal_${PURPLE}.cfg
 ORANGE_CFG=${XDCC}/hal_${ORANGE}.cfg
 GREEN_CFG=${XDCC}/hal_${GREEN}.cfg
 
-export PURPLE_HAL_CMD="${HAL} -l 0 ${PURPLE_CFG} 2>&1 | tee ${XDCC}/${PURPLE}_hal.log"
-export ORANGE_HAL_CMD="${HAL} -l 0 ${ORANGE_CFG} 2>&1 | tee ${XDCC}/${ORANGE}_hal.log"
-export GREEN_HAL_CMD="${HAL} -l 0 ${GREEN_CFG} 2>&1 | tee ${XDCC}/${GREEN}_hal.log"
+export PURPLE_HAL_CMD="${HAL} -l ${LOG_LEVEL} ${PURPLE_CFG} 2>&1 | tee ${LOG_DIR}/${PURPLE}_hal.log"
+export ORANGE_HAL_CMD="${HAL} -l ${LOG_LEVEL} ${ORANGE_CFG} 2>&1 | tee ${LOG_DIR}/${ORANGE}_hal.log"
+export GREEN_HAL_CMD="${HAL} -l ${LOG_LEVEL} ${GREEN_CFG} 2>&1 | tee ${LOG_DIR}/${GREEN}_hal.log"
 
 export PURPLE_JAVA_CMD="${THIS_DIR}/runClosure.sh ${XDCC} ${PURPLE}"
 export ORANGE_JAVA_CMD="${THIS_DIR}/runClosure.sh ${XDCC} ${ORANGE}"

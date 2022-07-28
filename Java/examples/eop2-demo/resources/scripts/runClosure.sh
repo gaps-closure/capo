@@ -6,8 +6,11 @@ fi
 XDCC=$1
 ENCLAVE=$2
 
-LOG=${XDCC}/$ENCLAVE.log
-echo ----------------
+LOG_DIR=${XDCC}/logs
+mkdir -p ${LOG_DIR}
+
+LOG=${LOG_DIR}/${ENCLAVE}_java.log
+echo ---------------- $LOG
 
 cd ${XDCC}/${ENCLAVE}
 
