@@ -1,40 +1,85 @@
 #!/bin/bash
 
+usage_exit() {
+  [[ -n "$1" ]] && echo $1
+  echo "Usage: $0 [ -hwx ] "
+  echo "  -w  <hal home directory>"
+  echo "  -x  <partitioned xdcc directory>"
+  echo "  -h  Help"
+  exit 1
+}
+
+handle_opts() {
+  local OPTIND
+  while getopts "hx:w:" options; do
+    case "${options}" in
+      w) HAL_DIR=${OPTARG}     ;;
+      x) XDCC=${OPTARG}        ;;
+      h) usage_exit            ;;
+      :) usage_exit "Error: -${OPTARG} requires an argument." ;;
+      *) usage_exit "" ;;
+    esac
+  done
+
+  shift $((OPTIND -1))
+}
+
+args=("$@")
+handle_opts "$@"
+
+if [ -z "$XDCC" ]; then
+    XDCC=/tmp/xdcc
+fi
+
+if [ -z "$HAL_DIR" ]; then
+    HAL_DIR=~/gaps/hal
+fi
+
+SCRIPT=$(readlink -f "$0")
+THIS_DIR=$(dirname "$SCRIPT")
+
+HAL=${HAL_DIR}/daemon/hal
+
+PURPLE=purple_E
+ORANGE=orange_E
+GREEN=green_E
+
+PURPLE_CFG=${XDCC}/hal_${PURPLE}.cfg
+ORANGE_CFG=${XDCC}/hal_${ORANGE}.cfg
+GREEN_CFG=${XDCC}/hal_${GREEN}.cfg
+
+export PURPLE_HAL_CMD="${HAL} -l 0 ${PURPLE_CFG} 2>&1 | tee ${XDCC}/${PURPLE}_hal.log"
+export ORANGE_HAL_CMD="${HAL} -l 0 ${ORANGE_CFG} 2>&1 | tee ${XDCC}/${ORANGE}_hal.log"
+export GREEN_HAL_CMD="${HAL} -l 0 ${GREEN_CFG} 2>&1 | tee ${XDCC}/${GREEN}_hal.log"
+
+export PURPLE_JAVA_CMD="${THIS_DIR}/runClosure.sh ${XDCC} ${PURPLE}"
+export ORANGE_JAVA_CMD="${THIS_DIR}/runClosure.sh ${XDCC} ${ORANGE}"
+export GREEN_JAVA_CMD="${THIS_DIR}/runClosure.sh ${XDCC} ${GREEN}"
+
 session="run"
-
-HAL_DIR=~/gaps/hal
-#JAGA_HAL_CFG=sample_zmq_bw_direct_jaga_green.cfg
-#LIONO_HAL_CFG=sample_zmq_bw_direct_liono_orange.cfg
-JAGA_HAL_CFG=sample_zmq_bw_direct_jaga_green_3enc.cfg
-LIONO_HAL_CFG=sample_zmq_bw_direct_liono_orange_3enc.cfg
-
-SCRIPTS=/tmp/xdcc/Purple_E/resources/scripts
-
-ssh liono pkill hal
-
-export JAGA_HAL_CMD="${HAL_DIR}/daemon/hal -l 1 $HAL_DIR/test/$JAGA_HAL_CFG"
-export LIONO_HAL_CMD="ssh liono ${HAL_DIR}/daemon/hal -l 1 $HAL_DIR/test/$LIONO_HAL_CFG"
-
-export JAGA_JAVA_CMD="${SCRIPTS}/runClosure.sh Purple_E"
-export LIONO_JAVA_CMD="ssh liono ${SCRIPTS}/runClosure.sh Green_E"
 
 tmux start-server
 tmux new-session -d -s $session -n run
 
-tmux send-keys "${JAGA_HAL_CMD}" C-m
+tmux send-keys "$PURPLE_HAL_CMD" C-m
 
 tmux splitw -h -p 50
-tmux send-keys "$LIONO_HAL_CMD" C-m 
+tmux send-keys "$ORANGE_HAL_CMD" C-m 
 
-if [ -z "${NO_JAVA}" ]; then
-    tmux splitw -v -p 50
-    
-    tmux send-keys "$LIONO_JAVA_CMD" C-m 
+tmux splitw -h -p 50
+tmux send-keys "$GREEN_HAL_CMD" C-m 
 
-    tmux selectp -t 0
-    tmux splitw -v -p 50
-    tmux send-keys "sleep 3; $JAGA_JAVA_CMD" C-m
-fi
+tmux selectp -t 0
+tmux splitw -v -p 50
+tmux send-keys "sleep 3; $PURPLE_JAVA_CMD" C-m 
+
+tmux selectp -t 2
+tmux splitw -v -p 50
+tmux send-keys "$ORANGE_JAVA_CMD" C-m
+
+tmux selectp -t 4
+tmux splitw -v -p 50
+tmux send-keys "$GREEN_JAVA_CMD" C-m
 
 tmux select-window -t $session:0
 tmux attach-session -t $session

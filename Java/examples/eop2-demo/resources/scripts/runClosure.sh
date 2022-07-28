@@ -1,12 +1,15 @@
-if [ "$#" -lt 1 ]; then
-  echo "Usage: $0 <enclave>"
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 <xdcc> <enclave>"
   exit 1
 fi
 
-echo $1 enclave
+XDCC=$1
+ENCLAVE=$2
+
+LOG=${XDCC}/$ENCLAVE.log
 echo ----------------
 
-cd /tmp/xdcc/$1
+cd ${XDCC}/${ENCLAVE}
 
 CLASSPATH=\
 dist/weaved-TESTPROGRAM.jar:\
@@ -27,4 +30,4 @@ JNI=java.library.path=/usr/lib/x86_64-linux-gnu/jni:/home/tchen/opencv-4.6.0/bui
 TJWS=tjws.websocket.container=true
 CFG=resources/config.json
 
-java -cp $CLASSPATH -D$JNI -D$TJWS com.peratonlabs.closure.eop2.video.manager.VideoManager -c $CFG 
+java -cp $CLASSPATH -D$JNI -D$TJWS com.peratonlabs.closure.eop2.video.manager.VideoManager -c $CFG 2>&1 | tee ${LOG}
