@@ -52,6 +52,9 @@ public abstract class VideoServer implements Runnable
     
     @Override
     public void run() {
+        System.out.println("****** web root is " + webroot);
+
+
         serve();
     }
 }

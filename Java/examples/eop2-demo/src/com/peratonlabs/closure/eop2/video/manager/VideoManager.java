@@ -204,6 +204,7 @@ public class VideoManager
         
         for (int i = 0; i < args.length; i++) {
             arg = args[i];
+            System.out.println("arg: " + arg);
             switch (arg) {
             case "--cameraType":
             case "-t":

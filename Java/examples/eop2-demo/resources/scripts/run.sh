@@ -3,7 +3,7 @@
 usage_exit() {
   [[ -n "$1" ]] && echo $1
   echo "Usage: $0 [ -hwx ] "
-  echo "  -l  <log level>                  0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR, 5=FATAL (default 2)"
+  echo "  -l  <log level>                  0=TRACE, 1=DEBUG, 2=INFO, 3=WARN, 4=ERROR, 5=FATAL (default 1)"
   echo "  -w  <hal home directory>         (default ~/gaps/hal)"
   echo "  -x  <partitioned xdcc directory> (default /tmp/xdcc)"
   echo "  -h  Help"
@@ -27,8 +27,8 @@ handle_opts() {
 }
 
 XDCC=/tmp/xdcc
-HAL_DIR=~/gaps/hal
-LOG_LEVEL=2
+HAL_DIR=/home/tchen/gaps/hal
+LOG_LEVEL=1
 
 args=("$@")
 handle_opts "$@"

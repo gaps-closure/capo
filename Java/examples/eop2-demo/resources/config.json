@@ -5,7 +5,7 @@
   "cameraPassword": "Boosters",
   "cameraDevId" : 0,
   
-  "webroot": "/home/tchen/eop2/eop2-demo/resources",
+  "webroot": "/home/tchen/gaps/capo/Java/examples/eop2-demo/resources",
   "highPort": 8081,
   "normalPort": 8080
 }
