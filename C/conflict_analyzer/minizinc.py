@@ -262,7 +262,7 @@ def from_solution(soln: Solution, table: PdgLookupTable) -> MinizincResult:
         node_idx = i + 1
         node = table.nodes[node_idx]
 
-        to_append = functions if node.node_type == 'FunctionEntry' else (global_vars if node.node_type == 'VarNode' else other)
+        to_append = functions if node.node_type == 'FunctionEntry' else (global_vars if node.node_type in ['VarNode_StaticGlobal', 'VarNode_StaticModule'] else other)
         llvm_name = node.llvm_name()
         to_append.append(Assignment(node_idx, lbl, enc, lvl, llvm_name, node.source_file, node.source_line))
 
