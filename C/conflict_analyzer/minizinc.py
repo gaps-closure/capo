@@ -74,7 +74,7 @@ Artifact = TypedDict('Artifact', {
     'source_path': str,
     'function-assignments': List[ArtifactAssignment],
     'variable-assignments': List[ArtifactAssignment],
-    'cut': Optional[ArtifactCut],
+    'cut': List[ArtifactCut],
     'all-assignments': List[ArtifactAssignment],
 })
 
@@ -103,7 +103,7 @@ class MinizincResult:
     other_assignments: List[Assignment]
     pdg_lookup: PdgLookupTable
     solution: Solution
-    cut: Optional[ArtifactCut] = None
+    cut: Optional[List[ArtifactCut]] = None
 
     def levels(self) -> List[str]:
         return list({assgn.level for assgn in self.function_assignments})
@@ -142,7 +142,7 @@ class MinizincResult:
 
         all_assignments = [*self.function_assignments, *self.global_var_assignments, *self.other_assignments]
 
-        def cut() -> Optional[ArtifactCut]:
+        def cut() -> List[ArtifactCut]:
             xd_edges = [ edge for i, is_xd in enumerate(self.solution.xdedge)
                 if (edge := self.pdg_lookup.edges[i + 1]).edge_type == 'ControlDep_CallInv' and is_xd ]
             assgn_lookup: Dict[int, Assignment] = { assgn.node: assgn for assgn in all_assignments }
@@ -156,7 +156,7 @@ class MinizincResult:
                 "dest-enclave": assgn_lookup[e.dest_node_idx].enclave,
                 }
             for e in xd_edges ]
-            return cut[0] if len(cut) > 0 else None 
+            return cut
 
         fun_assgns = [ from_assignment(assgn) for assgn in self.function_assignments ]
         var_assgns = [ from_assignment(assgn) for assgn in self.global_var_assignments ]
@@ -210,9 +210,9 @@ def run_cmdline(instances: List[str], constraint_files: List[Path],
         res.cut = cut
         return res
 
-def parse_solution(mzn_out: str) -> Tuple[Solution, Optional[ArtifactCut]]:
+def parse_solution(mzn_out: str) -> Tuple[Solution, List[ArtifactCut]]:
     nodes: Dict[int, Tuple[str, str, str]] = {}
-    cut: Optional[ArtifactCut] = None
+    cut: List[ArtifactCut] = []
     def parse_line(line: str) -> None: 
         parts = [ s.strip() for s in line.split(" ") if s != '' ]
         node, [enclave, label, level] = int(parts[2]), [ s.strip('[]') for s in parts[-1].split('::') ]
@@ -241,7 +241,9 @@ def parse_solution(mzn_out: str) -> Tuple[Solution, Optional[ArtifactCut]]:
         if line.find('ASSIGN') != -1:
             parse_line(line)
         elif line.find('XDCALL') != -1:
-            cut = parse_xd(line)
+            c = parse_xd(line)
+            if c:
+                cut.append(c)
     
     nodes_list = sorted(nodes.items(), key=lambda x: x[0])
 

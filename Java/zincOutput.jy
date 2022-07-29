@@ -29,6 +29,8 @@ import subprocess
 
 
 # TODO: Deal with method overloading
+# TODO: Add field to cut.json to specify if call is static vs non-static
+
 '''
 'com.peratonlabs.closure.eop2.video.requester.RequestDecoder.decode'
 >>> a[80]
@@ -806,6 +808,13 @@ def isClassAnnotated(className,cp):
             logger.debug("Class is not annotated")
     return isAnnotated
 
+def removeDupCuts(cuts):
+    result = []
+    for cut in cuts:
+        if cut not in result:
+            result.append(cut)
+    return result
+
 def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
     global classId2Name
 
@@ -868,7 +877,7 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 pidCallee = sLine[-1].split(":")[0]
                 labelCallee = sLine[-1].split(":")[1]
                 pidCaller = sLine[-3].split(":")[0]
-                labelCaller = sLine[-1].split(":")[1]
+                labelCaller = sLine[-3].split(":")[1]
                 
                 global funcID2EntryVal
                 fullName = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCallee)]]].getBytecodeName()).split(".")
@@ -913,7 +922,7 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
                 callee["level"] = str(calleeLevel)
 
                 fullNameCaller = str(funcID2EntryVal[Entry2funcID[idx2nodeID[int(pidCaller)]]].getBytecodeName()).split(".")
-                fqcnCaller = ".".join(fullName[:-1])
+                fqcnCaller = ".".join(fullNameCaller[:-1])
                 callerDict = {}
                 callerDict["type"] = fqcnCaller
                 levelCaller = ""
@@ -952,7 +961,10 @@ def getCutJson(zincOutput,sdg,cleJson, mainCl, jarLoc, mainLoc):
     # cutJson["destDir"] = dest
     cutJson["entry"] = entry_main
     cutJson["enclaves"] = enclaves
+    
     cutJson["assingments"] = assingments
+    cuts = removeDupCuts(cuts)
+
     cutJson["cuts"] = cuts
     dump(cutJson,open("cut.json","wb"), indent=4)
     for line in inlineUpdates:
