@@ -3,28 +3,26 @@ FROM ubuntu:20.04
 ADD .tmux.conf /root
 
 RUN mkdir -p /home/tchen/
-RUN mkdir -p /home/tchen/gaps/CodeGenJava
-RUN mkdir -p /home/tchen/gaps/capo
-RUN mkdir -p /home/tchen/gaps/hal
 RUN mkdir -p /home/tchen/opencv-4.6.0/build/lib/
 
-ADD CodeGenJava /home/tchen/gaps/CodeGenJava
-ADD capo/Java /home/tchen/gaps/capo/Java
-ADD hal /home/tchen/gaps/hal
-#ADD xdcc /home/tchen/gaps/xdcc
-ADD lib /home/tchen/opencv-4.6.0/build/lib
-
-RUN apt-get update && \
-    apt-get install -y net-tools iproute2 netcat dnsutils curl iputils-ping iptables nmap tcpdump
-
-#ENV DEBIAN_FRONTEND noninteractive
-
+RUN apt-get update
 RUN apt-get -y install git
+ENV DEBIAN_FRONTEND noninteractive
+
+WORKDIR /home/tchen/gaps
+RUN git clone -b tcp https://github.com/gaps-closure/hal.git
+RUN git clone https://github.com/gaps-closure/CodeGenJava.git
+RUN git clone -b develop https://github.com/gaps-closure/capo.git
 RUN git clone https://github.com/joana-team/joana.git /home/tchen/gaps/capo/Java/joana
 
 WORKDIR /home/tchen/gaps/capo/Java/joana
 RUN git submodule init
 RUN git submodule update
+
+ADD lib /home/tchen/opencv-4.6.0/build/lib
+
+RUN apt-get update && \
+    apt-get install -y net-tools iproute2 netcat dnsutils curl iputils-ping iptables nmap tcpdump
 
 WORKDIR /home/tchen/gaps
 
@@ -32,7 +30,6 @@ RUN apt-get -y install gcc mono-mcs
 RUN apt-get -y install make
 
 RUN apt-get -y install openjdk-8-jdk
-# RUN apt-get -y install openjdk-8-headless
 
 RUN apt-get -y install libzmq3-dev
 RUN apt-get -y install libconfig-dev
