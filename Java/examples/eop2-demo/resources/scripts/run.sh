@@ -26,6 +26,9 @@ handle_opts() {
   shift $((OPTIND -1))
 }
 
+rm -rf /tmp/xdcc
+ln -s /home/tchen/gaps/xdcc /tmp
+
 XDCC=/tmp/xdcc
 HAL_DIR=/home/tchen/gaps/hal
 LOG_LEVEL=1
