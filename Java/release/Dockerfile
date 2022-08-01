@@ -29,7 +29,6 @@ RUN apt-get -y install tmux
 RUN apt-get -y install libzmq-java
 RUN apt-get -y install openssh-client
 
-# --device /dev/video0 -p 8080:8080 -p 8081:8081
-# 172.17.0.2
-
 EXPOSE 8080 8081
+
+ENTRYPOINT /home/tchen/gaps/capo/Java/examples/eop2-demo/resources/scripts/run.sh
