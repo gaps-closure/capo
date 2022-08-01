@@ -25,11 +25,12 @@ RUN apt-get update && \
     apt-get install -y net-tools iproute2 netcat dnsutils curl iputils-ping iptables nmap tcpdump
 
 WORKDIR /home/tchen/gaps
+ENV TZ="America/New_York"
 
 RUN apt-get -y install gcc mono-mcs
 RUN apt-get -y install make
 
-RUN apt-get -y install openjdk-8-jdk
+RUN apt-get -y install openjdk-8-jdk-headless
 
 RUN apt-get -y install libzmq3-dev
 RUN apt-get -y install libconfig-dev
