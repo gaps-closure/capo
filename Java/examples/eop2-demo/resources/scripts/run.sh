@@ -27,10 +27,10 @@ handle_opts() {
 }
 
 rm -rf /tmp/xdcc
-ln -s /home/tchen/gaps/xdcc /tmp
+ln -s /home/closure/gaps/xdcc /tmp
 
 XDCC=/tmp/xdcc
-HAL_DIR=/home/tchen/gaps/hal
+HAL_DIR=/home/closure/gaps/hal
 LOG_LEVEL=1
 
 args=("$@")

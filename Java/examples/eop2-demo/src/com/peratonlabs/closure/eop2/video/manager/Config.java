@@ -22,7 +22,7 @@ public class Config
     private String cameraPassword = "Boosters";
     private int cameraDevId = 0;
     
-    private String webroot = "/home/tchen/eop2/eop2-demo/resources";
+    private String webroot = "/home/closure/eop2/eop2-demo/resources";
     private int normalPort = 8080; 
     private int highPort = 8081; 
     

@@ -1,31 +1,10 @@
 FROM ubuntu:20.04
 
-ADD .tmux.conf /root
-
-RUN mkdir -p /home/tchen/
-RUN mkdir -p /home/tchen/opencv-4.6.0/build/lib/
-
-RUN apt-get update
-RUN apt-get -y install git
 ENV DEBIAN_FRONTEND noninteractive
-
-WORKDIR /home/tchen/gaps
-RUN git clone -b tcp https://github.com/gaps-closure/hal.git
-RUN git clone https://github.com/gaps-closure/CodeGenJava.git
-RUN git clone -b develop https://github.com/gaps-closure/capo.git
-RUN git clone https://github.com/joana-team/joana.git /home/tchen/gaps/capo/Java/joana
-
-WORKDIR /home/tchen/gaps/capo/Java/joana
-RUN git submodule init
-RUN git submodule update
-
-ADD lib /home/tchen/opencv-4.6.0/build/lib
+ENV TZ="America/New_York"
 
 RUN apt-get update && \
     apt-get install -y net-tools iproute2 netcat dnsutils curl iputils-ping iptables nmap tcpdump
-
-WORKDIR /home/tchen/gaps
-ENV TZ="America/New_York"
 
 RUN apt-get -y install gcc mono-mcs
 RUN apt-get -y install make
@@ -39,12 +18,41 @@ RUN apt-get -y install maven
 RUN apt-get -y  install build-essential
 
 RUN apt-get -y install python3
-#RUN apt-get -y install python3-dev
 RUN apt install -y python3-pip
 RUN pip3 install libconf
 
 RUN apt-get -y install tmux
 RUN apt-get -y install libzmq-java
 RUN apt-get -y install openssh-client
+
+RUN apt-get -y install git
+
+######### Create and run as closure
+RUN useradd -u 8877 -s /bin/bash closure
+RUN mkdir -p /home/closure
+RUN chown closure.closure /home/closure
+
+USER closure
+ENV HOME /home/closure
+
+ADD .tmux.conf $HOME
+
+RUN mkdir -p $HOME/opencv-4.6.0/build/lib/
+RUN mkdir -p $HOME/gaps
+
+WORKDIR $HOME/gaps
+RUN git clone -b tcp https://github.com/gaps-closure/hal.git
+RUN git clone https://github.com/gaps-closure/CodeGenJava.git
+RUN git clone -b develop https://github.com/gaps-closure/capo.git
+RUN git clone https://github.com/joana-team/joana.git $HOME/gaps/capo/Java/joana
+
+WORKDIR $HOME/gaps/capo/Java/joana
+RUN git submodule init
+RUN git submodule update
+
+ADD lib $HOME/opencv-4.6.0/build/lib 
+
+WORKDIR $HOME/gaps
+RUN cp capo/Java/examples/eop2-demo/resources/scripts/* .
 
 EXPOSE 8080 8081

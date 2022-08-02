@@ -29,7 +29,7 @@ aspect/lib/gson-2.8.0.jar:\
 aspect/lib/codeGen.jar:\
 aspect/lib/jzmq-3.1.0.jar
 
-JNI=java.library.path=/usr/lib/x86_64-linux-gnu/jni:/home/tchen/opencv-4.6.0/build/lib
+JNI=java.library.path=/usr/lib/x86_64-linux-gnu/jni:/home/closure/opencv-4.6.0/build/lib
 TJWS=tjws.websocket.container=true
 CFG=resources/config.json
 
