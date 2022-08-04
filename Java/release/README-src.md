@@ -1,4 +1,4 @@
-# Java Closure
+# Java Closure Source Release
 ## Contents:
 
 * [Start the Docker Image](#start-the-docker-image)

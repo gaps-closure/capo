@@ -74,5 +74,6 @@ RUN rm -f opencv-4.6.0.tgz
 
 WORKDIR $HOME/gaps
 RUN cp capo/Java/examples/eop2-demo/resources/scripts/* .
+RUN cp capo/Java/release/README-src.md README.md
 
 EXPOSE 8080 8081
