@@ -78,9 +78,9 @@ class GEDLProcessor:
             self.affected[canon][line].append(c['func'])
 
   ##############################################################################################################
-  # A) Call (caller, callee, func, direction) information
+  # A) Call (caller, callee, func, func_dictionary) information
   ##############################################################################################################
-  # List of calls (in and out) of an enclave [caller, callee, func type, other call info]
+  # List of calls (in and out) of an enclave [caller, callee, func type, other call info in json dictionary]
   def callees(self, e):   return [x['callee']                                       for x in self.gedl if x['caller'] == e]
   def callers(self, e):   return [x['caller']                                       for x in self.gedl if x['callee'] == e]
   def inCalls(self, e):   return [(x['caller'],x['callee'],c['func'],c)             for x in self.gedl for c in x['calls'] if x['callee'] == e]
@@ -458,23 +458,98 @@ class GEDLProcessor:
       return s
         
     ##############################################################################################################
-    # D4 REQ: Creates and reads SYNC and DATA packets (in req/res_packet struct)
+    # D4 Marshalling function parameters to and from packet
     ##############################################################################################################
-    def cc_create_req_packet(fill=True):
+    def cc_get_param_type(direction):
+      for q in fd['params']:
+        if 'sz' in q:
+          if not isinstance(q['sz'],int):
+            print("Parameter", q['name'], "has a non-int array size")
+            sys.exit()
+          if not 'dir' in q:
+            print ("Parameter", q['name'], "needs a direction to proceed")
+            sys.exit()
+          if q['dir'] in [direction,'inout']:
+            return ('array')
+        else:
+          if 'dir' in q and q['dir'] != 'in':
+            print("Parameter", q['name'], "is a scalar, so must have 'dir' =", direction, "if specified")
+            sys.exit()
+          if direction == 'in':
+            return ('scalar')
+      return ('none')
+    # Copy from cross domain function parameter contents into request packet
+    #     green:  request_send_camcmd.pan = pan
+    def cc_marshal_packet(fill=True):
       s = ''
       if len(fd['params']) == 0:
         s += t + pkt_name(True) + '.dummy = 0;'  + n  # matches IDL convention on void (ARQ avoid?)
       else:
         for q in fd['params']:
-          if 'sz' in q and 'dir' in q and q['dir'] in ['in','inout']:
+          param_type = cc_get_param_type('in')
+          if (param_type == 'scalar'):
+            s += t + pkt_name(True) + '.' + q['name'] + ' = '
+            if fill:  s +=  q['name'] + ';' + n
+            else:     s += '0;' + n    # do not pass parameters in RPC if sync packet
+#            if DB[0]: print(q['name'])
+          if (param_type == 'array'):
             s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) ' + pkt_name(True) + '.' + q['name'] + '[i] = '
             if fill:  s +=  q['name'] + '[i];' + n
             else:     s += '0;' + n    # do not pass parameters in RPC if sync packet
-          else:
-            s += t + pkt_name(True) + '.' + q['name'] + ' = ' + q['name'] + ';' + n
-      s += t + cc_get_seq_req() + ' = req_counter;' + n
+
+      return s
+    # Copy from response packet into cross domain function parameter contents
+    #     green:  lat[i]  =  response_get_metadata.lat[i])
+    def cc_unmarshal_packet():
+      s = ''
+      if len(fd['params']) != 0:
+        for q in fd['params']:
+          param_type = cc_get_param_type('out')
+          if (param_type == 'array'):
+            s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) ' + q['name'] + '[i] = '
+            s += pkt_name(False) + '.' + q['name'] + '[i];' + n
       return s
 
+    # Copy inout parameters from request to response packet
+    def cc_cp_req_to_res():
+      s = ''
+      if len(fd['params']) > 0:
+        for q in fd['params']:
+          if q['dir'] == 'inout':
+            print ("XXX: inout parameters are UNESTED!")
+            param_type = cc_get_param_type('in')
+            if (param_type == 'scalar'):
+              s += t + t + t + pkt_name(False) + '.' + q['name'] + ' = ' + pkt_name(True) + '.' + q['name'] + ';' + n
+            if (param_type == 'array'):
+              s += t + t + t + 'for(int i=0; i<' + str(q['sz']) + '; i++) ' + pkt_name(False) + '.' + q['name'] + '[i] = ' + pkt_name(True) + '.' + q['name'] + '[i]' + ';' + n
+      return s
+      
+    # Call remote cross domain function, which depends on the parameter type. Examples:
+    #    none: run_videoproc()
+    #     out: get_frame(response_get_frame.buf)
+    #      in: send_camcmd(request_send_camcmd.pan, request_send_camcmd.tilt)
+    #   inout: response_xyz.buf[i] = request_xyz.buf[i]
+    #          xyz(response_xyz.buf)
+    def cc_res_get_result_from_local_app():
+      s  = cc_cp_req_to_res()
+      s += t + t + t + 'last_processed_result = ' + f + '('
+      if len(fd['params']) > 0:
+        first = True;
+        for q in fd['params']:
+          if first:  first = False
+          else:      s += ', '
+          if q['dir'] == 'in':
+            s += pkt_name(True) + '.' + q['name']
+          else:
+            s += pkt_name(False) + '.' + q['name']
+      s += ');' + n
+      s += t + t + t + cc_get_ret_res() + ' = last_processed_result;' + n
+# Jul 22 version:      s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join([pkt_name(True) + '.' + q['name'] for q in fd['params']]) + ');' + n
+      return s
+
+    ##############################################################################################################
+    # D5 REQ: Creates and reads SYNC and DATA packets (in req/res_packet struct)
+    ##############################################################################################################
     def cc_create_nxt_packet():
       s  = t + pkt_name(True) + '.mux = n_tag->mux;' + n
       s += t + pkt_name(True) + '.sec = n_tag->sec;' + n
@@ -493,13 +568,11 @@ class GEDLProcessor:
 
       if DB[1]: s += t*tc + 'fprintf(stderr, "SYNC Req SN=%d\\n", req_counter);' + n
       return s
+      
     # Send sync only once
     def cc_sync_once(pfx='', sfx=''):
       s  = t + 'if (req_counter == INT_MIN) {' + n
-#      s  = t + 'if (inited < 2) {' + n
-#      s += t + t + 'inited = 2;' + n
       s += cc_req_send_reliably(2, pfx, sfx)
-#      s += cc_status_check(2)
       s += cc_modify_req_counter(2)
       s += t + '}' + n
       return s
@@ -516,25 +589,18 @@ class GEDLProcessor:
     def cc_data():
       s  = '#ifndef __LEGACY_XDCOMMS__' + n
       s += cc_req_send_reliably(1, 'my_', ' , mycmap')
-#      s += cc_status_check(1)
       s += cc_sockets_close()
       s += '#else /* __LEGACY_XDCOMMS__ */' + n
       s += cc_req_send_reliably()
-#      s += cc_status_check(1)
       s += '#endif /* __LEGACY_XDCOMMS__ */' + n
       s += t + 'req_counter++;' + n
       return s
-      
-    # Print if know result type or use C11 _Generic:  s  = t + t + 'fprintf(stderr, "Return=%f," last_processed_result);' + n
-    def cc_result_print(tc=2):
-      s=''
-#      s += t*tc + 'fprintf(stderr, "Result=%f\\n", result);' + n    # XXX Assumes output is a double
-      return s
+    
     def cc_read_res_packet():
       # XXX: marshaller needs to copy output arguments (including arrays) from res here !!
       s  = '#ifndef __ONEWAY_RPC__' + n
+      s += cc_unmarshal_packet()        # RPC response
       s += t + 'result = ' + cc_get_ret_res() + ';' + n
-      if DB[1]: s += cc_result_print(1)
       s += t + 'return (result);' + n   # ARQ mod: Use result from above
       s += '#else' + n
       s += t + 'return 0;' + n
@@ -584,9 +650,11 @@ class GEDLProcessor:
       if ipc == "Singlethreaded":
         if DB[1]: s += t + 'fprintf(stderr, "' + cc_call_type_and_name(True) + 'Singlethreaded nxt tag=<%d, %d, %d>\\n", t_tag.mux, t_tag.sec, t_tag.typ)' + ';' + n
         s += t + '_notify_next_tag(&t_tag, error);' + n
-      s += cc_create_req_packet(False)
+      s += cc_marshal_packet(False)     # sync request
+      s += t + cc_get_seq_req() + ' = req_counter;' + n
       s += cc_sync()
-      s += cc_create_req_packet(True)
+      s += cc_marshal_packet(True)      # RPC request
+      s += t + cc_get_seq_req() + ' = req_counter;' + n
       s += cc_data()
       s += cc_read_res_packet()
       s += '}' + n + n
@@ -608,19 +676,13 @@ class GEDLProcessor:
       )
 
     ##############################################################################################################
-    # D5) RES: handlers waits for RPC request and sends RPC Responnse
+    # D6) RES: handlers waits for RPC request and sends RPC Responnse
     ##############################################################################################################
     def cc_res_print():
       s  = t + t + 'fprintf(stderr, "' + cc_call_type_and_name(False) + 'ReqId=%d ResId=%d err=%d (seq=0x%x) ", req_counter, res_counter, proc_error, last_processed_error);' + n
-      s += cc_result_print()
       s += tagsPrint(1)
       return s
-
-    # Call local function - XXX: marshaller needs to copy output arguments (including arrays) to res here !!
-    def cc_res_get_result_from_local_app():
-      s  = t + t + t + 'last_processed_result = ' + f + '(' + ','.join([pkt_name(True) + '.' + q['name'] for q in fd['params']]) + ');' + n
-      s += t + t + t + cc_get_ret_res() + ' = last_processed_result;' + n
-      return s
+      
     # Call Application if new request, storing result in last_processed_result (and reset proc_error)
     def cc_res_check_seq_nums(notSpecial):
       s  = t + t + 'if(req_counter > res_counter){' + n
@@ -690,7 +752,7 @@ class GEDLProcessor:
       return s
       
     ##############################################################################################################
-    # D6) REQ/RES: Slave starts thread per app function handler and Master waits for APP function calls)
+    # D7) REQ/RES: Slave starts thread per app function handler and Master waits for APP function calls)
     ##############################################################################################################
     def slavedispatch(e,ipc):
       s = ''
@@ -739,7 +801,7 @@ class GEDLProcessor:
       return 'void _master_rpc_init() {' + n + t + '_hal_init((char*)INURI, (char *)OUTURI);' +n + '}' + n + n
 
     ##############################################################################################################
-    # D7) REQ/RES: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
+    # D8) REQ/RES: Create RPC C source code as string to be writen to a file: e.g., file=purple/purple_rpc.c
     ##############################################################################################################
     s = boiler() + halinit(e, ipc, DB)
     if ipc == "Singlethreaded":
