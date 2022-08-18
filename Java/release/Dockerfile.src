@@ -43,9 +43,9 @@ RUN mkdir -p $HOME/opencv-4.6.0/build/
 RUN mkdir -p $HOME/gaps
 
 WORKDIR $HOME/gaps
-RUN git clone -b tcp https://github.com/gaps-closure/hal.git
+RUN git clone https://github.com/gaps-closure/hal.git
 RUN git clone https://github.com/gaps-closure/CodeGenJava.git
-RUN git clone -b develop https://github.com/gaps-closure/capo.git
+RUN git clone develop https://github.com/gaps-closure/capo.git
 RUN git clone https://github.com/joana-team/joana.git $HOME/gaps/capo/Java/joana
 
 WORKDIR $CAPO/joana
