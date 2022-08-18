@@ -45,7 +45,7 @@ RUN mkdir -p $HOME/gaps
 WORKDIR $HOME/gaps
 RUN git clone https://github.com/gaps-closure/hal.git
 RUN git clone https://github.com/gaps-closure/CodeGenJava.git
-RUN git clone develop https://github.com/gaps-closure/capo.git
+RUN git clone https://github.com/gaps-closure/capo.git
 RUN git clone https://github.com/joana-team/joana.git $HOME/gaps/capo/Java/joana
 
 WORKDIR $CAPO/joana
