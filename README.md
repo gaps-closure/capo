@@ -2,7 +2,7 @@
 
 [![build](https://github.com/gaps-closure/capo/actions/workflows/main.yml/badge.svg)](https://github.com/gaps-closure/capo/actions/workflows/main.yml)
 
-**DEPRECATED**. Please refer to [CLOSURE C Toolchain Documentation](https://github.com/gaps-closure/gaps-closure.github.io/)
+**DEPRECATED**. Please refer to [CLOSURE C Toolchain Documentation](https://gaps-closure.github.io/cdoc.html)
 
 
 This repository hosts the open source components of CAPO. The `master` branch contains the most recent public release software while `develop` contains bleeding-edge updates and work-in-progress features for use by beta testers and early adopters.
