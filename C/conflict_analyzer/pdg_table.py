@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 import re
-from typing import Dict, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple
+
+SourceMap = Callable[[Tuple[str, int]], Tuple[str, int]]
 
 
 @dataclass
@@ -17,13 +19,10 @@ class PdgLookupNode:
             return name
         return None
 
-    def with_source_map(self, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> 'PdgLookupNode':
+    def with_source_map(self, source_map: SourceMap) -> 'PdgLookupNode':
         line = self.source_line if self.source_line else -1
-        if (self.source_file, line) in source_map:
-            source, line = source_map[(self.source_file, line)]
-            return PdgLookupNode(self.node_type, self.llvm, source, line)
-        else:
-            return self
+        source, line = source_map((self.source_file, line))
+        return PdgLookupNode(self.node_type, self.llvm, source, line)
 
 @dataclass
 class PdgLookupEdge:

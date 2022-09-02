@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Literal, Optional, Tuple, Type
 from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
-from conflict_analyzer.pdg_table import PdgLookupTable, PdgLookupNode, PdgLookupEdge
+from conflict_analyzer.pdg_table import PdgLookupTable, PdgLookupNode, PdgLookupEdge, SourceMap
 from conflict_analyzer.minizinc import run_model, run_cmdline, Topology, MinizincResult, str_artifact
 from preprocessor.preprocess import LabelledCleJson, Transform
 import preprocessor.preprocess as preprocessor
@@ -46,12 +46,18 @@ def collate_json(entities: List[SourceEntity]) -> List[LabelledCleJson]:
             collated[labelledjson['cle-label']] = labelledjson
     return list(collated.values())
 
-def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> Dict[Tuple[str, int], Tuple[str, int]]:
+def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> SourceMap: 
     src_map = {}
     for path, transform in entities:
         for key in transform.source_map:
-            src_map[(str(temp_dir / path.name), key)] = (str(path), transform.source_map[key])
-    return src_map
+            src_map[(str(temp_dir / path.name), key)] = (str(path), transform.source_map[key])    
+
+    def source_map(src: Tuple[str, int]) -> Tuple[str, int]:
+        if src in src_map:
+            return src_map[src]
+        else:
+            return src
+    return source_map
 
 def output_zinc(src: clejson2zinc.ZincSrc, temp_dir: Path) -> None:
     (temp_dir / 'cle_instance.mzn').write_text(src.cle_instance)

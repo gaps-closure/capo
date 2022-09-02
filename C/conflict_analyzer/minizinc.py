@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
+import argparse
+import csv
 from dataclasses import dataclass
 import os
 import re
 import subprocess
 import json
 from pathlib import Path
-from typing import Any, Iterable, List, Set, Optional, Dict, Tuple, TypedDict, Union
+import sys
+from typing import Any, Callable, Iterable, List, Set, Optional, Dict, Tuple, TypedDict, Union
 
-from .pdg_table import PdgLookupTable, PdgLookupNode
+from .pdg_table import PdgLookupTable, PdgLookupNode, SourceMap
 from .exceptions import ProcessException, FindmusException, Mus
+
 
 class TopologyAssignment(TypedDict):
     name: str
@@ -171,7 +175,7 @@ class MinizincResult:
 
 
 def run_model(instances: List[str], constraint_files: List[Path], 
-    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> MinizincResult:
+    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: SourceMap) -> MinizincResult:
 
     from minizinc import Instance, Model, Solver
     model = Model(constraint_files)
@@ -188,7 +192,7 @@ def run_model(instances: List[str], constraint_files: List[Path],
     raise RuntimeError("Minizinc return status {result.status}") 
 
 def run_cmdline(instances: List[str], constraint_files: List[Path], 
-    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: Dict[Tuple[str, int], Tuple[str, int]]) -> MinizincResult:
+    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: SourceMap) -> MinizincResult:
     (temp_dir / 'instance.mzn').write_text("\n".join(instances))    
     
     mzn_args: List[Union[str, os.PathLike]] = [
@@ -268,6 +272,17 @@ def from_solution(soln: Solution, table: PdgLookupTable) -> MinizincResult:
 
     return MinizincResult(functions, global_vars, other, table, soln)
 
+def parse_findmus(findmus_out: str) -> List[Mus]:
+    lines = findmus_out.splitlines()
+    start_index, end_index = None, None
+    for i, line in enumerate(lines):
+        if line.find('%%%mzn-json-start') != -1:
+            start_index = i
+        elif line.find('%%%mzn-json-end') != -1:
+            end_index = i
+    assert start_index is not None and end_index is not None
+    return json.loads("\n".join(lines[start_index+1:end_index]))["constraints"]
+
 def run_findmus(strings: List[str], sources: List[Path], temp_dir: Path) -> List[Mus]:
     (temp_dir / 'instance.mzn').write_text("\n".join(strings))
     mzn_args: List[Union[str, os.PathLike]] = [
@@ -285,12 +300,45 @@ def run_findmus(strings: List[str], sources: List[Path], temp_dir: Path) -> List
     output = subprocess.run(mzn_args, capture_output=True, encoding='utf-8')
     if output.returncode != 0 or "Error" in output.stdout:
         raise ProcessException("minizinc failure", output)     
-    lines = output.stdout.splitlines()
-    start_index, end_index = None, None
-    for i, line in enumerate(lines):
-        if line.find('%%%mzn-json-start') != -1:
-            start_index = i
-        elif line.find('%%%mzn-json-end') != -1:
-            end_index = i
-    assert start_index is not None and end_index is not None
-    return json.loads("\n".join(lines[start_index+1:end_index]))["constraints"]
+    return parse_findmus(output.stdout)
+
+class Args:
+    mzn_output: Path
+    pdg_data: Path
+    source_map: Optional[Path]
+    topology: Path
+    artifact: Path
+    source_path: Path
+    def __init__(self):
+        pass 
+
+def get_args() -> Args:
+    parser = argparse.ArgumentParser(prog='Minizinc output parser')
+    parser.add_argument('--mzn-output', '-m', type=Path, required=True, help='Minizinc output to parse')
+    parser.add_argument('--pdg-data', '-p', type=Path, required=True, help='PDG data csv')
+    parser.add_argument('--topology', '-t', type=Path, required=True, help='topology.json output path')
+    parser.add_argument('--artifact', '-a', type=Path, required=True, help='artifact.json output path')
+    parser.add_argument('--source-path', '-s', type=Path, default=Path('.').resolve(), help='source_path for topology.json')
+    # parser.add_argument('--source-map', type=Path, required=False, help='Source map pickle')
+    return parser.parse_args(namespace=Args())
+
+def main() -> None:
+    args = get_args()
+    with open(args.pdg_data) as pdg_f:
+        csv.field_size_limit(sys.maxsize)
+        pdg_lookup = PdgLookupTable(list(csv.reader(
+            pdg_f, quotechar='"', skipinitialspace=True)))
+    output = args.mzn_output.read_text()
+    if "UNSATISFIABLE" in output:
+        mus = parse_findmus(output)
+        raise FindmusException(mus, pdg_lookup, lambda x: x)
+    else:
+        soln, cut = parse_solution(output)
+        res = from_solution(soln, pdg_lookup)
+        res.cut = cut
+        args.topology.write_text(json.dumps(res.topology(args.source_path), indent=2))
+        args.artifact.write_text(str_artifact(res.artifact(args.source_path)))
+
+
+if __name__ == '__main__':
+    main()
