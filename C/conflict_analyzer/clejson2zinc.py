@@ -3,6 +3,7 @@
 from   argparse      import ArgumentParser
 from dataclasses import dataclass
 import json
+from pathlib import Path
 import sys
 import os
 import os.path
@@ -638,13 +639,26 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
 
     return ZincSrc(cle_instance, enclave_instance)   
    
-    
-# Parse command line argumets
-def get_args():
-  p = ArgumentParser(description='CLOSURE Language Extensions JSON Processor')
-  p.add_argument('-f', '--file', required=True, type=str, help='Input file')
-  return p.parse_args()
 
+class Args:
+    cle_json: Path
+    function_args: Path
+    one_way: Path
+    pdg_instance: Path
+    cle_instance: Path
+    enclave_instance: Path
+    def __init__(self):
+        pass
+# Parse command line argumets
+def get_args() -> Args:
+    parser = ArgumentParser(description='CLE Json -> Minizinc utility')
+    parser.add_argument('--cle-json', '-j', required=True, type=Path, help='Input collated CLE JSON')
+    parser.add_argument('--function-args', '-f', required=True, type=Path, help='function args text file')
+    parser.add_argument('--pdg-instance', '-p', required=True, type=Path, help='pdg instance minizinc')
+    parser.add_argument('--one-way', '-o', required=True, type=Path, help='one way text file')
+    parser.add_argument('--cle-instance', '-c', required=True, type=Path, help='Output cle instance file')
+    parser.add_argument('--enclave-instance', '-e', required=True, type=Path, help='Output enclave instance file')
+    return parser.parse_args(namespace=Args())
 
 def main():
     args   = get_args()
@@ -652,27 +666,15 @@ def main():
     handler = logging.StreamHandler(sys.stderr)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-    with open('tests/example/orange/tmp/pdg_instance.mzn') as pdg_f:
-        pdg_instance = pdg_f.read()
-    with open('tests/example/orange/tmp/functionArgs.txt') as fn_args_f:
-        function_args = fn_args_f.read()
-    with open('tests/example/orange/tmp/pdg_data.csv') as pdg_f:
-        pdg_data = list(csv.reader(
-            pdg_f, quotechar='"', skipinitialspace=True))
-    try:
-        with open('tests/example/orange/tmp/oneway.txt') as one_way_f:
-            one_way = one_way_f.read()
-    except:
-        one_way = ""
-#   print(args.file)
-    f = open(args.file,"r")
-    cle_json=json.load(f)
-    src = compute_zinc(cle_json,function_args,pdg_instance,one_way,logger)
-    with open("cle_instance.mzn", "w") as cle_f:
-        cle_f.write(src.cle_instance)
-    with open("enclave_instance.mzn", "w") as enclave_f:
-        enclave_f.write(src.enclave_instance)
-
+    output = compute_zinc(
+        json.loads(args.cle_json.read_text()),
+        args.function_args.read_text(),
+        args.pdg_instance.read_text(),
+        args.one_way.read_text(),
+        logger
+    )
+    args.cle_instance.write_text(output.cle_instance)
+    args.enclave_instance.write_text(output.enclave_instance)
 
 if __name__ == '__main__':
   main()
