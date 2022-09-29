@@ -28,7 +28,7 @@ setup(
             "rpc_generator=gedl:rpc_generator.main",
             "idl_generator=gedl:idl_generator.main",
             "preprocessor=preprocessor:__main__.main",
-            "join_clemaps=preprocessor:join_clemaps.main"
+            "join_clemaps=preprocessor:join_clemaps.main",
             "parse_mzn=conflict_analyzer:minizinc.main",
             "clejson2zinc=conflict_analyzer:clejson2zinc.main"
         ]
