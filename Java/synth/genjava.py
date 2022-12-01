@@ -2,14 +2,18 @@
 import json
 import math
 import time
-import random       as r
-import numpy.random as nr
-from   dataclasses  import dataclass
+import random                    as     r
+import numpy.random              as     nr
+import networkx                  as     nx
+from   dataclasses               import dataclass
+from   networkx.generators       import random_tree
+from   networkx.drawing.nx_pydot import write_dot
 
 @dataclass
 class JGenSpec:
   pkgprefix:     str       # Package prefix to use
   rseed:         int       # Seed for random generator
+  nclasses:      int       # Number of classes to generate
   primtypes:     [str]     # primitive data types plus string
   fprim_freq:    [float]   # Probability vector of field types for elements in primtypes 
   pprim_freq:    [float]   # Probability vector of method parameter types for elements in primtypes
@@ -39,6 +43,7 @@ class JGenSpec:
 
   def set_rseed(self, use_time=False): 
     s = int(time.time()) if use_time else self.rseed
+    self.rseed = s
     nr.seed(s)
     r.seed(s)
 
@@ -46,6 +51,7 @@ class JGenSpec:
     for k,v in w.items():
       if hasattr(self, k): setattr(self, k, v)
 
+##############################################################################################
 def pick(wl,capitalize=True): 
   return r.choice(wl).capitalize() if capitalize else r.choice(wl)
 
@@ -68,7 +74,7 @@ def pick_access(mods, modfreq):
 def pick_field_name(j):    return "f" + pick(j.nouns)
 def pick_subcl_name(j,cn): return pick(j.adjectives) + cn
 def pick_method_name(j):   return pick(j.verbs,False) + pick(j.adverbs)
-def pick_class_name(j):    return pick(j.adjectives) + pick(j.nouns)
+def pick_class_name(j):    return pick(j.nouns)
 def pick_field_type(j):    return pick_type(j.primtypes, ["ClassTBD"], j.fprim_freq, j.fclassprob, j.farrayprob)
 def pick_return_type(j):   return pick_type(j.primtypes, ["ClassTBD"], j.rprim_freq, j.rclassprob, j.rarrayprob)
 def pick_param_type(j):    return pick_type(j.primtypes, ["ClassTBD"], j.pprim_freq, j.pclassprob, j.parrayprob)
@@ -76,24 +82,25 @@ def pick_class_access(j):  return pick_access(j.class_a_mods, j.class_a_freq)
 def pick_field_access(j):  return pick_access(j.field_a_mods, j.field_a_freq)
 def pick_method_access(j): return pick_access(j.method_a_mods, j.method_a_freq)
 
-"""
-foverrideprob  = 0.0
-moverrideprob  = 0.2
-moverloadprob  = 0.2
-class_na_mods  = ["final", "abstract", ""]
-method_na_mods = ["final", "static", "abstract", "transient", "synchronized", ""]
-field_na_mods  = ["final", "static", "transient", "volatile", ""]
-"""
-
-if __name__ == '__main__':
-  with open("gspec.json", 'r') as f: j = JGenSpec(**(json.load(f)))
-  with open("vocab.json", 'r') as f: j.update(json.load(f))
-  j.set_rseed(use_time=True)
-
-  # XXX: must construct class hierarchy first
- 
+def make_cl_hierarchy(j, expdot=False):
+  dedup = {}
+  t = random_tree(j.nclasses + 1, seed=j.rseed, create_using=nx.DiGraph)
+  if expdot: write_dot(t, "foo.dot")
+  cls = {}
+  for y,x in nx.dfs_edges(t, source=0):
+    par = y
+    cld = [k[1] for k in t.out_edges(x)] 
+    while True:
+      cn = pick_class_name(j) if par == 0 else pick_subcl_name(j,cls[par]["cn"])
+      if cn not in dedup: 
+        dedup[cn] = 1
+        break
+      else: continue
+    cls[x] = dict(par=par, cld=cld, cn=cn)
+  return cls
+  
+def make_class(j,cn):
   ca = pick_class_access(j)
-  cn = pick_class_name(j)
   # check for duplicates, decide inheritance
   print((ca if ca=="" else ca + " ") + "class " + cn + " implements Serializable {")
 
@@ -124,3 +131,23 @@ if __name__ == '__main__':
       print("  " + (fa if fa=="" else fa + " ") + ft + " " + fn + ";")
 
   print("};")
+
+##############################################################################################
+if __name__ == '__main__':
+  with open("gspec.json", 'r') as f: j = JGenSpec(**(json.load(f)))
+  with open("vocab.json", 'r') as f: j.update(json.load(f))
+  j.set_rseed(use_time=True)
+
+  cls = make_cl_hierarchy(j)
+  for x in cls:  
+    make_class(j,cls[x]["cn"])
+ 
+##############################################################################################
+
+# pick class field from hierarchy
+# decouple AST from writing
+# write package and import statements
+# create pkg dir structure and write each class in separate file
+# include static fields and methods
+# check for duplicate field names in class and parents
+# create method to generate random instance
