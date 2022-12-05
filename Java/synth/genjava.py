@@ -1,7 +1,9 @@
 #!/usr/bin/python3
+import os
 import json
 import math
 import time
+import shutil
 import random                    as     r
 import numpy.random              as     nr
 import networkx                  as     nx
@@ -40,6 +42,7 @@ class JGenSpec:
   adjectives:    [str]     # Adjectives to choose from for class names
   verbs:         [str]     # Verbs to choose from for method names
   adverbs:       [str]     # Adverbs to choose from for method names
+  genclasses:    [str]     # Generated classes
 
   def set_rseed(self, use_time=False): 
     s = int(time.time()) if use_time else self.rseed
@@ -62,7 +65,7 @@ def pick_type(primflds, allclasses, primfreq, classprob, arrayprob):
   assert(sum(primfreq) == 1.0)
   assert(len(primflds) > 0)
   ft = r.choice(allclasses) if r.random() < classprob else nr.choice(primflds, 1, p = primfreq)[0]
-  ar = "[]" if r.random() < arrayprob else ""
+  ar = '[]' if r.random() < arrayprob else ''
   return ft + ar
 
 def pick_access(mods, modfreq):
@@ -71,13 +74,13 @@ def pick_access(mods, modfreq):
   assert(len(mods) > 0)
   return nr.choice(mods, 1, modfreq)[0]
 
-def pick_field_name(j):    return "f" + pick(j.nouns)
+def pick_field_name(j):    return 'f' + pick(j.nouns)
 def pick_subcl_name(j,cn): return pick(j.adjectives) + cn
 def pick_method_name(j):   return pick(j.verbs,False) + pick(j.adverbs)
 def pick_class_name(j):    return pick(j.nouns)
-def pick_field_type(j):    return pick_type(j.primtypes, ["ClassTBD"], j.fprim_freq, j.fclassprob, j.farrayprob)
-def pick_return_type(j):   return pick_type(j.primtypes, ["ClassTBD"], j.rprim_freq, j.rclassprob, j.rarrayprob)
-def pick_param_type(j):    return pick_type(j.primtypes, ["ClassTBD"], j.pprim_freq, j.pclassprob, j.parrayprob)
+def pick_field_type(j):    return pick_type(j.primtypes, j.genclasses, j.fprim_freq, j.fclassprob, j.farrayprob)
+def pick_return_type(j):   return pick_type(j.primtypes, j.genclasses, j.rprim_freq, j.rclassprob, j.rarrayprob)
+def pick_param_type(j):    return pick_type(j.primtypes, j.genclasses, j.pprim_freq, j.pclassprob, j.parrayprob)
 def pick_class_access(j):  return pick_access(j.class_a_mods, j.class_a_freq)
 def pick_field_access(j):  return pick_access(j.field_a_mods, j.field_a_freq)
 def pick_method_access(j): return pick_access(j.method_a_mods, j.method_a_freq)
@@ -85,69 +88,103 @@ def pick_method_access(j): return pick_access(j.method_a_mods, j.method_a_freq)
 def make_cl_hierarchy(j, expdot=False):
   dedup = {}
   t = random_tree(j.nclasses + 1, seed=j.rseed, create_using=nx.DiGraph)
-  if expdot: write_dot(t, "foo.dot")
+  if expdot: write_dot(t, 'foo.dot')
   cls = {}
   for y,x in nx.dfs_edges(t, source=0):
     par = y
     cld = [k[1] for k in t.out_edges(x)] 
     while True:
-      cn = pick_class_name(j) if par == 0 else pick_subcl_name(j,cls[par]["cn"])
+      cn = pick_class_name(j) if par == 0 else pick_subcl_name(j,cls[par]['cn'])
       if cn not in dedup: 
         dedup[cn] = 1
         break
       else: continue
     cls[x] = dict(par=par, cld=cld, cn=cn)
+  j.genclasses = list(dedup.keys())
   return cls
   
-def make_class(j,cn):
+def make_class(j,x,cls):
+  ostr = ''
+  cn = cls[x]['cn']
+  y  = cls[x]['par']
+  pn = '' if y == 0 else cls[y]['cn']
   ca = pick_class_access(j)
-  # check for duplicates, decide inheritance
-  print((ca if ca=="" else ca + " ") + "class " + cn + " implements Serializable {")
+
+  if ca != '': ostr += ca + ' '
+  ostr += 'class ' + cn + ' '
+  if pn != '': ostr += 'extends ' + pn + ' '
+  ostr += 'implements Serializable {\n'
 
   nelts = int(math.floor(min(r.expovariate(1.0) * j.meanelts, j.maxelts)))
+  nvals = {"byte":'0', "short":'0', "int":'0', "long":'0', "float":'0.0', "double":'0.0', "boolean":'false', "char":"'a'", "String":'"hello"'}
 
+  dedup = {}
   for i in range(nelts):
     if r.random() < j.mprob: 
       ma = pick_method_access(j)
       rt = pick_return_type(j)
-      mn = pick_method_name(j)  # check dups, overriding
+      nv = nvals[rt] if rt in nvals else 'null'
+      while True:
+        mn = pick_method_name(j) 
+        if mn not in dedup: 
+          dedup[mn] = 1
+          break
+        else: continue
+      
       nparms = int(math.floor(min(r.expovariate(1.0) * j.meanparms, j.maxparms)))
-      pstr = ""
+      pstr = ''
       for p in range(nparms):
         pn = j.fubars[p]
         pt = pick_param_type(j)
         pstr += pt
-        pstr += " "
+        pstr += ' '
         pstr += pn
-        pstr += ", " if p < nparms - 1 else ""
-        
-      print("  " + (ma if ma=="" else ma + " ") + rt + " " + mn + "(" + pstr + ");")
-
+        pstr += ', ' if p < nparms - 1 else ''
+      ostr += '  ' + (ma if ma=='' else ma + ' ') + rt + ' ' + mn + '(' + pstr + ') { return ' + nv + '; };\n'
     else:
       fa = pick_field_access(j)
       ft = pick_field_type(j)
-      fn = pick_field_name(j)
-      # check for duplicates and parent field overrides
-      print("  " + (fa if fa=="" else fa + " ") + ft + " " + fn + ";")
+      while True:
+        fn = pick_field_name(j)
+        if fn not in dedup: 
+          dedup[fn] = 1
+          break
+        else: continue
+      ostr += '  ' + (fa if fa=='' else fa + ' ') + ft + ' ' + fn + ';\n'
 
-  print("};")
+  ostr += '}';
+  return ostr;
 
 ##############################################################################################
 if __name__ == '__main__':
-  with open("gspec.json", 'r') as f: j = JGenSpec(**(json.load(f)))
-  with open("vocab.json", 'r') as f: j.update(json.load(f))
+  dir_path = './out'
+  with open('gspec.json', 'r') as f: j = JGenSpec(**(json.load(f)))
+  with open('vocab.json', 'r') as f: j.update(json.load(f))
   j.set_rseed(use_time=True)
 
+  try:                 shutil.rmtree(dir_path)
+  except OSError as e: print("%s : %s" % (dir_path, e.strerror))
+  try:                 os.mkdir(dir_path)
+  except OSError as e: print("%s : %s" % (dir_path, e.strerror))
+
   cls = make_cl_hierarchy(j)
-  for x in cls:  
-    make_class(j,cls[x]["cn"])
+
+  for x in cls: 
+    with open(dir_path + '/' + cls[x]['cn'] + '.java', 'w') as of:
+      of.write('package ' + j.pkgprefix + ';\n')
+      of.write('import java.lang.*; \n')
+      of.write('import java.io.*; \n')
+      of.write('import ' + j.pkgprefix + '.*;\n')
+      of.write('\n')
+      of.write(make_class(j,x,cls))
  
 ##############################################################################################
 
-# pick class field from hierarchy
 # decouple AST from writing
-# write package and import statements
-# create pkg dir structure and write each class in separate file
 # include static fields and methods
-# check for duplicate field names in class and parents
-# create method to generate random instance
+# check for duplicate field names in parents
+# provide default constructor to generate random instance
+#  for each field
+#    if class create instance and assign
+#    if primitive generate random value and assign
+

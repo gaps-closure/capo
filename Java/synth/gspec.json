@@ -1,6 +1,7 @@
 {
   "pkgprefix": "com.peratonlabs.jgen",
   "rseed": 112358,
+  "nclasses": 10,
   "primtypes": ["byte", "short", "int", "long", "float", "double", "boolean", "char", "String"],
   "fprim_freq": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2],
   "pprim_freq": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2],
@@ -26,5 +27,6 @@
   "nouns": [],
   "adjectives": [],
   "verbs": [],
-  "adverbs": []
+  "adverbs": [],
+  "genclasses": []
 }
