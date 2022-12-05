@@ -116,7 +116,7 @@ def make_class(j,x,cls):
   ostr += 'implements Serializable {\n'
 
   nelts = int(math.floor(min(r.expovariate(1.0) * j.meanelts, j.maxelts)))
-  nvals = {"byte":'0', "short":'0', "int":'0', "long":'0', "float":'0.0', "double":'0.0', "boolean":'false', "char":"'a'", "String":'"hello"'}
+  nvals = {"byte":'(byte)0', "short":'(short)0', "int":'(int)0', "long":'(long)0', "float":'0.0f', "double":'0.0', "boolean":'false', "char":"'a'", "String":'"hello"'}
 
   dedup = {}
   for i in range(nelts):
