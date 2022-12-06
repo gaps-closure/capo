@@ -13,6 +13,8 @@
   "method_a_mods": ["public", "private", "protected", ""],
   "method_a_freq": [0.2, 0.4, 0.4, 0.0],
   "mprob": 0.2,
+  "mstaticprob": 0.1,
+  "fstaticprob": 0.1,
   "farrayprob": 0.1,
   "fclassprob": 0.2,
   "parrayprob": 0.1,

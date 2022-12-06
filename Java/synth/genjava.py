@@ -27,6 +27,8 @@ class JGenSpec:
   method_a_mods: [str]     # Access modifiers for methods
   method_a_freq: [float]   # Probability vector for access modifiers for method 
   mprob:         float     # Probability that class element is a method vs. field
+  mstaticprob:   float     # Probability that a method is a static class method
+  fstaticprob:   float     # Probability that a field is a static class field
   farrayprob:    float     # Probability that a field is an array (vs. scalar)
   fclassprob:    float     # Probability that a field is a class (vs. primitive type or string)
   parrayprob:    float     # Probability that a parameter is an array (vs. scalar)
@@ -122,6 +124,7 @@ def make_class(j,x,cls):
   for i in range(nelts):
     if r.random() < j.mprob: 
       ma = pick_method_access(j)
+      ma += " static" if r.random() < j.mstaticprob else ""
       rt = pick_return_type(j)
       nv = nvals[rt] if rt in nvals else 'null'
       while True:
@@ -143,6 +146,7 @@ def make_class(j,x,cls):
       ostr += '  ' + (ma if ma=='' else ma + ' ') + rt + ' ' + mn + '(' + pstr + ') { return ' + nv + '; };\n'
     else:
       fa = pick_field_access(j)
+      fa += " static" if r.random() < j.fstaticprob else ""
       ft = pick_field_type(j)
       while True:
         fn = pick_field_name(j)
@@ -181,10 +185,9 @@ if __name__ == '__main__':
 ##############################################################################################
 
 # decouple AST from writing
-# include static fields and methods
 # check for duplicate field names in parents
-# provide default constructor to generate random instance
+# provide constructor to generate random instance
 #  for each field
-#    if class create instance and assign
+#    if class create radom instance and assign
 #    if primitive generate random value and assign
 
