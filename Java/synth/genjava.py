@@ -86,6 +86,9 @@ def pick_param_type(j):    return pick_type(j.primtypes, j.genclasses, j.pprim_f
 def pick_class_access(j):  return pick_access(j.class_a_mods, j.class_a_freq)
 def pick_field_access(j):  return pick_access(j.field_a_mods, j.field_a_freq)
 def pick_method_access(j): return pick_access(j.method_a_mods, j.method_a_freq)
+def pick_field_static(j):  return 'static' if r.random() < j.fstaticprob else ''
+def pick_method_static(j): return 'static' if r.random() < j.mstaticprob else ''
+def sne(x):                return '' if x=='' else x + ' '
 
 def make_cl_hierarchy(j, expdot=False):
   dedup = {}
@@ -124,7 +127,7 @@ def make_class(j,x,cls):
   for i in range(nelts):
     if r.random() < j.mprob: 
       ma = pick_method_access(j)
-      ma += " static" if r.random() < j.mstaticprob else ""
+      ms = pick_method_static(j)
       rt = pick_return_type(j)
       nv = nvals[rt] if rt in nvals else 'null'
       while True:
@@ -143,10 +146,10 @@ def make_class(j,x,cls):
         pstr += ' '
         pstr += pn
         pstr += ', ' if p < nparms - 1 else ''
-      ostr += '  ' + (ma if ma=='' else ma + ' ') + rt + ' ' + mn + '(' + pstr + ') { return ' + nv + '; };\n'
+      ostr += '  ' + sne(ma) + sne(ms) + rt + ' ' + mn + '(' + pstr + ') { return ' + nv + '; };\n'
     else:
       fa = pick_field_access(j)
-      fa += " static" if r.random() < j.fstaticprob else ""
+      fs = pick_field_static(j)
       ft = pick_field_type(j)
       while True:
         fn = pick_field_name(j)
@@ -154,7 +157,7 @@ def make_class(j,x,cls):
           dedup[fn] = 1
           break
         else: continue
-      ostr += '  ' + (fa if fa=='' else fa + ' ') + ft + ' ' + fn + ';\n'
+      ostr += '  ' + sne(fa) + sne(fs) + ft + ' ' + fn + ';\n'
 
   ostr += '}';
   return ostr;
