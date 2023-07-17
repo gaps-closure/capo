@@ -336,13 +336,13 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
                         arcEntry.append("false")
                     arcParamCount += 1
 
+                ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, arcEntry)]
                 
                 actualParamCount = len(cdf["argtaints"]) -1
-                for label in enums["cleLabel"]:
-                    # print(f"Checking label:{label}")
-                    paramCount = 0
-                    paramEntry = []
-                    while paramCount < maxArgIdx:
+                paramCount = 0
+                paramEntry = []
+                while paramCount < maxArgIdx:
+                    for label in enums["cleLabel"]:
                         if paramCount < len(cdf["argtaints"]):
                             param = cdf["argtaints"][paramCount]
                             # print(f"Checking Param{param}")
@@ -352,14 +352,9 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
                                 paramEntry.append("false")
                         else:
                             paramEntry.append("false")
-                        paramCount +=1
-                    taintEntry.append(paramEntry)
-
-                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, arcEntry)]
-                    
-                    logger.debug(taintEntry)
-                    
-                
+                    paramCount +=1
+                taintEntry.append(paramEntry)
+                logger.debug(taintEntry)
 
                 if entry["cle-label"] in fun2ArgCount.keys() and entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < actualParamCount and hasArgFlag:
                     errorLabel = entry["cle-label"]
