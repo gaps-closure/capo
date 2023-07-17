@@ -1,17 +1,15 @@
 #!/usr/bin/python3
 
-from   argparse      import ArgumentParser
+from argparse import ArgumentParser
 from dataclasses import dataclass
 import json
 from pathlib import Path
 import sys
-import os
-import os.path
 from collections import defaultdict
 from typing import Any, Dict, List
 from logging import Logger
 import logging
-import csv
+import itertools
 
 from preprocessor.preprocess import LabelledCleJson
 
@@ -21,30 +19,155 @@ class DimensionError(Exception):
 class CLEUsageError(Exception):
     pass
 
-
-output_order_enums = [
-  "cleLabel",
-  "cdf",
-  "remotelevel",
-]
-
-output_order_arrys = [
-  "hasLabelLevel",
-  "hasremotelevel",
-  "hasdirection",
-  "hasoperation",
-  "hasargtaints",
-  "hascodtaints",
-  "hasrettaints",
-]
-
 @dataclass
 class ZincSrc:
     cle_instance: str
     enclave_instance: str
 
-
 def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instance: str, one_way: str, logger: Logger) -> ZincSrc:
+
+    # get maximum number of function args
+    max_fn_parms = 0
+    for l in pdg_instance.splitlines():
+        if 'MaxFuncParms' in l:
+            max_fn_parms = int(l.split()[-1][:-1])
+            break
+    
+    # level / enclave data
+    nn_levels = list({e['cle-json']['level'] for e in cleJson})
+    levels    = ['nullLevel'] + nn_levels
+    enclaves  = ['nullEnclave'] + [l + '_E' for l in nn_levels]
+
+    # determine the set of TAG labels
+    flat   = lambda l: [i for sl in l for i in sl]
+    isFn   = lambda e: 'cdf' in e['cle-json'] and 'codtaints' in e['cle-json']['cdf'][0]
+    fnTnts = lambda e: flat([c['codtaints'] + c['rettaints'] + flat(c['argtaints']) for c in e['cle-json']['cdf']])
+    taints = set(flat([fnTnts(e) for e in cleJson if isFn(e)]))
+    tags = taints - {e['cle-label'] for e in cleJson}
+
+    # add synthetic null, TAG, and DFLT labels to JSON copy
+    cleJson = list(cleJson)
+    def addSyntheticLabel(n, data, idx=None):
+        label = {'cle-label': n, 'cle-json': data}
+        if idx != None: cleJson.insert(idx, label)
+        else: cleJson.append(label)
+    for t in tags:      addSyntheticLabel(t, {'level': 'nullLevel'})
+    for l in nn_levels: addSyntheticLabel(l + 'DFLT', {'level': l})
+    addSyntheticLabel('nullCleLabel', {
+        'level': 'nullLevel',
+        'cdf': [{ 
+            'remotelevel': 'nullLevel',
+            'direction': 'nullDirection',
+            'guarddirective': {'operation': 'nullGuardOperation'}
+        }]
+    }, idx=0)
+
+    # label data
+    cle_labels        = [e['cle-label'] for e in cleJson]
+    label_levels      = [e['cle-json']['level'] for e in cleJson]
+    is_fun_annotation = ['true' if isFn(e) else 'false' for e in cleJson]
+
+    # cdf data
+    one_way_false = {l.split()[0] for l in one_way.splitlines() if l.split()[1] == "false"}
+    all_cdfs = []
+    from_cle_label = []
+    has_remote_level = []
+    has_direction = []
+    has_guard_op = []
+    is_oneway = []
+    cdf_for_remote_level = []
+    has_rettaints = []
+    has_codtaints = []
+    has_arctaints = []
+    has_argtaints = []
+    for e in cleJson:
+        l = e['cle-label']
+        cdfs = e['cle-json']['cdf'] if 'cdf' in e['cle-json'] else []
+        cdf_at_level = ['nullCdf'] * len(levels)
+        for cdf, i in zip(cdfs, itertools.count(0)):
+            cdf_id = l + '_cdf_' + str(i) if l != 'nullCleLabel' else 'nullCdf'
+                
+            # general cdf info
+            all_cdfs.append(cdf_id)
+            from_cle_label.append(l)
+            has_remote_level.append(cdf['remotelevel'])
+            cdf_at_level[levels.index(cdf['remotelevel'])] = cdf_id
+            has_direction.append(cdf['direction'])
+            has_guard_op.append(cdf['guarddirective']['operation'])
+
+            # oneway
+            if 'oneway' in cdf:
+                if l in one_way_false: raise CLEUsageError('Oneway function has uses!')
+                is_oneway.append(cdf['oneway'])
+            else:
+                is_oneway.append('false')
+
+            if isFn(e):
+
+                # codtaints, rettaints
+                cdf_arctaints = ['false'] * len(cle_labels)
+                def addTaints(name, ts):
+                    cdf_taints = ['false'] * len(cle_labels)
+                    for t in cdf[name]:
+                        j = cle_labels.index(t)
+                        cdf_taints[j] = 'true'
+                        cdf_arctaints[j] = 'true'
+                    ts.append(cdf_taints)
+                addTaints('rettaints', has_rettaints)
+                addTaints('codtaints', has_codtaints)
+                
+                # argtaints
+                cdf_argtaints = [['false'] * len(cle_labels)] * max_fn_parms
+                for arg_ts in cdf['argtaints']:
+                    for arg_t, j in zip(arg_ts, itertools.count(0)):
+                        k = cle_labels.index(arg_t)
+                        cdf_argtaints[j][k] = 'true'
+                        cdf_arctaints[k] = 'true'
+                has_argtaints.append(cdf_argtaints)
+
+                # arctaints
+                cdf_arctaints[cle_labels.index(l)] = 'true'
+                has_arctaints.append(cdf_arctaints)
+        cdf_for_remote_level.append(cdf_at_level)
+
+    # string conversion helpers
+    def mkMznSet(n, br_open, eles):
+        br_close = ']' if br_open == '[' else '}'
+        return '{} = {} {} {};'.format(n, br_open, ', '.join(eles), br_close)
+    def mkMznArr(n, dims, eles):
+        d = len(dims)
+        eles_s = ""
+        if d == 2: eles_s = ",\n  ".join([", ".join(e) for e in eles])
+        else:      eles_s = ",\n  ".join([", ".join(flat(e)) for e in eles])
+        return '{} = array{}d({}, [\n  {}\n]);'.format(n, d, ", ".join(dims), eles_s)
+
+    # enclave instance
+    enc_s = '\n'.join([
+        mkMznSet('Level', '{', levels),
+        mkMznSet('Enclave', '{', enclaves),
+        mkMznSet('hasEnclaveLevel', '[', levels)
+    ])
+
+    # cle instance
+    cle_s = '\n'.join([
+        mkMznSet('cleLabel', '{', cle_labels),
+        mkMznSet('hasLabelLevel', '[', label_levels),
+        mkMznSet('isFunctionAnnotation', '[', is_fun_annotation),
+        mkMznSet('cdf', '{', all_cdfs),
+        mkMznSet('fromCleLabel', '[', from_cle_label),
+        mkMznSet('hasRemotelevel', '[', has_remote_level),
+        mkMznSet('hasDirection', '[', has_direction),
+        mkMznSet('hasGuardOperation', '[', has_guard_op),
+        mkMznSet('isOneway', '[', is_oneway),
+        mkMznArr('cdfForRemoteLevel', ['cleLabel', 'Level'], cdf_for_remote_level),
+        mkMznArr('hasRettaints', ['functionCdf', 'cleLabel'], has_rettaints),
+        mkMznArr('hasCodtaints', ['functionCdf', 'cleLabel'], has_codtaints),
+        mkMznArr('hasArgtaints', ['functionCdf', 'parmIdx', 'cleLabel'], has_argtaints),
+        mkMznArr('hasARCtaints', ['functionCdf', 'cleLabel'], has_arctaints)
+    ])
+    
+    return ZincSrc(cle_s, enc_s)
+
     hasCDF = []
     hasArgTaints = []
     listOfLevels = []
@@ -90,7 +213,7 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
     cleJson = cleJson2
     
     maxCDFIdx = 0
-    maxArgIdx = 0
+    max_fn_parms = 0
     data = pdg_instance.splitlines()
     for d in data:
         if 'MaxFuncParms' in d:
@@ -109,7 +232,6 @@ def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instanc
             listOfLevels.append(entry["cle-json"]['level'])
         else:
             listOfLevels.append("nullLevel")
-    
     listOfLevels = set(listOfLevels)
     listOfLevels = list(listOfLevels)
     listOfLevels.sort()
