@@ -291,7 +291,7 @@ std::string pdg::DIUtils::getDITypeName(DIType *ty)
       } else if (getBaseDIType(ty)->getTag() == dwarf::DW_TAG_union_type) {
         return "union " + ty->getName().str();
       }
-        return ty->getName();
+        return ty->getName().str();
       //return getDITypeName(getBaseDIType(ty));
     case dwarf::DW_TAG_member:
       return getDITypeName(getBaseDIType(ty));

@@ -9,6 +9,7 @@
 #include "llvm/IR/IntrinsicInst.h"
 #include "PDGExceptions.hpp"
 #include <set>
+#include <map>
 
 namespace pdg
 {
