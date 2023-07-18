@@ -5,7 +5,6 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 import sys
-from collections import defaultdict
 from typing import Any, Dict, List
 from logging import Logger
 import logging
@@ -21,14 +20,7 @@ class ZincSrc:
     cle_instance: str
     enclave_instance: str
 
-def validateCle(cle: List[LabelledCleJson], pdg: str, one_way: str) -> int:
-
-    # Get maximum function parameters (for later)
-    max_fn_parms = 0
-    for l in pdg.splitlines():
-        if 'MaxFuncParms' in l:
-            max_fn_parms = int(l.split()[-1][:-1])
-            break
+def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str,int], one_way: str):
 
     # For each entry in the list...
     for e in cle:
@@ -89,39 +81,43 @@ def validateCle(cle: List[LabelledCleJson], pdg: str, one_way: str) -> int:
             any_taints = 'argtaints' in c or  'codtaints' in c or  'rettaints' in c
             check(any_taints and not all_taints, "'cdf' must have all taint types or no taints")
 
-            # 12. EACH TAINT MUST BE AN EXISTING LABEL OR HAVE THE FORM "TAG_[REQUEST|RESPONSE]_{label}"
-            if 'codtaints' in c:
-                all_lsts = (type(c['argtaints']) is list and 
-                            type(c['codtaints']) is list and 
-                            type(c['rettaints']) is list)
-                if all_lsts: all_lsts = all([type(sl) is list for sl in c['argtaints']])
-                check(not all_lsts, "taints must be lists")
+            # If there are taints...
+            if any_taints:
+
+                # 12. TAINT FIELDS MUST BE LISTS
                 flat = lambda l: [i for sl in l for i in sl]
+                areLs = lambda l: all([type(sl) is list for sl in l])
+                all_lsts = areLs([c['argtaints'], c['codtaints'], c['rettaints']]) and areLs(c['argtaints'])
+                check(not all_lsts, "taints must be lists")
+                
+                # 13. EACH TAINT MUST BE AN EXISTING LABEL OR HAVE THE FORM "TAG_[REQUEST|RESPONSE]_{label}"
                 taints = c['codtaints'] + c['rettaints'] + flat(c['argtaints'])
                 for t in taints:
                     check(t not in labels and t[:12] != "TAG_REQUEST_" and t[:13] != "TAG_RESPONSE_",
                           "Each taint must be a label or 'TAG_[REQUEST|RESPONSE]_\{label\}'")
 
-            # 14. THE LENGTH OF 'argtaints' MUST NOT EXCEED THE MAXIMUM FUNCTION ARGUMENTS
-            check('argtaints' in c and type(c['argtaints']) is list and len(c['argtaints']) > max_fn_parms,
-                  "'argtaints' length may not exceed maximum function args ({})".format(max_fn_parms))
-            
-        # 15. NO TWO CDFS FOR THE SAME LABEL MAY SHARE A REMOTE LEVEL
+                # 14. THE LENGTH OF 'argtaints' MUST NOT EXCEED THE MAXIMUM FUNCTION ARGUMENTS
+                check(len(c['argtaints']) > max_fn_parms,
+                    "'argtaints' length may not exceed maximum function args ({})".format(max_fn_parms))
+                
+                # 15. THE LENGTH OF 'argtaints' MUST MATCH THE NUMBER OF ACTUAL ARGUMENTS
+                check(len(c['argtaints']) != 0 and len(c['argtaints']) == fn_args[e['cle-label']],
+                      "'argtaints' length must match actual number of function arguments")
+                
+        # 16. NO TWO CDFS FOR THE SAME LABEL MAY SHARE A REMOTE LEVEL
         rlevels = [c['remotelevel'] for c in cdfs]
         check(len(rlevels) != len(set(rlevels)), "cdf 'remotelevels' must be unique")
 
-        # 16. IF MULTIPLE CDFS ARE PRESENT, THEY MUST DIFFER ONLY IN THEIR REMOTE LEVEL
+        # 17. IF MULTIPLE CDFS ARE PRESENT, THEY MUST DIFFER ONLY IN THEIR REMOTE LEVEL
         prev = None
         for c in cdfs:
             c.pop('remotelevel')
             check(prev and prev != c, "cdfs for a label must differ only in their 'remotelevel'")
             prev = c
 
-    return max_fn_parms
-
 def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Logger) -> ZincSrc:
     
-    # level / enclave data
+    # populate level / enclave data
     nn_levels = list({e['cle-json']['level'] for e in cle})
     levels    = ['nullLevel'] + nn_levels
     enclaves  = ['nullEnclave'] + [l + '_E' for l in nn_levels]
@@ -139,8 +135,7 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
         label = {'cle-label': n, 'cle-json': data}
         if idx != None: cle.insert(idx, label)
         else: cle.append(label)
-    for t in tags:      addSyntheticLabel(t, {'level': 'nullLevel'})
-    for l in nn_levels: addSyntheticLabel(l + 'DFLT', {'level': l})
+
     addSyntheticLabel('nullCleLabel', {
         'level': 'nullLevel',
         'cdf': [{ 
@@ -149,41 +144,52 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
             'guarddirective': {'operation': 'nullGuardOperation'}
         }]
     }, idx=0)
+    for t in tags:      addSyntheticLabel(t, {'level': 'nullLevel'})
+    for l in nn_levels: addSyntheticLabel(l + 'DFLT', {'level': l})
 
-    # label data
+    # populate label data
     cle_labels        = [e['cle-label'] for e in cle]
     label_levels      = [e['cle-json']['level'] for e in cle]
-    is_fun_annotation = ['true' if isFn(e) else 'false' for e in cle]
+    is_fun_annotation = [str(isFn(e)).lower() for e in cle]
 
-    # cdf data
-    all_cdfs = []
-    from_cle_label = []
-    has_remote_level = []
-    has_direction = []
-    has_guard_op = []
-    is_oneway = []
+    # populate cdf data
+    all_cdfs             = []
+    from_cle_label       = []
+    has_remote_level     = []
+    has_direction        = []
+    has_guard_op         = []
+    is_oneway            = []
     cdf_for_remote_level = []
-    has_rettaints = []
-    has_codtaints = []
-    has_arctaints = []
-    has_argtaints = []
+    has_rettaints        = []
+    has_codtaints        = []
+    has_arctaints        = []
+    has_argtaints        = []
     for e in cle:
+
+        # get the cdfs
         l = e['cle-label']
         cdfs = e['cle-json']['cdf'] if 'cdf' in e['cle-json'] else []
         cdfs = list(filter(lambda c: c['remotelevel'] in levels, cdfs))
+
+        # for each label, we map the cdfs to their remotelevel
+        # cdf_at_level is populated below
         cdf_at_level = ['nullCdf'] * len(levels)
+        cdf_for_remote_level.append(cdf_at_level)
+
+        # iterate over cdfs to collect general and taint data
         for cdf, i in zip(cdfs, itertools.count(0)):
             cdf_id = l + '_cdf_' + str(i) if l != 'nullCleLabel' else 'nullCdf'
                 
-            # general cdf info
+            # general cdf data
             all_cdfs.append(cdf_id)
             from_cle_label.append(l)
             has_remote_level.append(cdf['remotelevel'])
-            cdf_at_level[levels.index(cdf['remotelevel'])] = cdf_id
             has_direction.append(cdf['direction'])
             has_guard_op.append(cdf['guarddirective']['operation'])
             is_oneway.append(cdf['oneway'] if 'oneway' in cdf else 'false')
+            cdf_at_level[levels.index(cdf['remotelevel'])] = cdf_id
 
+            # if it's a function label, collect taint data
             if isFn(e):
 
                 # codtaints, rettaints
@@ -210,7 +216,6 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
                 # arctaints
                 cdf_arctaints[cle_labels.index(l)] = 'true'
                 has_arctaints.append(cdf_arctaints)
-        cdf_for_remote_level.append(cdf_at_level)
 
     # string conversion helpers
     def mkMznSet(n, br_open, eles):
@@ -250,8 +255,23 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
     
     return ZincSrc(cle_s, enc_s)
 
-def toZincSrc(cle, fn_args, pdg, one_way, logger):
-    max_fn_parms = validateCle(cle, pdg, one_way)
+def toZincSrc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, logger: Logger) -> ZincSrc:
+
+    # Get maximum function parameters
+    # Ugly, but no other way to get this without digging into the opt pass
+    def getMaxFnParms(pdg: str) -> int:
+        for l in pdg.splitlines():
+            if 'MaxFuncParms' in l: return int(l.split()[-1][:-1])
+        raise CLEUsageError("MaxFuncParms not found in PDG instance")
+
+    # Convert functionArgs file contents into a dictionary mapping labels to number of args
+    def fnArgsToDict(fn_args: str):
+        return { l.split()[0]: int(l.split()[1]) for l in fn_args.splitlines() }
+
+    # First validate the CLE JSON, then convert to mzn
+    max_fn_parms = getMaxFnParms(pdg)
+    fn_args_d = fnArgsToDict(fn_args)
+    validateCle(cle, max_fn_parms, fn_args_d, one_way)
     return toZincSrcValidated(cle, max_fn_parms, logger)
 
 class Args:
@@ -263,7 +283,8 @@ class Args:
     enclave_instance: Path
     def __init__(self):
         pass
-# Parse command line argumets
+
+# parse command line argumets
 def get_args() -> Args:
     parser = ArgumentParser(description='CLE Json -> Minizinc utility')
     parser.add_argument('--cle-json', '-j', required=True, type=Path, help='Input collated CLE JSON')
@@ -274,6 +295,7 @@ def get_args() -> Args:
     parser.add_argument('--enclave-instance', '-e', required=True, type=Path, help='Output enclave instance file')
     return parser.parse_args(namespace=Args())
 
+# for testing toZincSrc()
 def main():
     args = get_args()
     logger = logging.getLogger()
