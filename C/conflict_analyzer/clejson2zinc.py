@@ -54,6 +54,7 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
 
         # For each CDF...
         cdfs = ([c.copy() for c in js['cdf']] if 'cdf' in js else [])
+        prev_taints = None
         for c in cdfs:
 
             # 6. MUST HAVE A 'remotelevel', 'direction', 'guarddirective'
@@ -63,11 +64,13 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
             # 7. REMOTE LEVEL MAY NOT BE 'nullLevel'
             check(c['remotelevel'] == 'nullLevel', "'remotelevel' may not be 'nullLevel'")
 
-            # 8. IF 'oneway' IS PRESENT, THE ONEWAY STRING FOR THE FUNCTION MUST NOT BE 'false'
-            ow_false = {l.split()[0] for l in one_way.splitlines() if l.split()[1] == "false"}
-            check('oneway' in c and e['cle-label'] in ow_false, "'oneway' is present for non-oneway function")
+            # 8. IF 'oneway' IS PRESENT, THE PROGRAM MUST NOT USE THE RETURN VALUE
+            ow_false = {l.split()[0] for l in one_way.splitlines() if int(l.split()[1]) == 0}
+            check('oneway' in c and e['cle-label'] in ow_false and c['oneway'] == True,
+                  "cdf may not be 'oneway' if its return value is used")
             
             # 9. 'direction' MUST BE ONE OF 'ingress', 'egress', 'bidirectional'
+            #    (direction is not used by the solver)
             check(c['direction'] not in ['ingress', 'egress', 'bidirectional'],
                     "'direction' must be one of 'ingress', 'egress', 'bidirectional'")
 
@@ -90,11 +93,11 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
                 all_lsts = areLs([c['argtaints'], c['codtaints'], c['rettaints']]) and areLs(c['argtaints'])
                 check(not all_lsts, "taints must be lists")
                 
-                # 13. EACH TAINT MUST BE AN EXISTING LABEL OR HAVE THE FORM "TAG_[REQUEST|RESPONSE]_{label}"
+                # 13. EACH TAINT MUST BE AN EXISTING LABEL OR HAVE THE FORM "TAG_[REQUEST|RESPONSE]_{suffix}"
                 taints = c['codtaints'] + c['rettaints'] + flat(c['argtaints'])
                 for t in taints:
                     check(t not in labels and t[:12] != "TAG_REQUEST_" and t[:13] != "TAG_RESPONSE_",
-                          "Each taint must be a label or 'TAG_[REQUEST|RESPONSE]_\{label\}'")
+                          "Each taint must be a label or 'TAG_[REQUEST|RESPONSE]_\{suffix\}'")
 
                 # 14. THE LENGTH OF 'argtaints' MUST NOT EXCEED THE MAXIMUM FUNCTION ARGUMENTS
                 check(len(c['argtaints']) > max_fn_parms,
@@ -104,16 +107,17 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
                 check(e['cle-label'] in fn_args and len(c['argtaints']) != fn_args[e['cle-label']],
                       "'argtaints' length must match actual number of function arguments")
                 
-        # 16. NO TWO CDFS FOR THE SAME LABEL MAY SHARE A REMOTE LEVEL
+                # 16. IF MULTIPLE CDFS ARE PRESENT, THEY MUST HAVE THE SAME TAINTS
+                taint_tpl = (c['codtaints'], c['rettaints'], c['argtaints'])
+                check(prev_taints and prev_taints != taint_tpl,
+                      "cdfs for a label must all have identical taints")
+                prev_taints = taint_tpl
+            else:
+                prev_taints = (None, None, None)
+                
+        # 17. NO TWO CDFS FOR THE SAME LABEL MAY SHARE A REMOTE LEVEL
         rlevels = [c['remotelevel'] for c in cdfs]
         check(len(rlevels) != len(set(rlevels)), "cdf 'remotelevels' must be unique")
-
-        # 17. IF MULTIPLE CDFS ARE PRESENT, THEY MUST DIFFER ONLY IN THEIR REMOTE LEVEL
-        prev = None
-        for c in cdfs:
-            c.pop('remotelevel')
-            check(prev and prev != c, "cdfs for a label must differ only in their 'remotelevel'")
-            prev = c
 
 def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Logger) -> ZincSrc:
     
