@@ -65,7 +65,7 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
 
             # 8. IF 'oneway' IS PRESENT, THE ONEWAY STRING FOR THE FUNCTION MUST NOT BE 'false'
             ow_false = {l.split()[0] for l in one_way.splitlines() if l.split()[1] == "false"}
-            check('oneway' in c and lbl in ow_false, "'oneway' is present for non-oneway function")
+            check('oneway' in c and e['cle-label'] in ow_false, "'oneway' is present for non-oneway function")
             
             # 9. 'direction' MUST BE ONE OF 'ingress', 'egress', 'bidirectional'
             check(c['direction'] not in ['ingress', 'egress', 'bidirectional'],
