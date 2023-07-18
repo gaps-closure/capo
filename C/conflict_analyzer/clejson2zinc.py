@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 import sys
-from typing import Any, Dict, List
+from typing import Dict, List, Set
 from logging import Logger
 import logging
 import itertools
@@ -20,7 +20,7 @@ class ZincSrc:
     cle_instance: str
     enclave_instance: str
 
-def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str,int], one_way: str):
+def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str,int], no_oneway: Set[str]):
 
     # For each entry in the list...
     for e in cle:
@@ -65,9 +65,8 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
             check(c['remotelevel'] == 'nullLevel', "'remotelevel' may not be 'nullLevel'")
 
             # 8. IF 'oneway' IS PRESENT, THE PROGRAM MUST NOT USE THE RETURN VALUE
-            ow_false = {l.split()[0] for l in one_way.splitlines() if int(l.split()[1]) == 0}
-            check('oneway' in c and e['cle-label'] in ow_false and c['oneway'] == True,
-                  "cdf may not be 'oneway' if its return value is used")
+            check('oneway' in c and e['cle-label'] in no_oneway and c['oneway'] == True,
+                  "'oneway' cdf associatd with a function whose return value is used in the PDG")
             
             # 9. 'direction' MUST BE ONE OF 'ingress', 'egress', 'bidirectional'
             #    (direction is not used by the solver)
@@ -271,13 +270,26 @@ def toZincSrc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, 
         raise CLEUsageError("MaxFuncParms not found in PDG instance")
 
     # Convert functionArgs file contents into a dictionary mapping labels to number of args
-    def fnArgsToDict(fn_args: str):
-        return { l.split()[0]: int(l.split()[1]) for l in fn_args.splitlines() }
+    def fnArgsToDict(fn_args: str) -> Dict[str,int]:
+        args_d = {}
+        for l in fn_args.splitlines():
+            _, fn_anno, n_args = tuple(l.split())
+            if fn_anno in args_d and args_d[fn_anno] != int(n_args):
+                raise CLEUsageError("Functions with different numbers of arguments use the same CLE label")
+            args_d[fn_anno] = int(n_args)
+        return args_d
+    
+    def oneWayToSet(one_way: str) -> Set[str]:
+        ow_d = {}
+        for l in one_way.splitlines():
+            _, fn_anno, ow = tuple(l.split())
+            bf = 1 if fn_anno not in ow_d else ow_d[fn_anno]
+            ow_d[fn_anno] = min(int(ow), bf)
+        return { anno for anno in ow_d if ow_d[anno] == 0 }
 
     # First validate the CLE JSON, then convert to mzn
     max_fn_parms = getMaxFnParms(pdg)
-    fn_args_d = fnArgsToDict(fn_args)
-    validateCle(cle, max_fn_parms, fn_args_d, one_way)
+    validateCle(cle, max_fn_parms, fnArgsToDict(fn_args), oneWayToSet(one_way))
     return toZincSrcValidated(cle, max_fn_parms, logger)
 
 class Args:
