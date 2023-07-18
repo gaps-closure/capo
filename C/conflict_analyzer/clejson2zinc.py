@@ -100,9 +100,8 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
                 check(len(c['argtaints']) > max_fn_parms,
                     "'argtaints' length may not exceed maximum function args ({})".format(max_fn_parms))
                 
-                # 15. THE LENGTH OF 'argtaints' MUST MATCH THE NUMBER OF ACTUAL ARGUMENTS
-                if e['cle-label'] not in fn_args: fn_args[e['cle-label']] = 0
-                check(len(c['argtaints']) != fn_args[e['cle-label']],
+                # 15. THE LENGTH OF 'argtaints' MUST MATCH THE NUMBER OF ACTUAL ARGUMENTS IF PROVIDED
+                check(e['cle-label'] in fn_args and len(c['argtaints']) != fn_args[e['cle-label']],
                       "'argtaints' length must match actual number of function arguments")
                 
         # 16. NO TWO CDFS FOR THE SAME LABEL MAY SHARE A REMOTE LEVEL
