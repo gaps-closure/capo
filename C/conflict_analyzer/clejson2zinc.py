@@ -101,7 +101,8 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
                     "'argtaints' length may not exceed maximum function args ({})".format(max_fn_parms))
                 
                 # 15. THE LENGTH OF 'argtaints' MUST MATCH THE NUMBER OF ACTUAL ARGUMENTS
-                check(len(c['argtaints']) != 0 and len(c['argtaints']) == fn_args[e['cle-label']],
+                if e['cle-label'] not in fn_args: fn_args[e['cle-label']] = 0
+                check(len(c['argtaints']) != fn_args[e['cle-label']],
                       "'argtaints' length must match actual number of function arguments")
                 
         # 16. NO TWO CDFS FOR THE SAME LABEL MAY SHARE A REMOTE LEVEL
@@ -129,8 +130,10 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
     taints = set(flat([fnTnts(e) for e in cle if isFn(e)]))
     tags = taints - {e['cle-label'] for e in cle}
 
-    # add synthetic null, TAG, and DFLT labels to JSON copy
+    # add synthetic null, TAG, and DFLT labels to JSON copy,
+    # and sort with function annotations in front (creates a continuous range for minizinc)
     cle = list(cle)
+    cle.sort(key=isFn, reverse=True)
     def addSyntheticLabel(n, data, idx=None):
         label = {'cle-label': n, 'cle-json': data}
         if idx != None: cle.insert(idx, label)
@@ -138,7 +141,7 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
 
     addSyntheticLabel('nullCleLabel', {
         'level': 'nullLevel',
-        'cdf': [{ 
+        'cdf': [{
             'remotelevel': 'nullLevel',
             'direction': 'nullDirection',
             'guarddirective': {'operation': 'nullGuardOperation'}
