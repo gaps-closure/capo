@@ -210,7 +210,7 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
                 addTaints('codtaints', has_codtaints)
                 
                 # argtaints
-                cdf_argtaints = [['false'] * len(cle_labels)] * max_fn_parms
+                cdf_argtaints = [['false'] * len(cle_labels) for _ in range(max_fn_parms)]
                 for arg_ts in cdf['argtaints']:
                     for arg_t, j in zip(arg_ts, itertools.count(0)):
                         k = cle_labels.index(arg_t)
