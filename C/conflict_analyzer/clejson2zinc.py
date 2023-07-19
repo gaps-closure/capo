@@ -273,7 +273,9 @@ def toZincSrc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, 
     def fnArgsToDict(fn_args: str) -> Dict[str,int]:
         args_d = {}
         for l in fn_args.splitlines():
-            _, fn_anno, n_args = tuple(l.split())
+            fs = l.split()
+            fn_anno, n_args = fs[0], fs[1]
+            if len(fs) == 3: fn_anno, n_args = fs[1], fs[2]
             if fn_anno in args_d and args_d[fn_anno] != int(n_args):
                 raise CLEUsageError("Functions with different numbers of arguments use the same CLE label")
             args_d[fn_anno] = int(n_args)
@@ -282,7 +284,9 @@ def toZincSrc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, 
     def oneWayToSet(one_way: str) -> Set[str]:
         ow_d = {}
         for l in one_way.splitlines():
-            _, fn_anno, ow = tuple(l.split())
+            fs = l.split()
+            fn_anno, ow = fs[0], fs[1]
+            if len(fs) == 3: fn_anno, ow = fs[1], fs[2]
             bf = 1 if fn_anno not in ow_d else ow_d[fn_anno]
             ow_d[fn_anno] = min(int(ow), bf)
         return { anno for anno in ow_d if ow_d[anno] == 0 }
