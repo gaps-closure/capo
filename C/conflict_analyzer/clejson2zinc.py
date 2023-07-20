@@ -34,6 +34,15 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
     labels = set(labels_l)
     if len(labels) != len(labels_l): raise CLEUsageError("CLE labels must be unique")
 
+    # Get data labels for check #13 later
+    def isData(e):
+        if 'cdf' in e['cle-json'] and type(e['cle-json']['cdf']) is list:
+            cdfs = e['cle-json']['cdf']
+            if len(cdfs) > 0 and 'codtaints' in e['cle-json']['cdf'][0]:
+                return False
+        return True
+    data_labels = [e['cle-label'] for e in filter(isData, cle)]
+
     # For each CLE json...
     for e in cle:
         js = e['cle-json']
@@ -92,11 +101,11 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
                 all_lsts = areLs([c['argtaints'], c['codtaints'], c['rettaints']]) and areLs(c['argtaints'])
                 check(not all_lsts, "taints must be lists")
                 
-                # 13. EACH TAINT MUST BE AN EXISTING LABEL OR HAVE THE FORM "TAG_[REQUEST|RESPONSE]_{suffix}"
+                # 13. EACH TAINT MUST BE AN EXISTING DATA LABEL OR "TAG_[REQUEST|RESPONSE]_{suffix}"
                 taints = c['codtaints'] + c['rettaints'] + flat(c['argtaints'])
                 for t in taints:
-                    check(t not in labels and t[:12] != "TAG_REQUEST_" and t[:13] != "TAG_RESPONSE_",
-                          "Each taint must be a label or 'TAG_[REQUEST|RESPONSE]_\{suffix\}'")
+                    check(t not in data_labels and t[:12] != "TAG_REQUEST_" and t[:13] != "TAG_RESPONSE_",
+                          "Each taint must be a data label or 'TAG_[REQUEST|RESPONSE]_\{suffix\}'")
 
                 # 14. THE LENGTH OF 'argtaints' MUST NOT EXCEED THE MAXIMUM FUNCTION ARGUMENTS
                 check(len(c['argtaints']) > max_fn_parms,
