@@ -222,6 +222,13 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
                 cdf_arctaints[cle_labels.index(l)] = 'true'
                 has_arctaints.append(cdf_arctaints)
 
+            # If not a function cdf, taints are all false
+            else:
+                has_rettaints.append(['false'] * len(cle_labels))
+                has_codtaints.append(['false'] * len(cle_labels))
+                has_arctaints.append(['false'] * len(cle_labels))
+                has_argtaints.append([['false'] * len(cle_labels) for _ in range(max_fn_parms)])
+
     # string conversion helpers
     def mkMznSet(n, br_open, eles):
         br_close = ']' if br_open == '[' else '}'
@@ -252,10 +259,10 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
         mkMznSet('hasGuardOperation', '[', has_guard_op),
         mkMznSet('isOneway', '[', is_oneway),
         mkMznArr('cdfForRemoteLevel', ['cleLabel', 'Level'], cdf_for_remote_level),
-        mkMznArr('hasRettaints', ['functionCdf', 'cleLabel'], has_rettaints),
-        mkMznArr('hasCodtaints', ['functionCdf', 'cleLabel'], has_codtaints),
-        mkMznArr('hasArgtaints', ['functionCdf', 'parmIdx', 'cleLabel'], has_argtaints),
-        mkMznArr('hasARCtaints', ['functionCdf', 'cleLabel'], has_arctaints)
+        mkMznArr('hasRettaints', ['cdf', 'cleLabel'], has_rettaints),
+        mkMznArr('hasCodtaints', ['cdf', 'cleLabel'], has_codtaints),
+        mkMznArr('hasArgtaints', ['cdf', 'parmIdx', 'cleLabel'], has_argtaints),
+        mkMznArr('hasARCtaints', ['cdf', 'cleLabel'], has_arctaints)
     ])
     
     return ZincSrc(cle_s, enc_s)
