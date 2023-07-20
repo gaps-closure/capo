@@ -127,7 +127,7 @@ def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str
         rlevels = [c['remotelevel'] for c in cdfs]
         check(len(rlevels) != len(set(rlevels)), "cdf 'remotelevels' must be unique")
 
-def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Logger) -> ZincSrc:
+def compute_zinc_validated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Logger) -> ZincSrc:
     
     # populate level / enclave data
     nn_levels = list({e['cle-json']['level'] for e in cle})
@@ -275,7 +275,7 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
     
     return ZincSrc(cle_s, enc_s)
 
-def toZincSrc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, logger: Logger) -> ZincSrc:
+def compute_zinc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, logger: Logger) -> ZincSrc:
 
     # Get maximum function parameters
     # Ugly, but no other way to get this without digging into the opt pass
@@ -309,7 +309,7 @@ def toZincSrc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, 
     # First validate the CLE JSON, then convert to mzn
     max_fn_parms = getMaxFnParms(pdg)
     validateCle(cle, max_fn_parms, fnArgsToDict(fn_args), oneWayToSet(one_way))
-    return toZincSrcValidated(cle, max_fn_parms, logger)
+    return compute_zinc_validated(cle, max_fn_parms, logger)
 
 class Args:
     cle_json: Path
@@ -339,7 +339,7 @@ def main():
     handler = logging.StreamHandler(sys.stderr)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-    output = toZincSrc(
+    output = compute_zinc(
         json.loads(args.cle_json.read_text()),
         args.function_args.read_text(),
         args.pdg_instance.read_text(), 
