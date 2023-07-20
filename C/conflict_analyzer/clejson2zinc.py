@@ -149,8 +149,7 @@ def toZincSrcValidated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Lo
             'guarddirective': {'operation': 'nullGuardOperation'}
         }]
     }, idx=0)
-    for t in tags:      addSyntheticLabel(t, {'level': 'nullLevel'})
-    for l in nn_levels: addSyntheticLabel(l + 'DFLT', {'level': l})
+    for t in tags: addSyntheticLabel(t, {'level': 'nullLevel'})
 
     # populate label data
     cle_labels        = [e['cle-label'] for e in cle]
