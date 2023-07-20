@@ -42,7 +42,7 @@ class PdgLookupTable:
     edges: Dict[int, PdgLookupEdge] 
     def __init__(self, pdg_csv: list):
         self.nodes = { int(num): PdgLookupNode(type_, llvm, source, int(line) if int(line) != -1 else None) 
-            for [node_or_edge, num, type_, _, llvm, *_, source, line, _] 
+            for [node_or_edge, num, type_, _, llvm, _, _, _, source, line, *_] 
             in pdg_csv if node_or_edge == 'Node' 
         } 
         self.edges = { int(num): PdgLookupEdge(type_, int(source), int(dest)) 
