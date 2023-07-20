@@ -122,7 +122,7 @@ constraint :: "DataTaintCoerced"
    elseif (isVarNode(hasSource[e]) /\ hasFunction[hasDest[e]]!=0)
    then coerced[e] == (isInArctaint(edFunTaint[e], esTaint[e], hasLabelLevel[esTaint[e]]) /\
                        isInArctaint(edFunTaint[e], edTaint[e], hasLabelLevel[edTaint[e]]))
-   elseif isParam_ActualOut(hasSource[e]) \/ isParam_ActualIn(hasDest[e])
+   elseif (destAnnotFun(e) /\ isParam_ActualIn(hasDest[e]) /\ (hasParamIdx[hasDest[e]]>0)) \/ (sourceAnnotFun(e) /\ isParam_ActualOut(hasSource[e]) /\ (hasParamIdx[hasSource[e]]>0))
    then true
    else coerced[e] == false
    endif);
