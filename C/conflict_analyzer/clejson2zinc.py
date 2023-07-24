@@ -1,644 +1,315 @@
 #!/usr/bin/python3
 
-from   argparse      import ArgumentParser
+from argparse import ArgumentParser
 from dataclasses import dataclass
 import json
 from pathlib import Path
 import sys
-import os
-import os.path
-from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Dict, List, Set
 from logging import Logger
 import logging
-import csv
+import itertools
 
 from preprocessor.preprocess import LabelledCleJson
 
-class DimensionError(Exception):
-    pass
-
 class CLEUsageError(Exception):
     pass
-
-
-output_order_enums = [
-  "cleLabel",
-  "cdf",
-  "remotelevel",
-]
-
-output_order_arrys = [
-  "hasLabelLevel",
-  "hasremotelevel",
-  "hasdirection",
-  "hasoperation",
-  "hasargtaints",
-  "hascodtaints",
-  "hasrettaints",
-]
 
 @dataclass
 class ZincSrc:
     cle_instance: str
     enclave_instance: str
 
+def validateCle(cle: List[LabelledCleJson], max_fn_parms: int, fn_args: Dict[str,int], no_oneway: Set[str]):
 
-def compute_zinc(cleJson: List[LabelledCleJson], function_args: str, pdg_instance: str, one_way: str, logger: Logger) -> ZincSrc:
-    hasCDF = []
-    hasArgTaints = []
-    listOfLevels = []
+    # For each entry in the list...
+    for e in cle:
 
-    one_way_map = {}
-    logger.debug(one_way)
-    for line in one_way.splitlines():
-        logger.debug(line)
-        one_way_map[line.split()[0]] =  line.split()[1]
+        # 1. MUST HAVE A 'cle-label' AND 'cle-json'
+        if 'cle-label' not in e or 'cle-json' not in e:
+            raise CLEUsageError("JSON entries must have a 'cle-label' and 'cle-json'")
 
-    noneCount = 0
-    enums = defaultdict(lambda: [])
-    arrays = defaultdict(lambda: [])
-    enums["cleLabel"].append("nullCleLabel")
-    arrays['hasLabelLevel'].append("nullLevel") 
-    arrays['isFunctionAnnotation'].append("false") 
-    enums['cdf'].append("nullCdf")
-    hasCDF.append([])
-    hasCDF[-1].append("None" + "_cdf_" + str(noneCount))
+    # 2. ALL LABELS MUST BE UNIQUE
+    labels_l = [e['cle-label'] for e in cle]
+    labels = set(labels_l)
+    if len(labels) != len(labels_l): raise CLEUsageError("CLE labels must be unique")
+
+    # Get data labels for check #13 later
+    def isData(e):
+        if 'cdf' in e['cle-json'] and type(e['cle-json']['cdf']) is list:
+            cdfs = e['cle-json']['cdf']
+            if len(cdfs) > 0 and 'codtaints' in e['cle-json']['cdf'][0]:
+                return False
+        return True
+    data_labels = [e['cle-label'] for e in filter(isData, cle)]
+
+    # For each CLE json...
+    for e in cle:
+        js = e['cle-json']
+
+        # Generic error handler
+        def check(b, s):
+            if b: raise CLEUsageError(e['cle-label'] + ": " + s)
+
+        # 3. MUST HAVE A 'level'
+        check('level' not in js, "CLE entry must have a 'level' in its 'cle-json'")
+
+        # 4. 'level' MUST NOT BE 'nullLevel'
+        check(js['level'] == 'nullLevel', "'level' may not be 'nullLevel'")
+
+        # 5. IF 'cdf' IS PRESENT, IT MUST BE A NON-EMPTY LIST
+        check('cdf' in js and (not (type(js['cdf']) is list) or len(js['cdf']) == 0),
+              "'cdf' must be non-empty list if it is present")
+
+        # For each CDF...
+        cdfs = ([c.copy() for c in js['cdf']] if 'cdf' in js else [])
+        prev_taints = None
+        for c in cdfs:
+
+            # 6. MUST HAVE A 'remotelevel', 'direction', 'guarddirective'
+            check('remotelevel' not in c or 'direction' not in c or 'guarddirective' not in c,
+                    "'cdf' must have a 'remotelevel', 'direction', and 'guarddirective'")
+
+            # 7. REMOTE LEVEL MAY NOT BE 'nullLevel'
+            check(c['remotelevel'] == 'nullLevel', "'remotelevel' may not be 'nullLevel'")
+
+            # 8. IF 'oneway' IS PRESENT, THE PROGRAM MUST NOT USE THE RETURN VALUE
+            check('oneway' in c and e['cle-label'] in no_oneway and c['oneway'] == True,
+                  "'oneway' cdf associatd with a function whose return value is used in the PDG")
+            
+            # 9. 'direction' MUST BE ONE OF 'ingress', 'egress', 'bidirectional'
+            #    (direction is not used by the solver)
+            check(c['direction'] not in ['ingress', 'egress', 'bidirectional'],
+                    "'direction' must be one of 'ingress', 'egress', 'bidirectional'")
+
+            # 10. 'guarddirective' JSON MUST HAVE 'operation', MUST BE ONE OF 'allow', 'redact', 'deny'
+            gd = c['guarddirective']
+            check('operation' not in gd or gd['operation'] not in ['allow', 'redact', 'deny'],
+                    "'guarddirective must have 'operation' which is 'allow', 'redact', or 'deny'")
     
-    enums['remotelevel'].append("None" + "_remotelevel_" + str(noneCount))
-    enums['direction'].append("None" + "_direction_" + str(noneCount))
-    enums['operation'].append("None" + "_operation_" + str(noneCount))
-    arrays["fromCleLabel"].append("nullCleLabel")
-    arrays["hasRemotelevel"].append("nullLevel")
-    arrays["hasDirection"].append("nullDirection")
-    arrays["hasGuardOperation"].append("nullGuardOperation")
-    arrays["isOneway"].append("false")
-    arrays["hasARCtaints"] = []
-    noneCount +=1
+            # 11. ALL OR NONE OF 'argtaints', 'codtaints', 'rettaints' MUST BE PRESENT
+            all_taints = 'argtaints' in c and 'codtaints' in c and 'rettaints' in c
+            any_taints = 'argtaints' in c or  'codtaints' in c or  'rettaints' in c
+            check(any_taints and not all_taints, "'cdf' must have all taint types or no taints")
 
-    labelList = []
-    for entry in cleJson:
-      labelList.append(entry["cle-label"])
-    
-    #group function annotations
-    cleJson2 = cleJson[:]
-    for entry in cleJson:
-        # print("Updating Order")
-        if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]: 
-            logger.debug("Updating Order")
-            cleJson2.insert(0,cleJson2.pop(cleJson.index(entry)))
-    cleJson = cleJson2
-    
-    maxCDFIdx = 0
-    maxArgIdx = 0
-    data = pdg_instance.splitlines()
-    for d in data:
-        if 'MaxFuncParms' in d:
-            maxArgIdx = int(d.split()[-1][:-1])
-            break
-    logger.debug(maxArgIdx)
+            # If there are taints...
+            if any_taints:
 
-    fun2ArgCount = {}
-    data = function_args.splitlines()
-    for d in data:
-        fun2ArgCount[d.split()[0]] = int(d.split()[1])
-
-    listOfLevels.append("nullLevel")
-    for entry in cleJson:
-        if "cle-json" in entry.keys() and "level" in entry["cle-json"].keys():
-            listOfLevels.append(entry["cle-json"]['level'])
-        else:
-            listOfLevels.append("nullLevel")
-    
-    listOfLevels = set(listOfLevels)
-    listOfLevels = list(listOfLevels)
-    listOfLevels.sort()
-    listOfLevels.remove("nullLevel")
-    listOfLevels.insert(0,"nullLevel")
-    nullLevel = ["nullCdf" for x in range(len(listOfLevels))]
-    # TODO: Need to check that for each CDF there is exactly one entry and if not raise an error.
-    arrays["cdfForRemoteLevel"].append(nullLevel)
-    logger.debug(listOfLevels)
-
-    for entry in cleJson:
-        CDF_flag = False
-        logger.debug("ENTRY")
-        logger.debug(entry)
-        
-
-        enums["cleLabel"].append(entry["cle-label"])
-        if "cle-json" in entry.keys() and "level" in entry["cle-json"].keys():
-            arrays['hasLabelLevel'].append(entry["cle-json"]['level'])
-        else:
-            arrays['hasLabelLevel'].append("nullLevel")
-        
-        # only checks if the first cdf has function taints, assumes they all do
-        if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]: 
-            arrays['isFunctionAnnotation'].append("true")
-        else:
-            arrays['isFunctionAnnotation'].append("false")
-
-        CDFforEntry = [] 
-        #assumes only one cdf in the label has a certaint remote level
-        for j in listOfLevels:
-            found = 0
-            if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
-                cdfIdx = 0
-                for cdf in entry["cle-json"]["cdf"]:
-                    cdfStr = entry["cle-label"] + "_cdf_" + str(cdfIdx)
-                    if "remotelevel" in cdf.keys():
-                        if cdf["remotelevel"] == j:
-                            CDFforEntry.append(cdfStr)
-                            temp = cdf["remotelevel"]
-                            logger.debug(f"Found remote level: {j}")
-                            found = 1
-                    cdfIdx+=1
-            if found == 0:
-                CDFforEntry.append("nullCdf")
-        arrays["cdfForRemoteLevel"].append(CDFforEntry)
-
-        if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
-            cdfIdx = 0
-            for cdf in entry["cle-json"]["cdf"]:
-                cdfStr = entry["cle-label"] + "_cdf_" + str(cdfIdx)
-                enums["cdf"].append(cdfStr)
-                arrays['fromCleLabel'].append(entry["cle-label"])
-
-                if "remotelevel" in cdf.keys():
-                    arrays['hasRemotelevel'].append(cdf["remotelevel"])
-                else:
-                    arrays['hasRemotelevel'].append("nullLevel")
-
-                if "direction" in cdf.keys():
-                    arrays['hasDirection'].append(cdf["direction"])
-                else:
-                    arrays['hasDirection'].append("nullDirection")
-
-                if "guarddirective" in cdf.keys():
-                    arrays['hasGuardOperation'].append(cdf["guarddirective"]["operation"])
-                else:
-                    arrays['hasGuardOperation'].append("nullGuardOperation")
-
-                if "oneway" in cdf.keys():
-                    if entry["cle-label"] in one_way_map.keys() and one_way_map[entry["cle-label"]] == "false":
-                        logger.error("Error, oneway function has uses!")
-                        raise CLEUsageError("Oneway function has uses!")
-                    arrays['isOneway'].append(cdf["oneway"])
-                else:
-                    arrays['isOneway'].append("false")
-
-                if "rettaints" in cdf.keys():
-                    for label in cdf['rettaints']:
-                        if label not in enums["cleLabel"] and not label in labelList:
-                            enums["cleLabel"].append(label)
-                            arrays['hasLabelLevel'].append("nullLevel") 
-                            arrays['isFunctionAnnotation'].append("false")
-                            arrays["cdfForRemoteLevel"].append(nullLevel)
-                if "codtaints" in cdf.keys():
-                    for label in cdf['codtaints']:
-                        if label not in enums["cleLabel"] and not label in labelList:
-                            enums["cleLabel"].append(label)
-                            arrays['hasLabelLevel'].append("nullLevel") 
-                            arrays['isFunctionAnnotation'].append("false")
-                            arrays["cdfForRemoteLevel"].append(nullLevel)
-                if "argtaints" in cdf.keys():
-                    for param in cdf['argtaints']:
-                        for label in param:
-                            if label not in enums["cleLabel"] and not label in labelList:
-                                enums["cleLabel"].append(label)
-                                arrays['hasLabelLevel'].append("nullLevel") 
-                                arrays['isFunctionAnnotation'].append("false")
-                                arrays["cdfForRemoteLevel"].append(nullLevel)
-                cdfIdx+=1
-   
-    
-    for level in listOfLevels:
-        if level == "nullLevel":
-            continue
-        newLabelStr = level+"DFLT"
-        enums["cleLabel"].append(newLabelStr)
-        arrays['hasLabelLevel'].append(level) 
-        arrays['isFunctionAnnotation'].append("false")
-        arrays["cdfForRemoteLevel"].append(nullLevel)
-
-    anyFunctionCdfs = False
-    for i in arrays['isFunctionAnnotation']:
-        if i == "true":
-            anyFunctionCdfs = True
-            break
-    
-    if not anyFunctionCdfs:
-        enums["cleLabel"].append("EmptyFunction")
-        arrays['hasLabelLevel'].append("nullLevel") 
-        arrays['isFunctionAnnotation'].append("true")
-        cdfStr = "EmptyFunction_cdf_0"
-        enums["cdf"].append(cdfStr)
-        arrays['fromCleLabel'].append("EmptyFunction")
-        arrays['hasRemotelevel'].append("nullLevel")
-        arrays['hasDirection'].append("nullDirection")
-        arrays['hasGuardOperation'].append("nullGuardOperation")
-        arrays['isOneway'].append("false")
-
-        emptyFunLevel = ["nullCdf" for x in range(len(listOfLevels))]
-        emptyFunLevel[0] = "EmptyFunction_cdf_0"
-        arrays["cdfForRemoteLevel"].append(emptyFunLevel)
-
-        entry = {}
-        entry["cle-label"] = "EmptyFunction"
-        entry["cle-json"] = {}
-        entry["cle-json"]["level"] = "nullLevel"
-        entry["cle-json"]["cdf"] = []
-        cdf = {}
-        cdf["remotelevel"] = "nullLevel"
-        cdf["argtaints"] = []
-        cdf["codtaints"] = []
-        cdf["rettaints"] = []
-        entry["cle-json"]["cdf"].append(cdf)
-        cleJson.append(entry)
-
-
-    
-    for entry in cleJson:
-        logger.debug("ENTRY")
-        logger.debug(entry)
-        
-        #if codtaints is defined, all taints need to be defined
-        if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
-            if "codtaints" in entry["cle-json"]["cdf"][0] or "rettaints" in entry["cle-json"]["cdf"][0] or "argtaints" in entry["cle-json"]["cdf"][0]:
-                if not("codtaints" in entry["cle-json"]["cdf"][0] and "rettaints" in entry["cle-json"]["cdf"][0] and "argtaints" in entry["cle-json"]["cdf"][0]):
-                    errorLabel = entry["cle-label"]
-                    logger.error(f"Label: {errorLabel} Missing 1 or more function taints!")
-                    raise CLEUsageError(f"Label: {errorLabel} Missing 1 or more function taints!")
-
-        if entry["cle-label"] != "EmptyFunction" and entry["cle-label"] in fun2ArgCount.keys():
-            if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys():
-                if not("codtaints" in entry["cle-json"]["cdf"][0] and "rettaints" in entry["cle-json"]["cdf"][0] and "argtaints" in entry["cle-json"]["cdf"][0]):
-                    errorLabel = entry["cle-label"]
-                    logger.error(f"Label: {errorLabel} Function Annotation missing function taints!")
-                    raise CLEUsageError(f"Label: {errorLabel} Function Annotation missing function taints!")
-            else:
-                errorLabel = entry["cle-label"]
-                logger.error(f"Label: {errorLabel} Function Annotation missing CDF!")
-                raise CLEUsageError(f"Label: {errorLabel} Function Annotation missing CDF!")
-
-        if "cle-json" in entry.keys() and "cdf" in entry["cle-json"].keys() and "codtaints" in entry["cle-json"]["cdf"][0]:
-            ARCTaint = ["false" if label != entry["cle-label"] else "true" for label in enums["cleLabel"] ]
-            for cdf in entry["cle-json"]["cdf"]:
-                # code taints
-                taintEntry = []  
-                for label in enums["cleLabel"]:
-                    found = 0
-                    for labelTaint in cdf["codtaints"]:
-                        if label == labelTaint:
-                            taintEntry.append("true")
-                            found = 1
-                    if found == 0:
-                        taintEntry.append("false")
-                arrays["hasCodtaints"].append(taintEntry)
-                ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, taintEntry)]
+                # 12. TAINT FIELDS MUST BE LISTS
+                flat = lambda l: [i for sl in l for i in sl]
+                areLs = lambda l: all([type(sl) is list for sl in l])
+                all_lsts = areLs([c['argtaints'], c['codtaints'], c['rettaints']]) and areLs(c['argtaints'])
+                check(not all_lsts, "taints must be lists")
                 
-                # ret Taints
-                taintEntry = []  
-                for label in enums["cleLabel"]:
-                    found = 0
-                    for labelTaint in cdf["rettaints"]:
-                        if label == labelTaint:
-                            taintEntry.append("true")
-                            found = 1
-                    if found == 0:
-                        taintEntry.append("false")
-                arrays["hasRettaints"].append(taintEntry)
-                ARCTaint = [str(a=='true' or b=='true').lower() for a, b in zip(ARCTaint, taintEntry)]
-                hasArgFlag = 1
-                # Arg Taints
-                taintEntry = []
-                logger.debug(cdf["argtaints"])
+                # 13. EACH TAINT MUST BE AN EXISTING DATA LABEL OR "TAG_[REQUEST|RESPONSE]_{suffix}"
+                taints = c['codtaints'] + c['rettaints'] + flat(c['argtaints'])
+                for t in taints:
+                    check(t not in data_labels and t[:12] != "TAG_REQUEST_" and t[:13] != "TAG_RESPONSE_",
+                          "Each taint must be a data label or 'TAG_[REQUEST|RESPONSE]_\{suffix\}'")
+
+                # 14. THE LENGTH OF 'argtaints' MUST NOT EXCEED THE MAXIMUM FUNCTION ARGUMENTS
+                check(len(c['argtaints']) > max_fn_parms,
+                    "'argtaints' length may not exceed maximum function args ({})".format(max_fn_parms))
                 
-                arcParamCount = 0
-                arcEntry = []
-                for param in cdf["argtaints"]:
-                    arcParamCount+=1
-                    if len(param) == 0:
-                        hasArgFlag = 0
-                        break
-                      
-                    for label in enums["cleLabel"]:
-                        found = 0
-                        for labelTaint in param:
-                            if label == labelTaint:
-                                arcEntry.append("true")
-                                found = 1
-                        if found == 0:
-                            arcEntry.append("false")
-
-                while arcParamCount < maxArgIdx:
-                    for label in enums["cleLabel"]:
-                        arcEntry.append("false")
-                    arcParamCount += 1
-
+                # 15. THE LENGTH OF 'argtaints' MUST MATCH THE NUMBER OF ACTUAL ARGUMENTS IF PROVIDED
+                check(e['cle-label'] in fn_args and len(c['argtaints']) != fn_args[e['cle-label']],
+                      "'argtaints' length must match actual number of function arguments")
                 
-                actualParamCount = len(cdf["argtaints"]) -1
-                for label in enums["cleLabel"]:
-                    # print(f"Checking label:{label}")
-                    paramCount = 0
-                    paramEntry = []
-                    while paramCount < maxArgIdx:
-                        if paramCount < len(cdf["argtaints"]):
-                            param = cdf["argtaints"][paramCount]
-                            # print(f"Checking Param{param}")
-                            if label in param:
-                                paramEntry.append("true")
-                            else:
-                                paramEntry.append("false")
-                        else:
-                            paramEntry.append("false")
-                        paramCount +=1
-                    taintEntry.append(paramEntry)
-
-                    ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, arcEntry)]
-                    
-                    logger.debug(taintEntry)
-                    
+                # 16. IF MULTIPLE CDFS ARE PRESENT, THEY MUST HAVE THE SAME TAINTS
+                taint_tpl = (c['codtaints'], c['rettaints'], c['argtaints'])
+                check(prev_taints and prev_taints != taint_tpl,
+                      "cdfs for a label must all have identical taints")
+                prev_taints = taint_tpl
+            else:
+                prev_taints = (None, None, None)
                 
+        # 17. NO TWO CDFS FOR THE SAME LABEL MAY SHARE A REMOTE LEVEL
+        rlevels = [c['remotelevel'] for c in cdfs]
+        check(len(rlevels) != len(set(rlevels)), "cdf 'remotelevels' must be unique")
 
-                if entry["cle-label"] in fun2ArgCount.keys() and entry["cle-label"] != "EmptyFunction" and fun2ArgCount[entry["cle-label"]] < actualParamCount and hasArgFlag:
-                    errorLabel = entry["cle-label"]
-                    logger.error(f"Label: {errorLabel} ERROR! Function annotation argument mismatch!")
-                    raise CLEUsageError(f"Label: {errorLabel} Function annotation argument mismatch!")
-
-                # while paramCount < maxArgIdx:
-                #     paramEntry = []  
-                #     for label in enums["cleLabel"]:
-                #         paramEntry.append("false")
-                #     ARCTaint = [str(a=='true' or b=='true').lower()  for a, b in zip(ARCTaint, paramEntry)]
-                #     taintEntry.append(paramEntry)
-                #     paramCount +=1
-                
-                arrays["hasArgtaints"].append(taintEntry)
-                arrays["hasARCtaints"].append(ARCTaint)
-
-    if len(enums["cleLabel"]) > len(set(enums["cleLabel"])):
-        logger.error("Error! Duplicate CLE Lables detected.")
-        raise CLEUsageError("Duplicate CLE Lables detected.")
-
-    maxCodTaint = 0
-    # maxArgIdx = 0
-    maxNumArgsTaints = 0
-    maxRetTaint = 0
-
-    # for taints in arrays["hasargtaints"]: 
-    #     if len(taints) > maxArgIdx:
-    #         maxArgIdx = len(taints)
-
-    for taints in arrays["hasargtaints"]: 
-        for args in taints:
-            if len(args) > maxNumArgsTaints:
-                maxNumArgsTaints = len(args)
-
-    for taints in arrays["hasrettaints"]: 
-        if len(taints) > maxRetTaint:
-            maxRetTaint = len(taints)
-
-    for taints in arrays["hascodtaints"]: 
-        if len(taints) > maxCodTaint:
-            maxCodTaint = len(taints)
-
-    enclave_instance = ""
-    Levels = "Level = {"
-    Enclave = "Enclave = {"
-    hasEnclaveLevel = "hasEnclaveLevel = ["
-    for level in listOfLevels:
-        Levels += level + ","
-        if level == "nullLevel":
-            Enclave +=  "nullEnclave, "
-        else:
-            Enclave += level + "_E,"
-        hasEnclaveLevel += level + ","
-    Levels = Levels[:-1]
-    Enclave = Enclave[:-1]
-    hasEnclaveLevel = hasEnclaveLevel[:-1]
-    Levels += "};\n"
-    Enclave += "};\n"
-    hasEnclaveLevel += "];\n"
-
-    enclave_instance += Levels 
-    enclave_instance += Enclave
-    enclave_instance += hasEnclaveLevel
-
-
-    cle_instance = ""
-
-    cle_instance += f"cleLabel = {{"
-    first = True
-    for j in enums["cleLabel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("}; \n")
-
-    cle_instance += (f"hasLabelLevel = [")
-    first = True
-    for j in arrays["hasLabelLevel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+def compute_zinc_validated(cle: List[LabelledCleJson], max_fn_parms: int, logger: Logger) -> ZincSrc:
     
-    cle_instance += (f"isFunctionAnnotation = [")
-    first = True
-    for j in arrays["isFunctionAnnotation"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+    # populate level / enclave data
+    nn_levels = list({e['cle-json']['level'] for e in cle})
+    levels    = ['nullLevel'] + nn_levels
+    enclaves  = ['nullEnclave'] + [l + '_E' for l in nn_levels]
 
-    cle_instance += (f"cdf = {{")
-    first = True
-    for j in enums["cdf"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("}; \n")
+    # determine the set of TAG labels
+    flat   = lambda l: [i for sl in l for i in sl]
+    isFn   = lambda e: 'cdf' in e['cle-json'] and 'codtaints' in e['cle-json']['cdf'][0]
+    fnTnts = lambda e: flat([c['codtaints'] + c['rettaints'] + flat(c['argtaints']) for c in e['cle-json']['cdf']])
+    taints = set(flat([fnTnts(e) for e in cle if isFn(e)]))
+    tags = taints - {e['cle-label'] for e in cle}
 
-    cle_instance += (f"fromCleLabel = [")
-    first = True
-    for j in arrays["fromCleLabel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+    # add synthetic null, TAG, and DFLT labels to JSON copy,
+    # and sort with function annotations in front (creates a continuous range for minizinc)
+    cle = list(cle)
+    cle.sort(key=isFn, reverse=True)
+    def addSyntheticLabel(n, data, idx=None):
+        label = {'cle-label': n, 'cle-json': data}
+        if idx != None: cle.insert(idx, label)
+        else: cle.append(label)
 
-    cle_instance += (f"hasRemotelevel = [")
-    first = True
-    for j in arrays["hasRemotelevel"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+    addSyntheticLabel('nullCleLabel', {
+        'level': 'nullLevel',
+        'cdf': [{
+            'remotelevel': 'nullLevel',
+            'direction': 'nullDirection',
+            'guarddirective': {'operation': 'nullGuardOperation'}
+        }]
+    }, idx=0)
+    for t in tags: addSyntheticLabel(t, {'level': 'nullLevel'})
 
-    cle_instance += (f"hasDirection = [")
-    first = True
-    for j in arrays["hasDirection"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+    # populate label data
+    cle_labels        = [e['cle-label'] for e in cle]
+    label_levels      = [e['cle-json']['level'] for e in cle]
+    is_fun_annotation = [str(isFn(e)).lower() for e in cle]
 
-    cle_instance += (f"hasGuardOperation = [")
-    first = True
-    for j in arrays["hasGuardOperation"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+    # populate cdf data
+    all_cdfs             = []
+    from_cle_label       = []
+    has_remote_level     = []
+    has_direction        = []
+    has_guard_op         = []
+    is_oneway            = []
+    cdf_for_remote_level = []
+    has_rettaints        = []
+    has_codtaints        = []
+    has_arctaints        = []
+    has_argtaints        = []
+    for e in cle:
 
-    cle_instance += (f"isOneway = [")
-    first = True
-    for j in arrays["isOneway"]:
-        if first:
-            first = False
-            cle_instance += (f"{j}")
-        else:
-            cle_instance += (f", {j} ")
-    cle_instance += ("]; \n")
+        # get the cdfs
+        l = e['cle-label']
+        cdfs = e['cle-json']['cdf'] if 'cdf' in e['cle-json'] else []
+        cdfs = list(filter(lambda c: c['remotelevel'] in levels, cdfs))
 
-    cle_instance += (f"cdfForRemoteLevel = [|\n ")
-    for row in arrays["cdfForRemoteLevel"]:
-        logger.debug(row)
-        first = True
-        for j in row:
-            if first:
-                first = False
-                cle_instance += (f"{j}")
+        # for each label, we map the cdfs to their remotelevel
+        # cdf_at_level is populated below
+        cdf_at_level = ['nullCdf'] * len(levels)
+        cdf_for_remote_level.append(cdf_at_level)
+
+        # iterate over cdfs to collect general and taint data
+        for cdf, i in zip(cdfs, itertools.count(0)):
+            cdf_id = l + '_cdf_' + str(i) if l != 'nullCleLabel' else 'nullCdf'
+                
+            # general cdf data
+            all_cdfs.append(cdf_id)
+            from_cle_label.append(l)
+            has_remote_level.append(cdf['remotelevel'])
+            has_direction.append(cdf['direction'])
+            has_guard_op.append(cdf['guarddirective']['operation'])
+            is_oneway.append(cdf['oneway'] if 'oneway' in cdf else 'false')
+            cdf_at_level[levels.index(cdf['remotelevel'])] = cdf_id
+
+            # if it's a function label, collect taint data
+            if isFn(e):
+
+                # codtaints, rettaints
+                cdf_arctaints = ['false'] * len(cle_labels)
+                def addTaints(name, ts):
+                    cdf_taints = ['false'] * len(cle_labels)
+                    for t in cdf[name]:
+                        j = cle_labels.index(t)
+                        cdf_taints[j] = 'true'
+                        cdf_arctaints[j] = 'true'
+                    ts.append(cdf_taints)
+                addTaints('rettaints', has_rettaints)
+                addTaints('codtaints', has_codtaints)
+                
+                # argtaints
+                cdf_argtaints = [['false'] * len(cle_labels) for _ in range(max_fn_parms)]
+                for arg_ts, j in zip(cdf['argtaints'], itertools.count(0)):
+                    for arg_t in arg_ts:
+                        k = cle_labels.index(arg_t)
+                        cdf_argtaints[j][k] = 'true'
+                        cdf_arctaints[k] = 'true'
+                has_argtaints.append(cdf_argtaints)
+
+                # arctaints
+                cdf_arctaints[cle_labels.index(l)] = 'true'
+                has_arctaints.append(cdf_arctaints)
+
+            # If not a function cdf, taints are all false
             else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n|")
-    cle_instance += ("]; \n")
+                has_rettaints.append(['false'] * len(cle_labels))
+                has_codtaints.append(['false'] * len(cle_labels))
+                has_arctaints.append(['false'] * len(cle_labels))
+                has_argtaints.append([['false'] * len(cle_labels) for _ in range(max_fn_parms)])
 
-    numFunctionCDFS = len(arrays["hasRettaints"])
-    logger.debug(f"Num Function CDFs: {numFunctionCDFS}")
-    numCleLabels = len(enums["cleLabel"])
-    logger.debug(f"Num CLE Labels: {numCleLabels}")
+    # string conversion helpers
+    def mkMznSet(n, br_open, eles):
+        br_close = ']' if br_open == '[' else '}'
+        return '{} = {} {} {};'.format(n, br_open, ', '.join(eles), br_close)
+    def mkMznArr(n, dims, eles):
+        d = len(dims)
+        eles_s = ""
+        if d == 2: eles_s = ",\n  ".join([", ".join(e) for e in eles])
+        else:      eles_s = ",\n  ".join([", ".join(flat(e)) for e in eles])
+        return '{} = array{}d({}, [\n  {}\n]);'.format(n, d, ", ".join(dims), eles_s)
 
+    # enclave instance
+    enc_s = '\n'.join([
+        mkMznSet('Level', '{', levels),
+        mkMznSet('Enclave', '{', enclaves),
+        mkMznSet('hasEnclaveLevel', '[', levels)
+    ])
 
-    cle_instance += (f"hasRettaints = array2d(functionCdf, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasRettaints"]:
-        logger.debug(row)
-        for j in row:
-            if j == "true":
-                j = "true "
-            if first:
-                first = False
-                cle_instance += (f" {j} ")
-            else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
-    numElts = 0
-    for i in arrays["hasRettaints"]:
-        for j in i:
-            numElts+=1
-    if numFunctionCDFS * numCleLabels != numElts:
-        logger.error("hasRettaints has incorrect dimensions")
-        raise DimensionError("hasRettaints has incorrect dimensions")
+    # cle instance
+    cle_s = '\n'.join([
+        mkMznSet('cleLabel', '{', cle_labels),
+        mkMznSet('hasLabelLevel', '[', label_levels),
+        mkMznSet('isFunctionAnnotation', '[', is_fun_annotation),
+        mkMznSet('cdf', '{', all_cdfs),
+        mkMznSet('fromCleLabel', '[', from_cle_label),
+        mkMznSet('hasRemotelevel', '[', has_remote_level),
+        mkMznSet('hasDirection', '[', has_direction),
+        mkMznSet('hasGuardOperation', '[', has_guard_op),
+        mkMznSet('isOneway', '[', is_oneway),
+        mkMznArr('cdfForRemoteLevel', ['cleLabel', 'Level'], cdf_for_remote_level),
+        mkMznArr('hasRettaints', ['cdf', 'cleLabel'], has_rettaints),
+        mkMznArr('hasCodtaints', ['cdf', 'cleLabel'], has_codtaints),
+        mkMznArr('hasArgtaints', ['cdf', 'parmIdx', 'cleLabel'], has_argtaints),
+        mkMznArr('hasARCtaints', ['cdf', 'cleLabel'], has_arctaints)
+    ])
+    
+    return ZincSrc(cle_s, enc_s)
 
+def compute_zinc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, logger: Logger) -> ZincSrc:
 
-    cle_instance += (f"hasCodtaints = array2d(functionCdf, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasCodtaints"]:
-        logger.debug(row)
-        for j in row:
-            if j == "true":
-                j = "true "
-            if first:
-                first = False
-                cle_instance += (f" {j} ")
-            else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
-    numElts = 0
-    for i in arrays["hasCodtaints"]:
-        for j in i:
-            numElts+=1
-    if numFunctionCDFS * numCleLabels != numElts:
-        logger.error("hasCodtaints has incorrect dimensions")
-        raise DimensionError("hasCodtaints has incorrect dimensions")
+    # Get maximum function parameters
+    # Ugly, but no other way to get this without digging into the opt pass
+    def getMaxFnParms(pdg: str) -> int:
+        for l in pdg.splitlines():
+            if 'MaxFuncParms' in l: return int(l.split()[-1][:-1])
+        raise CLEUsageError("MaxFuncParms not found in PDG instance")
 
-    cle_instance += (f"hasArgtaints = array3d(functionCdf, parmIdx, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasArgtaints"]:
-        logger.debug(row)
-        argCount = 0
-        for nested in row:
-            for j in nested:
-                if j == "true":
-                    j = "true "
-                if first:
-                    first = False
-                    cle_instance += (f" {j} ")
-                else:
-                    cle_instance += (f", {j} ")
+    # Convert functionArgs file contents into a dictionary mapping labels to number of args
+    def fnArgsToDict(fn_args: str) -> Dict[str,int]:
+        args_d = {}
+        for l in fn_args.splitlines():
+            fs = l.split()
+            fn_anno, n_args = fs[0], fs[1]
+            if len(fs) == 3: fn_anno, n_args = fs[1], fs[2]
+            if fn_anno in args_d and args_d[fn_anno] != int(n_args):
+                raise CLEUsageError("Functions with different numbers of arguments use the same CLE label")
+            args_d[fn_anno] = int(n_args)
+        return args_d
+    
+    def oneWayToSet(one_way: str) -> Set[str]:
+        ow_d = {}
+        for l in one_way.splitlines():
+            fs = l.split()
+            fn_anno, ow = fs[0], fs[1]
+            if len(fs) == 3: fn_anno, ow = fs[1], fs[2]
+            bf = 1 if fn_anno not in ow_d else ow_d[fn_anno]
+            ow_d[fn_anno] = min(int(ow), bf)
+        return { anno for anno in ow_d if ow_d[anno] == 0 }
 
-                if argCount % maxArgIdx == maxArgIdx -1:
-                    cle_instance += ("\t\t")
-                argCount+=1
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
-    numElts = 0
-    for i in arrays["hasArgtaints"]:
-        for j in i:
-            for k in j:
-                numElts+=1
-    if numFunctionCDFS * maxArgIdx * numCleLabels != numElts:
-        logger.error("hasArgtaints has incorrect dimensions")
-        raise DimensionError("hasArgtaints has incorrect dimensions")
-
-    cle_instance += (f"hasARCtaints = array2d(functionCdf, cleLabel, [\n ")
-    first = True
-    for row in arrays["hasARCtaints"]:
-        logger.debug(row)
-        for j in row:
-            if j == "true":
-                j = "true "
-            if first:
-                first = False
-                cle_instance += (f" {j} ")
-            else:
-                cle_instance += (f", {j} ")
-        cle_instance += ("\n")
-    cle_instance += (" ]); \n")
-
-    numElts = 0
-    for i in arrays["hasARCtaints"]:
-        for j in i:
-            numElts+=1
-    if numFunctionCDFS * numCleLabels != numElts:
-        logger.debug("hasARCtaints has incorrect dimensions")
-        raise DimensionError("hasARCtaints has incorrect dimensions")
-
-    logger.debug(enums)
-    logger.debug(arrays)
-
-    return ZincSrc(cle_instance, enclave_instance)   
-   
+    # First validate the CLE JSON, then convert to mzn
+    max_fn_parms = getMaxFnParms(pdg)
+    validateCle(cle, max_fn_parms, fnArgsToDict(fn_args), oneWayToSet(one_way))
+    return compute_zinc_validated(cle, max_fn_parms, logger)
 
 class Args:
     cle_json: Path
@@ -649,7 +320,8 @@ class Args:
     enclave_instance: Path
     def __init__(self):
         pass
-# Parse command line argumets
+
+# parse command line argumets
 def get_args() -> Args:
     parser = ArgumentParser(description='CLE Json -> Minizinc utility')
     parser.add_argument('--cle-json', '-j', required=True, type=Path, help='Input collated CLE JSON')
@@ -660,8 +332,9 @@ def get_args() -> Args:
     parser.add_argument('--enclave-instance', '-e', required=True, type=Path, help='Output enclave instance file')
     return parser.parse_args(namespace=Args())
 
+# for testing toZincSrc()
 def main():
-    args   = get_args()
+    args = get_args()
     logger = logging.getLogger()
     handler = logging.StreamHandler(sys.stderr)
     logger.addHandler(handler)
@@ -669,7 +342,7 @@ def main():
     output = compute_zinc(
         json.loads(args.cle_json.read_text()),
         args.function_args.read_text(),
-        args.pdg_instance.read_text(),
+        args.pdg_instance.read_text(), 
         args.one_way.read_text(),
         logger
     )

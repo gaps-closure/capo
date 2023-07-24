@@ -199,12 +199,10 @@ array[cdf]                            of Direction:      hasDirection;
 array[cdf]                            of bool:           isOneway;
 array[cleLabel, Level]                of cdf:            cdfForRemoteLevel;
 
-set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel[x]]==true };
-
-array[functionCdf, cleLabel]          of bool:           hasRettaints;
-array[functionCdf, cleLabel]          of bool:           hasCodtaints;
-array[functionCdf, parmIdx, cleLabel] of bool:           hasArgtaints;
-array[functionCdf, cleLabel]          of bool:           hasARCtaints;
+array[cdf, cleLabel]          of bool:           hasRettaints;
+array[cdf, cleLabel]          of bool:           hasCodtaints;
+array[cdf, parmIdx, cleLabel] of bool:           hasArgtaints;
+array[cdf, cleLabel]          of bool:           hasARCtaints;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Debug flag and decision variables for the solver
