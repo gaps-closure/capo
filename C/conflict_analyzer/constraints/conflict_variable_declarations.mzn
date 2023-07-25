@@ -208,29 +208,11 @@ array[cdf, cleLabel]          of bool:           hasARCtaints;
 % Debug flag and decision variables for the solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-bool:                                                    debug;
+bool:                              debug;
 
-array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
-array[PDGNodeIdx]                     of var Level:      nodeLevel;
-array[PDGNodeIdx]                     of var cleLabel:   taint;
-array[PDGNodeIdx]                     of var cleLabel:   ftaint;
-
-array[PDGEdgeIdx]                     of var Enclave:    esEnclave;
-array[PDGEdgeIdx]                     of var Enclave:    edEnclave;
-
-array[PDGEdgeIdx]                     of var cleLabel:   esTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edTaint;
-
-array[PDGEdgeIdx]                     of var cleLabel:   esFunTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edFunTaint;
-
-array[PDGEdgeIdx]                     of var cdf:        esFunCdf;
-array[PDGEdgeIdx]                     of var cdf:        edFunCdf;
-
-array[PDGEdgeIdx]                     of var bool:       xdedge;
-array[PDGEdgeIdx]                     of var bool:       tcedge;
-
-array[PDGEdgeIdx]                     of var bool:       coerced;
+array[PDGNodeIdx] of var Enclave:  nodeEnclave;
+array[PDGNodeIdx] of var cleLabel: taint;
+array[PDGEdgeIdx] of var bool:     coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
