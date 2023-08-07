@@ -87,9 +87,9 @@ class Preprocessor:
         offset_dict: Dict[int, int] = {}
 
         for (i, line) in (it := enumerate(lines)):
-            begin_match = re.match(r'#pragma cle begin (\w+)', line)
-            single_line_match = re.match(r'#pragma cle (\w+)', line)
-            end_match = re.match(r'#pragma cle end (\w+)', line)
+            begin_match = re.match(r'\s*#pragma cle begin (\w+)\s*', line)
+            single_line_match = re.match(r'\s*#pragma cle (\w+)\s*', line)
+            end_match = re.match(r'\s*#pragma cle end (\w+)\s*', line)
 
             if (cledef := self._parse_cle_def(i, lines)):
                 jsons.append(cledef)
