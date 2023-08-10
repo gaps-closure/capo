@@ -85,7 +85,7 @@ def start(args: Args, logger: Logger) -> MinizincResult:
                     for row in data: op(row)
             def addLLID(r): llid_to_pdg_node[(r[1], r[2], r[3])] = r[0]
             def addSVF(r):  svf_to_pdg_node[r[0]] = llid_to_pdg_node[(r[1], r[2], r[3])]
-            def addEdge(r): extra_edges.append((newtypes[0], r[0], r[1]))
+            def addEdge(r): extra_edges.append((newtypes[0], svf_to_pdg_node[r[0]], svf_to_pdg_node[r[1]]))
             readCsvWith(pdg_ids, addLLID)
             readCsvWith(svf_ids, addSVF)
             readCsvWith(svf_edges, addEdge)
@@ -93,11 +93,11 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         # Edit pdg instance in place
         new_instance = instance.split("\n")
         edge_end_line = [l[:11] == "PDGEdge_end" for l in new_instance].index(True)
-        srcs_line = [l[:9] == "hasSource" for l in new_instance].index(True) + 1
-        dsts_line = [l[:7] == "hasDest" for l in new_instance].index(True) + 1
+        srcs_line = [l[:7] == "hasDest" for l in new_instance].index(True) - 2
+        dsts_line = [l[:11] == "hasParamIdx" for l in new_instance].index(True) - 2
         start = int(new_instance[edge_end_line].split()[2][:-1]) + 1
         for t in newtypes:
-            t_edges = list(filter(extra_edges, lambda e: e[0] == t))
+            t_edges = list(filter(lambda e: e[0] == t, extra_edges))
             n = len(t_edges)
             first_id = start if n > 0 else 0
             new_instance.append("{}_start = {};".format(t, first_id))
@@ -106,6 +106,8 @@ def start(args: Args, logger: Logger) -> MinizincResult:
             new_instance[srcs_line] = new_instance[srcs_line] + "".join([",{}".format(e[1]) for e in t_edges])
             new_instance[dsts_line] = new_instance[dsts_line] + "".join([",{}".format(e[2]) for e in t_edges])
         new_instance[edge_end_line] = "PDGEdge_end = {};".format(start - 1)
+        # new_instance.append("ControlDep_Indirect_start = 0;")
+        # new_instance.append("ControlDep_Indirect_end = -1;")
         return "\n".join(new_instance)
 
     def make_source_entity(source: Path) -> SourceEntity:
