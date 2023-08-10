@@ -121,6 +121,9 @@ int: Anno_Other_end;
 int: Anno_start;
 int: Anno_end;
 
+int: DataDepEdge_Inst_PointsTo_start;
+int: DataDepEdge_Inst_PointsTo_end;
+
 int: PDGEdge_start;
 int: PDGEdge_end;
 
@@ -147,6 +150,8 @@ set of int: Anno_Global = Anno_Global_start .. Anno_Global_end;
 set of int: Anno_Var = Anno_Var_start .. Anno_Var_end;
 set of int: Anno_Other = Anno_Other_start .. Anno_Other_end;
 set of int: Anno = Anno_start .. Anno_end;
+
+set of int: DataDepEdge_Inst_PointsTo = DataDepEdge_Inst_PointsTo_start .. DataDepEdge_Inst_PointsTo_end;
 
 set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 

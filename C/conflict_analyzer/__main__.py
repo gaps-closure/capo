@@ -16,6 +16,7 @@ import tempfile
 import logging
 import sys
 import zmq
+import csv
 
 
 @dataclass
@@ -69,11 +70,48 @@ def start(args: Args, logger: Logger) -> MinizincResult:
     pre = preprocessor.Preprocessor(schema=schema)
     clang_args = args.clang_args.split(",")
 
+    def addSVFEdges(instance, pdg_ids, svf_ids, svf_edges):
+
+        newtypes = ['DataDepEdge_Inst_PointsTo']
+
+        # Use the mapping files to tie SVF edges to pdg nodes
+        extra_edges = []
+        if svf_edges:
+            llid_to_pdg_node = {}
+            svf_to_pdg_node = {}
+            def readCsvWith(fname, op):
+                with open(fname) as f:
+                    data = list(csv.reader(f, quotechar="'", skipinitialspace=True))
+                    for row in data: op(row)
+            def addLLID(r): llid_to_pdg_node[(r[1], r[2], r[3])] = r[0]
+            def addSVF(r):  svf_to_pdg_node[r[0]] = llid_to_pdg_node[(r[1], r[2], r[3])]
+            def addEdge(r): extra_edges.append((newtypes[0], r[0], r[1]))
+            readCsvWith(pdg_ids, addLLID)
+            readCsvWith(svf_ids, addSVF)
+            readCsvWith(svf_edges, addEdge)
+
+        # Edit pdg instance in place
+        new_instance = instance.split("\n")
+        edge_end_line = [l[:11] == "PDGEdge_end" for l in new_instance].index(True)
+        srcs_line = [l[:9] == "hasSource" for l in new_instance].index(True) + 1
+        dsts_line = [l[:7] == "hasDest" for l in new_instance].index(True) + 1
+        start = int(new_instance[edge_end_line].split()[2][:-1]) + 1
+        for t in newtypes:
+            t_edges = list(filter(extra_edges, lambda e: e[0] == t))
+            n = len(t_edges)
+            first_id = start if n > 0 else 0
+            new_instance.append("{}_start = {};".format(t, first_id))
+            new_instance.append("{}_end = {};".format(t, first_id + n - 1))
+            start = start + n
+            new_instance[srcs_line] = new_instance[srcs_line] + "".join([",{}".format(e[1]) for e in t_edges])
+            new_instance[dsts_line] = new_instance[dsts_line] + "".join([",{}".format(e[2]) for e in t_edges])
+        new_instance[edge_end_line] = "PDGEdge_end = {};".format(start - 1)
+        return "\n".join(new_instance)
+
     def make_source_entity(source: Path) -> SourceEntity:
         transform = pre.preprocess(source)
         logger.info("Preprocessed source file %s", source)
         return source, transform 
-
 
     def analyze() -> MinizincResult:
         entities = [ make_source_entity(source) for source in args.sources ]
@@ -83,9 +121,10 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         bitcode = compile_c([ (path.name, transform.preprocessed) for path, transform in entities if path.suffix == ".c" ], args.temp_dir, clang_args)
         logger.info("Compiled c files into LLVM IR")
         opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
+        opt_out.pdg_instance = addSVFEdges(opt_out.pdg_instance, args.pdg_to_llid, args.svf_to_llid, args.svf_edges)
         logger.debug(opt_out.pdg_instance)
         logger.info("Produced pdg related data from opt")
-        zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger) 
+        zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger)
         logger.info("Produced minizinc enclave and cle instances")
         logger.debug(zinc_src.cle_instance)
         logger.debug(zinc_src.enclave_instance)
@@ -120,9 +159,16 @@ def parsed_args() -> Args:
     parser.add_argument('--conflicts', help="conflicts json path", type=Path, required=False, default=Path("conflicts.json"))
     parser.add_argument('--output-json', help="whether to output json", action='store_true')
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
+    parser.add_argument('--pdg-to-llid', type=Path)
+    parser.add_argument('--svf-to-llid', type=Path)
+    parser.add_argument('--svf-edges', type=Path)
     args = parser.parse_args(namespace=Args())
     args.temp_dir = args.temp_dir.resolve()
     args.pdg_lib = args.pdg_lib.resolve()
+    if args.svf_edges:
+        args.pdg_to_llid = args.pdg_to_llid.resolve()
+        args.svf_to_llid = args.svf_to_llid.resolve()
+        args.svf_edges = args.svf_edges.resolve()
     return args
 
 def setup_logger(log_level: Literal['INFO', 'DEBUG', 'ERROR']) -> Logger:
@@ -141,7 +187,6 @@ def setup_logger(log_level: Literal['INFO', 'DEBUG', 'ERROR']) -> Logger:
     # formatter = logging.Formatter(f'[%(asctime)s %(levelname)s] %(message)s')
     # handler.setFormatter(formatter)
     return logger
-
 
 def main() -> None: 
     args = parsed_args()        
