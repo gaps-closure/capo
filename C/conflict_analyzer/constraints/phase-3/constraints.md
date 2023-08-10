@@ -71,14 +71,14 @@ forall (e in ControlDep_Indirect)​ (xdedge(e) == false);​
 *Explanation*: If a function `F` has access to a pointer to data `D` that was created outside the scope of `F`, be it a global variable, a function, data on the heap, or data on another function's stack, we must ensure that the pointer is valid in the function's enclave. So we constraint `D` and `F` to be in the same enclave.
 
 *Required PDG Edges*:
-- `DataDepEdge_Inst_PtrAlias`: An edge from `D` to `F` iff an instruction in `F` has access locally to a pointer to `D` (i.e. an instruction in `F` has a flow-sensitive, field-sensitive alias to `D` determined by SVF points-to analysis).
-- `DataDepEdge_Param_PtrAlias`: An edge from `D` to `F` iff a parameter of `F` is a pointer to `D` or has a field which is a pointer to `D`.
-- `DataDepEdge_Ret_PtrAlias`:​ An edge from `D` to `F` iff a return value of `F` is a pointer to `D` or has a field which is a pointer to `D`.
+- `DataDepEdge_Inst_PointsTo`: An edge from `F` to `D` iff an instruction in `F` has access locally to a pointer to `D` (i.e. an instruction in `F` has a flow-sensitive, field-sensitive alias to `D` determined by SVF points-to analysis).
+- `DataDepEdge_Param_PointsTo`: An edge from `F` to `D` iff a parameter of `F` is a pointer to `D` or has a field which is a pointer to `D`.
+- `DataDepEdge_Ret_PointsTo`:​ An edge from `F` to `D` iff a return value of `F` is a pointer to `D` or has a field which is a pointer to `D`.
 
 *Sample MZN Encoding*:
 ```
-set of int: DataDepEdge_PtrAlias = DataDepEdge_Inst_PtrAlias union DataDepEdge_Param_PtrAlias union DataDepEdge_Ret_PtrAlias;
-forall (e in DataDepEdge_PtrAlias)​ (xdedge(e) == false);
+set of int: DataDepEdge_PointsTo = DataDepEdge_Inst_PointsTo union DataDepEdge_Param_PointsTo union DataDepEdge_Ret_PointsTo;
+forall (e in DataDepEdge_PointsTo)​ (xdedge(e) == false);
 ```
 
 ### Indirect_Callee_Singly_Tainted
@@ -151,11 +151,11 @@ forall (e in DataDepEdge_FunctionDefUse) (coerced[e] == false);
 *Explanation*: If an instruction in a function `F` has access to a pointer to data `D` that was created outside the scope of `F`, be it a global variable, a function, data on the heap, or data on another function's stack, we must ensure that the taint of `D` propagates to `F`. So we the taint of `D` to be allowed by the function taint of `F`.
 
 *Required PDG Edges*:
-- `DataDepEdge_Inst_PtrAlias`
+- `DataDepEdge_Inst_PointsTo`
 
 *Sample MZN Encoding*:
 ```
-forall (e in DataDepEdge_Inst_PtrAlias)​ (coerced[e] == false);
+forall (e in DataDepEdge_Inst_PointsTo)​ (coerced[e] == false);
 ```
 
 ### Param_Ptr_Alias_Taints_Function
@@ -163,11 +163,11 @@ forall (e in DataDepEdge_Inst_PtrAlias)​ (coerced[e] == false);
 *Explanation*: If a parameter of a function `F` is a pointer to data `D` or has a field pointing to data `D` that was created outside the scope of `F`, be it a global variable, a function, data on the heap, or data on another function's stack, we must ensure that the taint of `D` propagates to `F`. So we the taint of `D` to be allowed by the function taint of `F`.
 
 *Required PDG Edges*:
-- `DataDepEdge_Param_PtrAlias`
+- `DataDepEdge_Param_PointsTo`
 
 *Sample MZN Encoding*:
 ```
-forall (e in DataDepEdge_Param_PtrAlias)​ (coerced[e] == false);
+forall (e in DataDepEdge_Param_PointsTo)​ (coerced[e] == false);
 ```
 
 ### Ret_Ptr_Alias_Taints_Function
@@ -175,11 +175,11 @@ forall (e in DataDepEdge_Param_PtrAlias)​ (coerced[e] == false);
 *Explanation*: If a return value of a function `F` is a pointer to data `D` or has a field pointing to data `D` that was created outside outside the scope of `F`, be it a global variable, a function, data on the heap, or data on another function's stack, we must ensure that the taint of `D` propagates to `F`. So we the taint of `D` to be allowed by the function taint of `F`.
 
 *Required PDG Edges*:
-- `DataDepEdge_Ret_PtrAlias`
+- `DataDepEdge_Ret_PointsTo`
 
 *Sample MZN Encoding*:
 ```
-forall (e in DataDepEdge_Ret_PtrAlias)​ (coerced[e] == false);
+forall (e in DataDepEdge_Ret_PointsTo)​ (coerced[e] == false);
 ```
 
 ### Extern_Callback_Same_Enclave

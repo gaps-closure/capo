@@ -10,9 +10,9 @@ We introduce the following new edge types:
 - `ControlDep_Indirect`        (indirect function calls via a function pointer)
 - `ControlDep_ExternSubgraph`  (over-approximate control dep when a callback is passed to an extern function)
 - `DataDepEdge_FunctionDefUse` (connect a function definition to its use as data)
-- `DataDepEdge_Inst_PtrAlias`  (connect data to a function whose instructions may alias a pointer to it)
-- `DataDepEdge_Param_PtrAlias` (connect data to a function whose parameters may alias a pointer to it)
-- `DataDepEdge_Ret_PtrAlias`   (connect data to a function whose return values may alias a pointer to it)
+- `DataDepEdge_Inst_PointsTo`  (connect data to a function whose instructions may alias a pointer to it)
+- `DataDepEdge_Param_PointsTo` (connect data to a function whose parameters may alias a pointer to it)
+- `DataDepEdge_Ret_PointsTo`   (connect data to a function whose return values may alias a pointer to it)
 - `DataDepEdge_Indirect_Ret`   (connect a function return value to the call site of an indirect call)
 - `Parameter_Indirect_In`      (connect data to its use as a parameter in an indirect call)
 - `Parameter_Indirect_Out`     (connect the parameter of an indirect call to corresponding function argument)
@@ -28,9 +28,9 @@ The following edges are not exported but known to be present in the raw PDG or S
 
 The following edges are not exported nor known to be present in the raw PDG or SVF alias analysis:
 - `DataDepEdge_FunctionDefUse`
-- `DataDepEdge_Inst_PtrAlias`
-- `DataDepEdge_Param_PtrAlias`
-- `DataDepEdge_Ret_PtrAlias`
+- `DataDepEdge_Inst_PointsTo`
+- `DataDepEdge_Param_PointsTo`
+- `DataDepEdge_Ret_PointsTo`
 - `DataDepEdge_Indirect_Ret`
 - `Parameter_Indirect_In`
 - `Parameter_Indirect_Out`
@@ -57,32 +57,32 @@ Alternative definition: There is a `ControlDep_ExternSubgraph` edge from a new `
 
 Let `F` be a function with corresponding function entry node, and let `X` be an instruction node which takes the address of `F` or otherwise uses `F` as data (i.e. referencing `F` without invoking it). Then there is a `DataDepEdge_FunctionDefUse` edge from `F` to `X`.
 
-### DataDepEdge_Inst_PtrAlias
+### DataDepEdge_Inst_PointsTo
 
 Let `F` be a function with corresponding function entry node, and let `X` be a PDG node which is either:​
 - A function entry node​
 - A global or module-static var node​
 - A var node allocated on the heap or stack by a function `G`, with `G != F`.
 
-Then there is a `DataDepEdge_Inst_PtrAlias` edge from `X` to `F` iff an instruction in `F` may have access locally to a pointer to `X` (i.e. `F` may have a flow-sensitive, field-sensitive alias to `X` determined by SVF points-to analysis).​
+Then there is a `DataDepEdge_Inst_PointsTo` edge from `F` to `X` iff an instruction in `F` may have access locally to a pointer to `X` (i.e. `F` may have a flow-sensitive, field-sensitive alias to `X` determined by SVF points-to analysis).​
 
-### DataDepEdge_Param_PtrAlias
-
-Let `F` be a function with corresponding function entry node, and let `X` be a PDG node which is either:​
-- A function entry node​
-- A global or module-static var node​
-- A var node allocated on the heap or stack by a function `G`, with `G != F`.
-
-Then there is a `DataDepEdge_Param_PtrAlias` edge from `X` to `F` iff a parameter of `F` may alias a pointer to `X` or has a field which points to `X`.
-
-### DataDepEdge_Ret_PtrAlias
+### DataDepEdge_Param_PointsTo
 
 Let `F` be a function with corresponding function entry node, and let `X` be a PDG node which is either:​
 - A function entry node​
 - A global or module-static var node​
 - A var node allocated on the heap or stack by a function `G`, with `G != F`.
 
-Then there is a `DataDepEdge_Ret_PtrAlias` edge from `X` to `F` iff a return value of `F` may alias a pointer to `X` or has a field which points to `X`.
+Then there is a `DataDepEdge_Param_PointsTo` edge from `F` to `X` iff a parameter of `F` may alias a pointer to `X` or has a field which points to `X`.
+
+### DataDepEdge_Ret_PointsTo
+
+Let `F` be a function with corresponding function entry node, and let `X` be a PDG node which is either:​
+- A function entry node​
+- A global or module-static var node​
+- A var node allocated on the heap or stack by a function `G`, with `G != F`.
+
+Then there is a `DataDepEdge_Ret_PointsTo` edge from `F` to `X` iff a return value of `F` may alias a pointer to `X` or has a field which points to `X`.
 
 ### DataDepEdge_Indirect_Ret
 
