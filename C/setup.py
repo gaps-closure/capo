@@ -30,7 +30,9 @@ setup(
             "preprocessor=preprocessor:__main__.main",
             "join_clemaps=preprocessor:join_clemaps.main",
             "parse_mzn=conflict_analyzer:minizinc.main",
-            "clejson2zinc=conflict_analyzer:clejson2zinc.main"
+            "clejson2zinc=conflict_analyzer:clejson2zinc.main",
+            "pdg2zinc=conflict_analyzer:pdg2zinc.main",
+            "unify-pdg-svf=conflict_analyzer:unify_pdg_svf.main"
         ]
     },
     scripts=[

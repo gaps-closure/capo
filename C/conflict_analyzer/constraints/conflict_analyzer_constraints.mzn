@@ -121,7 +121,7 @@ constraint :: "DataTaintCoerced"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 constraint :: "PtrAliasSameEnclave"
- forall (e in DataDepEdge_Inst_PointsTo)
+ forall (e in DataDepEdge_PointsTo)
   (xdedge(e) == false);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

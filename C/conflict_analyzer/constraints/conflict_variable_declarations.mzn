@@ -79,8 +79,8 @@ set of int: PDGNodeIdx  = PDGNode_start .. PDGNode_end;
 
 int: ControlDep_CallInv_start;
 int: ControlDep_CallInv_end;
-int: ControlDep_Indirect_start;
-int: ControlDep_Indirect_end;
+int: ControlDep_Indirect_CallInv_start;
+int: ControlDep_Indirect_CallInv_end;
 int: ControlDep_CallRet_start;
 int: ControlDep_CallRet_end;
 int: ControlDep_Entry_start;
@@ -121,14 +121,14 @@ int: Anno_Other_end;
 int: Anno_start;
 int: Anno_end;
 
-int: DataDepEdge_Inst_PointsTo_start;
-int: DataDepEdge_Inst_PointsTo_end;
+int: DataDepEdge_PointsTo_start;
+int: DataDepEdge_PointsTo_end;
 
 int: PDGEdge_start;
 int: PDGEdge_end;
 
 set of int: ControlDep_CallInv = ControlDep_CallInv_start .. ControlDep_CallInv_end;
-set of int: ControlDep_Indirect = ControlDep_Indirect_start .. ControlDep_Indirect_end;
+set of int: ControlDep_Indirect_CallInv = ControlDep_Indirect_CallInv_start .. ControlDep_Indirect_CallInv_end;
 set of int: ControlDep_CallRet = ControlDep_CallRet_start .. ControlDep_CallRet_end;
 set of int: ControlDep_Entry = ControlDep_Entry_start .. ControlDep_Entry_end;
 set of int: ControlDep_Br = ControlDep_Br_start .. ControlDep_Br_end;
@@ -151,7 +151,7 @@ set of int: Anno_Var = Anno_Var_start .. Anno_Var_end;
 set of int: Anno_Other = Anno_Other_start .. Anno_Other_end;
 set of int: Anno = Anno_start .. Anno_end;
 
-set of int: DataDepEdge_Inst_PointsTo = DataDepEdge_Inst_PointsTo_start .. DataDepEdge_Inst_PointsTo_end;
+set of int: DataDepEdge_PointsTo = DataDepEdge_PointsTo_start .. DataDepEdge_PointsTo_end;
 
 set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 
@@ -171,7 +171,7 @@ array[FunctionEntry]  of bool: userAnnotatedFunction;
 
 set of int: Global              = VarNode_StaticGlobal union VarNode_StaticModule;
 set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union Param;
-set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_Indirect;
+set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_Indirect_CallInv;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
 set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
 set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;

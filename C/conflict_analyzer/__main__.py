@@ -8,6 +8,8 @@ from logging import Logger
 from conflict_analyzer.compile import compile_c, opt
 from conflict_analyzer.pdg_table import PdgLookupTable, PdgLookupNode, PdgLookupEdge, SourceMap
 from conflict_analyzer.minizinc import run_model, run_cmdline, Topology, MinizincResult, str_artifact
+from conflict_analyzer.pdg2zinc import pdg_to_zinc
+from conflict_analyzer.unify_pdg_svf import unify_pdg_svf
 from preprocessor.preprocess import LabelledCleJson, Transform
 import preprocessor.preprocess as preprocessor
 import conflict_analyzer.clejson2zinc as clejson2zinc
@@ -15,7 +17,6 @@ from conflict_analyzer.exceptions import SourcedException, FindmusException, Sou
 import tempfile
 import logging
 import sys
-import zmq
 import csv
 
 
@@ -60,55 +61,15 @@ def collate_source_map(entities: List[SourceEntity], temp_dir: Path) -> SourceMa
             return src
     return source_map
 
-def output_zinc(src: clejson2zinc.ZincSrc, temp_dir: Path) -> None:
+def output_zinc(src: clejson2zinc.ZincSrc, pdg_instance: str, temp_dir: Path) -> None:
     (temp_dir / 'cle_instance.mzn').write_text(src.cle_instance)
     (temp_dir / 'enclave_instance.mzn').write_text(src.enclave_instance)
-    
+    (temp_dir / 'pdg_svf_instance.mzn').write_text(pdg_instance)
 
 def start(args: Args, logger: Logger) -> MinizincResult:
     schema = json.loads(args.schema.read_text()) if args.schema else None
     pre = preprocessor.Preprocessor(schema=schema)
     clang_args = args.clang_args.split(",")
-
-    def addSVFEdges(instance, pdg_ids, svf_ids, svf_edges):
-
-        newtypes = ['DataDepEdge_Inst_PointsTo']
-
-        # Use the mapping files to tie SVF edges to pdg nodes
-        extra_edges = []
-        if svf_edges:
-            llid_to_pdg_node = {}
-            svf_to_pdg_node = {}
-            def readCsvWith(fname, op):
-                with open(fname) as f:
-                    data = list(csv.reader(f, quotechar="'", skipinitialspace=True))
-                    for row in data: op(row)
-            def addLLID(r): llid_to_pdg_node[(r[1], r[2], r[3])] = r[0]
-            def addSVF(r):  svf_to_pdg_node[r[0]] = llid_to_pdg_node[(r[1], r[2], r[3])]
-            def addEdge(r): extra_edges.append((newtypes[0], svf_to_pdg_node[r[0]], svf_to_pdg_node[r[1]]))
-            readCsvWith(pdg_ids, addLLID)
-            readCsvWith(svf_ids, addSVF)
-            readCsvWith(svf_edges, addEdge)
-
-        # Edit pdg instance in place
-        new_instance = instance.split("\n")
-        edge_end_line = [l[:11] == "PDGEdge_end" for l in new_instance].index(True)
-        srcs_line = [l[:7] == "hasDest" for l in new_instance].index(True) - 2
-        dsts_line = [l[:11] == "hasParamIdx" for l in new_instance].index(True) - 2
-        start = int(new_instance[edge_end_line].split()[2][:-1]) + 1
-        for t in newtypes:
-            t_edges = list(filter(lambda e: e[0] == t, extra_edges))
-            n = len(t_edges)
-            first_id = start if n > 0 else 0
-            new_instance.append("{}_start = {};".format(t, first_id))
-            new_instance.append("{}_end = {};".format(t, first_id + n - 1))
-            start = start + n
-            new_instance[srcs_line] = new_instance[srcs_line] + "".join([",{}".format(e[1]) for e in t_edges])
-            new_instance[dsts_line] = new_instance[dsts_line] + "".join([",{}".format(e[2]) for e in t_edges])
-        new_instance[edge_end_line] = "PDGEdge_end = {};".format(start - 1)
-        # new_instance.append("ControlDep_Indirect_start = 0;")
-        # new_instance.append("ControlDep_Indirect_end = -1;")
-        return "\n".join(new_instance)
 
     def make_source_entity(source: Path) -> SourceEntity:
         transform = pre.preprocess(source)
@@ -122,18 +83,23 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         logger.debug("%s", json.dumps(collated, indent=2))
         bitcode = compile_c([ (path.name, transform.preprocessed) for path, transform in entities if path.suffix == ".c" ], args.temp_dir, clang_args)
         logger.info("Compiled c files into LLVM IR")
-        opt_out = opt(args.pdg_lib, bitcode, args.temp_dir) 
-        opt_out.pdg_instance = addSVFEdges(opt_out.pdg_instance, args.pdg_to_llid, args.svf_to_llid, args.svf_edges)
-        logger.debug(opt_out.pdg_instance)
+        opt_out = opt(args.pdg_lib, args.dump_ptg, bitcode, args.temp_dir)
+        opt_out.pdg_csv = unify_pdg_svf(opt_out.pdg_csv, opt_out.pdg_ids, opt_out.svf_edges, opt_out.svf_ids)
+        with open(args.temp_dir / 'pdg_svf_data.csv', "w") as f:
+            writer = csv.writer(f, delimiter=",", quotechar="'")
+            for r in opt_out.pdg_csv: writer.writerow(r)
         logger.info("Produced pdg related data from opt")
-        zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, opt_out.pdg_instance, opt_out.one_way, logger)
+        max_fn_parms = clejson2zinc.getMaxFnParms(opt_out.pdg_instance)
+        zinc_src = clejson2zinc.compute_zinc(collated, opt_out.function_args, max_fn_parms, opt_out.one_way, logger)
         logger.info("Produced minizinc enclave and cle instances")
         logger.debug(zinc_src.cle_instance)
         logger.debug(zinc_src.enclave_instance)
-        output_zinc(zinc_src, args.temp_dir)
-        collated_map = collate_source_map(entities, args.temp_dir) 
+        pdg_instance = pdg_to_zinc(opt_out.pdg_csv, max_fn_parms)
+        logger.debug(pdg_instance)
+        output_zinc(zinc_src, pdg_instance, args.temp_dir)
+        collated_map = collate_source_map(entities, args.temp_dir)
         logger.info("Collated source maps")
-        out = run_cmdline([zinc_src.cle_instance, opt_out.pdg_instance, zinc_src.enclave_instance, 
+        out = run_cmdline([zinc_src.cle_instance, pdg_instance, zinc_src.enclave_instance, 
             *[ f.read_text() for f in args.constraint_files]], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map) 
         logger.info("Produced JSON result from minizinc")
         return out
@@ -151,6 +117,7 @@ def parsed_args() -> Args:
     parser.add_argument('--schema', help="CLE schema", type=Path, nargs="?", required=False)
     parser.add_argument('--pdg-lib', help="Path to pdg lib", 
         type=Path, required=True)
+    parser.add_argument('--dump-ptg', help="Path to dump-ptg utility", type=Path, required=True)
     parser.add_argument('--source-path', help="Source path for output topology. Defaults to current directory", 
         default=Path('.').resolve())
     parser.add_argument('--constraint-files', help="Path to constraint files", 
@@ -161,16 +128,10 @@ def parsed_args() -> Args:
     parser.add_argument('--conflicts', help="conflicts json path", type=Path, required=False, default=Path("conflicts.json"))
     parser.add_argument('--output-json', help="whether to output json", action='store_true')
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
-    parser.add_argument('--pdg-to-llid', type=Path)
-    parser.add_argument('--svf-to-llid', type=Path)
-    parser.add_argument('--svf-edges', type=Path)
     args = parser.parse_args(namespace=Args())
     args.temp_dir = args.temp_dir.resolve()
     args.pdg_lib = args.pdg_lib.resolve()
-    if args.svf_edges:
-        args.pdg_to_llid = args.pdg_to_llid.resolve()
-        args.svf_to_llid = args.svf_to_llid.resolve()
-        args.svf_edges = args.svf_edges.resolve()
+    args.dump_ptg = args.dump_ptg.resolve()
     return args
 
 def setup_logger(log_level: Literal['INFO', 'DEBUG', 'ERROR']) -> Logger:
