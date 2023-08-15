@@ -79,6 +79,8 @@ def start(args: Args, logger: Logger) -> MinizincResult:
     def analyze() -> MinizincResult:
         entities = [ make_source_entity(source) for source in args.sources ]
         collated = collate_json(entities)
+        with open(args.temp_dir / 'collated.json', "w") as f:
+            f.write(json.dumps(collated, indent=4))
         logger.info("Collated JSON")
         logger.debug("%s", json.dumps(collated, indent=2))
         bitcode = compile_c([ (path.name, transform.preprocessed) for path, transform in entities if path.suffix == ".c" ], args.temp_dir, clang_args)
