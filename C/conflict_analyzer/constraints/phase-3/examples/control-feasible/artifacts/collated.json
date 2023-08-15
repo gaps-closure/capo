@@ -1,0 +1,103 @@
+[
+    {
+        "cle-label": "ORANGE_SHAREABLE",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "purple",
+                    "direction": "egress",
+                    "guarddirective": {
+                        "operation": "allow"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "PURPLE_SHAREABLE",
+        "cle-json": {
+            "level": "purple",
+            "cdf": [
+                {
+                    "remotelevel": "orange",
+                    "direction": "egress",
+                    "guarddirective": {
+                        "operation": "allow"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "ORANGE_XD",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "orange",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [
+                        [
+                            "ORANGE_SHAREABLE"
+                        ]
+                    ],
+                    "codtaints": [
+                        "ORANGE_SHAREABLE",
+                        "TAG_RESPONSE_FOO"
+                    ],
+                    "rettaints": [
+                        "ORANGE_SHAREABLE"
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "PURPLE_XD",
+        "cle-json": {
+            "level": "purple",
+            "cdf": [
+                {
+                    "remotelevel": "orange",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [
+                        [
+                            "TAG_REQUEST_FOO"
+                        ]
+                    ],
+                    "codtaints": [
+                        "PURPLE_SHAREABLE"
+                    ],
+                    "rettaints": [
+                        "TAG_RESPONSE_FOO"
+                    ]
+                },
+                {
+                    "remotelevel": "purple",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [
+                        [
+                            "TAG_REQUEST_FOO"
+                        ]
+                    ],
+                    "codtaints": [
+                        "PURPLE_SHAREABLE"
+                    ],
+                    "rettaints": [
+                        "TAG_RESPONSE_FOO"
+                    ]
+                }
+            ]
+        }
+    }
+]
