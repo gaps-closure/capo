@@ -15,8 +15,11 @@ def compile_c(sources: List[Tuple[str, str]], temp_dir: Path, clang_flags: List[
     source_files = [temp_dir / name for name, _ in sources]
     clang_args: List[Union[Path, str]] = ['clang', '-g', '-c',
                                           '-emit-llvm', *[f.resolve() for f in source_files], *clang_flags]
+    clang_args_ll: List[Union[Path, str]] = ['clang', '-g', '-c', '-S',
+                                             '-emit-llvm', *[f.resolve() for f in source_files], *clang_flags]
     clang_out = subprocess.run(clang_args, capture_output=True, cwd=temp_dir)
-    if clang_out.returncode != 0:
+    clang_out_ll = subprocess.run(clang_args_ll, capture_output=True, cwd=temp_dir)
+    if clang_out.returncode != 0 or clang_out_ll.returncode != 0:
         raise ProcessException("clang failed", clang_out)
     bc_files = [source_file.with_suffix('.bc') for source_file in source_files]
     link_args: List[Union[Path, str]] = ['llvm-link', *bc_files]
