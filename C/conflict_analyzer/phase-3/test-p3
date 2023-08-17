@@ -33,12 +33,13 @@ run () {
         (rm -rf tmp-ca 2> /dev/null && echo $"FAILURE $1/$2 $ERR")
     else
         minizinc tests/$1/$2/artifacts/instance.mzn | tail -n 1 | grep -q "UNSATISFIABLE"
-        if [[ ("$?" == 0 && "$1" == "feasible") ]]
+        STATUS=$?
+        if [[ ($STATUS == 0 && "$1" == "feasible") ]]
         then
             ERR=$'\n    instance.mzn is unsatisfiable'
             EDGE=$'\n    TODO: edge diff'
             echo $"FAILURE $1/$2 $ERR $EDGE"
-        elif [[ ("$?" != 0 && "$1" == "infeasible") ]]
+        elif [[ ($STATUS != 0 && "$1" == "infeasible") ]]
         then
             ERR=$'\n    instance.mzn is satisfiable'
             EDGE=$'\n    TODO: edge diff'
