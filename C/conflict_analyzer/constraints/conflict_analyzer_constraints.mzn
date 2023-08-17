@@ -120,9 +120,17 @@ constraint :: "DataTaintCoerced"
 % Phase 3 test constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "PtrAliasSameEnclave"
+% constraint :: "PtrAliasSameEnclave"
+%  forall (e in DataDepEdge_PointsTo)
+%   (xdedge(e) == false);
+
+constraint :: "PtrAliasCoerced"
  forall (e in DataDepEdge_PointsTo)
-  (xdedge(e) == false);
+  (if (hasFunction[hasSource[e]] != 0) then 
+      coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
+   else
+      coerced[e] == false
+   endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
