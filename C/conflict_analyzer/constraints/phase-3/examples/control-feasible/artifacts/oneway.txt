@@ -1,2 +1,0 @@
-baz PURPLE_XD 0
-bar ORANGE_XD 0

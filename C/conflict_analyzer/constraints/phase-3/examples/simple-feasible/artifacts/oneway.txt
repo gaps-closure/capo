@@ -1,2 +1,0 @@
-foo PURPLE_XD 0
-main ORANGE_XD 0
