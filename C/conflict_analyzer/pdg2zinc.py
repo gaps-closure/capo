@@ -48,7 +48,7 @@ def pdg_to_zinc(pdg_csv, max_fn_parms):
                     p_idx = int(e[12])
                     hasParamIdx.append(str(p_idx) if p_idx == -1 else str(p_idx + 1))
                 if t == "FunctionEntry":
-                    userAnnotatedFunction.append(str(e[5] != "").lower())
+                    userAnnotatedFunction.append(str(e[3] != "").lower())
                 if edges_start == 0:
                     hasFunction.append(e[5])
                     if e[3] != "": taintConstraints[mzn_id] = e[3]

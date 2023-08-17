@@ -279,7 +279,9 @@ def compute_zinc_validated(cle: List[LabelledCleJson], max_fn_parms: int, logger
 # Ugly, but no other way to get this without digging into the opt pass
 def getMaxFnParms(pdg: str) -> int:
     for l in pdg.splitlines():
-        if 'MaxFuncParams' in l: return int(l.split()[-1][:-1])
+        if 'MaxFuncParams' in l:
+            v = int(l.split()[-1][:-1])
+            return v if v > 0 else 1
     raise CLEUsageError("MaxFuncParms not found in PDG instance")
 
 def compute_zinc(cle: List[LabelledCleJson], fn_args: str, max_fn_parms: int, one_way: str, logger: Logger) -> ZincSrc:

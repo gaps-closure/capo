@@ -4,7 +4,7 @@ from pathlib import Path
 
 def unify_pdg_svf(pdg_csv, pdg_ids, svf_edges, svf_ids):
 
-    ignore = lambda llid: llid[0][:5] == "llvm." or llid == ("", "", "") or llid[0] == "printf"
+    ignore = lambda llid: llid[0][:5] == "llvm." or llid == ("", "", "") or llid[0] == "printf" or llid[0] == "malloc"
     newtypes = ['DataDepEdge_PointsTo']
     llid_to_pdg_node = {}
     svf_to_llid = {}
