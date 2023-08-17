@@ -10,7 +10,7 @@
 int foo(int mul) {
 
   #pragma cle PURPLE
-  static int a = 5;
+  int a = 5;
 
   return a * mul;
 }
@@ -19,7 +19,7 @@ int foo(int mul) {
 int main() {
 
   #pragma cle ORANGE
-  static int b = 1;
+  int b = 1;
 
   int mul = 3;
   int (*f)(int) = &foo;

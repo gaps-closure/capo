@@ -20,7 +20,7 @@ int foo() {
 int main() {
 
   #pragma cle ORANGE_1
-  static int b = 1;
+  int b = 1;
   int (*f)(void) = &foo;
   int c = (*f)();
   
