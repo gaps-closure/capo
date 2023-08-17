@@ -1,0 +1,62 @@
+#!/bin/bash
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+if [[ ("$#" -ne 1) && ("$#" -ne 2) ]]
+then
+    die $'usage: ./conflict-analyzer-tests [feasible|infeasible] prog_name\n       ./conflict-analyzer-tests  all'
+fi
+if [[ ("$1" != "all") && ("$1" != "feasible") && ("$1" != "infeasible") ]]
+then
+    die "error: first arugment must be one of: all, feasible, infeasible"
+fi
+if [[ (("$1" == "feasible") || ("$1" == "infeasible")) && ("$#" != 2) ]]
+then
+    die "error: first argument is [feasible|infeasible] but no prog_name given"
+fi
+
+run () {
+    echo ""
+    ERR=$'\n    conflict analysis errored (see above)'
+       mkdir tmp-ca \
+    && python3 -m conflict_analyzer --temp-dir tmp-ca --pdg-lib pdg2/build/libpdg.so --dump-ptg pdg2/svf/Release-build/bin/dump-ptg conflict_analyzer/constraints/phase-3/examples/$1/$2/$2.c 2>&1 >/dev/null \
+    && rm conflict_analyzer/constraints/phase-3/examples/$1/$2/artifacts/* \
+    && mv tmp-ca/* conflict_analyzer/constraints/phase-3/examples/$1/$2/artifacts \
+    && rm -rf tmp-ca
+    
+    if [[ $? -ne 0 ]]
+    then
+        (rm -rf tmp-ca 2> /dev/null && echo $"FAILURE $1/$2 $ERR")
+    else
+        minizinc conflict_analyzer/constraints/phase-3/examples/$1/$2/artifacts/instance.mzn | tail -n 1 | grep -q "UNSATISFIABLE"
+        if [[ ("$?" == 0 && "$1" == "feasible") ]]
+        then
+            ERR=$'\n    instance.mzn is unsatisfiable'
+            echo $"FAILURE $1/$2 $ERR"
+        elif [[ ("$?" != 0 && "$1" == "infeasible") ]]
+        then
+            ERR=$'\n    instance.mzn is satisfiable'
+            echo $"FAILURE $1/$2 $ERR"
+        else
+            SUCC=$'\n    edge info here'
+            echo $"SUCCESS $1/$2 $SUCC" # TODO: output expected edges vs actual edges
+        fi
+    fi
+}
+
+if [ "$#" -eq 2 ]
+then
+    run $1 $2
+else
+    for prog in global global-noaccess heap
+    do
+        run infeasible $prog
+    done
+    for prog in
+    do
+        run feasible $prog
+    done
+fi
