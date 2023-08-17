@@ -33,4 +33,7 @@ int main() {
 }
 
 // EXPECTED PHASE 3 EDGES
-// todo
+// DataDepEdge_FunctionDefUse from function entry on line 10 to var on line 25
+// ControlDep_Indirect_CallInv from call on line 26 to function entry on line 10
+// Parameter_Indirect edges from call on line 26 to arguments on line 10
+// DataDepEdge_Indirect_Ret from return on line 15 to call on line 26

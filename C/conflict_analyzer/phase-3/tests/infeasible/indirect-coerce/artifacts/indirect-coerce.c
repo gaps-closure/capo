@@ -23,7 +23,7 @@ int main() {
 
   #pragma cle ORANGE_1
 #pragma clang attribute push (__attribute__((annotate("ORANGE_1"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
-  static int b = 1;
+  int b = 1;
 #pragma clang attribute pop
   int (*f)(void) = &foo;
   int c = (*f)();
@@ -32,4 +32,6 @@ int main() {
 }
 
 // EXPECTED PHASE 3 EDGES
-// todo
+// DataDepEdge_FunctionDefUse from function entry on line 11 to var on line 24
+// ControlDep_Indirect_CallInv from call on line 25 to function entry on line 11
+// DataDepEdge_Indirect_Ret from return on line 16 to call on line 25

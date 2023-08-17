@@ -49,4 +49,5 @@ int main() {
 }
 
 // EXPECTED PHASE 3 EDGES
-// todo
+// DataDepEdge_PointsTo from line 37 to line 33, where bar returns &x
+// DataDepEdge_PointsTo from line 41 to line 33, because y[0] (a member of y) is x

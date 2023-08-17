@@ -53,8 +53,8 @@ int main() {
 }
 
 // EXPECTED PHASE 3 EDGES
-// Edge from line 36 to line 32, where bar returns &x
-// Edge from line 43 to line 32, because y[0] (a member of y) is x
+// DataDepEdge_PointsTo from line 36 to line 32, where bar returns &x
+// DataDepEdge_PointsTo from line 43 to line 32, because y[0] (a member of y) is x
 // At least two edges from line 45 to line 32, because *y == x
-// - One for *y to x
-// - One for x[0] = 2
+// - DataDepEdge_PointsTo for *y to x
+// - DataDepEdge_PointsTo for x[0] = 2

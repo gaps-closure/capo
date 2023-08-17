@@ -77,7 +77,7 @@ attributes #3 = { argmemonly nofree nounwind willreturn }
 !llvm.ident = !{!9}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "Ubuntu clang version 14.0.0-1ubuntu1.1", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "4398513252e61e270e66ae594dae0956")
+!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "79eb7b8cc04a494191c615d840363cad")
 !2 = !{i32 7, !"Dwarf Version", i32 5}
 !3 = !{i32 2, !"Debug Info Version", i32 3}
 !4 = !{i32 1, !"wchar_size", i32 4}
@@ -87,7 +87,7 @@ attributes #3 = { argmemonly nofree nounwind willreturn }
 !8 = !{i32 7, !"frame-pointer", i32 2}
 !9 = !{!"Ubuntu clang version 14.0.0-1ubuntu1.1"}
 !10 = distinct !DISubprogram(name: "bar", scope: !11, file: !11, line: 32, type: !12, scopeLine: 32, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !16)
-!11 = !DIFile(filename: "stack.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "4398513252e61e270e66ae594dae0956")
+!11 = !DIFile(filename: "stack.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "79eb7b8cc04a494191c615d840363cad")
 !12 = !DISubroutineType(types: !13)
 !13 = !{null, !14}
 !14 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !15, size: 64)
