@@ -11,7 +11,7 @@ int foo(int mul) {
 
   #pragma cle PURPLE
 #pragma clang attribute push (__attribute__((annotate("PURPLE"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
-  static int a = 5;
+  int a = 5;
 #pragma clang attribute pop
 
   return a * mul;
@@ -22,7 +22,7 @@ int main() {
 
   #pragma cle ORANGE
 #pragma clang attribute push (__attribute__((annotate("ORANGE"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
-  static int b = 1;
+  int b = 1;
 #pragma clang attribute pop
 
   int mul = 3;
