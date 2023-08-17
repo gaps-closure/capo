@@ -1,0 +1,189 @@
+Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32** %2, metadata !17, metadata !DIExpression()), !dbg !18',28,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,46,15,2,-1
+Node,2,Inst_FunCall,,'  call void @bar(i32* noundef %3), !dbg !20',28,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,48,3,4,-1
+Node,3,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32** %2, metadata !23, metadata !DIExpression()), !dbg !24',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,32,15,3,-1
+Node,4,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %3, metadata !25, metadata !DIExpression()), !dbg !26',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,37,7,4,-1
+Node,5,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata [3 x i32]* %2, metadata !34, metadata !DIExpression()), !dbg !38',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,56,7,3,-1
+Node,6,Inst_FunCall,,'  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 4 %4, i8* align 4 bitcast ([3 x i32]* @__const.main.x to i8*), i64 12, i1 false), !dbg !20',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,56,7,7,-1
+Node,7,Inst_FunCall,,'  call void @foo(i32* noundef %5), !dbg !23',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,58,3,9,-1
+Node,8,Inst_Ret,,'  ret void, !dbg !21',28,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,49,1,5,-1
+Node,9,Inst_Ret,,'  ret void, !dbg !24',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,41,1,11,-1
+Node,10,Inst_Ret,,'  ret i32 0, !dbg !24',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,59,3,10,-1
+Node,11,Inst_Other,,'  %2 = alloca i32*, align 8',28,,,,-1,-1,0,-1
+Node,12,Inst_Other,,'  store i32* %0, i32** %2, align 8',28,,,,-1,-1,1,-1
+Node,13,Inst_Other,,'  %3 = load i32*, i32** %2, align 8, !dbg !19',28,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,48,7,3,-1
+Node,14,Inst_Other,,'  %2 = alloca i32*, align 8',29,,,,-1,-1,0,-1
+Node,15,Inst_Other,,'  %3 = alloca i32, align 4',29,,,,-1,-1,1,-1
+Node,16,Inst_Other,,'  store i32* %0, i32** %2, align 8',29,,,,-1,-1,2,-1
+Node,17,Inst_Other,ORANGE_SHARE,'  %4 = bitcast i32* %3 to i8*, !dbg !21',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,37,3,5,-1
+Node,18,Inst_Other,,'  store i32 1, i32* %3, align 4, !dbg !20',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,37,7,7,-1
+Node,19,Inst_Other,,'  %5 = load i32*, i32** %2, align 8, !dbg !22',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,40,3,8,-1
+Node,20,Inst_Other,,'  %6 = getelementptr inbounds i32, i32* %5, i64 0, !dbg !22',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,40,3,9,-1
+Node,21,Inst_Other,,'  store i32 5, i32* %6, align 4, !dbg !23',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,40,8,10,-1
+Node,22,Inst_Other,,'  %1 = alloca i32, align 4',30,,,,-1,-1,0,-1
+Node,23,Inst_Other,,'  %2 = alloca [3 x i32], align 4',30,,,,-1,-1,1,-1
+Node,24,Inst_Other,,'  store i32 0, i32* %1, align 4',30,,,,-1,-1,2,-1
+Node,25,Inst_Other,ORANGE_NOSHARE,'  %3 = bitcast [3 x i32]* %2 to i8*, !dbg !21',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,56,3,4,-1
+Node,26,Inst_Other,,'  %4 = bitcast [3 x i32]* %2 to i8*, !dbg !20',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,56,7,6,-1
+Node,27,Inst_Other,,'  %5 = getelementptr inbounds [3 x i32], [3 x i32]* %2, i64 0, i64 0, !dbg !22',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,58,7,8,-1
+Node,28,FunctionEntry,FOO,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @foo(i32* noundef %0) #0 !dbg !10 {
+  %2 = alloca i32*, align 8
+  store i32* %0, i32** %2, align 8
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !17, metadata !DIExpression()), !dbg !18
+  %3 = load i32*, i32** %2, align 8, !dbg !19
+  call void @bar(i32* noundef %3), !dbg !20
+  ret void, !dbg !21
+}
+',28,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,46,-1,-1,-1
+Node,29,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @bar(i32* noundef %0) #0 !dbg !22 {
+  %2 = alloca i32*, align 8
+  %3 = alloca i32, align 4
+  store i32* %0, i32** %2, align 8
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !23, metadata !DIExpression()), !dbg !24
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !25, metadata !DIExpression()), !dbg !26
+  %4 = bitcast i32* %3 to i8*, !dbg !27
+  call void @llvm.var.annotation(i8* %4, i8* getelementptr inbounds ([13 x i8], [13 x i8]* @.str, i32 0, i32 0), i8* getelementptr inbounds ([72 x i8], [72 x i8]* @.str.1, i32 0, i32 0), i32 37, i8* null), !dbg !27
+  store i32 1, i32* %3, align 4, !dbg !26
+  %5 = load i32*, i32** %2, align 8, !dbg !28
+  %6 = getelementptr inbounds i32, i32* %5, i64 0, !dbg !28
+  store i32 5, i32* %6, align 4, !dbg !29
+  ret void, !dbg !30
+}
+',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,32,-1,-1,-1
+Node,30,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !31 {
+  %1 = alloca i32, align 4
+  %2 = alloca [3 x i32], align 4
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata [3 x i32]* %2, metadata !34, metadata !DIExpression()), !dbg !38
+  %3 = bitcast [3 x i32]* %2 to i8*, !dbg !39
+  call void @llvm.var.annotation(i8* %3, i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([72 x i8], [72 x i8]* @.str.1, i32 0, i32 0), i32 56, i8* null), !dbg !39
+  %4 = bitcast [3 x i32]* %2 to i8*, !dbg !38
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 4 %4, i8* align 4 bitcast ([3 x i32]* @__const.main.x to i8*), i64 12, i1 false), !dbg !38
+  %5 = getelementptr inbounds [3 x i32], [3 x i32]* %2, i64 0, i64 0, !dbg !40
+  call void @foo(i32* noundef %5), !dbg !41
+  ret i32 0, !dbg !42
+}
+',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,52,-1,-1,-1
+Node,31,Param_FormalIn,,No Value,28,,,Not Found,-1,-1,-1,0
+Node,32,Param_FormalIn,,No Value,28,,,Not Found,-1,-1,-1,-1
+Node,33,Param_FormalIn,,No Value,29,,,Not Found,-1,-1,-1,0
+Node,34,Param_FormalIn,,No Value,29,,,Not Found,-1,-1,-1,-1
+Node,35,Param_FormalOut,,No Value,28,,,Not Found,-1,-1,-1,0
+Node,36,Param_FormalOut,,No Value,28,,,Not Found,-1,-1,-1,-1
+Node,37,Param_FormalOut,,No Value,29,,,Not Found,-1,-1,-1,0
+Node,38,Param_FormalOut,,No Value,29,,,Not Found,-1,-1,-1,-1
+Node,39,Param_ActualIn,,No Value,29,,,Not Found,-1,-1,-1,0
+Node,40,Param_ActualIn,,No Value,29,,,Not Found,-1,-1,-1,-1
+Node,41,Param_ActualIn,,No Value,28,,,Not Found,-1,-1,-1,0
+Node,42,Param_ActualIn,,No Value,28,,,Not Found,-1,-1,-1,-1
+Node,43,Param_ActualOut,,No Value,29,,,Not Found,-1,-1,-1,0
+Node,44,Param_ActualOut,,No Value,29,,,Not Found,-1,-1,-1,-1
+Node,45,Param_ActualOut,,No Value,28,,,Not Found,-1,-1,-1,0
+Node,46,Param_ActualOut,,No Value,28,,,Not Found,-1,-1,-1,-1
+Node,47,Annotation_Var,,'  call void @llvm.var.annotation(i8* %4, i8* getelementptr inbounds ([13 x i8], [13 x i8]* @.str, i32 0, i32 0), i8* getelementptr inbounds ([72 x i8], [72 x i8]* @.str.1, i32 0, i32 0), i32 37, i8* null), !dbg !21',29,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,37,3,6,-1
+Node,48,Annotation_Var,,'  call void @llvm.var.annotation(i8* %3, i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([72 x i8], [72 x i8]* @.str.1, i32 0, i32 0), i32 56, i8* null), !dbg !21',30,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c,56,3,5,-1
+Node,49,Annotation_Global,,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (void (i32*)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([72 x i8], [72 x i8]* @.str.1, i32 0, i32 0), i32 46, i8* null }], section "llvm.metadata"',0,,,Not Found,-1,-1,-1,-1
+Edge,1,ControlDep_CallInv,0,,,2,29,,,,,
+Edge,2,ControlDep_CallInv,0,,,7,28,,,,,
+Edge,3,ControlDep_CallRet,0,,,8,7,,,,,
+Edge,4,ControlDep_CallRet,0,,,9,2,,,,,
+Edge,5,ControlDep_Entry,0,,,28,11,,,,,
+Edge,6,ControlDep_Entry,0,,,28,12,,,,,
+Edge,7,ControlDep_Entry,0,,,28,1,,,,,
+Edge,8,ControlDep_Entry,0,,,28,13,,,,,
+Edge,9,ControlDep_Entry,0,,,28,2,,,,,
+Edge,10,ControlDep_Entry,0,,,28,8,,,,,
+Edge,11,ControlDep_Entry,0,,,29,15,,,,,
+Edge,12,ControlDep_Entry,0,,,29,16,,,,,
+Edge,13,ControlDep_Entry,0,,,29,3,,,,,
+Edge,14,ControlDep_Entry,0,,,29,4,,,,,
+Edge,15,ControlDep_Entry,0,,,29,17,,,,,
+Edge,16,ControlDep_Entry,0,,,29,18,,,,,
+Edge,17,ControlDep_Entry,0,,,29,19,,,,,
+Edge,18,ControlDep_Entry,0,,,29,20,,,,,
+Edge,19,ControlDep_Entry,0,,,29,21,,,,,
+Edge,20,ControlDep_Entry,0,,,29,9,,,,,
+Edge,21,ControlDep_Entry,0,,,29,14,,,,,
+Edge,22,ControlDep_Entry,0,,,30,22,,,,,
+Edge,23,ControlDep_Entry,0,,,30,23,,,,,
+Edge,24,ControlDep_Entry,0,,,30,24,,,,,
+Edge,25,ControlDep_Entry,0,,,30,5,,,,,
+Edge,26,ControlDep_Entry,0,,,30,25,,,,,
+Edge,27,ControlDep_Entry,0,,,30,26,,,,,
+Edge,28,ControlDep_Entry,0,,,30,6,,,,,
+Edge,29,ControlDep_Entry,0,,,30,27,,,,,
+Edge,30,ControlDep_Entry,0,,,30,7,,,,,
+Edge,31,ControlDep_Entry,0,,,30,10,,,,,
+Edge,32,DataDepEdge_DefUse,0,,,11,13,,,,,
+Edge,33,DataDepEdge_DefUse,0,,,11,12,,,,,
+Edge,34,DataDepEdge_DefUse,0,,,13,2,,,,,
+Edge,35,DataDepEdge_DefUse,0,,,14,19,,,,,
+Edge,36,DataDepEdge_DefUse,0,,,14,16,,,,,
+Edge,37,DataDepEdge_DefUse,0,,,15,18,,,,,
+Edge,38,DataDepEdge_DefUse,0,,,15,17,,,,,
+Edge,39,DataDepEdge_DefUse,0,,,19,20,,,,,
+Edge,40,DataDepEdge_DefUse,0,,,20,21,,,,,
+Edge,41,DataDepEdge_DefUse,0,,,22,24,,,,,
+Edge,42,DataDepEdge_DefUse,0,,,23,27,,,,,
+Edge,43,DataDepEdge_DefUse,0,,,23,26,,,,,
+Edge,44,DataDepEdge_DefUse,0,,,23,25,,,,,
+Edge,45,DataDepEdge_DefUse,0,,,26,6,,,,,
+Edge,46,DataDepEdge_DefUse,0,,,27,7,,,,,
+Edge,47,DataDepEdge_RAW,0,,,12,13,,,,,
+Edge,48,DataDepEdge_RAW,0,,,16,19,,,,,
+Edge,49,DataDepEdge_Ret,0,,,8,7,,,,,
+Edge,50,DataDepEdge_Ret,0,,,9,2,,,,,
+Edge,51,DataDepEdge_Alias,0,,,17,15,,,,,
+Edge,52,DataDepEdge_Alias,0,,,25,23,,,,,
+Edge,53,DataDepEdge_Alias,0,,,26,23,,,,,
+Edge,54,Parameter_In,0,,,31,13,,,,,
+Edge,55,Parameter_In,0,,,28,31,,,,,
+Edge,56,Parameter_In,0,,,13,39,,,,,
+Edge,57,Parameter_In,0,,,2,39,,,,,
+Edge,58,Parameter_In,0,,,29,33,,,,,
+Edge,59,Parameter_In,0,,,33,19,,,,,
+Edge,60,Parameter_In,0,,,27,41,,,,,
+Edge,61,Parameter_In,0,,,7,41,,,,,
+Edge,62,Parameter_In,0,,,39,33,,,,,
+Edge,63,Parameter_In,0,,,40,34,,,,,
+Edge,64,Parameter_In,0,,,41,31,,,,,
+Edge,65,Parameter_In,0,,,42,32,,,,,
+Edge,66,Parameter_Out,0,,,28,35,,,,,
+Edge,67,Parameter_Out,0,,,2,43,,,,,
+Edge,68,Parameter_Out,0,,,29,37,,,,,
+Edge,69,Parameter_Out,0,,,7,45,,,,,
+Edge,70,Parameter_Out,0,,,43,13,,,,,
+Edge,71,Parameter_Out,0,,,45,27,,,,,
+Edge,72,Parameter_Field,0,,,31,32,,,,,
+Edge,73,Parameter_Field,0,,,35,36,,,,,
+Edge,74,Parameter_Field,0,,,33,34,,,,,
+Edge,75,Parameter_Field,0,,,37,38,,,,,
+Edge,76,Parameter_Field,0,,,39,40,,,,,
+Edge,77,Parameter_Field,0,,,43,44,,,,,
+Edge,78,Parameter_Field,0,,,41,42,,,,,
+Edge,79,Parameter_Field,0,,,45,46,,,,,
+Edge,80,Anno_Global,0,,,28,49,,,,,
+Edge,81,Anno_Var,0,,,29,47,,,,,
+Edge,82,Anno_Var,0,,,17,47,,,,,
+Edge,83,Anno_Var,0,,,30,48,,,,,
+Edge,84,Anno_Var,0,,,25,48,,,,,
+Edge,85,DataDepEdge_PointsTo,0,,,46,46,,,,,
+Edge,86,DataDepEdge_PointsTo,0,,,45,23,,,,,
+Edge,87,DataDepEdge_PointsTo,0,,,11,11,,,,,
+Edge,88,DataDepEdge_PointsTo,0,,,13,23,,,,,
+Edge,89,DataDepEdge_PointsTo,0,,,44,44,,,,,
+Edge,90,DataDepEdge_PointsTo,0,,,43,23,,,,,
+Edge,91,DataDepEdge_PointsTo,0,,,14,14,,,,,
+Edge,92,DataDepEdge_PointsTo,0,,,15,15,,,,,
+Edge,93,DataDepEdge_PointsTo,0,,,17,15,,,,,
+Edge,94,DataDepEdge_PointsTo,0,,,21,23,,,,,
+Edge,95,DataDepEdge_PointsTo,0,,,9,23,,,,,
+Edge,96,DataDepEdge_PointsTo,0,,,30,30,,,,,
+Edge,97,DataDepEdge_PointsTo,0,,,22,22,,,,,
+Edge,98,DataDepEdge_PointsTo,0,,,23,23,,,,,
+Edge,99,DataDepEdge_PointsTo,0,,,25,23,,,,,
+Edge,100,DataDepEdge_PointsTo,0,,,27,23,,,,,
+Edge,101,DataDepEdge_PointsTo,0,,,10,23,,,,,
+Edge,102,DataDepEdge_PointsTo,0,,,27,23,,,,,

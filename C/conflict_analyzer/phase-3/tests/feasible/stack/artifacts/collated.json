@@ -1,0 +1,51 @@
+[
+    {
+        "cle-label": "ORANGE_NOSHARE",
+        "cle-json": {
+            "level": "orange"
+        }
+    },
+    {
+        "cle-label": "ORANGE_SHARE",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "purple",
+                    "direction": "egress",
+                    "guarddirective": {
+                        "operation": "allow"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "FOO",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "orange",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [
+                        [
+                            "ORANGE_NOSHARE"
+                        ]
+                    ],
+                    "codtaints": [
+                        "ORANGE_SHARE",
+                        "ORANGE_NOSHARE"
+                    ],
+                    "rettaints": [
+                        "ORANGE_SHARE",
+                        "ORANGE_NOSHARE"
+                    ]
+                }
+            ]
+        }
+    }
+]
