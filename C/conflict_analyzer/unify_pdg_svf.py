@@ -4,7 +4,8 @@ from pathlib import Path
 
 def unify_pdg_svf(pdg_csv, pdg_ids, svf_edges, svf_ids):
 
-    ignore = lambda llid: llid[0][:5] == "llvm." or llid == ("", "", "") or llid[0] == "printf" or llid[0] == "malloc"
+    externs = ['printf', 'malloc', 'free']
+    ignore = lambda llid: llid[0][:5] == "llvm." or llid == ("", "", "") or llid[0] in externs
     newtypes = ['DataDepEdge_PointsTo']
     llid_to_pdg_node = {}
     svf_to_llid = {}
@@ -12,8 +13,8 @@ def unify_pdg_svf(pdg_csv, pdg_ids, svf_edges, svf_ids):
     for r in pdg_ids:
         llid_to_pdg_node[(r[1], r[2], r[3])] = r[0]
     for r in svf_ids:
-        # TODO: do something with r[1], the 'pointer or non-pointer' value
-        svf_to_llid[r[0]] = (r[2], r[3], r[4])
+        # TODO: can use other row values here if needed
+        svf_to_llid[r[0]] = (r[4], r[5], r[6])
     for r in svf_edges:
         src_llid, dst_llid = svf_to_llid[r[0]], svf_to_llid[r[1]]
         if not (ignore(src_llid) or ignore(dst_llid)):
