@@ -1,21 +1,21 @@
-cleLabel = { nullCleLabel, FOO, ORANGE_NOSHARE, ORANGE_SHARE };
+cleLabel = { nullCleLabel, BAR, ORANGE_NOSHARE, ORANGE_SHARE };
 hasLabelLevel = [ nullLevel, orange, orange, orange ];
 isFunctionAnnotation = [ false, true, false, false ];
-cdf = { nullCdf, FOO_cdf_0 };
-fromCleLabel = [ nullCleLabel, FOO ];
+cdf = { nullCdf, BAR_cdf_0 };
+fromCleLabel = [ nullCleLabel, BAR ];
 hasRemotelevel = [ nullLevel, orange ];
 hasDirection = [ nullDirection, bidirectional ];
 hasGuardOperation = [ nullGuardOperation, allow ];
 isOneway = [ false, false ];
 cdfForRemoteLevel = array2d(cleLabel, Level, [
   nullCdf, nullCdf,
-  nullCdf, FOO_cdf_0,
+  nullCdf, BAR_cdf_0,
   nullCdf, nullCdf,
   nullCdf, nullCdf
 ]);
 hasRettaints = array2d(cdf, cleLabel, [
   false, false, false, false,
-  false, false, true, true
+  false, false, false, true
 ]);
 hasCodtaints = array2d(cdf, cleLabel, [
   false, false, false, false,
@@ -23,22 +23,22 @@ hasCodtaints = array2d(cdf, cleLabel, [
 ]);
 hasArgtaints = array3d(cdf, parmIdx, cleLabel, [
   false, false, false, false,
-  false, false, true, false
+  false, false, false, false
 ]);
 hasARCtaints = array2d(cdf, cleLabel, [
   false, false, false, false,
   false, true, true, true
 ]);
 Inst_FunCall_start = 1;
-Inst_FunCall_end = 9;
-Inst_Ret_start = 10;
-Inst_Ret_end = 12;
+Inst_FunCall_end = 5;
+Inst_Ret_start = 6;
+Inst_Ret_end = 7;
 Inst_Br_start = 0;
 Inst_Br_end = -1;
-Inst_Other_start = 13;
-Inst_Other_end = 38;
+Inst_Other_start = 8;
+Inst_Other_end = 22;
 Inst_start = 1;
-Inst_end = 38;
+Inst_end = 22;
 VarNode_StaticGlobal_start = 0;
 VarNode_StaticGlobal_end = -1;
 VarNode_StaticModule_start = 0;
@@ -47,94 +47,92 @@ VarNode_StaticFunction_start = 0;
 VarNode_StaticFunction_end = -1;
 VarNode_StaticOther_start = 0;
 VarNode_StaticOther_end = -1;
-VarNode_start = 39;
-VarNode_end = 38;
-FunctionEntry_start = 39;
-FunctionEntry_end = 41;
-Param_FormalIn_start = 42;
-Param_FormalIn_end = 45;
-Param_FormalOut_start = 46;
-Param_FormalOut_end = 49;
-Param_ActualIn_start = 50;
-Param_ActualIn_end = 53;
-Param_ActualOut_start = 54;
-Param_ActualOut_end = 57;
-Param_start = 42;
-Param_end = 57;
-Annotation_Var_start = 58;
-Annotation_Var_end = 60;
-Annotation_Global_start = 61;
-Annotation_Global_end = 61;
+VarNode_start = 23;
+VarNode_end = 22;
+FunctionEntry_start = 23;
+FunctionEntry_end = 24;
+Param_FormalIn_start = 0;
+Param_FormalIn_end = -1;
+Param_FormalOut_start = 0;
+Param_FormalOut_end = -1;
+Param_ActualIn_start = 0;
+Param_ActualIn_end = -1;
+Param_ActualOut_start = 0;
+Param_ActualOut_end = -1;
+Param_start = 25;
+Param_end = 24;
+Annotation_Var_start = 25;
+Annotation_Var_end = 25;
+Annotation_Global_start = 26;
+Annotation_Global_end = 26;
 Annotation_Other_start = 0;
 Annotation_Other_end = -1;
-Annotation_start = 58;
-Annotation_end = 61;
+Annotation_start = 25;
+Annotation_end = 26;
 PDGNode_start = 1;
-PDGNode_end = 61;
+PDGNode_end = 26;
 ControlDep_CallInv_start = 1;
-ControlDep_CallInv_end = 2;
+ControlDep_CallInv_end = 1;
 ControlDep_Indirect_CallInv_start = 0;
 ControlDep_Indirect_CallInv_end = -1;
-ControlDep_CallRet_start = 3;
-ControlDep_CallRet_end = 4;
-ControlDep_Entry_start = 5;
-ControlDep_Entry_end = 42;
+ControlDep_CallRet_start = 2;
+ControlDep_CallRet_end = 2;
+ControlDep_Entry_start = 3;
+ControlDep_Entry_end = 24;
 ControlDep_Br_start = 0;
 ControlDep_Br_end = -1;
 ControlDep_Other_start = 0;
 ControlDep_Other_end = -1;
 ControlDep_start = 1;
-ControlDep_end = 42;
-DataDepEdge_DefUse_start = 43;
-DataDepEdge_DefUse_end = 60;
-DataDepEdge_RAW_start = 61;
-DataDepEdge_RAW_end = 61;
-DataDepEdge_Ret_start = 62;
-DataDepEdge_Ret_end = 63;
-DataDepEdge_Alias_start = 64;
-DataDepEdge_Alias_end = 68;
-DataDepEdge_start = 43;
-DataDepEdge_end = 68;
-Parameter_In_start = 69;
-Parameter_In_end = 79;
-Parameter_Out_start = 80;
-Parameter_Out_end = 85;
-Parameter_Field_start = 86;
-Parameter_Field_end = 93;
-Parameter_start = 69;
-Parameter_end = 93;
-Anno_Global_start = 94;
-Anno_Global_end = 94;
-Anno_Var_start = 95;
-Anno_Var_end = 106;
+ControlDep_end = 24;
+DataDepEdge_DefUse_start = 25;
+DataDepEdge_DefUse_end = 38;
+DataDepEdge_RAW_start = 39;
+DataDepEdge_RAW_end = 40;
+DataDepEdge_Ret_start = 41;
+DataDepEdge_Ret_end = 41;
+DataDepEdge_Alias_start = 42;
+DataDepEdge_Alias_end = 47;
+DataDepEdge_start = 25;
+DataDepEdge_end = 47;
+Parameter_In_start = 0;
+Parameter_In_end = -1;
+Parameter_Out_start = 0;
+Parameter_Out_end = -1;
+Parameter_Field_start = 0;
+Parameter_Field_end = -1;
+Parameter_start = 48;
+Parameter_end = 47;
+Anno_Global_start = 48;
+Anno_Global_end = 48;
+Anno_Var_start = 49;
+Anno_Var_end = 52;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 94;
-Anno_end = 106;
-DataDepEdge_PointsTo_start = 107;
-DataDepEdge_PointsTo_end = 128;
+Anno_start = 48;
+Anno_end = 52;
+DataDepEdge_PointsTo_start = 53;
+DataDepEdge_PointsTo_end = 66;
 PDGEdge_start = 1;
-PDGEdge_end = 128;
+PDGEdge_end = 66;
 hasFunction = [
-39,39,39,39,40,40,41,41,41,39,40,41,39,39,39,39,39,39,39,39,40,40,40,40,40,40,40,40,40,40,41,41,41,41,41,41,41,41,39,40,41,39,39,40,40,39,39,40,40,40,40,39,39,40,40,39,39,39,40,41,0
+23,23,24,24,24,23,24,23,23,23,23,23,23,23,24,24,24,24,24,24,24,24,23,24,23,0
 ];
 hasSource = [
-4,9,10,11,39,39,39,39,39,39,39,39,39,39,39,39,39,40,40,40,40,40,40,40,40,40,40,40,40,40,41,41,41,41,41,41,41,41,41,41,41,41,13,14,14,14,19,20,21,21,22,22,28,29,31,32,32,32,37,38,23,10,11,16,19,24,34,37,39,20,4,40,44,38,9,50,51,52,53,39,4,40,9,54,56,42,46,44,48,50,54,52,56,39,39,16,17,18,40,24,25,26,41,34,35,36,57,56,13,14,16,19,20,55,54,21,22,24,28,29,41,31,32,34,37,38,19,37
+4,6,23,23,23,23,23,23,23,23,23,23,24,24,24,24,24,24,24,24,24,24,24,24,8,8,8,2,12,14,15,16,16,16,4,19,21,22,13,18,6,9,12,14,19,21,22,23,23,9,10,11,23,6,8,9,2,12,14,24,15,16,4,19,21,22
 ];
 hasDest = [
-40,39,9,4,14,15,1,2,16,17,18,19,3,20,4,10,13,21,22,23,5,6,24,25,26,27,28,29,30,11,32,33,7,34,35,36,37,8,38,9,12,31,15,20,19,16,3,4,28,23,27,24,29,30,33,38,37,34,8,9,28,9,4,14,14,22,32,32,42,50,50,44,28,52,52,44,45,42,43,46,54,48,56,20,38,43,47,45,49,51,55,53,57,61,58,58,58,58,59,59,59,59,60,60,60,60,57,32,13,14,14,14,14,55,14,21,22,22,14,14,41,31,32,32,32,32,14,32
+23,4,8,1,9,10,11,2,12,13,14,6,15,16,17,3,4,18,19,20,21,22,5,7,14,13,9,12,13,6,17,21,19,18,18,20,22,5,14,19,4,8,2,12,4,4,21,26,25,25,25,25,23,2,8,8,2,2,2,24,15,16,2,2,2,2
 ];
 hasParamIdx = array1d(Param, [
-1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1
+
 ]);
 userAnnotatedFunction = array1d(FunctionEntry, [
-true,false,false
+true,false
 ]);
 MaxFuncParms = 1;
-constraint :: "TaintOnNodeIdx16" taint[16]=ORANGE_SHARE;
-constraint :: "TaintOnNodeIdx24" taint[24]=ORANGE_SHARE;
-constraint :: "TaintOnNodeIdx34" taint[34]=ORANGE_NOSHARE;
-constraint :: "TaintOnNodeIdx39" taint[39]=FOO;
+constraint :: "TaintOnNodeIdx9" taint[9]=ORANGE_NOSHARE;
+constraint :: "TaintOnNodeIdx23" taint[23]=BAR;
 Level = { nullLevel, orange };
 Enclave = { nullEnclave, orange_E };
 hasEnclaveLevel = [ nullLevel, orange ];

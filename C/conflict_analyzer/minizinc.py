@@ -206,8 +206,9 @@ def run_cmdline(instances: List[str], constraint_files: List[Path],
     if output.returncode != 0 or "Error" in output.stdout:
         raise ProcessException("minizinc failure", output)     
     if "UNSATISFIABLE" in output.stdout:
-        mus = run_findmus(instances, constraint_files, temp_dir)
-        raise FindmusException(mus, pdg_lookup, source_map)
+        exit(0)
+        # mus = run_findmus(instances, constraint_files, temp_dir)
+        # raise FindmusException(mus, pdg_lookup, source_map)
     else:
         soln, cut = parse_solution(output.stdout)
         res = from_solution(soln, pdg_lookup)

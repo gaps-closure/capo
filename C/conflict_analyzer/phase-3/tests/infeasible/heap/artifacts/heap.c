@@ -26,21 +26,8 @@
     ] \
 }
 
-// DESCRIPTION:
-
-// when int* x gets the annotation ORANGE_NOSHARE:
-// - The address value x is ORANGE_NOSHARE
-// - The memory location which is pointed to by x is ORANGE_NOSHARE
-
-// bar() coerces the address x. But x still 
-// points to the memory location, so main has access to ORANGE_NOSHARE.
-// Then main() is multiply tainted with no function annotation, contradiction
-
-// Therefore, this example is infeasible and should fail phase-3 conflict analysis
-
-// CRITICAL EDGES:
-
-// todo
+// INFEASIBLE, because main() must be singly tainted ORANGE_SHARE,
+// but can access ORANGE_NOSHARE through a heap pointer created in bar()
 
 #pragma cle BAR
 #pragma clang attribute push (__attribute__((annotate("BAR"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
@@ -59,3 +46,7 @@ int main() {
   free(y);
   return 0;
 }
+
+// EXPECTED PHASE 3 EDGES
+// DataDepEdge_PointsTo from line 40 to line 35
+// DataDepEdge_PointsTo from line 41 to line 35

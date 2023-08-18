@@ -1,84 +1,195 @@
-0,pointer,,,
-1,pointer,,,
-2,pointer,,,
-3,pointer,,,
-4,pointer,llvm.global.annotations,,
-5,pointer,,,
-6,pointer,bar,,
-7,pointer,,,
-8,pointer,.str.2,,
-9,non-pointer,,,
-10,pointer,,,
-11,pointer,.str.1,,
-12,non-pointer,,,
-13,pointer,llvm.global.annotations,,
-14,pointer,.str,,
-15,pointer,,,
-16,pointer,bar,,
-17,pointer,bar,,
-18,pointer,bar,0,
-19,pointer,bar,0,
-20,non-pointer,,,
-21,non-pointer,bar,1,
-22,pointer,bar,2,
-23,pointer,bar,3,
-24,pointer,bar,4,
-25,non-pointer,bar,5,
-26,non-pointer,,,
-27,pointer,llvm.var.annotation,,
-28,pointer,llvm.var.annotation,,
-29,pointer,bar,6,
-30,pointer,bar,6,
-31,non-pointer,,,
-32,pointer,malloc,,
-33,pointer,malloc,,
-34,pointer,bar,7,
-35,non-pointer,bar,8,
-36,pointer,bar,9,
-37,non-pointer,bar,10,
-38,pointer,llvm.dbg.declare,,
-39,pointer,llvm.dbg.declare,,
-40,non-pointer,llvm.dbg.declare,,
-41,non-pointer,llvm.dbg.declare,,0
-42,non-pointer,llvm.dbg.declare,,1
-43,non-pointer,llvm.dbg.declare,,2
-44,non-pointer,llvm.var.annotation,,
-45,pointer,llvm.var.annotation,,0
-46,pointer,llvm.var.annotation,,1
-47,pointer,llvm.var.annotation,,2
-48,non-pointer,llvm.var.annotation,,3
-49,pointer,llvm.var.annotation,,4
-50,pointer,malloc,,
-51,non-pointer,malloc,,0
-52,pointer,main,,
-53,pointer,main,,
-54,non-pointer,main,,
-55,pointer,main,0,
-56,pointer,main,0,
-57,pointer,main,1,
-58,pointer,main,1,
-59,non-pointer,main,2,
-60,non-pointer,main,3,
-61,pointer,main,4,
-62,non-pointer,main,5,
-63,pointer,main,6,
-64,non-pointer,main,7,
-65,non-pointer,,,
-66,pointer,main,8,
-67,pointer,main,9,
-68,non-pointer,main,10,
-69,pointer,free,,
-70,pointer,free,,
-71,non-pointer,main,11,
-72,non-pointer,free,,
-73,pointer,free,,0
-74,pointer,llvm.global.annotations,,
-75,pointer,llvm.global.annotations,,
-76,pointer,llvm.global.annotations,,
-77,pointer,llvm.global.annotations,,
-78,pointer,llvm.global.annotations,,
-79,pointer,llvm.global.annotations,,
-80,pointer,llvm.global.annotations,,
-81,pointer,llvm.global.annotations,,
-82,pointer,llvm.global.annotations,,
-83,pointer,llvm.global.annotations,,
+0,ValNode,pointer,'i8* null',,,
+1,DummyValNode,pointer,,,,
+2,DummyObjNode,pointer,,,,
+3,DummyObjNode,pointer,,,,
+4,ValNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+5,ValNode,pointer,'i8* bitcast (i32* ()* @bar to i8*)',,,
+6,ValNode,pointer,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32* @bar() #0 !dbg !10 {
+  %1 = alloca i32*, align 8
+  call void @llvm.dbg.declare(metadata i32** %1, metadata !17, metadata !DIExpression()), !dbg !18
+  %2 = bitcast i32** %1 to i8*, !dbg !19
+  %3 = getelementptr inbounds [15 x i8], [15 x i8]* @.str, i32 0, i32 0
+  %4 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %2, i8* %3, i8* %4, i32 38, i8* null), !dbg !19
+  %5 = call noalias i8* @malloc(i64 noundef 4) #4, !dbg !20
+  %6 = bitcast i8* %5 to i32*, !dbg !20
+  store i32* %6, i32** %1, align 8, !dbg !18
+  %7 = load i32*, i32** %1, align 8, !dbg !21
+  ret i32* %7, !dbg !22
+}
+',bar,,
+7,ValNode,pointer,'i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0)',,,
+8,ValNode,pointer,'@.str.2 = private unnamed_addr constant [4 x i8] c"BAR\00", section "llvm.metadata"',.str.2,,
+9,ValNode,non-pointer,'i32 0',,,
+10,ValNode,pointer,'i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0)',,,
+11,ValNode,pointer,'@.str.1 = private unnamed_addr constant [71 x i8] c"/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/heap.c\00", section "llvm.metadata"',.str.1,,
+12,ValNode,non-pointer,'i32 34',,,
+13,FIObjNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+14,ValNode,pointer,'@.str = private unnamed_addr constant [15 x i8] c"ORANGE_NOSHARE\00", section "llvm.metadata"',.str,,
+15,ValNode,pointer,'i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str, i32 0, i32 0)',,,
+16,FIObjNode,pointer,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32* @bar() #0 !dbg !10 {
+  %1 = alloca i32*, align 8
+  call void @llvm.dbg.declare(metadata i32** %1, metadata !17, metadata !DIExpression()), !dbg !18
+  %2 = bitcast i32** %1 to i8*, !dbg !19
+  %3 = getelementptr inbounds [15 x i8], [15 x i8]* @.str, i32 0, i32 0
+  %4 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %2, i8* %3, i8* %4, i32 38, i8* null), !dbg !19
+  %5 = call noalias i8* @malloc(i64 noundef 4) #4, !dbg !20
+  %6 = bitcast i8* %5 to i32*, !dbg !20
+  store i32* %6, i32** %1, align 8, !dbg !18
+  %7 = load i32*, i32** %1, align 8, !dbg !21
+  ret i32* %7, !dbg !22
+}
+',bar,,
+17,RetNode,pointer,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32* @bar() #0 !dbg !10 {
+  %1 = alloca i32*, align 8
+  call void @llvm.dbg.declare(metadata i32** %1, metadata !17, metadata !DIExpression()), !dbg !18
+  %2 = bitcast i32** %1 to i8*, !dbg !19
+  %3 = getelementptr inbounds [15 x i8], [15 x i8]* @.str, i32 0, i32 0
+  %4 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %2, i8* %3, i8* %4, i32 38, i8* null), !dbg !19
+  %5 = call noalias i8* @malloc(i64 noundef 4) #4, !dbg !20
+  %6 = bitcast i8* %5 to i32*, !dbg !20
+  store i32* %6, i32** %1, align 8, !dbg !18
+  %7 = load i32*, i32** %1, align 8, !dbg !21
+  ret i32* %7, !dbg !22
+}
+',bar,10,
+18,ValNode,pointer,'  %1 = alloca i32*, align 8',bar,0,
+19,FIObjNode,pointer,'  %1 = alloca i32*, align 8',bar,0,
+20,ValNode,non-pointer,'i32 1',,,
+21,ValNode,non-pointer,'  call void @llvm.dbg.declare(metadata i32** %1, metadata !17, metadata !DIExpression()), !dbg !18',bar,1,
+22,ValNode,pointer,'  %2 = bitcast i32** %1 to i8*, !dbg !19',bar,2,
+23,ValNode,pointer,'  %3 = getelementptr inbounds [15 x i8], [15 x i8]* @.str, i32 0, i32 0',bar,3,
+24,ValNode,pointer,'  %4 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',bar,4,
+25,ValNode,non-pointer,'  call void @llvm.var.annotation(i8* %2, i8* %3, i8* %4, i32 38, i8* null), !dbg !19',bar,5,
+26,ValNode,non-pointer,'i32 38',,,
+27,ValNode,pointer,'; Function Attrs: inaccessiblememonly nofree nosync nounwind willreturn
+declare void @llvm.var.annotation(i8*, i8*, i8*, i32, i8*) #2
+',llvm.var.annotation,,
+28,FIObjNode,pointer,'; Function Attrs: inaccessiblememonly nofree nosync nounwind willreturn
+declare void @llvm.var.annotation(i8*, i8*, i8*, i32, i8*) #2
+',llvm.var.annotation,,
+29,ValNode,pointer,'  %5 = call noalias i8* @malloc(i64 noundef 4) #4, !dbg !20',bar,6,
+30,FIObjNode,pointer,'  %5 = call noalias i8* @malloc(i64 noundef 4) #4, !dbg !20',bar,6,
+31,ValNode,non-pointer,'i64 4',,,
+32,ValNode,pointer,'; Function Attrs: nounwind
+declare noalias i8* @malloc(i64 noundef) #3
+',malloc,,
+33,FIObjNode,pointer,'; Function Attrs: nounwind
+declare noalias i8* @malloc(i64 noundef) #3
+',malloc,,
+34,ValNode,pointer,'  %6 = bitcast i8* %5 to i32*, !dbg !20',bar,7,
+35,ValNode,non-pointer,'  store i32* %6, i32** %1, align 8, !dbg !18',bar,8,
+36,ValNode,pointer,'  %7 = load i32*, i32** %1, align 8, !dbg !21',bar,9,
+37,ValNode,non-pointer,'  ret i32* %7, !dbg !22',bar,10,
+38,ValNode,pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+',llvm.dbg.declare,,
+39,FIObjNode,pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+',llvm.dbg.declare,,
+40,RetNode,non-pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
+',llvm.dbg.declare,,
+41,ValNode,non-pointer,'metadata %0',llvm.dbg.declare,,0
+42,ValNode,non-pointer,'metadata %1',llvm.dbg.declare,,1
+43,ValNode,non-pointer,'metadata %2',llvm.dbg.declare,,2
+44,RetNode,non-pointer,'; Function Attrs: inaccessiblememonly nofree nosync nounwind willreturn
+declare void @llvm.var.annotation(i8*, i8*, i8*, i32, i8*) #2
+',llvm.var.annotation,,
+45,ValNode,pointer,'i8* %0',llvm.var.annotation,,0
+46,ValNode,pointer,'i8* %1',llvm.var.annotation,,1
+47,ValNode,pointer,'i8* %2',llvm.var.annotation,,2
+48,ValNode,non-pointer,'i32 %3',llvm.var.annotation,,3
+49,ValNode,pointer,'i8* %4',llvm.var.annotation,,4
+50,RetNode,pointer,'; Function Attrs: nounwind
+declare noalias i8* @malloc(i64 noundef) #3
+',malloc,,
+51,ValNode,non-pointer,'i64 %0',malloc,,0
+52,ValNode,pointer,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !23 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32*, align 8
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !26, metadata !DIExpression()), !dbg !27
+  %3 = call i32* @bar(), !dbg !28
+  store i32* %3, i32** %2, align 8, !dbg !27
+  %4 = load i32*, i32** %2, align 8, !dbg !29
+  store i32 2, i32* %4, align 4, !dbg !30
+  %5 = load i32*, i32** %2, align 8, !dbg !31
+  %6 = bitcast i32* %5 to i8*, !dbg !31
+  call void @free(i8* noundef %6) #4, !dbg !32
+  ret i32 0, !dbg !33
+}
+',main,,
+53,FIObjNode,pointer,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !23 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32*, align 8
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !26, metadata !DIExpression()), !dbg !27
+  %3 = call i32* @bar(), !dbg !28
+  store i32* %3, i32** %2, align 8, !dbg !27
+  %4 = load i32*, i32** %2, align 8, !dbg !29
+  store i32 2, i32* %4, align 4, !dbg !30
+  %5 = load i32*, i32** %2, align 8, !dbg !31
+  %6 = bitcast i32* %5 to i8*, !dbg !31
+  call void @free(i8* noundef %6) #4, !dbg !32
+  ret i32 0, !dbg !33
+}
+',main,,
+54,RetNode,non-pointer,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !23 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32*, align 8
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !26, metadata !DIExpression()), !dbg !27
+  %3 = call i32* @bar(), !dbg !28
+  store i32* %3, i32** %2, align 8, !dbg !27
+  %4 = load i32*, i32** %2, align 8, !dbg !29
+  store i32 2, i32* %4, align 4, !dbg !30
+  %5 = load i32*, i32** %2, align 8, !dbg !31
+  %6 = bitcast i32* %5 to i8*, !dbg !31
+  call void @free(i8* noundef %6) #4, !dbg !32
+  ret i32 0, !dbg !33
+}
+',main,11,
+55,ValNode,pointer,'  %1 = alloca i32, align 4',main,0,
+56,FIObjNode,pointer,'  %1 = alloca i32, align 4',main,0,
+57,ValNode,pointer,'  %2 = alloca i32*, align 8',main,1,
+58,FIObjNode,pointer,'  %2 = alloca i32*, align 8',main,1,
+59,ValNode,non-pointer,'  store i32 0, i32* %1, align 4',main,2,
+60,ValNode,non-pointer,'  call void @llvm.dbg.declare(metadata i32** %2, metadata !26, metadata !DIExpression()), !dbg !27',main,3,
+61,ValNode,pointer,'  %3 = call i32* @bar(), !dbg !19',main,4,
+62,ValNode,non-pointer,'  store i32* %3, i32** %2, align 8, !dbg !18',main,5,
+63,ValNode,pointer,'  %4 = load i32*, i32** %2, align 8, !dbg !20',main,6,
+64,ValNode,non-pointer,'  store i32 2, i32* %4, align 4, !dbg !21',main,7,
+65,ValNode,non-pointer,'i32 2',,,
+66,ValNode,pointer,'  %5 = load i32*, i32** %2, align 8, !dbg !22',main,8,
+67,ValNode,pointer,'  %6 = bitcast i32* %5 to i8*, !dbg !22',main,9,
+68,ValNode,non-pointer,'  call void @free(i8* noundef %6) #4, !dbg !23',main,10,
+69,ValNode,pointer,'; Function Attrs: nounwind
+declare void @free(i8* noundef) #3
+',free,,
+70,FIObjNode,pointer,'; Function Attrs: nounwind
+declare void @free(i8* noundef) #3
+',free,,
+71,ValNode,non-pointer,'  ret i32 0, !dbg !24',main,11,
+72,RetNode,non-pointer,'; Function Attrs: nounwind
+declare void @free(i8* noundef) #3
+',free,,
+73,ValNode,pointer,'i8* %0',free,,0
+74,GepValNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+75,GepValNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+76,GepValNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+77,GepValNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+78,GepValNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+79,GepObjNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+80,GepObjNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+81,GepObjNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+82,GepObjNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+83,GepObjNode,pointer,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32* ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 34, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
