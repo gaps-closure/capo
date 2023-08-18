@@ -53,14 +53,24 @@ def run_dump_ptg(dump_ptg: Path, out_bc_path: Path, temp_dir: Path):
     return svf_ids, svf_edges
 
 def opt(pdg_so: Path, dump_ptg: Path, bitcode: bytes, temp_dir: Path) -> OptOutput:
+    
+    # Write bytes to .bc file
     out_bc_path = temp_dir / 'out.bc'
     with open(out_bc_path, "wb") as bc_f:
         bc_f.write(bitcode)
+
+    # Get SVF nodes and edges, and pre-processed .bc file
+    svf_ids, svf_edges = run_dump_ptg(dump_ptg, out_bc_path, temp_dir)
+    out_bc_path = temp_dir / 'out.svf.bc'
+    
+    # Run opt pass on .bc file
     args: List[Union[Path, str]] = ['opt-14', '-enable-new-pm=0', '-load',
                                     pdg_so, '-minizinc', '-zinc-debug', out_bc_path]
     out = subprocess.run(args, cwd=temp_dir, capture_output=True)
     if out.returncode != 0:
         raise ProcessException("opt failed", out)
+    
+    # Process results of opt
     pdg_instance = (temp_dir / 'pdg_instance.mzn').read_text()
     function_args = (temp_dir / 'functionArgs.txt').read_text()
     with open(temp_dir / 'pdg_node_to_llid.csv') as pdg_f:
@@ -72,6 +82,6 @@ def opt(pdg_so: Path, dump_ptg: Path, bitcode: bytes, temp_dir: Path) -> OptOutp
         one_way = (temp_dir / 'oneway.txt').read_text()
     except:
         one_way = ""
-    svf_ids, svf_edges = run_dump_ptg(dump_ptg, out_bc_path, temp_dir)
+
     return OptOutput(pdg_instance, function_args, pdg_ids, svf_ids, svf_edges, pdg_data, one_way)
 
