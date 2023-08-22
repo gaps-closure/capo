@@ -17,7 +17,7 @@ def unify_pdg_svf(pdg_csv, pdg_ids, svf_edges, svf_ids):
         svf_to_llid[r[0]] = (r[4], r[5], r[6])
     for r in svf_edges:
         src_llid, dst_llid = svf_to_llid[r[0]], svf_to_llid[r[1]]
-        if not (ignore(src_llid) or ignore(dst_llid)):
+        if not (ignore(src_llid) or ignore(dst_llid) or src_llid == dst_llid):
             src, dst = llid_to_pdg_node[src_llid], llid_to_pdg_node[dst_llid]
             pdg_csv.append(['Edge', str(e_id), newtypes[0], '0', '', '', src, dst, '', '', '', '', ''])
             e_id = e_id + 1

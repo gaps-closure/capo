@@ -19,7 +19,6 @@ then
 fi
 
 run () {
-    echo ""
     ERR=$'\n    conflict analysis errored (see above)'
        mkdir tmp-ca \
     && python3 -m conflict_analyzer --temp-dir tmp-ca --pdg-lib ../../pdg2/build/libpdg.so --dump-ptg ../../pdg2/svf/Release-build/bin/dump-ptg tests/$1/$2/$2.c 2>&1 >ca-output.txt \
@@ -45,8 +44,7 @@ run () {
             EDGE=$'\n    TODO: edge diff'
             echo $"FAILURE $1/$2 $ERR $EDGE"
         else
-            EDGE=$'\n    TODO: edge diff'
-            echo $"SUCCESS $1/$2 $EDGE" # TODO: output expected edges vs actual edges
+            echo $"SUCCESS $1/$2"
         fi
     fi
 }
@@ -57,7 +55,7 @@ then
     run $1 $2
     echo $'\nSee ca-output.txt for conflict analyzer output'
 else
-    for prog in global global-noaccess heap stack indirect-xd indirect-coerce
+    for prog in global-alias global-alias-noaccess coerced-alias coerced-alias-noaccess heap heap-noaccess stack stack-noaccess indirect-xd indirect-coerce
     do
         run infeasible $prog
     done
