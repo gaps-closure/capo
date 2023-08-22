@@ -128,9 +128,9 @@ false,false
 MaxFuncParms = 1;
 constraint :: "TaintOnNodeIdx13" taint[13]=PURPLE;
 constraint :: "TaintOnNodeIdx26" taint[26]=ORANGE;
-Level = { nullLevel, purple, orange };
-Enclave = { nullEnclave, purple_E, orange_E };
-hasEnclaveLevel = [ nullLevel, purple, orange ];
+Level = { nullLevel, orange, purple };
+Enclave = { nullEnclave, orange_E, purple_E };
+hasEnclaveLevel = [ nullLevel, orange, purple ];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flag to include/exclude debug output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -257,13 +257,13 @@ constraint :: "DataTaintCoerced"
 %  forall (e in DataDepEdge_PointsTo)
 %   (xdedge(e) == false);
 
-constraint :: "PtrAliasCoerced"
- forall (e in DataDepEdge_PointsTo)
-  (if (hasFunction[hasSource[e]] != 0) then 
-      coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
-   else
-      coerced[e] == false
-   endif);
+% constraint :: "PtrAliasCoerced"
+%  forall (e in DataDepEdge_PointsTo)
+%   (if (hasFunction[hasSource[e]] != 0) then 
+%       coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
+%    else
+%       coerced[e] == false
+%    endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
@@ -479,9 +479,9 @@ set of int: Global              = VarNode_StaticGlobal union VarNode_StaticModul
 set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union Param;
 set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_Indirect_CallInv;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
-set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
+set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias union DataDepEdge_PointsTo;
 set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
-set of int: DataEdgeParam       = DataDepEdge union Parameter;
+set of int: DataEdgeParam       = DataDepEdge union Parameter union DataDepEdge_PointsTo;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves

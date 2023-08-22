@@ -40,7 +40,7 @@ Inst_Other_end = 18;
 Inst_start = 1;
 Inst_end = 18;
 VarNode_StaticGlobal_start = 19;
-VarNode_StaticGlobal_end = 19;
+VarNode_StaticGlobal_end = 20;
 VarNode_StaticModule_start = 0;
 VarNode_StaticModule_end = -1;
 VarNode_StaticFunction_start = 0;
@@ -48,9 +48,9 @@ VarNode_StaticFunction_end = -1;
 VarNode_StaticOther_start = 0;
 VarNode_StaticOther_end = -1;
 VarNode_start = 19;
-VarNode_end = 19;
-FunctionEntry_start = 20;
-FunctionEntry_end = 21;
+VarNode_end = 20;
+FunctionEntry_start = 21;
+FunctionEntry_end = 22;
 Param_FormalIn_start = 0;
 Param_FormalIn_end = -1;
 Param_FormalOut_start = 0;
@@ -59,18 +59,18 @@ Param_ActualIn_start = 0;
 Param_ActualIn_end = -1;
 Param_ActualOut_start = 0;
 Param_ActualOut_end = -1;
-Param_start = 22;
-Param_end = 21;
-Annotation_Var_start = 22;
-Annotation_Var_end = 22;
-Annotation_Global_start = 23;
-Annotation_Global_end = 23;
+Param_start = 23;
+Param_end = 22;
+Annotation_Var_start = 23;
+Annotation_Var_end = 23;
+Annotation_Global_start = 24;
+Annotation_Global_end = 24;
 Annotation_Other_start = 0;
 Annotation_Other_end = -1;
-Annotation_start = 22;
-Annotation_end = 23;
+Annotation_start = 23;
+Annotation_end = 24;
 PDGNode_start = 1;
-PDGNode_end = 23;
+PDGNode_end = 24;
 ControlDep_CallInv_start = 1;
 ControlDep_CallInv_end = 1;
 ControlDep_Indirect_CallInv_start = 0;
@@ -86,43 +86,43 @@ ControlDep_Other_end = -1;
 ControlDep_start = 1;
 ControlDep_end = 20;
 DataDepEdge_DefUse_start = 21;
-DataDepEdge_DefUse_end = 29;
-DataDepEdge_RAW_start = 30;
-DataDepEdge_RAW_end = 30;
-DataDepEdge_Ret_start = 31;
-DataDepEdge_Ret_end = 31;
-DataDepEdge_Alias_start = 32;
-DataDepEdge_Alias_end = 33;
+DataDepEdge_DefUse_end = 30;
+DataDepEdge_RAW_start = 31;
+DataDepEdge_RAW_end = 31;
+DataDepEdge_Ret_start = 32;
+DataDepEdge_Ret_end = 32;
+DataDepEdge_Alias_start = 33;
+DataDepEdge_Alias_end = 34;
 DataDepEdge_start = 21;
-DataDepEdge_end = 33;
+DataDepEdge_end = 34;
 Parameter_In_start = 0;
 Parameter_In_end = -1;
 Parameter_Out_start = 0;
 Parameter_Out_end = -1;
 Parameter_Field_start = 0;
 Parameter_Field_end = -1;
-Parameter_start = 34;
-Parameter_end = 33;
-Anno_Global_start = 34;
-Anno_Global_end = 35;
-Anno_Var_start = 36;
-Anno_Var_end = 39;
+Parameter_start = 35;
+Parameter_end = 34;
+Anno_Global_start = 35;
+Anno_Global_end = 36;
+Anno_Var_start = 37;
+Anno_Var_end = 40;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 34;
-Anno_end = 39;
-DataDepEdge_PointsTo_start = 40;
-DataDepEdge_PointsTo_end = 49;
+Anno_start = 35;
+Anno_end = 40;
+DataDepEdge_PointsTo_start = 41;
+DataDepEdge_PointsTo_end = 53;
 PDGEdge_start = 1;
-PDGEdge_end = 49;
+PDGEdge_end = 53;
 hasFunction = [
-21,21,21,20,21,21,21,21,21,21,21,21,21,21,21,21,21,21,0,20,21,21,0
+22,22,22,21,22,22,22,22,22,22,22,22,22,22,22,22,22,22,0,0,21,22,22,0
 ];
 hasSource = [
-3,4,20,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,6,7,7,8,8,3,15,16,17,14,4,10,15,19,20,21,10,11,12,19,20,4,21,6,7,8,10,3,15
+3,4,21,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,20,6,7,7,8,8,3,15,16,17,14,4,10,15,19,21,22,10,11,12,19,21,20,4,22,6,7,8,10,3,15,16,17
 ];
 hasDest = [
-20,3,4,6,7,8,9,1,10,11,12,13,2,3,14,15,16,17,18,5,9,13,10,15,14,14,16,17,18,15,3,7,3,23,23,22,22,22,22,19,20,19,21,6,7,8,7,19,19
+21,3,4,6,7,8,9,1,10,11,12,13,2,3,14,15,16,17,18,5,4,9,13,10,15,14,14,16,17,18,15,3,7,3,24,24,23,23,23,23,19,21,20,20,22,6,7,8,7,20,20,19,19
 ];
 hasParamIdx = array1d(Param, [
 
@@ -133,7 +133,7 @@ true,false
 MaxFuncParms = 1;
 constraint :: "TaintOnNodeIdx10" taint[10]=ORANGE_SHARE;
 constraint :: "TaintOnNodeIdx19" taint[19]=ORANGE_NOSHARE;
-constraint :: "TaintOnNodeIdx20" taint[20]=BAR;
+constraint :: "TaintOnNodeIdx21" taint[21]=BAR;
 Level = { nullLevel, orange };
 Enclave = { nullEnclave, orange_E };
 hasEnclaveLevel = [ nullLevel, orange ];
@@ -263,13 +263,13 @@ constraint :: "DataTaintCoerced"
 %  forall (e in DataDepEdge_PointsTo)
 %   (xdedge(e) == false);
 
-constraint :: "PtrAliasCoerced"
- forall (e in DataDepEdge_PointsTo)
-  (if (hasFunction[hasSource[e]] != 0) then 
-      coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
-   else
-      coerced[e] == false
-   endif);
+% constraint :: "PtrAliasCoerced"
+%  forall (e in DataDepEdge_PointsTo)
+%   (if (hasFunction[hasSource[e]] != 0) then 
+%       coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
+%    else
+%       coerced[e] == false
+%    endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
@@ -485,9 +485,9 @@ set of int: Global              = VarNode_StaticGlobal union VarNode_StaticModul
 set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union Param;
 set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_Indirect_CallInv;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
-set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
+set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias union DataDepEdge_PointsTo;
 set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
-set of int: DataEdgeParam       = DataDepEdge union Parameter;
+set of int: DataEdgeParam       = DataDepEdge union Parameter union DataDepEdge_PointsTo;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves
