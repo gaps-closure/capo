@@ -50,8 +50,6 @@ def get_endpt_data(active_cell, to=False):
         to_data   = df.loc[(df['Type'] == 'Node') & (df['ID'] == to_id)].to_dict()
 
         # Why are the fields given as single-element dictionaries?
-        print(from_data)
-        print(to_data)
         for k in from_data: from_data[k] = list(from_data[k].values())[0]
         for k in to_data: to_data[k] = list(to_data[k].values())[0]
 
@@ -97,7 +95,8 @@ def main():
         dbc.Label('Click any cell of an edge row in the table:'),
         dash_table.DataTable(
             data=dt, columns=cs, style_cell=cst, id='tbl', 
-            sort_action='native', filter_action='native'
+            sort_action='native', filter_action='native',
+            page_size=10
         ),
         'From Node:', dbc.Alert(id='tbl_out_from'),
         'To Node:',   dbc.Alert(id='tbl_out_to'),

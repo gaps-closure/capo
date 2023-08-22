@@ -62,6 +62,11 @@ def opt(pdg_so: Path, dump_ptg: Path, bitcode: bytes, temp_dir: Path) -> OptOutp
     # Get SVF nodes and edges, and pre-processed .bc file
     svf_ids, svf_edges = run_dump_ptg(dump_ptg, out_bc_path, temp_dir)
     out_bc_path = temp_dir / 'out.svf.bc'
+
+    # Get pre-processed ll file
+    out = subprocess.run(['llvm-dis', out_bc_path], cwd=temp_dir, capture_output=True)
+    if out.returncode != 0:
+        raise ProcessException("llvm-dis failed", out)
     
     # Run opt pass on .bc file
     args: List[Union[Path, str]] = ['opt-14', '-enable-new-pm=0', '-load',
