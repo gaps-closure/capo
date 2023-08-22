@@ -37,6 +37,10 @@ int* bar() {
 }
 
 int main() {
+
+  #pragma cle ORANGE_SHARE
+  int unused = 0;
+
   int* y = bar(); // Access to ORANGE_SHARE data y (because bar() coerced it)
   *y = 2;         // Access to ORANGE_NOSHARE data pointed to by y
   free(y);
@@ -46,3 +50,4 @@ int main() {
 // EXPECTED PHASE 3 EDGES
 // DataDepEdge_PointsTo from line 40 to line 35
 // DataDepEdge_PointsTo from line 41 to line 35
+// DataDepEdge_PointsTo from line 42 to line 35

@@ -1,0 +1,205 @@
+Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32** %2, metadata !17, metadata !DIExpression()), !dbg !18',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,39,15,3,-1
+Node,2,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32** %3, metadata !19, metadata !DIExpression()), !dbg !20',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,44,8,4,-1
+Node,3,Inst_FunCall,,'  call void @bar(i32* noundef %8), !dbg !25',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,48,3,12,-1
+Node,4,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32** %2, metadata !28, metadata !DIExpression()), !dbg !29',34,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,32,15,2,-1
+Node,5,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata [3 x i32]* %2, metadata !36, metadata !DIExpression()), !dbg !40',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,56,7,3,-1
+Node,6,Inst_FunCall,,'  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 4 %6, i8* align 4 bitcast ([3 x i32]* @__const.main.x to i8*), i64 12, i1 false), !dbg !20',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,56,7,9,-1
+Node,7,Inst_FunCall,,'  call void @foo(i32* noundef %7), !dbg !23',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,58,3,11,-1
+Node,8,Inst_Ret,,'  ret void, !dbg !26',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,49,1,13,-1
+Node,9,Inst_Ret,,'  ret void, !dbg !21',34,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,34,1,6,-1
+Node,10,Inst_Ret,,'  ret i32 0, !dbg !24',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,59,3,12,-1
+Node,11,Inst_Other,,'  %2 = alloca i32*, align 8',33,,,,-1,-1,0,-1
+Node,12,Inst_Other,,'  %3 = alloca i32*, align 8',33,,,,-1,-1,1,-1
+Node,13,Inst_Other,,'  store i32* %0, i32** %2, align 8',33,,,,-1,-1,2,-1
+Node,14,Inst_Other,ORANGE_SHARE,'  %4 = bitcast i32** %3 to i8*, !dbg !21',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,44,3,5,-1
+Node,15,Inst_Other,,'  %5 = getelementptr inbounds [13 x i8], [13 x i8]* @.str, i32 0, i32 0',33,,,,-1,-1,6,-1
+Node,16,Inst_Other,,'  %6 = getelementptr inbounds [80 x i8], [80 x i8]* @.str.1, i32 0, i32 0',33,,,,-1,-1,7,-1
+Node,17,Inst_Other,,'  %7 = load i32*, i32** %2, align 8, !dbg !22',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,47,7,9,-1
+Node,18,Inst_Other,,'  store i32* %7, i32** %3, align 8, !dbg !23',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,47,5,10,-1
+Node,19,Inst_Other,,'  %8 = load i32*, i32** %3, align 8, !dbg !24',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,48,7,11,-1
+Node,20,Inst_Other,,'  %2 = alloca i32*, align 8',34,,,,-1,-1,0,-1
+Node,21,Inst_Other,,'  store i32* %0, i32** %2, align 8',34,,,,-1,-1,1,-1
+Node,22,Inst_Other,,'  %3 = load i32*, i32** %2, align 8, !dbg !19',34,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,33,3,3,-1
+Node,23,Inst_Other,,'  %4 = getelementptr inbounds i32, i32* %3, i64 0, !dbg !19',34,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,33,3,4,-1
+Node,24,Inst_Other,,'  store i32 5, i32* %4, align 4, !dbg !20',34,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,33,8,5,-1
+Node,25,Inst_Other,,'  %1 = alloca i32, align 4',35,,,,-1,-1,0,-1
+Node,26,Inst_Other,,'  %2 = alloca [3 x i32], align 4',35,,,,-1,-1,1,-1
+Node,27,Inst_Other,,'  store i32 0, i32* %1, align 4',35,,,,-1,-1,2,-1
+Node,28,Inst_Other,ORANGE_NOSHARE,'  %3 = bitcast [3 x i32]* %2 to i8*, !dbg !21',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,56,3,4,-1
+Node,29,Inst_Other,,'  %4 = getelementptr inbounds [15 x i8], [15 x i8]* @.str.3, i32 0, i32 0',35,,,,-1,-1,5,-1
+Node,30,Inst_Other,,'  %5 = getelementptr inbounds [80 x i8], [80 x i8]* @.str.1, i32 0, i32 0',35,,,,-1,-1,6,-1
+Node,31,Inst_Other,,'  %6 = bitcast [3 x i32]* %2 to i8*, !dbg !20',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,56,7,8,-1
+Node,32,Inst_Other,,'  %7 = getelementptr inbounds [3 x i32], [3 x i32]* %2, i64 0, i64 0, !dbg !22',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,58,7,10,-1
+Node,33,FunctionEntry,FOO,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @foo(i32* noundef %0) #0 !dbg !10 {
+  %2 = alloca i32*, align 8
+  %3 = alloca i32*, align 8
+  store i32* %0, i32** %2, align 8
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !17, metadata !DIExpression()), !dbg !18
+  call void @llvm.dbg.declare(metadata i32** %3, metadata !19, metadata !DIExpression()), !dbg !20
+  %4 = bitcast i32** %3 to i8*, !dbg !21
+  %5 = getelementptr inbounds [13 x i8], [13 x i8]* @.str, i32 0, i32 0
+  %6 = getelementptr inbounds [80 x i8], [80 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %4, i8* %5, i8* %6, i32 44, i8* null), !dbg !21
+  %7 = load i32*, i32** %2, align 8, !dbg !22
+  store i32* %7, i32** %3, align 8, !dbg !23
+  %8 = load i32*, i32** %3, align 8, !dbg !24
+  call void @bar(i32* noundef %8), !dbg !25
+  ret void, !dbg !26
+}
+',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,39,-1,-1,-1
+Node,34,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @bar(i32* noundef %0) #0 !dbg !27 {
+  %2 = alloca i32*, align 8
+  store i32* %0, i32** %2, align 8
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !28, metadata !DIExpression()), !dbg !29
+  %3 = load i32*, i32** %2, align 8, !dbg !30
+  %4 = getelementptr inbounds i32, i32* %3, i64 0, !dbg !30
+  store i32 5, i32* %4, align 4, !dbg !31
+  ret void, !dbg !32
+}
+',34,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,32,-1,-1,-1
+Node,35,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !33 {
+  %1 = alloca i32, align 4
+  %2 = alloca [3 x i32], align 4
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata [3 x i32]* %2, metadata !36, metadata !DIExpression()), !dbg !40
+  %3 = bitcast [3 x i32]* %2 to i8*, !dbg !41
+  %4 = getelementptr inbounds [15 x i8], [15 x i8]* @.str.3, i32 0, i32 0
+  %5 = getelementptr inbounds [80 x i8], [80 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %3, i8* %4, i8* %5, i32 56, i8* null), !dbg !41
+  %6 = bitcast [3 x i32]* %2 to i8*, !dbg !40
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 4 %6, i8* align 4 bitcast ([3 x i32]* @__const.main.x to i8*), i64 12, i1 false), !dbg !40
+  %7 = getelementptr inbounds [3 x i32], [3 x i32]* %2, i64 0, i64 0, !dbg !42
+  call void @foo(i32* noundef %7), !dbg !43
+  ret i32 0, !dbg !44
+}
+',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,52,-1,-1,-1
+Node,36,Param_FormalIn,,No Value,33,,,Not Found,-1,-1,-1,0
+Node,37,Param_FormalIn,,No Value,33,,,Not Found,-1,-1,-1,-1
+Node,38,Param_FormalIn,,No Value,34,,,Not Found,-1,-1,-1,0
+Node,39,Param_FormalIn,,No Value,34,,,Not Found,-1,-1,-1,-1
+Node,40,Param_FormalOut,,No Value,33,,,Not Found,-1,-1,-1,0
+Node,41,Param_FormalOut,,No Value,33,,,Not Found,-1,-1,-1,-1
+Node,42,Param_FormalOut,,No Value,34,,,Not Found,-1,-1,-1,0
+Node,43,Param_FormalOut,,No Value,34,,,Not Found,-1,-1,-1,-1
+Node,44,Param_ActualIn,,No Value,34,,,Not Found,-1,-1,-1,0
+Node,45,Param_ActualIn,,No Value,34,,,Not Found,-1,-1,-1,-1
+Node,46,Param_ActualIn,,No Value,33,,,Not Found,-1,-1,-1,0
+Node,47,Param_ActualIn,,No Value,33,,,Not Found,-1,-1,-1,-1
+Node,48,Param_ActualOut,,No Value,34,,,Not Found,-1,-1,-1,0
+Node,49,Param_ActualOut,,No Value,34,,,Not Found,-1,-1,-1,-1
+Node,50,Param_ActualOut,,No Value,33,,,Not Found,-1,-1,-1,0
+Node,51,Param_ActualOut,,No Value,33,,,Not Found,-1,-1,-1,-1
+Node,52,Annotation_Var,,'  call void @llvm.var.annotation(i8* %4, i8* %5, i8* %6, i32 44, i8* null), !dbg !21',33,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,44,3,8,-1
+Node,53,Annotation_Var,,'  call void @llvm.var.annotation(i8* %3, i8* %4, i8* %5, i32 56, i8* null), !dbg !21',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/coerced-alias.c,56,3,7,-1
+Node,54,Annotation_Global,,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (void (i32*)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([80 x i8], [80 x i8]* @.str.1, i32 0, i32 0), i32 39, i8* null }], section "llvm.metadata"',0,,,Not Found,-1,-1,-1,-1
+Edge,1,ControlDep_CallInv,0,,,3,34,,,,,
+Edge,2,ControlDep_CallInv,0,,,7,33,,,,,
+Edge,3,ControlDep_CallRet,0,,,8,7,,,,,
+Edge,4,ControlDep_CallRet,0,,,9,3,,,,,
+Edge,5,ControlDep_Entry,0,,,33,11,,,,,
+Edge,6,ControlDep_Entry,0,,,33,12,,,,,
+Edge,7,ControlDep_Entry,0,,,33,13,,,,,
+Edge,8,ControlDep_Entry,0,,,33,1,,,,,
+Edge,9,ControlDep_Entry,0,,,33,2,,,,,
+Edge,10,ControlDep_Entry,0,,,33,14,,,,,
+Edge,11,ControlDep_Entry,0,,,33,15,,,,,
+Edge,12,ControlDep_Entry,0,,,33,16,,,,,
+Edge,13,ControlDep_Entry,0,,,33,17,,,,,
+Edge,14,ControlDep_Entry,0,,,33,18,,,,,
+Edge,15,ControlDep_Entry,0,,,33,19,,,,,
+Edge,16,ControlDep_Entry,0,,,33,3,,,,,
+Edge,17,ControlDep_Entry,0,,,33,8,,,,,
+Edge,18,ControlDep_Entry,0,,,34,21,,,,,
+Edge,19,ControlDep_Entry,0,,,34,4,,,,,
+Edge,20,ControlDep_Entry,0,,,34,22,,,,,
+Edge,21,ControlDep_Entry,0,,,34,23,,,,,
+Edge,22,ControlDep_Entry,0,,,34,24,,,,,
+Edge,23,ControlDep_Entry,0,,,34,9,,,,,
+Edge,24,ControlDep_Entry,0,,,34,20,,,,,
+Edge,25,ControlDep_Entry,0,,,35,25,,,,,
+Edge,26,ControlDep_Entry,0,,,35,26,,,,,
+Edge,27,ControlDep_Entry,0,,,35,27,,,,,
+Edge,28,ControlDep_Entry,0,,,35,5,,,,,
+Edge,29,ControlDep_Entry,0,,,35,28,,,,,
+Edge,30,ControlDep_Entry,0,,,35,29,,,,,
+Edge,31,ControlDep_Entry,0,,,35,30,,,,,
+Edge,32,ControlDep_Entry,0,,,35,31,,,,,
+Edge,33,ControlDep_Entry,0,,,35,6,,,,,
+Edge,34,ControlDep_Entry,0,,,35,32,,,,,
+Edge,35,ControlDep_Entry,0,,,35,7,,,,,
+Edge,36,ControlDep_Entry,0,,,35,10,,,,,
+Edge,37,DataDepEdge_DefUse,0,,,11,17,,,,,
+Edge,38,DataDepEdge_DefUse,0,,,11,13,,,,,
+Edge,39,DataDepEdge_DefUse,0,,,12,19,,,,,
+Edge,40,DataDepEdge_DefUse,0,,,12,18,,,,,
+Edge,41,DataDepEdge_DefUse,0,,,12,14,,,,,
+Edge,42,DataDepEdge_DefUse,0,,,17,18,,,,,
+Edge,43,DataDepEdge_DefUse,0,,,19,3,,,,,
+Edge,44,DataDepEdge_DefUse,0,,,20,22,,,,,
+Edge,45,DataDepEdge_DefUse,0,,,20,21,,,,,
+Edge,46,DataDepEdge_DefUse,0,,,22,23,,,,,
+Edge,47,DataDepEdge_DefUse,0,,,23,24,,,,,
+Edge,48,DataDepEdge_DefUse,0,,,25,27,,,,,
+Edge,49,DataDepEdge_DefUse,0,,,26,32,,,,,
+Edge,50,DataDepEdge_DefUse,0,,,26,31,,,,,
+Edge,51,DataDepEdge_DefUse,0,,,26,28,,,,,
+Edge,52,DataDepEdge_DefUse,0,,,31,6,,,,,
+Edge,53,DataDepEdge_DefUse,0,,,32,7,,,,,
+Edge,54,DataDepEdge_RAW,0,,,13,17,,,,,
+Edge,55,DataDepEdge_RAW,0,,,18,19,,,,,
+Edge,56,DataDepEdge_RAW,0,,,21,22,,,,,
+Edge,57,DataDepEdge_Ret,0,,,8,7,,,,,
+Edge,58,DataDepEdge_Ret,0,,,9,3,,,,,
+Edge,59,DataDepEdge_Alias,0,,,14,12,,,,,
+Edge,60,DataDepEdge_Alias,0,,,19,17,,,,,
+Edge,61,DataDepEdge_Alias,0,,,28,26,,,,,
+Edge,62,DataDepEdge_Alias,0,,,31,26,,,,,
+Edge,63,Parameter_In,0,,,36,17,,,,,
+Edge,64,Parameter_In,0,,,33,36,,,,,
+Edge,65,Parameter_In,0,,,19,44,,,,,
+Edge,66,Parameter_In,0,,,3,44,,,,,
+Edge,67,Parameter_In,0,,,34,38,,,,,
+Edge,68,Parameter_In,0,,,38,22,,,,,
+Edge,69,Parameter_In,0,,,32,46,,,,,
+Edge,70,Parameter_In,0,,,7,46,,,,,
+Edge,71,Parameter_In,0,,,44,38,,,,,
+Edge,72,Parameter_In,0,,,45,39,,,,,
+Edge,73,Parameter_In,0,,,46,36,,,,,
+Edge,74,Parameter_In,0,,,47,37,,,,,
+Edge,75,Parameter_Out,0,,,33,40,,,,,
+Edge,76,Parameter_Out,0,,,3,48,,,,,
+Edge,77,Parameter_Out,0,,,34,42,,,,,
+Edge,78,Parameter_Out,0,,,7,50,,,,,
+Edge,79,Parameter_Out,0,,,48,19,,,,,
+Edge,80,Parameter_Out,0,,,50,32,,,,,
+Edge,81,Parameter_Field,0,,,36,37,,,,,
+Edge,82,Parameter_Field,0,,,40,41,,,,,
+Edge,83,Parameter_Field,0,,,38,39,,,,,
+Edge,84,Parameter_Field,0,,,42,43,,,,,
+Edge,85,Parameter_Field,0,,,44,45,,,,,
+Edge,86,Parameter_Field,0,,,48,49,,,,,
+Edge,87,Parameter_Field,0,,,46,47,,,,,
+Edge,88,Parameter_Field,0,,,50,51,,,,,
+Edge,89,Anno_Global,0,,,33,54,,,,,
+Edge,90,Anno_Var,0,,,33,52,,,,,
+Edge,91,Anno_Var,0,,,14,52,,,,,
+Edge,92,Anno_Var,0,,,15,52,,,,,
+Edge,93,Anno_Var,0,,,16,52,,,,,
+Edge,94,Anno_Var,0,,,35,53,,,,,
+Edge,95,Anno_Var,0,,,28,53,,,,,
+Edge,96,Anno_Var,0,,,29,53,,,,,
+Edge,97,Anno_Var,0,,,30,53,,,,,
+Edge,98,DataDepEdge_PointsTo,0,,,50,26,,,,,
+Edge,99,DataDepEdge_PointsTo,0,,,14,12,,,,,
+Edge,100,DataDepEdge_PointsTo,0,,,17,26,,,,,
+Edge,101,DataDepEdge_PointsTo,0,,,19,26,,,,,
+Edge,102,DataDepEdge_PointsTo,0,,,48,26,,,,,
+Edge,103,DataDepEdge_PointsTo,0,,,22,26,,,,,
+Edge,104,DataDepEdge_PointsTo,0,,,23,26,,,,,
+Edge,105,DataDepEdge_PointsTo,0,,,28,26,,,,,
+Edge,106,DataDepEdge_PointsTo,0,,,31,26,,,,,
+Edge,107,DataDepEdge_PointsTo,0,,,32,26,,,,,
+Edge,108,DataDepEdge_PointsTo,0,,,31,26,,,,,

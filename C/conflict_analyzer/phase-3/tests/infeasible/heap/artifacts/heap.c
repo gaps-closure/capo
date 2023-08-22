@@ -41,6 +41,12 @@ int* bar() {
 }
 
 int main() {
+
+  #pragma cle ORANGE_SHARE
+#pragma clang attribute push (__attribute__((annotate("ORANGE_SHARE"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
+  int unused = 0;
+#pragma clang attribute pop
+
   int* y = bar(); // Access to ORANGE_SHARE data y (because bar() coerced it)
   *y = 2;         // Access to ORANGE_NOSHARE data pointed to by y
   free(y);
@@ -50,3 +56,4 @@ int main() {
 // EXPECTED PHASE 3 EDGES
 // DataDepEdge_PointsTo from line 40 to line 35
 // DataDepEdge_PointsTo from line 41 to line 35
+// DataDepEdge_PointsTo from line 42 to line 35
