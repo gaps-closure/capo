@@ -173,9 +173,9 @@ set of int: Global              = VarNode_StaticGlobal union VarNode_StaticModul
 set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union Param;
 set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_Indirect_CallInv;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
-set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
+set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias union DataDepEdge_PointsTo;
 set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
-set of int: DataEdgeParam       = DataDepEdge union Parameter;
+set of int: DataEdgeParam       = DataDepEdge union Parameter union DataDepEdge_PointsTo;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves

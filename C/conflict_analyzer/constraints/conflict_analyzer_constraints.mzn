@@ -124,13 +124,13 @@ constraint :: "DataTaintCoerced"
 %  forall (e in DataDepEdge_PointsTo)
 %   (xdedge(e) == false);
 
-constraint :: "PtrAliasCoerced"
- forall (e in DataDepEdge_PointsTo)
-  (if (hasFunction[hasSource[e]] != 0) then 
-      coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
-   else
-      coerced[e] == false
-   endif);
+% constraint :: "PtrAliasCoerced"
+%  forall (e in DataDepEdge_PointsTo)
+%   (if (hasFunction[hasSource[e]] != 0) then 
+%       coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
+%    else
+%       coerced[e] == false
+%    endif);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
