@@ -39,8 +39,8 @@ class OptOutput:
     pdg_csv: list
     one_way: str
 
-def run_dump_ptg(dump_ptg: Path, out_bc_path: Path, temp_dir: Path):
-    args_ptg: List[Union[Path, str]] = [dump_ptg, '-fspta', out_bc_path,
+def run_dump_ptg(dump_ptg: Path, pts: str, out_bc_path: Path, temp_dir: Path):
+    args_ptg: List[Union[Path, str]] = [dump_ptg, '-{}'.format(pts), out_bc_path,
                                         'svf_node_to_llid.csv', 
                                         'svf_edges.csv']
     out_ptg = subprocess.run(args_ptg, cwd=temp_dir, capture_output=True)
@@ -52,7 +52,7 @@ def run_dump_ptg(dump_ptg: Path, out_bc_path: Path, temp_dir: Path):
         svf_edges = list(csv.reader(svf_f, quotechar="'", skipinitialspace=True))
     return svf_ids, svf_edges
 
-def opt(pdg_so: Path, dump_ptg: Path, bitcode: bytes, temp_dir: Path) -> OptOutput:
+def opt(pdg_so: Path, dump_ptg: Path, pts: str, bitcode: bytes, temp_dir: Path) -> OptOutput:
     
     # Write bytes to .bc file
     out_bc_path = temp_dir / 'out.bc'
@@ -60,7 +60,7 @@ def opt(pdg_so: Path, dump_ptg: Path, bitcode: bytes, temp_dir: Path) -> OptOutp
         bc_f.write(bitcode)
 
     # Get SVF nodes and edges, and pre-processed .bc file
-    svf_ids, svf_edges = run_dump_ptg(dump_ptg, out_bc_path, temp_dir)
+    svf_ids, svf_edges = run_dump_ptg(dump_ptg, pts, out_bc_path, temp_dir)
     out_bc_path = temp_dir / 'out.svf.bc'
 
     # Get pre-processed ll file

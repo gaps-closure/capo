@@ -85,7 +85,7 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         logger.debug("%s", json.dumps(collated, indent=2))
         bitcode = compile_c([ (path.name, transform.preprocessed) for path, transform in entities if path.suffix == ".c" ], args.temp_dir, clang_args)
         logger.info("Compiled c files into LLVM IR")
-        opt_out = opt(args.pdg_lib, args.dump_ptg, bitcode, args.temp_dir)
+        opt_out = opt(args.pdg_lib, args.dump_ptg, args.pts_to_algo, bitcode, args.temp_dir)
         opt_out.pdg_csv = unify_pdg_svf(opt_out.pdg_csv, opt_out.pdg_ids, opt_out.svf_edges, opt_out.svf_ids)
         with open(args.temp_dir / 'pdg_svf_data.csv', "w") as f:
             writer = csv.writer(f, delimiter=",", quotechar="'")
@@ -120,6 +120,8 @@ def parsed_args() -> Args:
     parser.add_argument('--pdg-lib', help="Path to pdg lib", 
         type=Path, required=True)
     parser.add_argument('--dump-ptg', help="Path to dump-ptg utility", type=Path, required=True)
+    parser.add_argument('--pts-to-algo', help="Points-to algorithm that SVF should use (ander, fspta)",
+        choices=["ander", "fspta"], default="ander", required=False)
     parser.add_argument('--source-path', help="Source path for output topology. Defaults to current directory", 
         default=Path('.').resolve())
     parser.add_argument('--constraint-files', help="Path to constraint files", 
