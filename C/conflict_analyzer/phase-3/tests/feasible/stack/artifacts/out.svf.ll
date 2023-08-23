@@ -3,9 +3,9 @@ source_filename = "llvm-link"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-linux-gnu"
 
-@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (void (i32*)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([72 x i8], [72 x i8]* @.str.1, i32 0, i32 0), i32 46, i8* null }], section "llvm.metadata"
+@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (void (i32*)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 46, i8* null }], section "llvm.metadata"
 @.str = private unnamed_addr constant [13 x i8] c"ORANGE_SHARE\00", section "llvm.metadata"
-@.str.1 = private unnamed_addr constant [72 x i8] c"/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c\00", section "llvm.metadata"
+@.str.1 = private unnamed_addr constant [71 x i8] c"/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c\00", section "llvm.metadata"
 @__const.foo.y = private unnamed_addr constant [3 x i32] [i32 1, i32 2, i32 3], align 4
 @.str.2 = private unnamed_addr constant [4 x i8] c"FOO\00", section "llvm.metadata"
 @.str.3 = private unnamed_addr constant [15 x i8] c"ORANGE_NOSHARE\00", section "llvm.metadata"
@@ -20,7 +20,7 @@ define dso_local void @foo(i32* noundef %0) #0 !dbg !10 {
   call void @llvm.dbg.declare(metadata [3 x i32]* %3, metadata !19, metadata !DIExpression()), !dbg !23
   %4 = bitcast [3 x i32]* %3 to i8*, !dbg !24
   %5 = getelementptr inbounds [13 x i8], [13 x i8]* @.str, i32 0, i32 0
-  %6 = getelementptr inbounds [72 x i8], [72 x i8]* @.str.1, i32 0, i32 0
+  %6 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
   call void @llvm.var.annotation(i8* %4, i8* %5, i8* %6, i32 51, i8* null), !dbg !24
   %7 = bitcast [3 x i32]* %3 to i8*, !dbg !23
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 4 %7, i8* align 4 bitcast ([3 x i32]* @__const.foo.y to i8*), i64 12, i1 false), !dbg !23
@@ -47,7 +47,7 @@ define dso_local void @bar(i32* noundef %0) #0 !dbg !28 {
   call void @llvm.dbg.declare(metadata i32* %3, metadata !31, metadata !DIExpression()), !dbg !32
   %4 = bitcast i32* %3 to i8*, !dbg !33
   %5 = getelementptr inbounds [13 x i8], [13 x i8]* @.str, i32 0, i32 0
-  %6 = getelementptr inbounds [72 x i8], [72 x i8]* @.str.1, i32 0, i32 0
+  %6 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
   call void @llvm.var.annotation(i8* %4, i8* %5, i8* %6, i32 37, i8* null), !dbg !33
   store i32 1, i32* %3, align 4, !dbg !32
   %7 = load i32*, i32** %2, align 8, !dbg !34
@@ -64,7 +64,7 @@ define dso_local i32 @main() #0 !dbg !37 {
   call void @llvm.dbg.declare(metadata [3 x i32]* %2, metadata !40, metadata !DIExpression()), !dbg !41
   %3 = bitcast [3 x i32]* %2 to i8*, !dbg !42
   %4 = getelementptr inbounds [15 x i8], [15 x i8]* @.str.3, i32 0, i32 0
-  %5 = getelementptr inbounds [72 x i8], [72 x i8]* @.str.1, i32 0, i32 0
+  %5 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
   call void @llvm.var.annotation(i8* %3, i8* %4, i8* %5, i32 62, i8* null), !dbg !42
   %6 = bitcast [3 x i32]* %2 to i8*, !dbg !41
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 4 %6, i8* align 4 bitcast ([3 x i32]* @__const.main.x to i8*), i64 12, i1 false), !dbg !41
@@ -83,7 +83,7 @@ attributes #3 = { argmemonly nofree nounwind willreturn }
 !llvm.module.flags = !{!3, !4, !5, !6, !7, !8, !9}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "Ubuntu clang version 14.0.0-1ubuntu1.1", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/stack.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "79eb7b8cc04a494191c615d840363cad")
+!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "79eb7b8cc04a494191c615d840363cad")
 !2 = !{!"Ubuntu clang version 14.0.0-1ubuntu1.1"}
 !3 = !{i32 7, !"Dwarf Version", i32 5}
 !4 = !{i32 2, !"Debug Info Version", i32 3}
@@ -93,7 +93,7 @@ attributes #3 = { argmemonly nofree nounwind willreturn }
 !8 = !{i32 7, !"uwtable", i32 1}
 !9 = !{i32 7, !"frame-pointer", i32 2}
 !10 = distinct !DISubprogram(name: "foo", scope: !11, file: !11, line: 46, type: !12, scopeLine: 46, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !16)
-!11 = !DIFile(filename: "stack.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "79eb7b8cc04a494191c615d840363cad")
+!11 = !DIFile(filename: "prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "79eb7b8cc04a494191c615d840363cad")
 !12 = !DISubroutineType(types: !13)
 !13 = !{null, !14}
 !14 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !15, size: 64)
