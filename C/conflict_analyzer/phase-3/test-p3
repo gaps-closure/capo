@@ -44,12 +44,12 @@ run () {
         then
             ERR=$'\n    instance.mzn is unsatisfiable'
             EDGE=$'\n    TODO: edge diff'
-            echo $"FAILURE $2/$3 $ERR $EDGE"
+            echo $"FAILURE $2/$3 $ERR"
         elif [[ ($STATUS != 0 && "$2" == "infeasible") ]]
         then
             ERR=$'\n    instance.mzn is satisfiable'
             EDGE=$'\n    TODO: edge diff'
-            echo $"FAILURE $2/$3 $ERR $EDGE"
+            echo $"FAILURE $2/$3 $ERR"
         else
             echo $"SUCCESS $2/$3"
         fi

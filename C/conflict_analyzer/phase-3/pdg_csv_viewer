@@ -70,9 +70,10 @@ def update_graphs(active_cell):
 def main():
 
     # Arg validation
-    if len(sys.argv) != 2:
-        print("Usage: python3 pdg_csv_viewer.py file.csv")
+    if len(sys.argv) != 3:
+        print("Usage: ./pdg_csv_viewer [feasible|infeasible] prog-name")
         exit(0)
+    fname = 'tests/{}/{}/artifacts/pdg_svf_data.csv'.format(sys.argv[1], sys.argv[2])
 
     # Init dataframe
     global df
@@ -83,7 +84,7 @@ def main():
     ]
     cst = {'overflow': 'hidden', 'textOverflow': 'auto', 'maxWidth': 0}
     df = pd.read_csv(
-        sys.argv[1], header=None, names=cols, 
+        fname, header=None, names=cols, 
         dtype=str, quotechar="'", lineterminator='\n')
     df['id'] = df.index
     dt = df.to_dict('records')
