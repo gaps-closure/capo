@@ -7,6 +7,7 @@ target triple = "x86_64-pc-linux-gnu"
 @.str = private unnamed_addr constant [15 x i8] c"ORANGE_NOSHARE\00", section "llvm.metadata"
 @.str.1 = private unnamed_addr constant [71 x i8] c"/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c\00", section "llvm.metadata"
 @.str.2 = private unnamed_addr constant [4 x i8] c"BAR\00", section "llvm.metadata"
+@.str.3 = private unnamed_addr constant [13 x i8] c"ORANGE_SHARE\00", section "llvm.metadata"
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32* @bar() #0 !dbg !10 {
@@ -35,12 +36,19 @@ declare noalias i8* @malloc(i64 noundef) #3
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @main() #0 !dbg !23 {
   %1 = alloca i32, align 4
-  %2 = alloca i32*, align 8
+  %2 = alloca i32, align 4
+  %3 = alloca i32*, align 8
   store i32 0, i32* %1, align 4
-  call void @llvm.dbg.declare(metadata i32** %2, metadata !26, metadata !DIExpression()), !dbg !27
-  %3 = call i32* @bar(), !dbg !28
-  store i32* %3, i32** %2, align 8, !dbg !27
-  ret i32 0, !dbg !29
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !26, metadata !DIExpression()), !dbg !27
+  %4 = bitcast i32* %2 to i8*, !dbg !28
+  %5 = getelementptr inbounds [13 x i8], [13 x i8]* @.str.3, i32 0, i32 0
+  %6 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %4, i8* %5, i8* %6, i32 47, i8* null), !dbg !28
+  store i32 0, i32* %2, align 4, !dbg !27
+  call void @llvm.dbg.declare(metadata i32** %3, metadata !29, metadata !DIExpression()), !dbg !30
+  %7 = call i32* @bar(), !dbg !31
+  store i32* %7, i32** %3, align 8, !dbg !30
+  ret i32 0, !dbg !32
 }
 
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -54,7 +62,7 @@ attributes #4 = { nounwind }
 !llvm.module.flags = !{!3, !4, !5, !6, !7, !8, !9}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "Ubuntu clang version 14.0.0-1ubuntu1.1", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "d173b3188218dec4ebeebcf1667d3515")
+!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "bbb9280b13ecc8fcae37285a77f821aa")
 !2 = !{!"Ubuntu clang version 14.0.0-1ubuntu1.1"}
 !3 = !{i32 7, !"Dwarf Version", i32 5}
 !4 = !{i32 2, !"Debug Info Version", i32 3}
@@ -64,7 +72,7 @@ attributes #4 = { nounwind }
 !8 = !{i32 7, !"uwtable", i32 1}
 !9 = !{i32 7, !"frame-pointer", i32 2}
 !10 = distinct !DISubprogram(name: "bar", scope: !11, file: !11, line: 34, type: !12, scopeLine: 34, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !16)
-!11 = !DIFile(filename: "prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "d173b3188218dec4ebeebcf1667d3515")
+!11 = !DIFile(filename: "prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "bbb9280b13ecc8fcae37285a77f821aa")
 !12 = !DISubroutineType(types: !13)
 !13 = !{!14}
 !14 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !15, size: 64)
@@ -79,7 +87,10 @@ attributes #4 = { nounwind }
 !23 = distinct !DISubprogram(name: "main", scope: !11, file: !11, line: 43, type: !24, scopeLine: 43, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !16)
 !24 = !DISubroutineType(types: !25)
 !25 = !{!15}
-!26 = !DILocalVariable(name: "y", scope: !23, file: !11, line: 44, type: !14)
-!27 = !DILocation(line: 44, column: 8, scope: !23)
-!28 = !DILocation(line: 44, column: 12, scope: !23)
-!29 = !DILocation(line: 45, column: 3, scope: !23)
+!26 = !DILocalVariable(name: "unused", scope: !23, file: !11, line: 47, type: !15)
+!27 = !DILocation(line: 47, column: 7, scope: !23)
+!28 = !DILocation(line: 47, column: 3, scope: !23)
+!29 = !DILocalVariable(name: "y", scope: !23, file: !11, line: 50, type: !14)
+!30 = !DILocation(line: 50, column: 8, scope: !23)
+!31 = !DILocation(line: 50, column: 12, scope: !23)
+!32 = !DILocation(line: 51, column: 3, scope: !23)

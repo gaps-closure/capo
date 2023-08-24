@@ -112,17 +112,17 @@ Anno_Other_end = -1;
 Anno_start = 23;
 Anno_end = 28;
 DataDepEdge_PointsTo_start = 29;
-DataDepEdge_PointsTo_end = 31;
+DataDepEdge_PointsTo_end = 33;
 PDGEdge_start = 1;
-PDGEdge_end = 31;
+PDGEdge_end = 33;
 hasFunction = [
 17,17,17,16,17,17,17,17,17,17,17,17,17,0,0,16,17,17,0
 ];
 hasSource = [
-3,4,16,17,17,17,17,17,17,17,17,17,17,17,17,15,6,7,8,3,4,10,14,16,17,10,11,12,4,10,3
+3,4,16,17,17,17,17,17,17,17,17,17,17,17,17,15,6,7,8,3,4,10,14,16,17,10,11,12,15,4,8,10,3
 ];
 hasDest = [
-16,3,4,6,7,8,9,1,10,11,12,2,3,13,5,4,9,10,13,13,3,7,19,19,18,18,18,18,15,7,15
+16,3,4,6,7,8,9,1,10,11,12,2,3,13,5,4,9,10,13,13,3,7,19,19,18,18,18,18,14,15,15,7,15
 ];
 hasParamIdx = array1d(Param, [
 
@@ -241,7 +241,9 @@ constraint :: "ReturnTaintCoerced"
 
 constraint :: "DataTaintCoerced"
  forall (e in DataEdgeNoRetParam)
-  (if (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
+  (if (e in DataDepEdge_PointsTo)
+   then coerced[e] == false
+   elseif (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
    then coerced[e] == (isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)]) /\
                        isInArctaint(esFunTaint(e), esTaint(e), hasLabelLevel[esTaint(e)]))     % source and dest taints okay
    elseif (isVarNode(hasDest[e]) /\ hasFunction[hasSource[e]]!=0)
@@ -259,17 +261,8 @@ constraint :: "DataTaintCoerced"
 % Phase 3 test constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% constraint :: "PtrAliasSameEnclave"
-%  forall (e in DataDepEdge_PointsTo)
-%   (xdedge(e) == false);
-
-% constraint :: "PtrAliasCoerced"
-%  forall (e in DataDepEdge_PointsTo)
-%   (if (hasFunction[hasSource[e]] != 0) then 
-%       coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
-%    else
-%       coerced[e] == false
-%    endif);
+constraint :: "PointsToSameEnclave"
+ forall (e in DataDepEdge_PointsTo) (xdedge(e) == false);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective

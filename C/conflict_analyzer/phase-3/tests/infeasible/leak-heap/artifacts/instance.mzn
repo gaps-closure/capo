@@ -112,17 +112,17 @@ Anno_Other_end = -1;
 Anno_start = 57;
 Anno_end = 65;
 DataDepEdge_PointsTo_start = 66;
-DataDepEdge_PointsTo_end = 74;
+DataDepEdge_PointsTo_end = 76;
 PDGEdge_start = 1;
-PDGEdge_end = 74;
+PDGEdge_end = 76;
 hasFunction = [
 29,29,30,30,30,30,29,30,29,29,29,29,29,29,29,30,30,30,30,30,30,30,30,30,30,30,30,30,29,30,29,30,0
 ];
 hasSource = [
-5,7,29,29,29,29,29,29,29,29,29,29,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,9,9,9,2,13,15,16,17,17,18,18,18,5,25,27,28,14,24,7,10,13,15,20,25,27,28,29,29,10,11,12,30,20,21,22,7,10,13,15,20,5,25,27,28
+5,7,29,29,29,29,29,29,29,29,29,29,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,9,9,9,2,13,15,16,17,17,18,18,18,5,25,27,28,14,24,7,10,13,15,20,25,27,28,29,29,10,11,12,30,20,21,22,7,9,10,13,15,18,20,5,25,27,28
 ];
 hasDest = [
-29,5,9,1,10,11,12,2,13,14,15,7,16,17,18,19,3,20,21,22,23,4,5,24,25,26,27,28,6,8,15,14,10,13,14,7,19,23,20,27,25,24,24,26,28,6,15,25,5,9,2,13,17,5,5,27,33,31,31,31,31,32,32,32,32,2,9,2,2,17,2,2,2,2
+29,5,9,1,10,11,12,2,13,14,15,7,16,17,18,19,3,20,21,22,23,4,5,24,25,26,27,28,6,8,15,14,10,13,14,7,19,23,20,27,25,24,24,26,28,6,15,25,5,9,2,13,17,5,5,27,33,31,31,31,31,32,32,32,32,2,2,9,2,2,2,17,2,2,2,2
 ];
 hasParamIdx = array1d(Param, [
 
@@ -241,7 +241,9 @@ constraint :: "ReturnTaintCoerced"
 
 constraint :: "DataTaintCoerced"
  forall (e in DataEdgeNoRetParam)
-  (if (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
+  (if (e in DataDepEdge_PointsTo)
+   then coerced[e] == false
+   elseif (hasFunction[hasSource[e]]!=0 /\ hasFunction[hasDest[e]]!=0 /\ hasFunction[hasSource[e]]==hasFunction[hasDest[e]])
    then coerced[e] == (isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)]) /\
                        isInArctaint(esFunTaint(e), esTaint(e), hasLabelLevel[esTaint(e)]))     % source and dest taints okay
    elseif (isVarNode(hasDest[e]) /\ hasFunction[hasSource[e]]!=0)
@@ -259,17 +261,8 @@ constraint :: "DataTaintCoerced"
 % Phase 3 test constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% constraint :: "PtrAliasSameEnclave"
-%  forall (e in DataDepEdge_PointsTo)
-%   (xdedge(e) == false);
-
-% constraint :: "PtrAliasCoerced"
-%  forall (e in DataDepEdge_PointsTo)
-%   (if (hasFunction[hasSource[e]] != 0) then 
-%       coerced[e] == isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])
-%    else
-%       coerced[e] == false
-%    endif);
+constraint :: "PointsToSameEnclave"
+ forall (e in DataDepEdge_PointsTo) (xdedge(e) == false);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective

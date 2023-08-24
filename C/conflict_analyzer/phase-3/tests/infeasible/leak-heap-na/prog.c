@@ -37,6 +37,10 @@ int* bar() {
 }
 
 int main() {
+
+  #pragma cle ORANGE_SHARE
+  int unused = 0;
+  
   int* y = bar(); // Access to ORANGE_SHARE data y (because bar() coerced it)
   return 0;
 }

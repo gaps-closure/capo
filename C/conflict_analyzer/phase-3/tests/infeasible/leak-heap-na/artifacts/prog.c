@@ -41,6 +41,12 @@ int* bar() {
 }
 
 int main() {
+
+  #pragma cle ORANGE_SHARE
+#pragma clang attribute push (__attribute__((annotate("ORANGE_SHARE"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
+  int unused = 0;
+#pragma clang attribute pop
+  
   int* y = bar(); // Access to ORANGE_SHARE data y (because bar() coerced it)
   return 0;
 }
