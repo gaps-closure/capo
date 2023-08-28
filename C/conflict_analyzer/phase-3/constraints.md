@@ -5,8 +5,8 @@ The phase 3 conflict analyzer should correctly partition programs containing bot
 ## Status
 
 In the current phase 3 constraint model (`capo/phase-3-develop`):
-- **Enforced**: 1.
-- **Not Enforced**: 2-10.
+- **Enforced**: 1, 2, 4, 7, 8, 9.
+- **Not Enforced**: 3, 5, 6, 10.
 
 ## Listing
 
