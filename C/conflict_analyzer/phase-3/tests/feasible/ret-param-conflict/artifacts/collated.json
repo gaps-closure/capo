@@ -12,12 +12,6 @@
         }
     },
     {
-        "cle-label": "C",
-        "cle-json": {
-            "level": "orange"
-        }
-    },
-    {
         "cle-label": "FOO",
         "cle-json": {
             "level": "orange",
@@ -58,11 +52,10 @@
                     "argtaints": [],
                     "codtaints": [
                         "A",
-                        "B",
-                        "C"
+                        "B"
                     ],
                     "rettaints": [
-                        "C"
+                        "B"
                     ]
                 }
             ]

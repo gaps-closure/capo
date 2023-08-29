@@ -128,9 +128,9 @@ false,false
 MaxFuncParms = 1;
 constraint :: "TaintOnNodeIdx13" taint[13]=PURPLE;
 constraint :: "TaintOnNodeIdx26" taint[26]=ORANGE;
-Level = { nullLevel, orange, purple };
-Enclave = { nullEnclave, orange_E, purple_E };
-hasEnclaveLevel = [ nullLevel, orange, purple ];
+Level = { nullLevel, purple, orange };
+Enclave = { nullEnclave, purple_E, orange_E };
+hasEnclaveLevel = [ nullLevel, purple, orange ];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flag to include/exclude debug output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

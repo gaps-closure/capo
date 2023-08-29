@@ -2,7 +2,6 @@
 
 #pragma cle def A { "level": "orange" }
 #pragma cle def B { "level": "orange" }
-#pragma cle def C { "level": "orange" }
 
 #pragma cle def FOO { "level":"orange",	\
   "cdf": [\
@@ -22,8 +21,8 @@
      "direction": "bidirectional", \
      "guarddirective": { "operation": "allow"}, \
      "argtaints": [], \
-     "codtaints": ["B", "C"], \
-     "rettaints": ["C"] \
+     "codtaints": ["B"], \
+     "rettaints": ["B"] \
     } \
   ]\
 }

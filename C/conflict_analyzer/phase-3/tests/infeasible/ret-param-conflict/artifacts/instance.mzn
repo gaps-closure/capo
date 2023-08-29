@@ -1,6 +1,6 @@
-cleLabel = { nullCleLabel, FOO, MAIN, A, B, C };
-hasLabelLevel = [ nullLevel, orange, orange, orange, orange, orange ];
-isFunctionAnnotation = [ false, true, true, false, false, false ];
+cleLabel = { nullCleLabel, FOO, MAIN, A, B };
+hasLabelLevel = [ nullLevel, orange, orange, orange, orange ];
+isFunctionAnnotation = [ false, true, true, false, false ];
 cdf = { nullCdf, FOO_cdf_0, MAIN_cdf_0 };
 fromCleLabel = [ nullCleLabel, FOO, MAIN ];
 hasRemotelevel = [ nullLevel, orange, orange ];
@@ -12,28 +12,27 @@ cdfForRemoteLevel = array2d(cleLabel, Level, [
   nullCdf, FOO_cdf_0,
   nullCdf, MAIN_cdf_0,
   nullCdf, nullCdf,
-  nullCdf, nullCdf,
   nullCdf, nullCdf
 ]);
 hasRettaints = array2d(cdf, cleLabel, [
-  false, false, false, false, false, false,
-  false, false, false, false, true, false,
-  false, false, false, false, false, true
+  false, false, false, false, false,
+  false, false, false, false, true,
+  false, false, false, false, true
 ]);
 hasCodtaints = array2d(cdf, cleLabel, [
-  false, false, false, false, false, false,
-  false, false, false, true, true, false,
-  false, false, false, false, true, true
+  false, false, false, false, false,
+  false, false, false, true, true,
+  false, false, false, false, true
 ]);
 hasArgtaints = array3d(cdf, parmIdx, cleLabel, [
-  false, false, false, false, false, false,
-  false, false, false, true, false, false,
-  false, false, false, false, false, false
+  false, false, false, false, false,
+  false, false, false, true, false,
+  false, false, false, false, false
 ]);
 hasARCtaints = array2d(cdf, cleLabel, [
-  false, false, false, false, false, false,
-  false, true, false, true, true, false,
-  false, false, true, false, true, true
+  false, false, false, false, false,
+  false, true, false, true, true,
+  false, false, true, false, true
 ]);
 Inst_FunCall_start = 1;
 Inst_FunCall_end = 3;
