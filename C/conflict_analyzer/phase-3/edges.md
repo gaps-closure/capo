@@ -1,8 +1,27 @@
 # CAPO phase 3 pointer support: New PDG edges
 
-The phase 3 conflict analyzer should correctly partition programs containing both data and function pointers, even when they are aliased, enclosed in struct fields, passed between different functions, or passed to an external function. The phase 3 PDG must include new edges to support the new constraints on the CLE model.
+The phase 3 conflict analyzer should correctly partition programs containing both data and function pointers, even when they are aliased, enclosed in struct fields, passed between different functions, or passed to an external function. The phase 3 PDG must include new edges to support the new constraints on the CLE model. For example programs identifying where the new edges should appear, refer to `capo/C/conflict_analyzer/constraints/phase-3/new-edge-examples`.
 
-For example programs identifying where the new edges should appear, refer to `capo/C/conflict_analyzer/constraints/phase-3/new-edge-examples`.
+## Quick Status Summary
+
+| Edge | Status in pdg2/phase-3-develop |
+| --- | --- |
+| `ControlDep_CallInv`  | Legacy PDG export | 
+| `DataDepEdge_Ret` | Legay PDG export |
+| `Paameter_In` | Legacy PDG export, we care about inter-procedural edge |
+| `Paramater_Out` | Legacy PDG export, we care about inter-procedural edge |
+| `DataDepEdge_DefUse` | Legacy PDG export, we care about edges leaving function |
+| `DataDepEdge_PointsTo` | New SVF export, using Andersen, we care about edges leaving function, subtype by heap, stack, function-static, global -- are parameter/return nodes covered? |
+| `ControlDep_Indirect_CallInv` | * Need to be exported from SVF, currently PDG-based * |
+| `DataDepEdge_Indirect_Ret` | * Missing * |
+| `Parameter_Indirect_In` | * Missing * |
+| `Parameter_Indirect_Out` | * Missing * |
+| `DataDepEdge_DefUseGlobal` | * Missing * |
+| `DataDepEdge_PointsToGlobal` | New SVF export, using Andersen (XXX: confirm these are included) |
+| `ControlDep_ExternSubgraph` | TBD |
+| Other | Varargs, Struct literal args, long jumps, etc. are TBD | 
+
+Note: All nodes are legacy export from PDG, and nodes in SVF model are aligned to the PDF nodes. Export from PDG includes additional information such as maximum number of parameters functions in the LLVM IR, CLE annotations, constraints, parameter index, source-level debug references, etc.
 
 ## Listing
 
@@ -15,20 +34,7 @@ We introduce the following new edge types:
 - `Parameter_Indirect_In`      (connect data to its use as a parameter in an indirect call)
 - `Parameter_Indirect_Out`     (connect the parameter of an indirect call to corresponding function argument)
 
-## Status
 
-The following edges are exported by `pdg2/phase-3-develop`:
-- `ControlDep_Indirect`
-- `DataDepEdge_PointsTo`
-
-The following edges are exported by the `pdg2` but should instead be exported by SVF for better coverate:
-- `ControlDep_Indirect`
-
-The following edges are not exported nor known to be present in the raw PDG or SVF alias analysis:
-- `DataDepEdge_GlobalDefUse`
-- `Parameter_Indirect_In`
-- `Parameter_Indirect_Out`
-- `ControlDep_ExternSubgraph`
 
 ## Edge definitions
 
