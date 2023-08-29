@@ -214,17 +214,46 @@ constraint :: "interFunParameterFieldTaintsMatch"
 % Phase 3 edge constraints %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Indirect call invocations cannot be cross-domain.
 constraint :: "IndirectCallSameEnclave"
   forall (e in ControlDep_Indirect_CallInv)
     (xdedge(e) == false);
 
+% MISSING:
+% Parameter and return edges of indirect calls must satisfy 
+% the same constraints as their direct call counter-parts.
+
+% Endpoints of a points-to edge must be in the same enclave.
 constraint :: "PointsToSameEnclave"
   forall (e in DataDepEdge_PointsTo)
     (xdedge(e) == false);
 
+% Endpoints of a points-to edge must have the same taint
+% (including cases in which either endpoint is 
+% global/module-static/function).
+% Sometimes pointer dependencies are captured by a chain
+% of points-to edges which may be intra-function edges. Therefore
+% we restrict intra-function points-to edges to have the
+% same taint, even in annotated functions.
 constraint :: "PointsToTaintsMatch"
   forall (e in DataDepEdge_PointsTo)
     (esTaint(e) == edTaint(e));
+
+% MISSING:
+% If two global variables are connected by a def-use edge,
+% they must have the same taint.
+
+% MISSING:
+% Any function whose address is taken in the program 
+% cannot have a function annotation. Indirect callees,
+% as a consequence, cannot have a function annotation.
+
+% MISSING:
+% A structure or array and all its fields/elements 
+% must have the same taint
+
+% MISSING:
+% External callback subgraph constraint
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
