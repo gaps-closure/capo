@@ -38,7 +38,7 @@ run () {
     then
         (rm -rf tmp-ca 2> /dev/null && echo $"FAILURE $2/$3 $ERR")
     else
-        minizinc tests/$2/$3/artifacts/instance.mzn | tail -n 1 | grep -q "UNSATISFIABLE"
+        minizinc tests/$2/$3/artifacts/instance.mzn 2> /dev/null | tail -n 1 | grep -q "UNSATISFIABLE"
         STATUS=$?
         if [[ ($STATUS == 0 && "$2" == "feasible") ]]
         then
