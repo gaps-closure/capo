@@ -11,13 +11,13 @@ The phase 3 conflict analyzer should correctly partition programs containing bot
 | `Paameter_In` | Legacy PDG export, we care about inter-procedural edge |
 | `Paramater_Out` | Legacy PDG export, we care about inter-procedural edge |
 | `DataDepEdge_DefUse` | Legacy PDG export, we care about edges leaving function |
-| `DataDepEdge_PointsTo` | New SVF export, using Andersen, we care about edges leaving function, subtype by heap, stack, function-static, global -- are parameter/return nodes covered? |
+| `DataDepEdge_PointsTo` | New SVF export, using Andersen, we care about edges leaving function, subtype by heap, stack, function-static, global |
 | `ControlDep_Indirect_CallInv` | * Need to be exported from SVF, currently PDG-based * |
 | `DataDepEdge_Indirect_Ret` | * Missing * |
 | `Parameter_Indirect_In` | * Missing * |
 | `Parameter_Indirect_Out` | * Missing * |
 | `DataDepEdge_DefUseGlobal` | * Missing * |
-| `DataDepEdge_PointsToGlobal` | New SVF export, using Andersen (XXX: confirm these are included) |
+| `DataDepEdge_PointsToGlobal` | New SVF export, using Andersen (included in `DataDepEdge_PointsTo`) |
 | `ControlDep_ExternSubgraph` | TBD |
 | Other | Varargs, Struct literal args, long jumps, etc. are TBD | 
 
