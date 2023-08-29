@@ -1,25 +1,25 @@
 Inst_FunCall_start = 1;
-Inst_FunCall_end = 5;
-Inst_Ret_start = 6;
-Inst_Ret_end = 7;
+Inst_FunCall_end = 4;
+Inst_Ret_start = 5;
+Inst_Ret_end = 6;
 Inst_Br_start = 0;
 Inst_Br_end = -1;
-Inst_Other_start = 8;
-Inst_Other_end = 22;
+Inst_Other_start = 7;
+Inst_Other_end = 17;
 Inst_start = 1;
-Inst_end = 22;
-VarNode_StaticGlobal_start = 23;
-VarNode_StaticGlobal_end = 23;
+Inst_end = 17;
+VarNode_StaticGlobal_start = 18;
+VarNode_StaticGlobal_end = 18;
 VarNode_StaticModule_start = 0;
 VarNode_StaticModule_end = -1;
 VarNode_StaticFunction_start = 0;
 VarNode_StaticFunction_end = -1;
 VarNode_StaticOther_start = 0;
 VarNode_StaticOther_end = -1;
-VarNode_start = 23;
-VarNode_end = 23;
-FunctionEntry_start = 24;
-FunctionEntry_end = 25;
+VarNode_start = 18;
+VarNode_end = 18;
+FunctionEntry_start = 19;
+FunctionEntry_end = 20;
 Param_FormalIn_start = 0;
 Param_FormalIn_end = -1;
 Param_FormalOut_start = 0;
@@ -30,16 +30,16 @@ Param_ActualOut_start = 0;
 Param_ActualOut_end = -1;
 Param_start = 0;
 Param_end = -1;
-Annotation_Var_start = 26;
-Annotation_Var_end = 26;
-Annotation_Global_start = 27;
-Annotation_Global_end = 27;
+Annotation_Var_start = 0;
+Annotation_Var_end = -1;
+Annotation_Global_start = 21;
+Annotation_Global_end = 21;
 Annotation_Other_start = 0;
 Annotation_Other_end = -1;
-Annotation_start = 26;
-Annotation_end = 27;
+Annotation_start = 21;
+Annotation_end = 21;
 PDGNode_start = 1;
-PDGNode_end = 27;
+PDGNode_end = 21;
 ControlDep_CallInv_start = 1;
 ControlDep_CallInv_end = 1;
 ControlDep_Indirect_CallInv_start = 0;
@@ -47,23 +47,23 @@ ControlDep_Indirect_CallInv_end = -1;
 ControlDep_CallRet_start = 2;
 ControlDep_CallRet_end = 2;
 ControlDep_Entry_start = 3;
-ControlDep_Entry_end = 24;
+ControlDep_Entry_end = 19;
 ControlDep_Br_start = 0;
 ControlDep_Br_end = -1;
 ControlDep_Other_start = 0;
 ControlDep_Other_end = -1;
 ControlDep_start = 1;
-ControlDep_end = 24;
-DataDepEdge_DefUse_start = 25;
-DataDepEdge_DefUse_end = 37;
-DataDepEdge_RAW_start = 38;
-DataDepEdge_RAW_end = 38;
-DataDepEdge_Ret_start = 39;
-DataDepEdge_Ret_end = 39;
-DataDepEdge_Alias_start = 40;
-DataDepEdge_Alias_end = 43;
-DataDepEdge_start = 25;
-DataDepEdge_end = 43;
+ControlDep_end = 19;
+DataDepEdge_DefUse_start = 20;
+DataDepEdge_DefUse_end = 31;
+DataDepEdge_RAW_start = 32;
+DataDepEdge_RAW_end = 32;
+DataDepEdge_Ret_start = 33;
+DataDepEdge_Ret_end = 33;
+DataDepEdge_Alias_start = 34;
+DataDepEdge_Alias_end = 36;
+DataDepEdge_start = 20;
+DataDepEdge_end = 36;
 Parameter_In_start = 0;
 Parameter_In_end = -1;
 Parameter_Out_start = 0;
@@ -72,31 +72,31 @@ Parameter_Field_start = 0;
 Parameter_Field_end = -1;
 Parameter_start = 0;
 Parameter_end = -1;
-Anno_Global_start = 44;
-Anno_Global_end = 44;
-Anno_Var_start = 45;
-Anno_Var_end = 48;
+Anno_Global_start = 37;
+Anno_Global_end = 38;
+Anno_Var_start = 0;
+Anno_Var_end = -1;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 44;
-Anno_end = 48;
+Anno_start = 37;
+Anno_end = 38;
 PDGEdge_start = 1;
-PDGEdge_end = 48;
+PDGEdge_end = 38;
 hasFunction = [
-24,24,25,25,25,24,25,24,24,24,24,24,24,24,25,25,25,25,25,25,25,25,0,24,25,25,0
+19,19,20,20,19,20,19,19,19,19,19,19,19,20,20,20,20,0,19,20,0
 ];
 hasSource = [
-5,6,24,24,24,24,24,24,24,24,24,24,25,25,25,25,25,25,25,25,25,25,25,25,23,8,8,8,2,9,11,12,14,15,16,17,5,10,6,9,11,14,19,23,25,19,20,21
+4,5,19,19,19,19,19,19,19,19,19,19,20,20,20,20,20,20,20,18,7,7,7,2,8,10,11,13,14,15,4,9,5,8,10,13,18,19
 ];
 hasDest = [
-24,5,8,1,2,9,10,11,12,13,14,6,15,16,17,18,3,19,20,21,4,5,22,7,12,14,11,10,9,10,13,13,6,18,19,22,22,11,5,2,9,9,16,27,26,26,26,26
+19,4,7,1,2,8,9,10,11,12,13,5,14,15,16,3,4,17,6,11,13,10,9,8,9,12,12,5,16,17,17,10,4,2,8,8,21,21
 ];
 hasParamIdx = array1d(Param, [
 
 ]);
 userAnnotatedFunction = array1d(FunctionEntry, [
-false,false
+true,false
 ]);
 MaxFuncParams = 0;
-constraint :: "TaintOnNodeIdx19" taint[19]=ORANGE_SHARE;
-constraint :: "TaintOnNodeIdx23" taint[23]=ORANGE_NOSHARE;
+constraint :: "TaintOnNodeIdx18" taint[18]=ORANGE_NOSHARE;
+constraint :: "TaintOnNodeIdx19" taint[19]=BAR;

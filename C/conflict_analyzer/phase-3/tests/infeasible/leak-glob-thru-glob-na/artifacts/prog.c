@@ -44,10 +44,8 @@ int** bar() {
 int main() {
  
   // Unused, pins main() to ORANGE_SHARE
-  #pragma cle ORANGE_SHARE
-#pragma clang attribute push (__attribute__((annotate("ORANGE_SHARE"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
-  int unused;
-#pragma clang attribute pop
+  // #pragma cle ORANGE_SHARE
+  // int unused;
 
   // Access to ORANGE_NOSHARE data x
   int** y = bar();

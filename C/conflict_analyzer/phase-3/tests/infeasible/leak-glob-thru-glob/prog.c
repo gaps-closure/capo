@@ -40,8 +40,8 @@ int** bar() {
 int main() {
  
   // Unused, pins main() to ORANGE_SHARE
-  #pragma cle ORANGE_SHARE
-  int unused;
+  // #pragma cle ORANGE_SHARE
+  // int unused;
 
   // Access to ORANGE_NOSHARE data x
   int** y = bar();

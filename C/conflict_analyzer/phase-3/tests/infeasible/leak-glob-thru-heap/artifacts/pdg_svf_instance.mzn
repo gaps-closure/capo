@@ -1,25 +1,25 @@
 Inst_FunCall_start = 1;
-Inst_FunCall_end = 5;
-Inst_Ret_start = 6;
-Inst_Ret_end = 7;
+Inst_FunCall_end = 4;
+Inst_Ret_start = 5;
+Inst_Ret_end = 6;
 Inst_Br_start = 0;
 Inst_Br_end = -1;
-Inst_Other_start = 8;
-Inst_Other_end = 26;
+Inst_Other_start = 7;
+Inst_Other_end = 21;
 Inst_start = 1;
-Inst_end = 26;
-VarNode_StaticGlobal_start = 27;
-VarNode_StaticGlobal_end = 27;
+Inst_end = 21;
+VarNode_StaticGlobal_start = 22;
+VarNode_StaticGlobal_end = 22;
 VarNode_StaticModule_start = 0;
 VarNode_StaticModule_end = -1;
 VarNode_StaticFunction_start = 0;
 VarNode_StaticFunction_end = -1;
 VarNode_StaticOther_start = 0;
 VarNode_StaticOther_end = -1;
-VarNode_start = 27;
-VarNode_end = 27;
-FunctionEntry_start = 28;
-FunctionEntry_end = 29;
+VarNode_start = 22;
+VarNode_end = 22;
+FunctionEntry_start = 23;
+FunctionEntry_end = 24;
 Param_FormalIn_start = 0;
 Param_FormalIn_end = -1;
 Param_FormalOut_start = 0;
@@ -28,18 +28,18 @@ Param_ActualIn_start = 0;
 Param_ActualIn_end = -1;
 Param_ActualOut_start = 0;
 Param_ActualOut_end = -1;
-Param_start = 30;
-Param_end = 29;
-Annotation_Var_start = 30;
-Annotation_Var_end = 30;
-Annotation_Global_start = 31;
-Annotation_Global_end = 31;
+Param_start = 25;
+Param_end = 24;
+Annotation_Var_start = 0;
+Annotation_Var_end = -1;
+Annotation_Global_start = 25;
+Annotation_Global_end = 25;
 Annotation_Other_start = 0;
 Annotation_Other_end = -1;
-Annotation_start = 30;
-Annotation_end = 31;
+Annotation_start = 25;
+Annotation_end = 25;
 PDGNode_start = 1;
-PDGNode_end = 31;
+PDGNode_end = 25;
 ControlDep_CallInv_start = 1;
 ControlDep_CallInv_end = 1;
 ControlDep_Indirect_CallInv_start = 0;
@@ -47,58 +47,58 @@ ControlDep_Indirect_CallInv_end = -1;
 ControlDep_CallRet_start = 2;
 ControlDep_CallRet_end = 2;
 ControlDep_Entry_start = 3;
-ControlDep_Entry_end = 28;
+ControlDep_Entry_end = 23;
 ControlDep_Br_start = 0;
 ControlDep_Br_end = -1;
 ControlDep_Other_start = 0;
 ControlDep_Other_end = -1;
 ControlDep_start = 1;
-ControlDep_end = 28;
-DataDepEdge_DefUse_start = 29;
-DataDepEdge_DefUse_end = 45;
-DataDepEdge_RAW_start = 46;
-DataDepEdge_RAW_end = 47;
-DataDepEdge_Ret_start = 48;
-DataDepEdge_Ret_end = 48;
-DataDepEdge_Alias_start = 49;
-DataDepEdge_Alias_end = 53;
-DataDepEdge_start = 29;
-DataDepEdge_end = 53;
+ControlDep_end = 23;
+DataDepEdge_DefUse_start = 24;
+DataDepEdge_DefUse_end = 39;
+DataDepEdge_RAW_start = 40;
+DataDepEdge_RAW_end = 41;
+DataDepEdge_Ret_start = 42;
+DataDepEdge_Ret_end = 42;
+DataDepEdge_Alias_start = 43;
+DataDepEdge_Alias_end = 46;
+DataDepEdge_start = 24;
+DataDepEdge_end = 46;
 Parameter_In_start = 0;
 Parameter_In_end = -1;
 Parameter_Out_start = 0;
 Parameter_Out_end = -1;
 Parameter_Field_start = 0;
 Parameter_Field_end = -1;
-Parameter_start = 54;
-Parameter_end = 53;
-Anno_Global_start = 54;
-Anno_Global_end = 54;
-Anno_Var_start = 55;
-Anno_Var_end = 58;
+Parameter_start = 47;
+Parameter_end = 46;
+Anno_Global_start = 47;
+Anno_Global_end = 48;
+Anno_Var_start = 0;
+Anno_Var_end = -1;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 54;
-Anno_end = 58;
-DataDepEdge_PointsTo_start = 59;
-DataDepEdge_PointsTo_end = 71;
+Anno_start = 47;
+Anno_end = 48;
+DataDepEdge_PointsTo_start = 49;
+DataDepEdge_PointsTo_end = 60;
 PDGEdge_start = 1;
-PDGEdge_end = 71;
+PDGEdge_end = 60;
 hasFunction = [
-28,28,29,29,29,28,29,28,28,28,28,28,28,28,29,29,29,29,29,29,29,29,29,29,29,29,0,28,29,29,0
+23,23,24,24,23,24,23,23,23,23,23,23,23,24,24,24,24,24,24,24,24,0,23,24,0
 ];
 hasSource = [
-5,6,28,28,28,28,28,28,28,28,28,28,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,29,27,8,8,8,2,9,11,12,14,15,16,17,17,5,23,24,25,10,22,6,9,11,14,19,23,27,29,19,20,21,6,8,2,9,11,12,14,17,19,5,23,24,25
+4,5,23,23,23,23,23,23,23,23,23,23,24,24,24,24,24,24,24,24,24,24,24,22,7,7,7,2,8,10,11,13,14,15,15,4,18,19,20,9,17,5,8,10,13,18,22,23,5,7,2,8,10,11,13,15,4,18,19,20
 ];
 hasDest = [
-28,5,8,1,2,9,10,11,12,13,14,6,15,16,17,18,3,19,20,21,4,5,22,23,24,25,26,7,12,14,11,10,9,10,13,13,6,18,19,23,22,22,24,25,26,11,23,5,2,9,9,16,5,31,30,30,30,30,2,2,27,2,2,27,2,2,16,2,2,27,27
+23,4,7,1,2,8,9,10,11,12,13,5,14,15,16,3,4,17,18,19,20,21,6,11,13,10,9,8,9,12,12,5,16,18,17,17,19,20,21,10,18,4,2,8,8,4,25,25,2,2,22,2,2,22,2,2,2,2,22,22
 ];
 hasParamIdx = array1d(Param, [
 
 ]);
 userAnnotatedFunction = array1d(FunctionEntry, [
-false,false
+true,false
 ]);
 MaxFuncParms = 1;
-constraint :: "TaintOnNodeIdx19" taint[19]=ORANGE_SHARE;
-constraint :: "TaintOnNodeIdx27" taint[27]=ORANGE_NOSHARE;
+constraint :: "TaintOnNodeIdx22" taint[22]=ORANGE_NOSHARE;
+constraint :: "TaintOnNodeIdx23" taint[23]=BAR;

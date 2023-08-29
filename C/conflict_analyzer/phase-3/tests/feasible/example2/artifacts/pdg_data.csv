@@ -1,0 +1,476 @@
+Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %2, metadata !30, metadata !DIExpression()), !dbg !31',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,74,24,5,-1
+Node,2,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %3, metadata !32, metadata !DIExpression()), !dbg !33',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,10,6,-1
+Node,3,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %4, metadata !35, metadata !DIExpression()), !dbg !36',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,14,11,-1
+Node,4,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %5, metadata !37, metadata !DIExpression()), !dbg !38',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,18,16,-1
+Node,5,Inst_FunCall,,'  %16 = call double @get_b(), !dbg !41',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,83,8,23,-1
+Node,6,Inst_FunCall,,'  %19 = call double @calc_ewma(double noundef %17, double noundef %18), !dbg !45',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,84,8,27,-1
+Node,7,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %1, metadata !53, metadata !DIExpression()), !dbg !54',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,93,10,4,-1
+Node,8,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %2, metadata !55, metadata !DIExpression()), !dbg !56',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,94,10,5,-1
+Node,9,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %3, metadata !57, metadata !DIExpression()), !dbg !58',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,95,10,6,-1
+Node,10,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %4, metadata !59, metadata !DIExpression()), !dbg !61',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,12,7,-1
+Node,11,Inst_FunCall,,'  %9 = call double @get_a(), !dbg !45',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,97,9,13,-1
+Node,12,Inst_FunCall,,'  %12 = call double @get_ewma(double noundef %11), !dbg !51',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,99,12,18,-1
+Node,13,Inst_FunCall,,'  %15 = call i32 (i8*, ...) @printf(i8* noundef %14, double noundef %13), !dbg !54',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,100,5,22,-1
+Node,14,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %3, metadata !91, metadata !DIExpression()), !dbg !92',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,25,4,-1
+Node,15,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %4, metadata !93, metadata !DIExpression()), !dbg !94',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,35,6,-1
+Node,16,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata double* %5, metadata !95, metadata !DIExpression()), !dbg !97',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,46,17,7,-1
+Node,17,Inst_FunCall,,'  %11 = call double @llvm.fmuladd.f64(double 2.500000e-01, double %8, double %10), !dbg !39',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,48,23,14,-1
+Node,18,Inst_FunCall,,'  %2 = call i32 @ewma_main(), !dbg !31',99,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,106,10,2,-1
+Node,19,Inst_Ret,,'  ret double %20, !dbg !48',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,85,3,30,-1
+Node,20,Inst_Ret,,'  ret i32 0, !dbg !61',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,102,3,28,-1
+Node,21,Inst_Ret,,'  ret double %3, !dbg !29',96,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,59,3,4,-1
+Node,22,Inst_Ret,,'  ret double %4, !dbg !30',97,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,69,3,5,-1
+Node,23,Inst_Ret,,'  ret double %12, !dbg !42',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,49,3,17,-1
+Node,24,Inst_Ret,,'  ret i32 %2, !dbg !32',99,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,106,3,3,-1
+Node,25,Inst_Br,,'  br label %5, !dbg !40',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,8,9,-1
+Node,26,Inst_Br,,'  br i1 %7, label %8, label %19, !dbg !44',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,3,12,-1
+Node,27,Inst_Br,,'  br label %16, !dbg !55',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,101,3,23,-1
+Node,28,Inst_Br,,'  br label %5, !dbg !57, !llvm.loop !58',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,3,27,-1
+Node,29,Inst_Other,,'  %2 = alloca double, align 8',94,,,,-1,-1,0,-1
+Node,30,Inst_Other,,'  %3 = alloca double, align 8',94,,,,-1,-1,1,-1
+Node,31,Inst_Other,,'  %4 = alloca double, align 8',94,,,,-1,-1,2,-1
+Node,32,Inst_Other,,'  %5 = alloca double, align 8',94,,,,-1,-1,3,-1
+Node,33,Inst_Other,,'  store double %0, double* %2, align 8',94,,,,-1,-1,4,-1
+Node,34,Inst_Other,PURPLE_SHAREABLE,'  %6 = bitcast double* %3 to i8*, !dbg !34',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,3,7,-1
+Node,35,Inst_Other,,'  %7 = getelementptr inbounds [17 x i8], [17 x i8]* @.str.3, i32 0, i32 0',94,,,,-1,-1,8,-1
+Node,36,Inst_Other,,'  %8 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',94,,,,-1,-1,9,-1
+Node,37,Inst_Other,PURPLE_SHAREABLE,'  %9 = bitcast double* %4 to i8*, !dbg !34',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,3,12,-1
+Node,38,Inst_Other,,'  %10 = getelementptr inbounds [17 x i8], [17 x i8]* @.str.3, i32 0, i32 0',94,,,,-1,-1,13,-1
+Node,39,Inst_Other,,'  %11 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',94,,,,-1,-1,14,-1
+Node,40,Inst_Other,PURPLE_SHAREABLE,'  %12 = bitcast double* %5 to i8*, !dbg !34',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,3,17,-1
+Node,41,Inst_Other,,'  %13 = getelementptr inbounds [17 x i8], [17 x i8]* @.str.3, i32 0, i32 0',94,,,,-1,-1,18,-1
+Node,42,Inst_Other,,'  %14 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',94,,,,-1,-1,19,-1
+Node,43,Inst_Other,,'  %15 = load double, double* %2, align 8, !dbg !39',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,82,8,21,-1
+Node,44,Inst_Other,,'  store double %15, double* %3, align 8, !dbg !40',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,82,6,22,-1
+Node,45,Inst_Other,,'  store double %16, double* %4, align 8, !dbg !42',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,83,6,24,-1
+Node,46,Inst_Other,,'  %17 = load double, double* %3, align 8, !dbg !43',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,84,18,25,-1
+Node,47,Inst_Other,,'  %18 = load double, double* %4, align 8, !dbg !44',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,84,22,26,-1
+Node,48,Inst_Other,,'  store double %19, double* %5, align 8, !dbg !46',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,84,6,28,-1
+Node,49,Inst_Other,,'  %20 = load double, double* %5, align 8, !dbg !47',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,85,10,29,-1
+Node,50,Inst_Other,,'  %1 = alloca double, align 8',95,,,,-1,-1,0,-1
+Node,51,Inst_Other,,'  %2 = alloca double, align 8',95,,,,-1,-1,1,-1
+Node,52,Inst_Other,,'  %3 = alloca double, align 8',95,,,,-1,-1,2,-1
+Node,53,Inst_Other,,'  %4 = alloca i32, align 4',95,,,,-1,-1,3,-1
+Node,54,Inst_Other,,'  store i32 0, i32* %4, align 4, !dbg !39',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,12,8,-1
+Node,55,Inst_Other,,'  %6 = load i32, i32* %4, align 4, !dbg !41',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,17,10,-1
+Node,56,Inst_Other,,'  %7 = icmp slt i32 %6, 10, !dbg !43',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,19,11,-1
+Node,57,Inst_Other,,'  store double %9, double* %1, align 8, !dbg !47',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,97,7,14,-1
+Node,58,Inst_Other,,'  %10 = load double, double* %1, align 8, !dbg !48',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,98,9,15,-1
+Node,59,Inst_Other,,'  store double %10, double* %2, align 8, !dbg !49',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,98,7,16,-1
+Node,60,Inst_Other,,'  %11 = load double, double* %2, align 8, !dbg !50',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,99,21,17,-1
+Node,61,Inst_Other,,'  store double %12, double* %3, align 8, !dbg !52',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,99,10,19,-1
+Node,62,Inst_Other,,'  %13 = load double, double* %3, align 8, !dbg !53',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,100,20,20,-1
+Node,63,Inst_Other,,'  %14 = getelementptr inbounds [4 x i8], [4 x i8]* @.str.5, i64 0, i64 0',95,,,,-1,-1,21,-1
+Node,64,Inst_Other,,'  %17 = load i32, i32* %4, align 4, !dbg !56',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,26,24,-1
+Node,65,Inst_Other,,'  %18 = add nsw i32 %17, 1, !dbg !56',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,26,25,-1
+Node,66,Inst_Other,,'  store i32 %18, i32* %4, align 4, !dbg !56',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,96,26,26,-1
+Node,67,Inst_Other,,'  %1 = load double, double* @get_a.a, align 8, !dbg !27',96,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,58,5,0,-1
+Node,68,Inst_Other,,'  %2 = fadd double %1, 1.000000e+00, !dbg !27',96,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,58,5,1,-1
+Node,69,Inst_Other,,'  store double %2, double* @get_a.a, align 8, !dbg !27',96,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,58,5,2,-1
+Node,70,Inst_Other,,'  %3 = load double, double* @get_a.a, align 8, !dbg !28',96,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,59,10,3,-1
+Node,71,Inst_Other,,'  %1 = load double, double* @get_b.b, align 8, !dbg !27',97,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,68,8,0,-1
+Node,72,Inst_Other,,'  %2 = load double, double* @get_b.b, align 8, !dbg !28',97,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,68,5,1,-1
+Node,73,Inst_Other,,'  %3 = fadd double %2, %1, !dbg !28',97,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,68,5,2,-1
+Node,74,Inst_Other,,'  store double %3, double* @get_b.b, align 8, !dbg !28',97,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,68,5,3,-1
+Node,75,Inst_Other,,'  %4 = load double, double* @get_b.b, align 8, !dbg !29',97,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,69,10,4,-1
+Node,76,Inst_Other,,'  %3 = alloca double, align 8',98,,,,-1,-1,0,-1
+Node,77,Inst_Other,,'  %4 = alloca double, align 8',98,,,,-1,-1,1,-1
+Node,78,Inst_Other,,'  %5 = alloca double, align 8',98,,,,-1,-1,2,-1
+Node,79,Inst_Other,,'  store double %0, double* %3, align 8',98,,,,-1,-1,3,-1
+Node,80,Inst_Other,,'  store double %1, double* %4, align 8',98,,,,-1,-1,5,-1
+Node,81,Inst_Other,,'  store double 2.500000e-01, double* %5, align 8, !dbg !33',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,46,17,8,-1
+Node,82,Inst_Other,,'  %6 = load double, double* %3, align 8, !dbg !34',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,48,16,9,-1
+Node,83,Inst_Other,,'  %7 = load double, double* %4, align 8, !dbg !35',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,48,20,10,-1
+Node,84,Inst_Other,,'  %8 = fadd double %6, %7, !dbg !36',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,48,18,11,-1
+Node,85,Inst_Other,,'  %9 = load double, double* @calc_ewma.c, align 8, !dbg !37',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,48,39,12,-1
+Node,86,Inst_Other,,'  %10 = fmul double 7.500000e-01, %9, !dbg !38',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,48,37,13,-1
+Node,87,Inst_Other,,'  store double %11, double* @calc_ewma.c, align 8, !dbg !40',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,48,5,15,-1
+Node,88,Inst_Other,,'  %12 = load double, double* @calc_ewma.c, align 8, !dbg !41',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,49,10,16,-1
+Node,89,Inst_Other,,'  %1 = alloca i32, align 4',99,,,,-1,-1,0,-1
+Node,90,Inst_Other,,'  store i32 0, i32* %1, align 4',99,,,,-1,-1,1,-1
+Node,91,VarNode_StaticFunction,,'@calc_ewma.c = internal global double 0.000000e+00, align 8, !dbg !0',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,47,-1,-1,-1
+Node,92,VarNode_StaticFunction,ORANGE,'@get_a.a = internal global double 0.000000e+00, align 8, !dbg !10',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,55,-1,-1,-1
+Node,93,VarNode_StaticFunction,PURPLE,'@get_b.b = internal global double 1.000000e+00, align 8, !dbg !16',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,65,-1,-1,-1
+Node,94,FunctionEntry,XDLINKAGE_GET_EWMA,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @get_ewma(double noundef %0) #0 !dbg !27 {
+  %2 = alloca double, align 8
+  %3 = alloca double, align 8
+  %4 = alloca double, align 8
+  %5 = alloca double, align 8
+  store double %0, double* %2, align 8
+  call void @llvm.dbg.declare(metadata double* %2, metadata !30, metadata !DIExpression()), !dbg !31
+  call void @llvm.dbg.declare(metadata double* %3, metadata !32, metadata !DIExpression()), !dbg !33
+  %6 = bitcast double* %3 to i8*, !dbg !34
+  %7 = getelementptr inbounds [17 x i8], [17 x i8]* @.str.3, i32 0, i32 0
+  %8 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %6, i8* %7, i8* %8, i32 79, i8* null), !dbg !34
+  call void @llvm.dbg.declare(metadata double* %4, metadata !35, metadata !DIExpression()), !dbg !36
+  %9 = bitcast double* %4 to i8*, !dbg !34
+  %10 = getelementptr inbounds [17 x i8], [17 x i8]* @.str.3, i32 0, i32 0
+  %11 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %9, i8* %10, i8* %11, i32 79, i8* null), !dbg !34
+  call void @llvm.dbg.declare(metadata double* %5, metadata !37, metadata !DIExpression()), !dbg !38
+  %12 = bitcast double* %5 to i8*, !dbg !34
+  %13 = getelementptr inbounds [17 x i8], [17 x i8]* @.str.3, i32 0, i32 0
+  %14 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %12, i8* %13, i8* %14, i32 79, i8* null), !dbg !34
+  %15 = load double, double* %2, align 8, !dbg !39
+  store double %15, double* %3, align 8, !dbg !40
+  %16 = call double @get_b(), !dbg !41
+  store double %16, double* %4, align 8, !dbg !42
+  %17 = load double, double* %3, align 8, !dbg !43
+  %18 = load double, double* %4, align 8, !dbg !44
+  %19 = call double @calc_ewma(double noundef %17, double noundef %18), !dbg !45
+  store double %19, double* %5, align 8, !dbg !46
+  %20 = load double, double* %5, align 8, !dbg !47
+  ret double %20, !dbg !48
+}
+',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,74,-1,-1,-1
+Node,95,FunctionEntry,EWMA_MAIN,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @ewma_main() #0 !dbg !49 {
+  %1 = alloca double, align 8
+  %2 = alloca double, align 8
+  %3 = alloca double, align 8
+  %4 = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata double* %1, metadata !53, metadata !DIExpression()), !dbg !54
+  call void @llvm.dbg.declare(metadata double* %2, metadata !55, metadata !DIExpression()), !dbg !56
+  call void @llvm.dbg.declare(metadata double* %3, metadata !57, metadata !DIExpression()), !dbg !58
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !59, metadata !DIExpression()), !dbg !61
+  store i32 0, i32* %4, align 4, !dbg !61
+  br label %5, !dbg !62
+
+5:                                                ; preds = %16, %0
+  %6 = load i32, i32* %4, align 4, !dbg !63
+  %7 = icmp slt i32 %6, 10, !dbg !65
+  br i1 %7, label %8, label %19, !dbg !66
+
+8:                                                ; preds = %5
+  %9 = call double @get_a(), !dbg !67
+  store double %9, double* %1, align 8, !dbg !69
+  %10 = load double, double* %1, align 8, !dbg !70
+  store double %10, double* %2, align 8, !dbg !71
+  %11 = load double, double* %2, align 8, !dbg !72
+  %12 = call double @get_ewma(double noundef %11), !dbg !73
+  store double %12, double* %3, align 8, !dbg !74
+  %13 = load double, double* %3, align 8, !dbg !75
+  %14 = getelementptr inbounds [4 x i8], [4 x i8]* @.str.5, i64 0, i64 0
+  %15 = call i32 (i8*, ...) @printf(i8* noundef %14, double noundef %13), !dbg !76
+  br label %16, !dbg !77
+
+16:                                               ; preds = %8
+  %17 = load i32, i32* %4, align 4, !dbg !78
+  %18 = add nsw i32 %17, 1, !dbg !78
+  store i32 %18, i32* %4, align 4, !dbg !78
+  br label %5, !dbg !79, !llvm.loop !80
+
+19:                                               ; preds = %5
+  ret i32 0, !dbg !83
+}
+',95,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,90,-1,-1,-1
+Node,96,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @get_a() #0 !dbg !12 {
+  %1 = load double, double* @get_a.a, align 8, !dbg !84
+  %2 = fadd double %1, 1.000000e+00, !dbg !84
+  store double %2, double* @get_a.a, align 8, !dbg !84
+  %3 = load double, double* @get_a.a, align 8, !dbg !85
+  ret double %3, !dbg !86
+}
+',96,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,52,-1,-1,-1
+Node,97,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @get_b() #0 !dbg !18 {
+  %1 = load double, double* @get_b.b, align 8, !dbg !87
+  %2 = load double, double* @get_b.b, align 8, !dbg !88
+  %3 = fadd double %2, %1, !dbg !88
+  store double %3, double* @get_b.b, align 8, !dbg !88
+  %4 = load double, double* @get_b.b, align 8, !dbg !89
+  ret double %4, !dbg !90
+}
+',97,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,62,-1,-1,-1
+Node,98,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local double @calc_ewma(double noundef %0, double noundef %1) #0 !dbg !2 {
+  %3 = alloca double, align 8
+  %4 = alloca double, align 8
+  %5 = alloca double, align 8
+  store double %0, double* %3, align 8
+  call void @llvm.dbg.declare(metadata double* %3, metadata !91, metadata !DIExpression()), !dbg !92
+  store double %1, double* %4, align 8
+  call void @llvm.dbg.declare(metadata double* %4, metadata !93, metadata !DIExpression()), !dbg !94
+  call void @llvm.dbg.declare(metadata double* %5, metadata !95, metadata !DIExpression()), !dbg !97
+  store double 2.500000e-01, double* %5, align 8, !dbg !97
+  %6 = load double, double* %3, align 8, !dbg !98
+  %7 = load double, double* %4, align 8, !dbg !99
+  %8 = fadd double %6, %7, !dbg !100
+  %9 = load double, double* @calc_ewma.c, align 8, !dbg !101
+  %10 = fmul double 7.500000e-01, %9, !dbg !102
+  %11 = call double @llvm.fmuladd.f64(double 2.500000e-01, double %8, double %10), !dbg !103
+  store double %11, double* @calc_ewma.c, align 8, !dbg !104
+  %12 = load double, double* @calc_ewma.c, align 8, !dbg !105
+  ret double %12, !dbg !106
+}
+',98,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,-1,-1,-1
+Node,99,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !107 {
+  %1 = alloca i32, align 4
+  store i32 0, i32* %1, align 4
+  %2 = call i32 @ewma_main(), !dbg !108
+  ret i32 %2, !dbg !109
+}
+',99,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,105,-1,-1,-1
+Node,100,Param_FormalIn,,'No Value',94,,,Not Found,-1,-1,-1,0
+Node,101,Param_FormalIn,,'No Value',98,,,Not Found,-1,-1,-1,0
+Node,102,Param_FormalIn,,'No Value',98,,,Not Found,-1,-1,-1,1
+Node,103,Param_FormalOut,,'No Value',94,,,Not Found,-1,-1,-1,0
+Node,104,Param_FormalOut,,'No Value',98,,,Not Found,-1,-1,-1,0
+Node,105,Param_FormalOut,,'No Value',98,,,Not Found,-1,-1,-1,1
+Node,106,Param_ActualIn,,'No Value',98,,,Not Found,-1,-1,-1,0
+Node,107,Param_ActualIn,,'No Value',98,,,Not Found,-1,-1,-1,1
+Node,108,Param_ActualIn,,'No Value',94,,,Not Found,-1,-1,-1,0
+Node,109,Param_ActualOut,,'No Value',98,,,Not Found,-1,-1,-1,0
+Node,110,Param_ActualOut,,'No Value',98,,,Not Found,-1,-1,-1,1
+Node,111,Param_ActualOut,,'No Value',94,,,Not Found,-1,-1,-1,0
+Node,112,Annotation_Var,,'  call void @llvm.var.annotation(i8* %6, i8* %7, i8* %8, i32 79, i8* null), !dbg !34',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,3,10,-1
+Node,113,Annotation_Var,,'  call void @llvm.var.annotation(i8* %9, i8* %10, i8* %11, i32 79, i8* null), !dbg !34',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,3,15,-1
+Node,114,Annotation_Var,,'  call void @llvm.var.annotation(i8* %12, i8* %13, i8* %14, i32 79, i8* null), !dbg !34',94,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,79,3,20,-1
+Node,115,Annotation_Global,,'@llvm.global.annotations = appending global [4 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (double* @get_a.a to i8*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 55, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (double* @get_b.b to i8*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 65, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (double (double)* @get_ewma to i8*), i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str.4, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 74, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @ewma_main to i8*), i8* getelementptr inbounds ([10 x i8], [10 x i8]* @.str.6, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 90, i8* null }], section "llvm.metadata"',0,,,Not Found,-1,-1,-1,-1
+Edge,1,ControlDep_CallInv,0,,,5,97,,,,,
+Edge,2,ControlDep_CallInv,0,,,6,98,,,,,
+Edge,3,ControlDep_CallInv,0,,,11,96,,,,,
+Edge,4,ControlDep_CallInv,0,,,12,94,,,,,
+Edge,5,ControlDep_CallInv,0,,,18,95,,,,,
+Edge,6,ControlDep_CallRet,0,,,19,12,,,,,
+Edge,7,ControlDep_CallRet,0,,,20,18,,,,,
+Edge,8,ControlDep_CallRet,0,,,21,11,,,,,
+Edge,9,ControlDep_CallRet,0,,,22,5,,,,,
+Edge,10,ControlDep_CallRet,0,,,23,6,,,,,
+Edge,11,ControlDep_Entry,0,,,94,30,,,,,
+Edge,12,ControlDep_Entry,0,,,94,31,,,,,
+Edge,13,ControlDep_Entry,0,,,94,32,,,,,
+Edge,14,ControlDep_Entry,0,,,94,33,,,,,
+Edge,15,ControlDep_Entry,0,,,94,1,,,,,
+Edge,16,ControlDep_Entry,0,,,94,2,,,,,
+Edge,17,ControlDep_Entry,0,,,94,34,,,,,
+Edge,18,ControlDep_Entry,0,,,94,35,,,,,
+Edge,19,ControlDep_Entry,0,,,94,36,,,,,
+Edge,20,ControlDep_Entry,0,,,94,3,,,,,
+Edge,21,ControlDep_Entry,0,,,94,37,,,,,
+Edge,22,ControlDep_Entry,0,,,94,38,,,,,
+Edge,23,ControlDep_Entry,0,,,94,39,,,,,
+Edge,24,ControlDep_Entry,0,,,94,4,,,,,
+Edge,25,ControlDep_Entry,0,,,94,40,,,,,
+Edge,26,ControlDep_Entry,0,,,94,41,,,,,
+Edge,27,ControlDep_Entry,0,,,94,42,,,,,
+Edge,28,ControlDep_Entry,0,,,94,43,,,,,
+Edge,29,ControlDep_Entry,0,,,94,44,,,,,
+Edge,30,ControlDep_Entry,0,,,94,5,,,,,
+Edge,31,ControlDep_Entry,0,,,94,45,,,,,
+Edge,32,ControlDep_Entry,0,,,94,46,,,,,
+Edge,33,ControlDep_Entry,0,,,94,47,,,,,
+Edge,34,ControlDep_Entry,0,,,94,6,,,,,
+Edge,35,ControlDep_Entry,0,,,94,48,,,,,
+Edge,36,ControlDep_Entry,0,,,94,49,,,,,
+Edge,37,ControlDep_Entry,0,,,94,19,,,,,
+Edge,38,ControlDep_Entry,0,,,94,29,,,,,
+Edge,39,ControlDep_Entry,0,,,95,50,,,,,
+Edge,40,ControlDep_Entry,0,,,95,51,,,,,
+Edge,41,ControlDep_Entry,0,,,95,52,,,,,
+Edge,42,ControlDep_Entry,0,,,95,53,,,,,
+Edge,43,ControlDep_Entry,0,,,95,7,,,,,
+Edge,44,ControlDep_Entry,0,,,95,8,,,,,
+Edge,45,ControlDep_Entry,0,,,95,9,,,,,
+Edge,46,ControlDep_Entry,0,,,95,10,,,,,
+Edge,47,ControlDep_Entry,0,,,95,54,,,,,
+Edge,48,ControlDep_Entry,0,,,95,25,,,,,
+Edge,49,ControlDep_Entry,0,,,95,55,,,,,
+Edge,50,ControlDep_Entry,0,,,95,56,,,,,
+Edge,51,ControlDep_Entry,0,,,95,26,,,,,
+Edge,52,ControlDep_Entry,0,,,95,11,,,,,
+Edge,53,ControlDep_Entry,0,,,95,57,,,,,
+Edge,54,ControlDep_Entry,0,,,95,58,,,,,
+Edge,55,ControlDep_Entry,0,,,95,59,,,,,
+Edge,56,ControlDep_Entry,0,,,95,60,,,,,
+Edge,57,ControlDep_Entry,0,,,95,12,,,,,
+Edge,58,ControlDep_Entry,0,,,95,61,,,,,
+Edge,59,ControlDep_Entry,0,,,95,62,,,,,
+Edge,60,ControlDep_Entry,0,,,95,63,,,,,
+Edge,61,ControlDep_Entry,0,,,95,13,,,,,
+Edge,62,ControlDep_Entry,0,,,95,27,,,,,
+Edge,63,ControlDep_Entry,0,,,95,64,,,,,
+Edge,64,ControlDep_Entry,0,,,95,65,,,,,
+Edge,65,ControlDep_Entry,0,,,95,66,,,,,
+Edge,66,ControlDep_Entry,0,,,95,28,,,,,
+Edge,67,ControlDep_Entry,0,,,95,20,,,,,
+Edge,68,ControlDep_Entry,0,,,96,68,,,,,
+Edge,69,ControlDep_Entry,0,,,96,69,,,,,
+Edge,70,ControlDep_Entry,0,,,96,70,,,,,
+Edge,71,ControlDep_Entry,0,,,96,21,,,,,
+Edge,72,ControlDep_Entry,0,,,96,67,,,,,
+Edge,73,ControlDep_Entry,0,,,97,71,,,,,
+Edge,74,ControlDep_Entry,0,,,97,72,,,,,
+Edge,75,ControlDep_Entry,0,,,97,73,,,,,
+Edge,76,ControlDep_Entry,0,,,97,74,,,,,
+Edge,77,ControlDep_Entry,0,,,97,75,,,,,
+Edge,78,ControlDep_Entry,0,,,97,22,,,,,
+Edge,79,ControlDep_Entry,0,,,98,76,,,,,
+Edge,80,ControlDep_Entry,0,,,98,77,,,,,
+Edge,81,ControlDep_Entry,0,,,98,78,,,,,
+Edge,82,ControlDep_Entry,0,,,98,79,,,,,
+Edge,83,ControlDep_Entry,0,,,98,14,,,,,
+Edge,84,ControlDep_Entry,0,,,98,80,,,,,
+Edge,85,ControlDep_Entry,0,,,98,15,,,,,
+Edge,86,ControlDep_Entry,0,,,98,16,,,,,
+Edge,87,ControlDep_Entry,0,,,98,81,,,,,
+Edge,88,ControlDep_Entry,0,,,98,82,,,,,
+Edge,89,ControlDep_Entry,0,,,98,83,,,,,
+Edge,90,ControlDep_Entry,0,,,98,84,,,,,
+Edge,91,ControlDep_Entry,0,,,98,85,,,,,
+Edge,92,ControlDep_Entry,0,,,98,86,,,,,
+Edge,93,ControlDep_Entry,0,,,98,17,,,,,
+Edge,94,ControlDep_Entry,0,,,98,87,,,,,
+Edge,95,ControlDep_Entry,0,,,98,88,,,,,
+Edge,96,ControlDep_Entry,0,,,98,23,,,,,
+Edge,97,ControlDep_Entry,0,,,99,90,,,,,
+Edge,98,ControlDep_Entry,0,,,99,18,,,,,
+Edge,99,ControlDep_Entry,0,,,99,24,,,,,
+Edge,100,ControlDep_Entry,0,,,99,89,,,,,
+Edge,101,ControlDep_Br,0,,,26,11,,,,,
+Edge,102,ControlDep_Br,0,,,26,57,,,,,
+Edge,103,ControlDep_Br,0,,,26,58,,,,,
+Edge,104,ControlDep_Br,0,,,26,59,,,,,
+Edge,105,ControlDep_Br,0,,,26,60,,,,,
+Edge,106,ControlDep_Br,0,,,26,12,,,,,
+Edge,107,ControlDep_Br,0,,,26,61,,,,,
+Edge,108,ControlDep_Br,0,,,26,62,,,,,
+Edge,109,ControlDep_Br,0,,,26,63,,,,,
+Edge,110,ControlDep_Br,0,,,26,13,,,,,
+Edge,111,ControlDep_Br,0,,,26,27,,,,,
+Edge,112,ControlDep_Br,0,,,26,64,,,,,
+Edge,113,ControlDep_Br,0,,,26,65,,,,,
+Edge,114,ControlDep_Br,0,,,26,66,,,,,
+Edge,115,ControlDep_Br,0,,,26,28,,,,,
+Edge,116,DataDepEdge_DefUse,0,,,91,88,,,,,
+Edge,117,DataDepEdge_DefUse,0,,,91,87,,,,,
+Edge,118,DataDepEdge_DefUse,0,,,91,85,,,,,
+Edge,119,DataDepEdge_DefUse,0,,,92,70,,,,,
+Edge,120,DataDepEdge_DefUse,0,,,92,69,,,,,
+Edge,121,DataDepEdge_DefUse,0,,,92,67,,,,,
+Edge,122,DataDepEdge_DefUse,0,,,93,75,,,,,
+Edge,123,DataDepEdge_DefUse,0,,,93,74,,,,,
+Edge,124,DataDepEdge_DefUse,0,,,93,72,,,,,
+Edge,125,DataDepEdge_DefUse,0,,,93,71,,,,,
+Edge,126,DataDepEdge_DefUse,0,,,29,43,,,,,
+Edge,127,DataDepEdge_DefUse,0,,,29,33,,,,,
+Edge,128,DataDepEdge_DefUse,0,,,30,46,,,,,
+Edge,129,DataDepEdge_DefUse,0,,,30,44,,,,,
+Edge,130,DataDepEdge_DefUse,0,,,30,34,,,,,
+Edge,131,DataDepEdge_DefUse,0,,,31,47,,,,,
+Edge,132,DataDepEdge_DefUse,0,,,31,45,,,,,
+Edge,133,DataDepEdge_DefUse,0,,,31,37,,,,,
+Edge,134,DataDepEdge_DefUse,0,,,32,49,,,,,
+Edge,135,DataDepEdge_DefUse,0,,,32,48,,,,,
+Edge,136,DataDepEdge_DefUse,0,,,32,40,,,,,
+Edge,137,DataDepEdge_DefUse,0,,,43,44,,,,,
+Edge,138,DataDepEdge_DefUse,0,,,5,45,,,,,
+Edge,139,DataDepEdge_DefUse,0,,,46,6,,,,,
+Edge,140,DataDepEdge_DefUse,0,,,47,6,,,,,
+Edge,141,DataDepEdge_DefUse,0,,,6,48,,,,,
+Edge,142,DataDepEdge_DefUse,0,,,49,19,,,,,
+Edge,143,DataDepEdge_DefUse,0,,,50,57,,,,,
+Edge,144,DataDepEdge_DefUse,0,,,50,58,,,,,
+Edge,145,DataDepEdge_DefUse,0,,,51,60,,,,,
+Edge,146,DataDepEdge_DefUse,0,,,51,59,,,,,
+Edge,147,DataDepEdge_DefUse,0,,,52,62,,,,,
+Edge,148,DataDepEdge_DefUse,0,,,52,61,,,,,
+Edge,149,DataDepEdge_DefUse,0,,,53,66,,,,,
+Edge,150,DataDepEdge_DefUse,0,,,53,64,,,,,
+Edge,151,DataDepEdge_DefUse,0,,,53,55,,,,,
+Edge,152,DataDepEdge_DefUse,0,,,53,54,,,,,
+Edge,153,DataDepEdge_DefUse,0,,,55,56,,,,,
+Edge,154,DataDepEdge_DefUse,0,,,56,26,,,,,
+Edge,155,DataDepEdge_DefUse,0,,,11,57,,,,,
+Edge,156,DataDepEdge_DefUse,0,,,58,59,,,,,
+Edge,157,DataDepEdge_DefUse,0,,,60,12,,,,,
+Edge,158,DataDepEdge_DefUse,0,,,12,61,,,,,
+Edge,159,DataDepEdge_DefUse,0,,,62,13,,,,,
+Edge,160,DataDepEdge_DefUse,0,,,63,13,,,,,
+Edge,161,DataDepEdge_DefUse,0,,,64,65,,,,,
+Edge,162,DataDepEdge_DefUse,0,,,65,66,,,,,
+Edge,163,DataDepEdge_DefUse,0,,,67,68,,,,,
+Edge,164,DataDepEdge_DefUse,0,,,68,69,,,,,
+Edge,165,DataDepEdge_DefUse,0,,,70,21,,,,,
+Edge,166,DataDepEdge_DefUse,0,,,71,73,,,,,
+Edge,167,DataDepEdge_DefUse,0,,,72,73,,,,,
+Edge,168,DataDepEdge_DefUse,0,,,73,74,,,,,
+Edge,169,DataDepEdge_DefUse,0,,,75,22,,,,,
+Edge,170,DataDepEdge_DefUse,0,,,76,82,,,,,
+Edge,171,DataDepEdge_DefUse,0,,,76,79,,,,,
+Edge,172,DataDepEdge_DefUse,0,,,77,83,,,,,
+Edge,173,DataDepEdge_DefUse,0,,,77,80,,,,,
+Edge,174,DataDepEdge_DefUse,0,,,78,81,,,,,
+Edge,175,DataDepEdge_DefUse,0,,,82,84,,,,,
+Edge,176,DataDepEdge_DefUse,0,,,83,84,,,,,
+Edge,177,DataDepEdge_DefUse,0,,,84,17,,,,,
+Edge,178,DataDepEdge_DefUse,0,,,85,86,,,,,
+Edge,179,DataDepEdge_DefUse,0,,,86,17,,,,,
+Edge,180,DataDepEdge_DefUse,0,,,17,87,,,,,
+Edge,181,DataDepEdge_DefUse,0,,,88,23,,,,,
+Edge,182,DataDepEdge_DefUse,0,,,89,90,,,,,
+Edge,183,DataDepEdge_DefUse,0,,,18,24,,,,,
+Edge,184,DataDepEdge_RAW,0,,,33,43,,,,,
+Edge,185,DataDepEdge_RAW,0,,,45,47,,,,,
+Edge,186,DataDepEdge_RAW,0,,,48,49,,,,,
+Edge,187,DataDepEdge_RAW,0,,,57,58,,,,,
+Edge,188,DataDepEdge_RAW,0,,,59,60,,,,,
+Edge,189,DataDepEdge_RAW,0,,,61,62,,,,,
+Edge,190,DataDepEdge_RAW,0,,,69,70,,,,,
+Edge,191,DataDepEdge_RAW,0,,,74,75,,,,,
+Edge,192,DataDepEdge_RAW,0,,,79,82,,,,,
+Edge,193,DataDepEdge_RAW,0,,,80,83,,,,,
+Edge,194,DataDepEdge_RAW,0,,,87,88,,,,,
+Edge,195,DataDepEdge_Ret,0,,,19,12,,,,,
+Edge,196,DataDepEdge_Ret,0,,,20,18,,,,,
+Edge,197,DataDepEdge_Ret,0,,,21,11,,,,,
+Edge,198,DataDepEdge_Ret,0,,,22,5,,,,,
+Edge,199,DataDepEdge_Ret,0,,,23,6,,,,,
+Edge,200,DataDepEdge_Alias,0,,,34,30,,,,,
+Edge,201,DataDepEdge_Alias,0,,,37,31,,,,,
+Edge,202,DataDepEdge_Alias,0,,,40,32,,,,,
+Edge,203,Parameter_In,0,,,100,43,,,,,
+Edge,204,Parameter_In,0,,,94,100,,,,,
+Edge,205,Parameter_In,0,,,46,106,,,,,
+Edge,206,Parameter_In,0,,,47,107,,,,,
+Edge,207,Parameter_In,0,,,6,106,,,,,
+Edge,208,Parameter_In,0,,,6,107,,,,,
+Edge,209,Parameter_In,0,,,60,108,,,,,
+Edge,210,Parameter_In,0,,,12,108,,,,,
+Edge,211,Parameter_In,0,,,98,101,,,,,
+Edge,212,Parameter_In,0,,,98,102,,,,,
+Edge,213,Parameter_In,0,,,101,82,,,,,
+Edge,214,Parameter_In,0,,,102,83,,,,,
+Edge,215,Parameter_In,0,,,106,101,,,,,
+Edge,216,Parameter_In,0,,,107,102,,,,,
+Edge,217,Parameter_In,0,,,108,100,,,,,
+Edge,218,Parameter_Out,0,,,94,103,,,,,
+Edge,219,Parameter_Out,0,,,6,109,,,,,
+Edge,220,Parameter_Out,0,,,6,110,,,,,
+Edge,221,Parameter_Out,0,,,12,111,,,,,
+Edge,222,Parameter_Out,0,,,98,104,,,,,
+Edge,223,Parameter_Out,0,,,98,105,,,,,
+Edge,224,Parameter_Out,0,,,109,46,,,,,
+Edge,225,Parameter_Out,0,,,110,47,,,,,
+Edge,226,Parameter_Out,0,,,111,60,,,,,
+Edge,227,Anno_Global,0,,,92,115,,,,,
+Edge,228,Anno_Global,0,,,93,115,,,,,
+Edge,229,Anno_Global,0,,,94,115,,,,,
+Edge,230,Anno_Global,0,,,95,115,,,,,
+Edge,231,Anno_Var,0,,,94,112,,,,,
+Edge,232,Anno_Var,0,,,94,113,,,,,
+Edge,233,Anno_Var,0,,,94,114,,,,,
+Edge,234,Anno_Var,0,,,34,112,,,,,
+Edge,235,Anno_Var,0,,,35,112,,,,,
+Edge,236,Anno_Var,0,,,36,112,,,,,
+Edge,237,Anno_Var,0,,,37,113,,,,,
+Edge,238,Anno_Var,0,,,38,113,,,,,
+Edge,239,Anno_Var,0,,,39,113,,,,,
+Edge,240,Anno_Var,0,,,40,114,,,,,
+Edge,241,Anno_Var,0,,,41,114,,,,,
+Edge,242,Anno_Var,0,,,42,114,,,,,

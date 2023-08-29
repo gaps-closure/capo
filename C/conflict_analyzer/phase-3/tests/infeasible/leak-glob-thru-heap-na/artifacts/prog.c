@@ -32,7 +32,10 @@ int x[3] = {1,2,3};
 #pragma clang attribute pop
 
 // Blessed to coerce ORANGE_NOSHARE to ORANGE_SHARE
+#pragma cle BAR
+#pragma clang attribute push (__attribute__((annotate("BAR"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
 int** bar() {
+#pragma clang attribute pop
   int** y = (int**)malloc(sizeof(int*));
   *y = x;
   return y;
@@ -41,10 +44,8 @@ int** bar() {
 int main() {
  
   // Unused, pins main() to ORANGE_SHARE
-  #pragma cle ORANGE_SHARE
-#pragma clang attribute push (__attribute__((annotate("ORANGE_SHARE"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
-  int unused;
-#pragma clang attribute pop
+  // #pragma cle ORANGE_SHARE
+  // int unused;
 
   // Access to ORANGE_NOSHARE data x
   int** y = bar();

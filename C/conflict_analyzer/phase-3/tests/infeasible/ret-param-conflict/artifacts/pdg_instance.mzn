@@ -1,0 +1,102 @@
+Inst_FunCall_start = 1;
+Inst_FunCall_end = 3;
+Inst_Ret_start = 4;
+Inst_Ret_end = 5;
+Inst_Br_start = 0;
+Inst_Br_end = -1;
+Inst_Other_start = 6;
+Inst_Other_end = 11;
+Inst_start = 1;
+Inst_end = 11;
+VarNode_StaticGlobal_start = 0;
+VarNode_StaticGlobal_end = -1;
+VarNode_StaticModule_start = 0;
+VarNode_StaticModule_end = -1;
+VarNode_StaticFunction_start = 0;
+VarNode_StaticFunction_end = -1;
+VarNode_StaticOther_start = 0;
+VarNode_StaticOther_end = -1;
+VarNode_start = 0;
+VarNode_end = -1;
+FunctionEntry_start = 12;
+FunctionEntry_end = 13;
+Param_FormalIn_start = 14;
+Param_FormalIn_end = 14;
+Param_FormalOut_start = 15;
+Param_FormalOut_end = 15;
+Param_ActualIn_start = 16;
+Param_ActualIn_end = 16;
+Param_ActualOut_start = 17;
+Param_ActualOut_end = 17;
+Param_start = 14;
+Param_end = 17;
+Annotation_Var_start = 0;
+Annotation_Var_end = -1;
+Annotation_Global_start = 18;
+Annotation_Global_end = 18;
+Annotation_Other_start = 0;
+Annotation_Other_end = -1;
+Annotation_start = 18;
+Annotation_end = 18;
+PDGNode_start = 1;
+PDGNode_end = 18;
+ControlDep_CallInv_start = 1;
+ControlDep_CallInv_end = 1;
+ControlDep_Indirect_CallInv_start = 0;
+ControlDep_Indirect_CallInv_end = -1;
+ControlDep_CallRet_start = 2;
+ControlDep_CallRet_end = 2;
+ControlDep_Entry_start = 3;
+ControlDep_Entry_end = 13;
+ControlDep_Br_start = 0;
+ControlDep_Br_end = -1;
+ControlDep_Other_start = 0;
+ControlDep_Other_end = -1;
+ControlDep_start = 1;
+ControlDep_end = 13;
+DataDepEdge_DefUse_start = 14;
+DataDepEdge_DefUse_end = 18;
+DataDepEdge_RAW_start = 19;
+DataDepEdge_RAW_end = 19;
+DataDepEdge_Ret_start = 20;
+DataDepEdge_Ret_end = 20;
+DataDepEdge_Alias_start = 0;
+DataDepEdge_Alias_end = -1;
+DataDepEdge_start = 14;
+DataDepEdge_end = 20;
+Parameter_In_start = 21;
+Parameter_In_end = 24;
+Parameter_Out_start = 25;
+Parameter_Out_end = 26;
+Parameter_Field_start = 0;
+Parameter_Field_end = -1;
+Parameter_start = 21;
+Parameter_end = 26;
+Anno_Global_start = 27;
+Anno_Global_end = 28;
+Anno_Var_start = 0;
+Anno_Var_end = -1;
+Anno_Other_start = 0;
+Anno_Other_end = -1;
+Anno_start = 27;
+Anno_end = 28;
+PDGEdge_start = 1;
+PDGEdge_end = 28;
+hasFunction = [
+12,12,13,12,13,12,12,12,12,13,13,12,13,12,12,12,12,0
+];
+hasSource = [
+3,4,12,12,12,12,12,12,12,13,13,13,13,6,6,8,9,10,7,4,14,12,3,16,12,3,12,13
+];
+hasDest = [
+12,3,6,7,1,8,9,2,4,10,11,3,5,8,7,2,2,11,8,3,8,14,16,14,15,17,18,18
+];
+hasParamIdx = array1d(Param, [
+1,1,1,1
+]);
+userAnnotatedFunction = array1d(FunctionEntry, [
+true,true
+]);
+MaxFuncParams = 1;
+constraint :: "TaintOnNodeIdx12" taint[12]=FOO;
+constraint :: "TaintOnNodeIdx13" taint[13]=MAIN;

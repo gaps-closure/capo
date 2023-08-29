@@ -30,6 +30,7 @@
 int x[3] = {1,2,3};
 
 // Blessed to coerce ORANGE_NOSHARE to ORANGE_SHARE
+#pragma cle BAR
 int** bar() {
   int** y = (int**)malloc(sizeof(int*));
   *y = x;
@@ -39,8 +40,8 @@ int** bar() {
 int main() {
  
   // Unused, pins main() to ORANGE_SHARE
-  #pragma cle ORANGE_SHARE
-  int unused;
+  // #pragma cle ORANGE_SHARE
+  // int unused;
 
   // Access to ORANGE_NOSHARE data x
   int** y = bar();

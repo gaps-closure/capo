@@ -1,0 +1,107 @@
+Inst_FunCall_start = 1;
+Inst_FunCall_end = 18;
+Inst_Ret_start = 19;
+Inst_Ret_end = 24;
+Inst_Br_start = 25;
+Inst_Br_end = 28;
+Inst_Other_start = 29;
+Inst_Other_end = 90;
+Inst_start = 1;
+Inst_end = 90;
+VarNode_StaticGlobal_start = 0;
+VarNode_StaticGlobal_end = -1;
+VarNode_StaticModule_start = 0;
+VarNode_StaticModule_end = -1;
+VarNode_StaticFunction_start = 91;
+VarNode_StaticFunction_end = 93;
+VarNode_StaticOther_start = 0;
+VarNode_StaticOther_end = -1;
+VarNode_start = 91;
+VarNode_end = 93;
+FunctionEntry_start = 94;
+FunctionEntry_end = 99;
+Param_FormalIn_start = 100;
+Param_FormalIn_end = 102;
+Param_FormalOut_start = 103;
+Param_FormalOut_end = 105;
+Param_ActualIn_start = 106;
+Param_ActualIn_end = 108;
+Param_ActualOut_start = 109;
+Param_ActualOut_end = 111;
+Param_start = 100;
+Param_end = 111;
+Annotation_Var_start = 112;
+Annotation_Var_end = 114;
+Annotation_Global_start = 115;
+Annotation_Global_end = 115;
+Annotation_Other_start = 0;
+Annotation_Other_end = -1;
+Annotation_start = 112;
+Annotation_end = 115;
+PDGNode_start = 1;
+PDGNode_end = 115;
+ControlDep_CallInv_start = 1;
+ControlDep_CallInv_end = 5;
+ControlDep_Indirect_CallInv_start = 0;
+ControlDep_Indirect_CallInv_end = -1;
+ControlDep_CallRet_start = 6;
+ControlDep_CallRet_end = 10;
+ControlDep_Entry_start = 11;
+ControlDep_Entry_end = 100;
+ControlDep_Br_start = 101;
+ControlDep_Br_end = 115;
+ControlDep_Other_start = 0;
+ControlDep_Other_end = -1;
+ControlDep_start = 1;
+ControlDep_end = 115;
+DataDepEdge_DefUse_start = 116;
+DataDepEdge_DefUse_end = 183;
+DataDepEdge_RAW_start = 184;
+DataDepEdge_RAW_end = 194;
+DataDepEdge_Ret_start = 195;
+DataDepEdge_Ret_end = 199;
+DataDepEdge_Alias_start = 200;
+DataDepEdge_Alias_end = 202;
+DataDepEdge_start = 116;
+DataDepEdge_end = 202;
+Parameter_In_start = 203;
+Parameter_In_end = 217;
+Parameter_Out_start = 218;
+Parameter_Out_end = 226;
+Parameter_Field_start = 0;
+Parameter_Field_end = -1;
+Parameter_start = 203;
+Parameter_end = 226;
+Anno_Global_start = 227;
+Anno_Global_end = 230;
+Anno_Var_start = 231;
+Anno_Var_end = 242;
+Anno_Other_start = 0;
+Anno_Other_end = -1;
+Anno_start = 227;
+Anno_end = 242;
+PDGEdge_start = 1;
+PDGEdge_end = 242;
+hasFunction = [
+94,94,94,94,94,94,95,95,95,95,95,95,95,98,98,98,98,99,94,95,96,97,98,99,95,95,95,95,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,96,96,96,96,97,97,97,97,97,98,98,98,98,98,98,98,98,98,98,98,98,98,99,99,0,0,0,94,95,96,97,98,99,94,98,98,94,98,98,98,98,94,98,98,94,94,94,94,0
+];
+hasSource = [
+5,6,11,12,18,19,20,21,22,23,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,94,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,95,96,96,96,96,96,97,97,97,97,97,97,98,98,98,98,98,98,98,98,98,98,98,98,98,98,98,98,98,98,99,99,99,99,26,26,26,26,26,26,26,26,26,26,26,26,26,26,26,91,91,91,92,92,92,93,93,93,93,29,29,30,30,30,31,31,31,32,32,32,43,5,46,47,6,49,50,50,51,51,52,52,53,53,53,53,55,56,11,58,60,12,62,63,64,65,67,68,70,71,72,73,75,76,76,77,77,78,82,83,84,85,86,17,88,89,18,33,45,48,57,59,61,69,74,79,80,87,19,20,21,22,23,34,37,40,100,94,46,47,6,6,60,12,98,98,101,102,106,107,108,94,6,6,12,98,98,109,110,111,92,93,94,95,94,94,94,34,35,36,37,38,39,40,41,42
+];
+hasDest = [
+97,98,96,94,95,12,18,11,5,6,30,31,32,33,1,2,34,35,36,3,37,38,39,4,40,41,42,43,44,5,45,46,47,6,48,49,19,29,50,51,52,53,7,8,9,10,54,25,55,56,26,11,57,58,59,60,12,61,62,63,13,27,64,65,66,28,20,68,69,70,21,67,71,72,73,74,75,22,76,77,78,79,14,80,15,16,81,82,83,84,85,86,17,87,88,23,90,18,24,89,11,57,58,59,60,12,61,62,63,13,27,64,65,66,28,88,87,85,70,69,67,75,74,72,71,43,33,46,44,34,47,45,37,49,48,40,44,45,6,6,48,19,57,58,60,59,62,61,66,64,55,54,56,26,57,59,12,61,13,13,65,66,68,69,21,73,73,74,22,82,79,83,80,81,84,84,17,86,17,87,23,90,24,43,47,49,58,60,62,70,75,82,83,88,12,18,11,5,6,30,31,32,43,100,106,107,106,107,108,108,101,102,82,83,101,102,100,103,109,110,111,104,105,46,47,60,115,115,115,115,112,113,114,112,112,112,113,113,113,114,114,114
+];
+hasParamIdx = array1d(Param, [
+1,1,2,1,1,2,1,2,1,1,2,1
+]);
+userAnnotatedFunction = array1d(FunctionEntry, [
+true,true,false,false,false,false
+]);
+MaxFuncParams = 2;
+constraint :: "TaintOnNodeIdx34" taint[34]=PURPLE_SHAREABLE;
+constraint :: "TaintOnNodeIdx37" taint[37]=PURPLE_SHAREABLE;
+constraint :: "TaintOnNodeIdx40" taint[40]=PURPLE_SHAREABLE;
+constraint :: "TaintOnNodeIdx92" taint[92]=ORANGE;
+constraint :: "TaintOnNodeIdx93" taint[93]=PURPLE;
+constraint :: "TaintOnNodeIdx94" taint[94]=XDLINKAGE_GET_EWMA;
+constraint :: "TaintOnNodeIdx95" taint[95]=EWMA_MAIN;
