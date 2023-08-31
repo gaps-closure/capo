@@ -357,17 +357,59 @@ constraint :: "interFunParameterFieldTaintsMatch"
 % Phase 3 edge constraints %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Indirect call invocations cannot be cross-domain.
 constraint :: "IndirectCallSameEnclave"
   forall (e in ControlDep_Indirect_CallInv)
     (xdedge(e) == false);
 
+% MISSING:
+% Parameter and return edges of indirect calls must satisfy 
+% the same constraints as their direct call counter-parts.
+% N.B: If we continue to constrain pointed-to functions to be
+% un-annotated, we have the option of not implementing this
+% constraint and the associated edges, because they would be
+% redundant. The indirect callee would always be un-annotated,
+% in which case the only constraint on the parameter and 
+% return edges is matching taints, but the points-to edge to
+% the callee will already accomplish this.
+
+% Endpoints of a points-to edge must be in the same enclave.
 constraint :: "PointsToSameEnclave"
   forall (e in DataDepEdge_PointsTo)
     (xdedge(e) == false);
 
+% Endpoints of a points-to edge must have the same taint
+% (including cases in which either endpoint is 
+% global/module-static/function).
+% Sometimes pointer dependencies are captured by a chain
+% of points-to edges which may be intra-function edges. Therefore
+% we restrict intra-function points-to edges to have the
+% same taint, even in annotated functions.
 constraint :: "PointsToTaintsMatch"
   forall (e in DataDepEdge_PointsTo)
     (esTaint(e) == edTaint(e));
+
+% MISSING:
+% If two global variables are connected by a def-use edge,
+% they must have the same taint.
+
+% Any function whose address is taken in the program 
+% cannot have a function annotation. Indirect callees,
+% as a consequence, cannot have a function annotation,
+% but we include the constraint separately for completeness.
+constraint :: "FunctionPtrSinglyTainted"
+  forall (e in DataDepEdge_PointsTo)
+    (isFunctionEntry(hasDest[e]) -> not userAnnotatedFunction[hasDest[e]]);
+constraint :: "IndirectCalleeSinglyTainted"
+  forall (e in ControlDep_Indirect_CallInv)
+    (not userAnnotatedFunction[hasDest[e]]);
+
+% MISSING:
+% A structure or array and all its fields/elements 
+% must have the same taint
+
+% MISSING:
+% External callback subgraph constraint
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective

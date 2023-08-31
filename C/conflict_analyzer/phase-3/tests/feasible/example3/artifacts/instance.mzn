@@ -1,4 +1,4 @@
-cleLabel = { nullCleLabel, EWMA_SHAREABLE, XDLINKAGE_GET_EWMA, EWMA_MAIN, PURPLE, ORANGE, ORANGE_SHAREABLE, TAG_RESPONSE_GET_EWMA, TAG_REQUEST_GET_EWMA };
+cleLabel = { nullCleLabel, EWMA_SHAREABLE, XDLINKAGE_GET_EWMA, EWMA_MAIN, PURPLE, ORANGE, ORANGE_SHAREABLE, TAG_REQUEST_GET_EWMA, TAG_RESPONSE_GET_EWMA };
 hasLabelLevel = [ nullLevel, orange, orange, purple, purple, orange, orange, nullLevel, nullLevel ];
 isFunctionAnnotation = [ false, true, true, true, false, false, false, false, false ];
 cdf = { nullCdf, EWMA_SHAREABLE_cdf_0, XDLINKAGE_GET_EWMA_cdf_0, XDLINKAGE_GET_EWMA_cdf_1, EWMA_MAIN_cdf_0, ORANGE_SHAREABLE_cdf_0 };
@@ -9,20 +9,20 @@ hasGuardOperation = [ nullGuardOperation, allow, allow, allow, allow, allow ];
 isOneway = [ false, false, false, false, false, false ];
 cdfForRemoteLevel = array2d(cleLabel, Level, [
   nullCdf, nullCdf, nullCdf,
-  nullCdf, EWMA_SHAREABLE_cdf_0, nullCdf,
-  nullCdf, XDLINKAGE_GET_EWMA_cdf_0, XDLINKAGE_GET_EWMA_cdf_1,
-  nullCdf, nullCdf, EWMA_MAIN_cdf_0,
+  nullCdf, nullCdf, EWMA_SHAREABLE_cdf_0,
+  nullCdf, XDLINKAGE_GET_EWMA_cdf_1, XDLINKAGE_GET_EWMA_cdf_0,
+  nullCdf, EWMA_MAIN_cdf_0, nullCdf,
   nullCdf, nullCdf, nullCdf,
   nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, ORANGE_SHAREABLE_cdf_0,
+  nullCdf, ORANGE_SHAREABLE_cdf_0, nullCdf,
   nullCdf, nullCdf, nullCdf,
   nullCdf, nullCdf, nullCdf
 ]);
 hasRettaints = array2d(cdf, cleLabel, [
   false, false, false, false, false, false, false, false, false,
   false, false, false, false, false, false, true, false, false,
-  false, false, false, false, false, false, false, true, false,
-  false, false, false, false, false, false, false, true, false,
+  false, false, false, false, false, false, false, false, true,
+  false, false, false, false, false, false, false, false, true,
   false, false, false, false, true, false, false, false, false,
   false, false, false, false, false, false, false, false, false
 ]);
@@ -45,8 +45,8 @@ hasArgtaints = array3d(cdf, parmIdx, cleLabel, [
 hasARCtaints = array2d(cdf, cleLabel, [
   false, false, false, false, false, false, false, false, false,
   false, true, false, false, false, true, true, false, false,
-  false, false, true, false, false, true, true, true, false,
-  false, false, true, false, false, true, true, true, false,
+  false, false, true, false, false, true, true, false, true,
+  false, false, true, false, false, true, true, false, true,
   false, false, false, true, true, false, false, true, true,
   false, false, false, false, false, false, false, false, false
 ]);
@@ -157,9 +157,9 @@ constraint :: "TaintOnNodeIdx68" taint[68]=ORANGE;
 constraint :: "TaintOnNodeIdx69" taint[69]=EWMA_SHAREABLE;
 constraint :: "TaintOnNodeIdx70" taint[70]=XDLINKAGE_GET_EWMA;
 constraint :: "TaintOnNodeIdx71" taint[71]=EWMA_MAIN;
-Level = { nullLevel, orange, purple };
-Enclave = { nullEnclave, orange_E, purple_E };
-hasEnclaveLevel = [ nullLevel, orange, purple ];
+Level = { nullLevel, purple, orange };
+Enclave = { nullEnclave, purple_E, orange_E };
+hasEnclaveLevel = [ nullLevel, purple, orange ];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flag to include/exclude debug output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -376,17 +376,59 @@ constraint :: "interFunParameterFieldTaintsMatch"
 % Phase 3 edge constraints %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Indirect call invocations cannot be cross-domain.
 constraint :: "IndirectCallSameEnclave"
   forall (e in ControlDep_Indirect_CallInv)
     (xdedge(e) == false);
 
+% MISSING:
+% Parameter and return edges of indirect calls must satisfy 
+% the same constraints as their direct call counter-parts.
+% N.B: If we continue to constrain pointed-to functions to be
+% un-annotated, we have the option of not implementing this
+% constraint and the associated edges, because they would be
+% redundant. The indirect callee would always be un-annotated,
+% in which case the only constraint on the parameter and 
+% return edges is matching taints, but the points-to edge to
+% the callee will already accomplish this.
+
+% Endpoints of a points-to edge must be in the same enclave.
 constraint :: "PointsToSameEnclave"
   forall (e in DataDepEdge_PointsTo)
     (xdedge(e) == false);
 
+% Endpoints of a points-to edge must have the same taint
+% (including cases in which either endpoint is 
+% global/module-static/function).
+% Sometimes pointer dependencies are captured by a chain
+% of points-to edges which may be intra-function edges. Therefore
+% we restrict intra-function points-to edges to have the
+% same taint, even in annotated functions.
 constraint :: "PointsToTaintsMatch"
   forall (e in DataDepEdge_PointsTo)
     (esTaint(e) == edTaint(e));
+
+% MISSING:
+% If two global variables are connected by a def-use edge,
+% they must have the same taint.
+
+% Any function whose address is taken in the program 
+% cannot have a function annotation. Indirect callees,
+% as a consequence, cannot have a function annotation,
+% but we include the constraint separately for completeness.
+constraint :: "FunctionPtrSinglyTainted"
+  forall (e in DataDepEdge_PointsTo)
+    (isFunctionEntry(hasDest[e]) -> not userAnnotatedFunction[hasDest[e]]);
+constraint :: "IndirectCalleeSinglyTainted"
+  forall (e in ControlDep_Indirect_CallInv)
+    (not userAnnotatedFunction[hasDest[e]]);
+
+% MISSING:
+% A structure or array and all its fields/elements 
+% must have the same taint
+
+% MISSING:
+% External callback subgraph constraint
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Solver objective
