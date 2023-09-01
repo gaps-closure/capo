@@ -35,6 +35,7 @@ int foo(int x) {
 
 #pragma cle MAIN
 int main() {
-    foo(0);
+    int a = 5;
+    foo(a);
     return 0;
 }

@@ -1,4 +1,4 @@
-cleLabel = { nullCleLabel, XDLINKAGE_GET_EWMA, EWMA_MAIN, PURPLE, PURPLE_SHAREABLE, ORANGE, TAG_REQUEST_GET_EWMA, TAG_RESPONSE_GET_EWMA };
+cleLabel = { nullCleLabel, XDLINKAGE_GET_EWMA, EWMA_MAIN, PURPLE, PURPLE_SHAREABLE, ORANGE, TAG_RESPONSE_GET_EWMA, TAG_REQUEST_GET_EWMA };
 hasLabelLevel = [ nullLevel, purple, orange, purple, purple, orange, nullLevel, nullLevel ];
 isFunctionAnnotation = [ false, true, true, false, false, false, false, false ];
 cdf = { nullCdf, XDLINKAGE_GET_EWMA_cdf_0, XDLINKAGE_GET_EWMA_cdf_1, EWMA_MAIN_cdf_0, PURPLE_SHAREABLE_cdf_0, ORANGE_cdf_0 };
@@ -19,8 +19,8 @@ cdfForRemoteLevel = array2d(cleLabel, Level, [
 ]);
 hasRettaints = array2d(cdf, cleLabel, [
   false, false, false, false, false, false, false, false,
-  false, false, false, false, false, false, false, true,
-  false, false, false, false, false, false, false, true,
+  false, false, false, false, false, false, true, false,
+  false, false, false, false, false, false, true, false,
   false, false, false, false, false, true, false, false,
   false, false, false, false, false, false, false, false,
   false, false, false, false, false, false, false, false
@@ -35,8 +35,8 @@ hasCodtaints = array2d(cdf, cleLabel, [
 ]);
 hasArgtaints = array3d(cdf, parmIdx, cleLabel, [
   false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false,
+  false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false,
   false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
   false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
   false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false

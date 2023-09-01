@@ -1,0 +1,92 @@
+Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32** %2, metadata !25, metadata !DIExpression()), !dbg !26',17,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,34,14,2,-1
+Node,2,Inst_FunCall,,'  %6 = call i32 (i8*, ...) @printf(i8* noundef %5, i32 noundef %4), !dbg !29',17,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,5,6,-1
+Node,3,Inst_FunCall,,'  %3 = call i32 @foo(i32* noundef %2), !dbg !24',18,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,46,5,4,-1
+Node,4,Inst_Ret,,'  ret i32 0, !dbg !30',17,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,37,5,7,-1
+Node,5,Inst_Ret,,'  ret i32 0, !dbg !25',18,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,47,5,5,-1
+Node,6,Inst_Other,,'  %2 = alloca i32*, align 8',17,,,,-1,-1,0,-1
+Node,7,Inst_Other,,'  store i32* %0, i32** %2, align 8',17,,,,-1,-1,1,-1
+Node,8,Inst_Other,,'  %3 = load i32*, i32** %2, align 8, !dbg !27',17,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,21,3,-1
+Node,9,Inst_Other,,'  %4 = load i32, i32* %3, align 4, !dbg !28',17,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,20,4,-1
+Node,10,Inst_Other,,'  %5 = getelementptr inbounds [4 x i8], [4 x i8]* @.str, i64 0, i64 0',17,,,,-1,-1,5,-1
+Node,11,Inst_Other,,'  %1 = alloca i32, align 4',18,,,,-1,-1,0,-1
+Node,12,Inst_Other,,'  store i32 0, i32* %1, align 4',18,,,,-1,-1,1,-1
+Node,13,Inst_Other,,'  store i32* @main.a, i32** @glob, align 8, !dbg !22',18,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,10,2,-1
+Node,14,Inst_Other,,'  %2 = load i32*, i32** @glob, align 8, !dbg !23',18,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,46,9,3,-1
+Node,15,VarNode_StaticGlobal,,'@glob = dso_local global i32* null, align 8, !dbg !10',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,30,-1,-1,-1
+Node,16,VarNode_StaticFunction,,'@main.a = internal global i32 1, align 4, !dbg !0',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,44,-1,-1,-1
+Node,17,FunctionEntry,FOO,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @foo(i32* noundef %0) #0 !dbg !22 {
+  %2 = alloca i32*, align 8
+  store i32* %0, i32** %2, align 8
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !25, metadata !DIExpression()), !dbg !26
+  %3 = load i32*, i32** %2, align 8, !dbg !27
+  %4 = load i32, i32* %3, align 4, !dbg !28
+  %5 = getelementptr inbounds [4 x i8], [4 x i8]* @.str, i64 0, i64 0
+  %6 = call i32 (i8*, ...) @printf(i8* noundef %5, i32 noundef %4), !dbg !29
+  ret i32 0, !dbg !30
+}
+',17,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,34,-1,-1,-1
+Node,18,FunctionEntry,MAIN,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !2 {
+  %1 = alloca i32, align 4
+  store i32 0, i32* %1, align 4
+  store i32* @main.a, i32** @glob, align 8, !dbg !31
+  %2 = load i32*, i32** @glob, align 8, !dbg !32
+  %3 = call i32 @foo(i32* noundef %2), !dbg !33
+  ret i32 0, !dbg !34
+}
+',18,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,42,-1,-1,-1
+Node,19,Param_FormalIn,,'No Value',17,,,Not Found,-1,-1,-1,0
+Node,20,Param_FormalIn,,'No Value',17,,,Not Found,-1,-1,-1,-1
+Node,21,Param_FormalOut,,'No Value',17,,,Not Found,-1,-1,-1,0
+Node,22,Param_FormalOut,,'No Value',17,,,Not Found,-1,-1,-1,-1
+Node,23,Param_ActualIn,,'No Value',17,,,Not Found,-1,-1,-1,0
+Node,24,Param_ActualIn,,'No Value',17,,,Not Found,-1,-1,-1,-1
+Node,25,Param_ActualOut,,'No Value',17,,,Not Found,-1,-1,-1,0
+Node,26,Param_ActualOut,,'No Value',17,,,Not Found,-1,-1,-1,-1
+Node,27,Annotation_Global,,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32*)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 34, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 42, i8* null }], section "llvm.metadata"',0,,,Not Found,-1,-1,-1,-1
+Edge,1,ControlDep_CallInv,0,,,3,17,,,,,
+Edge,2,ControlDep_CallRet,0,,,4,3,,,,,
+Edge,3,ControlDep_Entry,0,,,17,6,,,,,
+Edge,4,ControlDep_Entry,0,,,17,7,,,,,
+Edge,5,ControlDep_Entry,0,,,17,1,,,,,
+Edge,6,ControlDep_Entry,0,,,17,8,,,,,
+Edge,7,ControlDep_Entry,0,,,17,9,,,,,
+Edge,8,ControlDep_Entry,0,,,17,10,,,,,
+Edge,9,ControlDep_Entry,0,,,17,2,,,,,
+Edge,10,ControlDep_Entry,0,,,17,4,,,,,
+Edge,11,ControlDep_Entry,0,,,18,11,,,,,
+Edge,12,ControlDep_Entry,0,,,18,12,,,,,
+Edge,13,ControlDep_Entry,0,,,18,13,,,,,
+Edge,14,ControlDep_Entry,0,,,18,14,,,,,
+Edge,15,ControlDep_Entry,0,,,18,3,,,,,
+Edge,16,ControlDep_Entry,0,,,18,5,,,,,
+Edge,17,DataDepEdge_DefUse,0,,,16,13,,,,,
+Edge,18,DataDepEdge_DefUse,0,,,15,14,,,,,
+Edge,19,DataDepEdge_DefUse,0,,,15,13,,,,,
+Edge,20,DataDepEdge_DefUse,0,,,6,8,,,,,
+Edge,21,DataDepEdge_DefUse,0,,,6,7,,,,,
+Edge,22,DataDepEdge_DefUse,0,,,8,9,,,,,
+Edge,23,DataDepEdge_DefUse,0,,,9,2,,,,,
+Edge,24,DataDepEdge_DefUse,0,,,10,2,,,,,
+Edge,25,DataDepEdge_DefUse,0,,,11,12,,,,,
+Edge,26,DataDepEdge_DefUse,0,,,14,3,,,,,
+Edge,27,DataDepEdge_RAW,0,,,7,8,,,,,
+Edge,28,DataDepEdge_RAW,0,,,13,14,,,,,
+Edge,29,DataDepEdge_Ret,0,,,4,3,,,,,
+Edge,30,Parameter_In,0,,,19,8,,,,,
+Edge,31,Parameter_In,0,,,17,19,,,,,
+Edge,32,Parameter_In,0,,,20,9,,,,,
+Edge,33,Parameter_In,0,,,14,23,,,,,
+Edge,34,Parameter_In,0,,,3,23,,,,,
+Edge,35,Parameter_In,0,,,23,19,,,,,
+Edge,36,Parameter_In,0,,,24,20,,,,,
+Edge,37,Parameter_Out,0,,,17,21,,,,,
+Edge,38,Parameter_Out,0,,,3,25,,,,,
+Edge,39,Parameter_Out,0,,,25,14,,,,,
+Edge,40,Parameter_Field,0,,,19,20,,,,,
+Edge,41,Parameter_Field,0,,,21,22,,,,,
+Edge,42,Parameter_Field,0,,,23,24,,,,,
+Edge,43,Parameter_Field,0,,,25,26,,,,,
+Edge,44,Anno_Global,0,,,17,27,,,,,
+Edge,45,Anno_Global,0,,,18,27,,,,,

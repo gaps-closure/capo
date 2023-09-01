@@ -25,9 +25,13 @@ define dso_local i32 @foo(i32 noundef %0) #0 !dbg !10 {
 14,ValNode,pointer,'; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @main() #0 !dbg !21 {
   %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
   store i32 0, i32* %1, align 4
-  %2 = call i32 @foo(i32 noundef 0), !dbg !24
-  ret i32 0, !dbg !25
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !24, metadata !DIExpression()), !dbg !25
+  store i32 5, i32* %2, align 4, !dbg !25
+  %3 = load i32, i32* %2, align 4, !dbg !26
+  %4 = call i32 @foo(i32 noundef %3), !dbg !27
+  ret i32 0, !dbg !28
 }
 ',main,,
 15,ValNode,pointer,'i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0)',,,
@@ -76,48 +80,62 @@ define dso_local i32 @foo(i32 noundef %0) #0 !dbg !10 {
 36,FIObjNode,pointer,'; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @main() #0 !dbg !21 {
   %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
   store i32 0, i32* %1, align 4
-  %2 = call i32 @foo(i32 noundef 0), !dbg !24
-  ret i32 0, !dbg !25
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !24, metadata !DIExpression()), !dbg !25
+  store i32 5, i32* %2, align 4, !dbg !25
+  %3 = load i32, i32* %2, align 4, !dbg !26
+  %4 = call i32 @foo(i32 noundef %3), !dbg !27
+  ret i32 0, !dbg !28
 }
 ',main,,
 37,RetNode,non-pointer,'; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @main() #0 !dbg !21 {
   %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
   store i32 0, i32* %1, align 4
-  %2 = call i32 @foo(i32 noundef 0), !dbg !24
-  ret i32 0, !dbg !25
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !24, metadata !DIExpression()), !dbg !25
+  store i32 5, i32* %2, align 4, !dbg !25
+  %3 = load i32, i32* %2, align 4, !dbg !26
+  %4 = call i32 @foo(i32 noundef %3), !dbg !27
+  ret i32 0, !dbg !28
 }
-',main,3,
+',main,7,
 38,ValNode,pointer,'  %1 = alloca i32, align 4',main,0,
 39,FIObjNode,pointer,'  %1 = alloca i32, align 4',main,0,
-40,ValNode,non-pointer,'  store i32 0, i32* %1, align 4',main,1,
-41,ValNode,non-pointer,'  %2 = call i32 @foo(i32 noundef 0), !dbg !16',main,2,
-42,ValNode,non-pointer,'  ret i32 0, !dbg !17',main,3,
-43,ValNode,pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+40,ValNode,pointer,'  %2 = alloca i32, align 4',main,1,
+41,FIObjNode,pointer,'  %2 = alloca i32, align 4',main,1,
+42,ValNode,non-pointer,'  store i32 0, i32* %1, align 4',main,2,
+43,ValNode,non-pointer,'  call void @llvm.dbg.declare(metadata i32* %2, metadata !24, metadata !DIExpression()), !dbg !25',main,3,
+44,ValNode,non-pointer,'  store i32 5, i32* %2, align 4, !dbg !17',main,4,
+45,ValNode,non-pointer,'i32 5',,,
+46,ValNode,non-pointer,'  %3 = load i32, i32* %2, align 4, !dbg !18',main,5,
+47,ValNode,non-pointer,'  %4 = call i32 @foo(i32 noundef %3), !dbg !19',main,6,
+48,ValNode,non-pointer,'  ret i32 0, !dbg !20',main,7,
+49,ValNode,pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 ',llvm.dbg.declare,,
-44,FIObjNode,pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+50,FIObjNode,pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 ',llvm.dbg.declare,,
-45,RetNode,non-pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+51,RetNode,non-pointer,'; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 ',llvm.dbg.declare,,
-46,ValNode,non-pointer,'metadata %0',llvm.dbg.declare,,0
-47,ValNode,non-pointer,'metadata %1',llvm.dbg.declare,,1
-48,ValNode,non-pointer,'metadata %2',llvm.dbg.declare,,2
-49,RetNode,non-pointer,'declare i32 @printf(i8* noundef, ...) #2
+52,ValNode,non-pointer,'metadata %0',llvm.dbg.declare,,0
+53,ValNode,non-pointer,'metadata %1',llvm.dbg.declare,,1
+54,ValNode,non-pointer,'metadata %2',llvm.dbg.declare,,2
+55,RetNode,non-pointer,'declare i32 @printf(i8* noundef, ...) #2
 ',printf,,
-50,VarargNode,pointer,'declare i32 @printf(i8* noundef, ...) #2
+56,VarargNode,pointer,'declare i32 @printf(i8* noundef, ...) #2
 ',printf,,
-51,ValNode,pointer,'i8* %0',printf,,0
-52,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-53,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-54,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-55,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-56,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-57,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-58,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-59,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-60,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
-61,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+57,ValNode,pointer,'i8* %0',printf,,0
+58,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+59,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+60,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+61,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+62,GepValNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+63,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+64,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+65,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+66,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,
+67,GepObjNode,pointer,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 32, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 ()* @main to i8*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @.str.3, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.2, i32 0, i32 0), i32 40, i8* null }], section "llvm.metadata"',llvm.global.annotations,,

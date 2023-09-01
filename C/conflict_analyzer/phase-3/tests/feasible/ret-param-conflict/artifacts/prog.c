@@ -39,6 +39,7 @@ int foo(int x) {
 #pragma clang attribute push (__attribute__((annotate("MAIN"))), apply_to = any(function,type_alias,record,enum,variable(unless(is_parameter)),field))
 int main() {
 #pragma clang attribute pop
-    foo(0);
+    int a = 5;
+    foo(a);
     return 0;
 }

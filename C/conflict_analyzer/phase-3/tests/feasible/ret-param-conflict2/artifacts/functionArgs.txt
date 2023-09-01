@@ -1,0 +1,2 @@
+foo FOO 1
+main MAIN 0

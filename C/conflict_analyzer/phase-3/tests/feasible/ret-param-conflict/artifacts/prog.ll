@@ -27,9 +27,13 @@ declare i32 @printf(i8* noundef, ...) #2
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @main() #0 !dbg !21 {
   %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
   store i32 0, i32* %1, align 4
-  %2 = call i32 @foo(i32 noundef 0), !dbg !24
-  ret i32 0, !dbg !25
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !24, metadata !DIExpression()), !dbg !25
+  store i32 5, i32* %2, align 4, !dbg !25
+  %3 = load i32, i32* %2, align 4, !dbg !26
+  %4 = call i32 @foo(i32 noundef %3), !dbg !27
+  ret i32 0, !dbg !28
 }
 
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -41,7 +45,7 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !llvm.ident = !{!9}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "Ubuntu clang version 14.0.0-1ubuntu1.1", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "8d63d967e5c2f4c36bbefd9f2433a099")
+!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "a7cb9fe42a06572468554e9d32d9d99b")
 !2 = !{i32 7, !"Dwarf Version", i32 5}
 !3 = !{i32 2, !"Debug Info Version", i32 3}
 !4 = !{i32 1, !"wchar_size", i32 4}
@@ -51,7 +55,7 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !8 = !{i32 7, !"frame-pointer", i32 2}
 !9 = !{!"Ubuntu clang version 14.0.0-1ubuntu1.1"}
 !10 = distinct !DISubprogram(name: "foo", scope: !11, file: !11, line: 32, type: !12, scopeLine: 32, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !15)
-!11 = !DIFile(filename: "prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "8d63d967e5c2f4c36bbefd9f2433a099")
+!11 = !DIFile(filename: "prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "a7cb9fe42a06572468554e9d32d9d99b")
 !12 = !DISubroutineType(types: !13)
 !13 = !{!14, !14}
 !14 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
@@ -64,5 +68,8 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !21 = distinct !DISubprogram(name: "main", scope: !11, file: !11, line: 40, type: !22, scopeLine: 40, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !15)
 !22 = !DISubroutineType(types: !23)
 !23 = !{!14}
-!24 = !DILocation(line: 42, column: 5, scope: !21)
-!25 = !DILocation(line: 43, column: 5, scope: !21)
+!24 = !DILocalVariable(name: "a", scope: !21, file: !11, line: 42, type: !14)
+!25 = !DILocation(line: 42, column: 9, scope: !21)
+!26 = !DILocation(line: 43, column: 9, scope: !21)
+!27 = !DILocation(line: 43, column: 5, scope: !21)
+!28 = !DILocation(line: 44, column: 5, scope: !21)

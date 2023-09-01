@@ -142,6 +142,7 @@ debug = true;
 
 predicate isVarNode(PDGNodeIdx: n)         = (n>=VarNode_start /\ n<=VarNode_end);
 predicate isFunctionEntry(PDGNodeIdx: n)   = (n>=FunctionEntry_start /\ n<=FunctionEntry_end);
+predicate isFunCall(PDGNodeIdx: n)         = (n>=Inst_FunCall_start /\ n<=Inst_FunCall_end);
 predicate isAnnotation(PDGNodeIdx: n)      = (n>=Annotation_start /\ n<=Annotation_end);
 predicate isParam_ActualIn(PDGNodeIdx: n)  = (n>=Param_ActualIn_start /\ n<=Param_ActualIn_end) /\ hasParamIdx[n] > 0;
 predicate isParam_ActualOut(PDGNodeIdx: n) = (n>=Param_ActualOut_start /\ n<=Param_ActualOut_end) /\ hasParamIdx[n] > 0;
@@ -298,12 +299,12 @@ constraint :: "returnNodeInRettaints"
 %    (or it's a cross-domain edge)
 constraint :: "paramEdgeToUnannotatedTaintsMatch"
   forall (e in Parameter_In)
-    (isParam_ActualIn(hasDest[e]) /\ not destAnnotFun(e)
+    (isParam_ActualIn(hasDest[e]) /\ not isFunCall(hasSource[e]) /\ not destAnnotFun(e)
       -> esTaint(e) == edTaint(e));
-constraint :: "paramterInSourceInArgtaints"
+constraint :: "parameterInSourceInArgtaints"
   forall (e in Parameter_In)
-    ((isParam_ActualIn(hasDest[e]) /\ destAnnotFun(e))
-      -> (hasArgtaints[edFunCdf(e), hasParamIdx[hasDest[e]], esTaint(e)] \/ xdedge(e)));
+    (isParam_ActualIn(hasDest[e]) /\ not isFunCall(hasSource[e]) /\ destAnnotFun(e)
+      -> hasArgtaints[edFunCdf(e), hasParamIdx[hasDest[e]], esTaint(e)] \/ xdedge(e));
 
 % For callee to caller parameter-out edges:
 %   -If the source function is un-annotated, the taints must match
@@ -331,11 +332,12 @@ constraint :: "parameterOutDestInArgtaints"
 % them ought to be.
 constraint :: "interFunOtherParamInTaintsMatch"
   forall (e in Parameter_In)
-    ((not isParam_ActualIn(hasDest[e])) /\ interFunEdge(e)
+    (not isParam_ActualIn(hasDest[e]) /\ interFunEdge(e)
       -> esTaint(e) == edTaint(e) \/ xdedge(e));
 constraint :: "interFunOtherParamOutTaintsMatch"
   forall (e in Parameter_Out)
-    ((not isParam_ActualOut(hasSource[e])) /\ interFunEdge(e)
+    % this one is longer because there is an inter-fun edge from funcall to param_actualOut that should be unconstrained
+    (not isParam_ActualOut(hasSource[e]) /\ not (isParam_ActualOut(hasDest[e]) /\ isFunCall(hasSource[e])) /\ interFunEdge(e)
       -> esTaint(e) == edTaint(e) \/ xdedge(e));
 constraint :: "interFunParameterFieldTaintsMatch"
   forall (e in Parameter_Field)
@@ -354,13 +356,6 @@ constraint :: "IndirectCallSameEnclave"
 % MISSING:
 % Parameter and return edges of indirect calls must satisfy 
 % the same constraints as their direct call counter-parts.
-% N.B: If we continue to constrain pointed-to functions to be
-% un-annotated, we have the option of not implementing this
-% constraint and the associated edges, because they would be
-% redundant. The indirect callee would always be un-annotated,
-% in which case the only constraint on the parameter and 
-% return edges is matching taints, but the points-to edge to
-% the callee will already accomplish this.
 
 % Endpoints of a points-to edge must be in the same enclave.
 constraint :: "PointsToSameEnclave"

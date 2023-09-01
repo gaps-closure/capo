@@ -12,12 +12,6 @@
         }
     },
     {
-        "cle-label": "C",
-        "cle-json": {
-            "level": "orange"
-        }
-    },
-    {
         "cle-label": "FOO",
         "cle-json": {
             "level": "orange",
