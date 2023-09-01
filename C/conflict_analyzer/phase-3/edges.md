@@ -8,38 +8,23 @@ The phase 3 conflict analyzer should correctly partition programs containing bot
 | --- | --- |
 | `ControlDep_CallInv`  | Legacy PDG export | 
 | `DataDepEdge_Ret` | Legay PDG export |
-| `Paameter_In` | Legacy PDG export, we care about inter-procedural edge |
-| `Paramater_Out` | Legacy PDG export, we care about inter-procedural edge |
+| `Parameter_In` | Legacy PDG export, we care about inter-procedural edge |
+| `Parameter_Out` | Legacy PDG export, we care about inter-procedural edge |
 | `DataDepEdge_DefUse` | Legacy PDG export, we care about edges leaving function |
-| `DataDepEdge_PointsTo` | New SVF export, using Andersen, we care about edges leaving function, subtype by heap, stack, function-static, global |
-| `DataDepEdge_Callee` | Edge from indirect calls to the callee pointer value |
-| `ControlDep_Indirect_CallInv` | * PDG-based, functionality subsumed by `DataDepEdge_Callee` * |
+| `DataDepEdge_PointsTo` | New SVF export, using Andersen, we care about edges leaving function, subtype by heap, stack, function-static, global (includes global-to-global edges) |
+| `ControlDep_Indirect_CallInv` | PDG export which over-approximates set of candidate indirect callees for each indirect callsite |
 | `DataDepEdge_Indirect_Ret` | * Missing * |
 | `Parameter_Indirect_In` | * Missing * |
 | `Parameter_Indirect_Out` | * Missing * |
 | `DataDepEdge_DefUseGlobal` | * Missing * |
-| `DataDepEdge_PointsToGlobal` | New SVF export, using Andersen (included in `DataDepEdge_PointsTo`) |
 | `ControlDep_ExternSubgraph` | TBD |
 | Other | Varargs, Struct literal args, long jumps, etc. are TBD | 
 
-Note: All nodes are legacy export from PDG, and nodes in SVF model are aligned to the PDF nodes. Export from PDG includes additional information such as maximum number of parameters functions in the LLVM IR, CLE annotations, constraints, parameter index, source-level debug references, etc.
+Note: All nodes are legacy export from PDG, and nodes in SVF model are aligned to the PDG nodes. Export from PDG includes additional information such as maximum number of parameters functions in the LLVM IR, CLE annotations, constraints, parameter index, source-level debug references, etc.
 
-## Listing
+## Phase 3 edge definitions
 
-We introduce the following new edge types:
-- `ControlDep_Indirect_CallInv` (indirect function calls via a function pointer)
-- `ControlDep_ExternSubgraph`  (over-approximate control dep when a callback is passed to an extern function)
-- `DataDepEdge_GlobalDefUse`   (connect def-use dependency between two global variables)
-- `DataDepEdge_PointsTo`       (connect data to all of the instructions, variables, and parameters that point to it)
-- `DataDepEdge_Indirect_Ret`   (connect a function return value to the call site of an indirect call)
-- `Parameter_Indirect_In`      (connect data to its use as a parameter in an indirect call)
-- `Parameter_Indirect_Out`     (connect the parameter of an indirect call to corresponding function argument)
-
-
-
-## Edge definitions
-
-### ControlDep_Indirect
+### ControlDep_Indirect_CallInv
 
 Let `F` be a function entry node, and let `X` be a call invocation node performing an indirect call. Then there is a `ControlDep_Indirect` edge from `X` to `F` iff:
 - There exists some instruction node `Y` which takes the address of of `F`, and the signature of `F` matches the signature of the call invocation at `X`.
@@ -67,6 +52,10 @@ Let `P` be a parameter node in an indirect call invocation. Then for each parame
 ### Parameter_Indirect_Out
 
 Let `P` be a parameter node in an indirect call invocation to a function `F`. Then for each parameter passed to the call, there is a `Parameter_Indirect_Out` edge from `P` to the corresponding argument of `F`.
+
+### DataDepEdge_Indirect_Ret
+
+Edge from return node of an indirect callee to the indirect callsite.
 
 ### ControlDep_ExternSubgraph
 
