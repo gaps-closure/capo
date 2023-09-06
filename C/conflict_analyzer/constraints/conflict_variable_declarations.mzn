@@ -98,8 +98,20 @@ int: DataDepEdge_RAW_start;
 int: DataDepEdge_RAW_end;
 int: DataDepEdge_Ret_start;
 int: DataDepEdge_Ret_end;
+int: DataDepEdge_Indirect_Ret_start;
+int: DataDepEdge_Indirect_Ret_end;
 int: DataDepEdge_Alias_start;
 int: DataDepEdge_Alias_end;
+int: DataDepEdge_Argpass_In_start;
+int: DataDepEdge_Argpass_In_end;
+int: DataDepEdge_Argpass_Out_start;
+int: DataDepEdge_Argpass_Out_end;
+int: DataDepEdge_Argpass_Indirect_In_start;
+int: DataDepEdge_Argpass_Indirect_In_end;
+int: DataDepEdge_Argpass_Indirect_Out_start;
+int: DataDepEdge_Argpass_Indirect_Out_end;
+int: DataDepEdge_Callee_start;
+int: DataDepEdge_Callee_end;
 int: DataDepEdge_start;
 int: DataDepEdge_end;
 
@@ -138,7 +150,13 @@ set of int: ControlDep = ControlDep_start .. ControlDep_end;
 set of int: DataDepEdge_DefUse = DataDepEdge_DefUse_start .. DataDepEdge_DefUse_end;
 set of int: DataDepEdge_RAW  = DataDepEdge_RAW_start .. DataDepEdge_RAW_end;
 set of int: DataDepEdge_Ret  = DataDepEdge_Ret_start .. DataDepEdge_Ret_end;
+set of int: DataDepEdge_Indirect_Ret = DataDepEdge_Indirect_Ret_start .. DataDepEdge_Indirect_Ret_end;
 set of int: DataDepEdge_Alias = DataDepEdge_Alias_start .. DataDepEdge_Alias_end;
+set of int: DataDepEdge_Argpass_In  = DataDepEdge_Argpass_In_start .. DataDepEdge_Argpass_In_end;
+set of int: DataDepEdge_Argpass_Out = DataDepEdge_Argpass_Out_start .. DataDepEdge_Argpass_Out_end;
+set of int: DataDepEdge_Argpass_Indirect_In  = DataDepEdge_Argpass_Indirect_In_start  .. DataDepEdge_Argpass_Indirect_In_end;
+set of int: DataDepEdge_Argpass_Indirect_Out = DataDepEdge_Argpass_Indirect_Out_start .. DataDepEdge_Argpass_Indirect_Out_end;
+set of int: DataDepEdge_Callee = DataDepEdge_Callee_start .. DataDepEdge_Callee_end;
 set of int: DataDepEdge = DataDepEdge_start .. DataDepEdge_end;
 
 set of int: Parameter_In = Parameter_In_start .. Parameter_In_end;
@@ -171,10 +189,11 @@ array[FunctionEntry]  of bool: userAnnotatedFunction;
 
 set of int: Global              = VarNode_StaticGlobal union VarNode_StaticModule;
 set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union Param;
-set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_CallRet;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
-set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
-set of int: DataEdgeParam       = DataDepEdge union Parameter;
+set of int: DataEdgeEnclaveSafe = DataDepEdge_DefUse union DataDepEdge_RAW union 
+                                  DataDepEdge_Indirect_Ret union DataDepEdge_Alias union
+                                  DataDepEdge_Argpass_Indirect_In union 
+                                  DataDepEdge_Argpass_Indirect_Out union DataDepEdge_Callee;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves
