@@ -152,11 +152,11 @@ constraint :: "returnNodeInRettaints"
 %    must be in the argtaints of the corresponding parameter index
 %    (or it's a cross-domain edge)
 constraint :: "argPassInEdgeToUnannotatedTaintsMatch"
-  forall (e in DataDepEdge_Argpass_In union DataDepEdge_Argpass_Indirect_In)
+  forall (e in DataDepEdge_ArgPass_In union DataDepEdge_ArgPass_Indirect_In)
     (not destAnnotFun(e)
       -> esTaint(e) == edTaint(e));
 constraint :: "argPassInSourceInArgtaints"
-  forall (e in DataDepEdge_Argpass_In union DataDepEdge_Argpass_Indirect_In)
+  forall (e in DataDepEdge_ArgPass_In union DataDepEdge_ArgPass_Indirect_In)
     (destAnnotFun(e)
       -> hasArgtaints[edFunCdf(e), hasParamIdx[hasDest[e]], esTaint(e)] \/ xdedge(e));
 
@@ -166,11 +166,11 @@ constraint :: "argPassInSourceInArgtaints"
 %    must be in the argtaints of the corresponding parameter index
 %    (or it's a cross-domain edge)
 constraint :: "argPassOutFromUnannotatedTaintsMatch"
-  forall (e in DataDepEdge_Argpass_Out union DataDepEdge_Argpass_Indirect_Out)
+  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
     (not sourceAnnotFun(e)
       -> esTaint(e) == edTaint(e));
 constraint :: "argPassOutDestInArgtaints"
-  forall (e in DataDepEdge_Argpass_Out union DataDepEdge_Argpass_Indirect_Out)
+  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
     (sourceAnnotFun(e)
       -> hasArgtaints[esFunCdf(e), hasParamIdx[hasSource[e]], edTaint(e)] \/ xdedge(e));
 
@@ -207,7 +207,7 @@ constraint :: "IndirectCallSameEnclave"
   forall (e in ControlDep_Indirect_CallInv)
     (xdedge(e) == false);
 
-% Argpass and return edges of indirect calls must satisfy 
+% ArgPass and Ret edges of indirect calls must satisfy 
 % the same constraints as their direct call counter-parts.
 % They are included in the unions above for inter-function edges.
 

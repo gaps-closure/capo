@@ -24,11 +24,12 @@ fi
 
 run () {
     ERR=$'\n    conflict analysis errored (see above)'
-       mkdir tmp-ca \
-    && python3 -m conflict_analyzer --temp-dir tmp-ca --pdg-lib ../../pdg2/build/libpdg.so \
-               --dump-ptg ../../pdg2/svf/Release-build/bin/dump-ptg \
-               --pts-to-algo $1 \
-               tests/$2/$3/prog.c 2>&1 >ca-output.txt
+
+    mkdir tmp-ca
+    python3 -m conflict_analyzer --temp-dir tmp-ca --pdg-lib ../../pdg2/build/libpdg.so \
+            --dump-ptg ../../pdg2/svf/Release-build/bin/dump-ptg \
+            --pts-to-algo $1 \
+            tests/$2/$3/prog.c 2>&1 >ca-output.txt
     STATUS=$?
 
     touch tests/$2/$3/artifacts/xyzxyz \
@@ -38,6 +39,7 @@ run () {
     
     if [[ $STATUS -ne 0 ]]
     then
+        rm ca-output.txt
         (rm -rf tmp-ca 2> /dev/null && echo $"FAILURE $2/$3 $ERR")
     else
         minizinc tests/$2/$3/artifacts/instance.mzn 2> /dev/null | tail -n 1 | grep -q "UNSATISFIABLE"

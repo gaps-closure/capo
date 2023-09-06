@@ -102,14 +102,14 @@ int: DataDepEdge_Indirect_Ret_start;
 int: DataDepEdge_Indirect_Ret_end;
 int: DataDepEdge_Alias_start;
 int: DataDepEdge_Alias_end;
-int: DataDepEdge_Argpass_In_start;
-int: DataDepEdge_Argpass_In_end;
-int: DataDepEdge_Argpass_Out_start;
-int: DataDepEdge_Argpass_Out_end;
-int: DataDepEdge_Argpass_Indirect_In_start;
-int: DataDepEdge_Argpass_Indirect_In_end;
-int: DataDepEdge_Argpass_Indirect_Out_start;
-int: DataDepEdge_Argpass_Indirect_Out_end;
+int: DataDepEdge_ArgPass_In_start;
+int: DataDepEdge_ArgPass_In_end;
+int: DataDepEdge_ArgPass_Out_start;
+int: DataDepEdge_ArgPass_Out_end;
+int: DataDepEdge_ArgPass_Indirect_In_start;
+int: DataDepEdge_ArgPass_Indirect_In_end;
+int: DataDepEdge_ArgPass_Indirect_Out_start;
+int: DataDepEdge_ArgPass_Indirect_Out_end;
 int: DataDepEdge_Callee_start;
 int: DataDepEdge_Callee_end;
 int: DataDepEdge_start;
@@ -152,10 +152,10 @@ set of int: DataDepEdge_RAW  = DataDepEdge_RAW_start .. DataDepEdge_RAW_end;
 set of int: DataDepEdge_Ret  = DataDepEdge_Ret_start .. DataDepEdge_Ret_end;
 set of int: DataDepEdge_Indirect_Ret = DataDepEdge_Indirect_Ret_start .. DataDepEdge_Indirect_Ret_end;
 set of int: DataDepEdge_Alias = DataDepEdge_Alias_start .. DataDepEdge_Alias_end;
-set of int: DataDepEdge_Argpass_In  = DataDepEdge_Argpass_In_start .. DataDepEdge_Argpass_In_end;
-set of int: DataDepEdge_Argpass_Out = DataDepEdge_Argpass_Out_start .. DataDepEdge_Argpass_Out_end;
-set of int: DataDepEdge_Argpass_Indirect_In  = DataDepEdge_Argpass_Indirect_In_start  .. DataDepEdge_Argpass_Indirect_In_end;
-set of int: DataDepEdge_Argpass_Indirect_Out = DataDepEdge_Argpass_Indirect_Out_start .. DataDepEdge_Argpass_Indirect_Out_end;
+set of int: DataDepEdge_ArgPass_In  = DataDepEdge_ArgPass_In_start .. DataDepEdge_ArgPass_In_end;
+set of int: DataDepEdge_ArgPass_Out = DataDepEdge_ArgPass_Out_start .. DataDepEdge_ArgPass_Out_end;
+set of int: DataDepEdge_ArgPass_Indirect_In  = DataDepEdge_ArgPass_Indirect_In_start  .. DataDepEdge_ArgPass_Indirect_In_end;
+set of int: DataDepEdge_ArgPass_Indirect_Out = DataDepEdge_ArgPass_Indirect_Out_start .. DataDepEdge_ArgPass_Indirect_Out_end;
 set of int: DataDepEdge_Callee = DataDepEdge_Callee_start .. DataDepEdge_Callee_end;
 set of int: DataDepEdge = DataDepEdge_start .. DataDepEdge_end;
 
@@ -192,8 +192,8 @@ set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union P
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
 set of int: DataEdgeEnclaveSafe = DataDepEdge_DefUse union DataDepEdge_RAW union 
                                   DataDepEdge_Indirect_Ret union DataDepEdge_Alias union
-                                  DataDepEdge_Argpass_Indirect_In union 
-                                  DataDepEdge_Argpass_Indirect_Out union DataDepEdge_Callee;
+                                  DataDepEdge_ArgPass_Indirect_In union 
+                                  DataDepEdge_ArgPass_Indirect_Out union DataDepEdge_Callee;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves
