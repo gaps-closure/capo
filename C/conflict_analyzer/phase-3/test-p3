@@ -28,13 +28,15 @@ run () {
     && python3 -m conflict_analyzer --temp-dir tmp-ca --pdg-lib ../../pdg2/build/libpdg.so \
                --dump-ptg ../../pdg2/svf/Release-build/bin/dump-ptg \
                --pts-to-algo $1 \
-               tests/$2/$3/prog.c 2>&1 >ca-output.txt \
-    && touch tests/$2/$3/artifacts/xyzxyz \
+               tests/$2/$3/prog.c 2>&1 >ca-output.txt
+    STATUS=$?
+
+    touch tests/$2/$3/artifacts/xyzxyz \
     && rm tests/$2/$3/artifacts/* \
     && mv tmp-ca/* tests/$2/$3/artifacts \
     && rm -rf tmp-ca
     
-    if [[ $? -ne 0 ]]
+    if [[ $STATUS -ne 0 ]]
     then
         (rm -rf tmp-ca 2> /dev/null && echo $"FAILURE $2/$3 $ERR")
     else
