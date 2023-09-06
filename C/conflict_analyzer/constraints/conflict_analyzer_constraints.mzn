@@ -74,13 +74,15 @@ constraint :: "XDCallAllowed"
 % Data never leaves enclave except via parameters or return for valid XDC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeEnclaveSafe) (xdedge(e)==false);
+constraint :: "NonRetNonParmDataEnclaveSafe"
+ forall (e in DataEdgeEnclaveSafe) (xdedge(e) == false);
 
 constraint :: "XDCDataReturnAllowed"
  forall (e in DataDepEdge_Ret) (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[esTaint(e), hasLabelLevel[edTaint(e)]]));
 
 constraint :: "XDCParmAllowed"
- forall (e in Parameter)       (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[esTaint(e), hasLabelLevel[edTaint(e)]]));
+ forall (e in DataDepEdge_ArgPass_In union DataDepEdge_ArgPass_Out)
+   (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[esTaint(e), hasLabelLevel[edTaint(e)]]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Labels can only be cooerced inside enclave via parameters or return by noblest functions that are so blest
@@ -165,14 +167,14 @@ constraint :: "argPassInSourceInArgtaints"
 %   -If the source function is annotated, the taint on the destination node
 %    must be in the argtaints of the corresponding parameter index
 %    (or it's a cross-domain edge)
-constraint :: "argPassOutFromUnannotatedTaintsMatch"
-  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
-    (not sourceAnnotFun(e)
-      -> esTaint(e) == edTaint(e));
-constraint :: "argPassOutDestInArgtaints"
-  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
-    (sourceAnnotFun(e)
-      -> hasArgtaints[esFunCdf(e), hasParamIdx[hasSource[e]], edTaint(e)] \/ xdedge(e));
+% constraint :: "argPassOutFromUnannotatedTaintsMatch"
+%   forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
+%     (not sourceAnnotFun(e)
+%       -> esTaint(e) == edTaint(e));
+% constraint :: "argPassOutDestInArgtaints"
+%   forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
+%     (sourceAnnotFun(e)
+%       -> hasArgtaints[esFunCdf(e), hasParamIdx[hasSource[e]], edTaint(e)] \/ xdedge(e));
 
 % Some Parameter edges are not covered in the above sets. If they are
 % intra-function or function-extern edges, they will be constrained by
@@ -184,19 +186,19 @@ constraint :: "argPassOutDestInArgtaints"
 % I do not know whether any inter-function parameter edges exist which are
 % not included in the above constraints, and if so, what the constraints on
 % them ought to be.
-constraint :: "interFunOtherParamInTaintsMatch"
-  forall (e in Parameter_In)
-    (not isParam_ActualIn(hasDest[e]) /\ interFunEdge(e)
-      -> esTaint(e) == edTaint(e) \/ xdedge(e));
-constraint :: "interFunOtherParamOutTaintsMatch"
-  forall (e in Parameter_Out)
-    % this one is longer because there is an inter-fun edge from funcall to param_actualOut that should be unconstrained
-    (not isParam_ActualOut(hasSource[e]) /\ not (isParam_ActualOut(hasDest[e]) /\ isFunCall(hasSource[e])) /\ interFunEdge(e)
-      -> esTaint(e) == edTaint(e) \/ xdedge(e));
-constraint :: "interFunParameterFieldTaintsMatch"
-  forall (e in Parameter_Field)
-    (interFunEdge(e)
-      -> esTaint(e) == edTaint(e) \/ xdedge(e));
+% constraint :: "interFunOtherParamInTaintsMatch"
+%   forall (e in Parameter_In)
+%     (not isParam_ActualIn(hasDest[e]) /\ interFunEdge(e)
+%       -> esTaint(e) == edTaint(e) \/ xdedge(e));
+% constraint :: "interFunOtherParamOutTaintsMatch"
+%   forall (e in Parameter_Out)
+%     % this one is longer because there is an inter-fun edge from funcall to param_actualOut that should be unconstrained
+%     (not isParam_ActualOut(hasSource[e]) /\ not (isParam_ActualOut(hasDest[e]) /\ isFunCall(hasSource[e])) /\ interFunEdge(e)
+%       -> esTaint(e) == edTaint(e) \/ xdedge(e));
+% constraint :: "interFunParameterFieldTaintsMatch"
+%   forall (e in Parameter_Field)
+%     (interFunEdge(e)
+%       -> esTaint(e) == edTaint(e) \/ xdedge(e));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Phase 3 edge constraints %

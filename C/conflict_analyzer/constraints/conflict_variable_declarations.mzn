@@ -193,7 +193,7 @@ set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union Con
 set of int: DataEdgeEnclaveSafe = DataDepEdge_DefUse union DataDepEdge_RAW union 
                                   DataDepEdge_Indirect_Ret union DataDepEdge_Alias union
                                   DataDepEdge_ArgPass_Indirect_In union 
-                                  DataDepEdge_ArgPass_Indirect_Out union DataDepEdge_Callee;
+                                  DataDepEdge_ArgPass_Indirect_Out;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves
