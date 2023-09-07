@@ -167,14 +167,14 @@ constraint :: "argPassInSourceInArgtaints"
 %   -If the source function is annotated, the taint on the destination node
 %    must be in the argtaints of the corresponding parameter index
 %    (or it's a cross-domain edge)
-% constraint :: "argPassOutFromUnannotatedTaintsMatch"
-%   forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
-%     (not sourceAnnotFun(e)
-%       -> esTaint(e) == edTaint(e));
-% constraint :: "argPassOutDestInArgtaints"
-%   forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
-%     (sourceAnnotFun(e)
-%       -> hasArgtaints[esFunCdf(e), hasParamIdx[hasSource[e]], edTaint(e)] \/ xdedge(e));
+constraint :: "argPassOutFromUnannotatedTaintsMatch"
+  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
+    (not sourceAnnotFun(e)
+      -> esTaint(e) == edTaint(e));
+constraint :: "argPassOutDestInArgtaints"
+  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
+    (sourceAnnotFun(e)
+      -> hasArgtaints[esFunCdf(e), hasParamIdx[hasSource[e]], edTaint(e)] \/ xdedge(e));
 
 % Some Parameter edges are not covered in the above sets. If they are
 % intra-function or function-extern edges, they will be constrained by
