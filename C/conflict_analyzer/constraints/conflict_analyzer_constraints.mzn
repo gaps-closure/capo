@@ -176,29 +176,18 @@ constraint :: "argPassOutDestInArgtaints"
     (sourceAnnotFun(e)
       -> hasArgtaints[esFunCdf(e), hasParamIdx[hasSource[e]], edTaint(e)] \/ xdedge(e));
 
-% Some Parameter edges are not covered in the above sets. If they are
-% intra-function or function-extern edges, they will be constrained by
-% UnannotatedExternDataEdgeTaintsMatch and
+% Parameter_Field edges are not captured by Argpass_In and Argpass_Out.
+% If they are intra-function or function-extern edges, they will be 
+% constrained appropriately by UnannotatedExternDataEdgeTaintsMatch and
 % AnnotatedExternDataEdgeInArctaints.
 % If they are inter-function edges, however, they are unconstrained.
-% Therefore we introduce the below constraints on inter-function "other"
-% parameter edges to say that the taints must match. This is conservative;
-% I do not know whether any inter-function parameter edges exist which are
-% not included in the above constraints, and if so, what the constraints on
-% them ought to be.
-% constraint :: "interFunOtherParamInTaintsMatch"
-%   forall (e in Parameter_In)
-%     (not isParam_ActualIn(hasDest[e]) /\ interFunEdge(e)
-%       -> esTaint(e) == edTaint(e) \/ xdedge(e));
-% constraint :: "interFunOtherParamOutTaintsMatch"
-%   forall (e in Parameter_Out)
-%     % this one is longer because there is an inter-fun edge from funcall to param_actualOut that should be unconstrained
-%     (not isParam_ActualOut(hasSource[e]) /\ not (isParam_ActualOut(hasDest[e]) /\ isFunCall(hasSource[e])) /\ interFunEdge(e)
-%       -> esTaint(e) == edTaint(e) \/ xdedge(e));
-% constraint :: "interFunParameterFieldTaintsMatch"
-%   forall (e in Parameter_Field)
-%     (interFunEdge(e)
-%       -> esTaint(e) == edTaint(e) \/ xdedge(e));
+% Therefore we introduce the below constraints on inter-function Parameter_Field
+% edges to say that the taints must match. This is conservative, as I don't
+% know exactly what the constraints on these edges ought to be.
+constraint :: "interFunParameterFieldTaintsMatch"
+  forall (e in Parameter_Field)
+    (interFunEdge(e)
+      -> esTaint(e) == edTaint(e) \/ xdedge(e));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Phase 3 edge constraints %
@@ -229,9 +218,11 @@ constraint :: "PointsToTaintsMatch"
   forall (e in DataDepEdge_PointsTo)
     (esTaint(e) == edTaint(e));
 
-% MISSING:
 % If two global variables are connected by a def-use edge,
 % they must have the same taint.
+constraint :: "GlobalDefUseTaintsMatch"
+  forall (e in DataDepEdge_GlobalDefUse)
+    (esTaint(e) == edTaint(e));
 
 % Any function whose address is taken in the program 
 % cannot have a function annotation. Indirect callees,

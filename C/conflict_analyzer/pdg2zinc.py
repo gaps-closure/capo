@@ -12,7 +12,7 @@ def pdg_to_zinc(pdg_csv, max_fn_parms):
         ("Param", ["FormalIn", "FormalOut", "ActualIn", "ActualOut"]),
         ("Annotation", ["Var", "Global", "Other"]),
         ("ControlDep", ["CallInv", "Indirect_CallInv", "CallRet", "Entry", "Br", "Other"]),
-        ("DataDepEdge", ["DefUse", "RAW", "Ret", "Indirect_Ret", "Alias", 
+        ("DataDepEdge", ["DefUse", "GlobalDefUse", "RAW", "Ret", "Indirect_Ret", "Alias", 
                          "ArgPass_In", "ArgPass_Out", "ArgPass_Indirect_In", 
                          "ArgPass_Indirect_Out", "Callee"]),
         ("Parameter", ["In", "Out", "Field"]),
