@@ -2,6 +2,25 @@ import csv
 import argparse
 from pathlib import Path
 
+# Current behavior:
+
+# Node and edge types and subtypes are contained in the ordered
+# node_edge_types list. The order of the list and sublists MUST
+# match the order in which the types/subtypes appear in the pdg_svf_data.csv.
+
+# Node and edge subtype names are the concatenation of the type and the
+# subtype with a '_' between them (e.g. 'Inst_FunCall', 'Param_FormalIn').
+# If the type is 'None', there should be a single list entry, which is treated
+# as a type rather than a subtype.
+
+# To add a new edge subtype, insert it into the corresponding list in
+# node_edge_types. No other changes need to be made. The edge subtype
+# need not appear in the pdg_svf_data.csv, but it must be present in
+# constraints/conflict_variable_declarations.mzn
+
+# The node type 'Annotation' is used by this code as the last node type
+# before the edge types. If adding a new node type, place it somewhere
+# BEFORE 'Annotation' in the list.
 def pdg_to_zinc(pdg_csv, max_fn_parms):
 
     # Node and edge types and sub types, ordered

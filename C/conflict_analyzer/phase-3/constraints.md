@@ -10,10 +10,10 @@ The phase 3 conflict analyzer should correctly partition programs containing bot
 | `PointsTo_Same_Enclave` | Enforced |
 | `Function_Ptr_Singly_Tainted` | Enforced |
 | `Indirect_Callee_Singly_Tainted` | Enforced |
-| `Indirect_Caller_Singly_Tainted_Or_Coerced` | * Missing, need param/ret edges * |
+| `Indirect_Caller_Singly_Tainted_Or_Coerced` | Enforced |
 | `PointsTo_Taints_Match` | Enforced |
-| `GlobalDefUse_Taints_Match` | * Missing, need def-use edges for globals * |
-| `Struct_Arr_Field_Taints_Match` | * Missing, may be covered * |
+| `GlobalDefUse_Taints_Match` | Enforced |
+| `Struct_Arr_Field_Taints_Match` | * Missing, may not be necessary * |
 | `Extern_Callback_Same_Enclave` | * Missing, need extern-subgraph edge * |
 
 ## Listing

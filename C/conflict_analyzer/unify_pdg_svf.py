@@ -2,6 +2,21 @@ import csv
 import argparse
 from pathlib import Path
 
+# Current behavior:
+
+# Only integer ID and LLID of SVF nodes are used, other fields are ignored.
+
+# If an LLID from the PDG is not associated with any SVF node,
+# there is no error.
+
+# If an LLID associated with an SVF node is not present in the pdg_to_llids,
+# there is only an error if the SVF node is used in some edge.
+
+# SVF nodes for 'llvm.*' functions, printf, malloc, and free are ignored,
+# along with any edges to and from those nodes. This is because they are
+# library functions and are not given an LLID by the pdg opt pass. Other
+# library functions may need to be included in this list, depending on
+# the example.
 def unify_pdg_svf(pdg_csv, pdg_ids, svf_edges, svf_ids):
 
     externs = ['printf', 'malloc', 'free']
