@@ -60,36 +60,50 @@ DataDepEdge_RAW_start = 26;
 DataDepEdge_RAW_end = 27;
 DataDepEdge_Ret_start = 28;
 DataDepEdge_Ret_end = 28;
+DataDepEdge_Indirect_Ret_start = 0;
+DataDepEdge_Indirect_Ret_end = -1;
 DataDepEdge_Alias_start = 0;
 DataDepEdge_Alias_end = -1;
+DataDepEdge_ArgPass_In_start = 29;
+DataDepEdge_ArgPass_In_end = 29;
+DataDepEdge_ArgPass_Out_start = 30;
+DataDepEdge_ArgPass_Out_end = 30;
+DataDepEdge_ArgPass_Indirect_In_start = 0;
+DataDepEdge_ArgPass_Indirect_In_end = -1;
+DataDepEdge_ArgPass_Indirect_Out_start = 0;
+DataDepEdge_ArgPass_Indirect_Out_end = -1;
+DataDepEdge_Callee_start = 31;
+DataDepEdge_Callee_end = 31;
 DataDepEdge_start = 18;
 DataDepEdge_end = 28;
-Parameter_In_start = 29;
-Parameter_In_end = 33;
-Parameter_Out_start = 34;
-Parameter_Out_end = 36;
+Parameter_In_start = 32;
+Parameter_In_end = 36;
+Parameter_Out_start = 37;
+Parameter_Out_end = 40;
 Parameter_Field_start = 0;
 Parameter_Field_end = -1;
-Parameter_start = 29;
-Parameter_end = 36;
-Anno_Global_start = 37;
-Anno_Global_end = 38;
+Parameter_Indirect_In_start = 0;
+Parameter_Indirect_In_end = -1;
+Parameter_start = 32;
+Parameter_end = 40;
+Anno_Global_start = 41;
+Anno_Global_end = 42;
 Anno_Var_start = 0;
 Anno_Var_end = -1;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 37;
-Anno_end = 38;
+Anno_start = 41;
+Anno_end = 42;
 PDGEdge_start = 1;
-PDGEdge_end = 38;
+PDGEdge_end = 42;
 hasFunction = [
 16,16,17,17,16,17,16,16,16,16,17,17,17,17,17,16,17,16,16,16,16,0
 ];
 hasSource = [
-4,5,16,16,16,16,16,16,16,17,17,17,17,17,17,17,17,7,7,9,10,11,12,12,15,8,14,5,18,16,15,4,20,16,4,21,16,17
+4,5,16,16,16,16,16,16,16,17,17,17,17,17,17,17,17,7,7,9,10,11,12,12,15,8,14,5,15,21,4,18,16,15,4,20,16,15,4,4,16,17
 ];
 hasDest = [
-16,4,7,8,1,9,10,2,5,11,12,13,3,14,15,4,6,9,8,2,2,13,15,14,4,9,15,4,9,18,20,20,18,19,21,15,22,22
+16,4,7,8,1,9,10,2,5,11,12,13,3,14,15,4,6,9,8,2,2,13,15,14,4,9,15,4,20,15,16,9,18,20,20,18,19,21,21,1,22,22
 ];
 hasParamIdx = array1d(Param, [
 1,1,1,1

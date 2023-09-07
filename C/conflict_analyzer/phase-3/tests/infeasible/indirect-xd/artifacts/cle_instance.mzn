@@ -19,7 +19,7 @@ hasCodtaints = array2d(cdf, cleLabel, [
   false, false, false
 ]);
 hasArgtaints = array3d(cdf, parmIdx, cleLabel, [
-  false, false, false
+  false, false, false, false, false, false
 ]);
 hasARCtaints = array2d(cdf, cleLabel, [
   false, false, false

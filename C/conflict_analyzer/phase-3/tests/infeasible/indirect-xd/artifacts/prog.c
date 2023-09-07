@@ -17,6 +17,10 @@ int foo(int mul) {
   return a * mul;
 }
 
+int bar(int y, int z) {
+  return y * z;
+}
+
 // Must be in orange - should not be able to call foo()
 int main() {
 
@@ -29,6 +33,8 @@ int main() {
   int (*f)(int) = &foo;
   int c = (*f)(mul);
   
+  int d = bar(b, mul);
+
   return 0;
 }
 

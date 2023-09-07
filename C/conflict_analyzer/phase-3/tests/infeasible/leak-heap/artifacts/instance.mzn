@@ -87,42 +87,56 @@ ControlDep_start = 1;
 ControlDep_end = 30;
 DataDepEdge_DefUse_start = 31;
 DataDepEdge_DefUse_end = 46;
+DataDepEdge_GlobalDefUse_start = 0;
+DataDepEdge_GlobalDefUse_end = -1;
 DataDepEdge_RAW_start = 47;
 DataDepEdge_RAW_end = 48;
 DataDepEdge_Ret_start = 49;
 DataDepEdge_Ret_end = 49;
+DataDepEdge_Indirect_Ret_start = 0;
+DataDepEdge_Indirect_Ret_end = -1;
 DataDepEdge_Alias_start = 50;
 DataDepEdge_Alias_end = 56;
+DataDepEdge_ArgPass_In_start = 0;
+DataDepEdge_ArgPass_In_end = -1;
+DataDepEdge_ArgPass_Out_start = 0;
+DataDepEdge_ArgPass_Out_end = -1;
+DataDepEdge_ArgPass_Indirect_In_start = 0;
+DataDepEdge_ArgPass_Indirect_In_end = -1;
+DataDepEdge_ArgPass_Indirect_Out_start = 0;
+DataDepEdge_ArgPass_Indirect_Out_end = -1;
+DataDepEdge_Callee_start = 57;
+DataDepEdge_Callee_end = 57;
 DataDepEdge_start = 31;
-DataDepEdge_end = 56;
+DataDepEdge_end = 57;
 Parameter_In_start = 0;
 Parameter_In_end = -1;
-Parameter_Out_start = 0;
-Parameter_Out_end = -1;
+Parameter_Out_start = 58;
+Parameter_Out_end = 58;
 Parameter_Field_start = 0;
 Parameter_Field_end = -1;
-Parameter_start = 57;
-Parameter_end = 56;
-Anno_Global_start = 57;
-Anno_Global_end = 57;
-Anno_Var_start = 58;
-Anno_Var_end = 65;
+Parameter_start = 58;
+Parameter_end = 58;
+Anno_Global_start = 59;
+Anno_Global_end = 59;
+Anno_Var_start = 60;
+Anno_Var_end = 67;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 57;
-Anno_end = 65;
-DataDepEdge_PointsTo_start = 66;
-DataDepEdge_PointsTo_end = 76;
+Anno_start = 59;
+Anno_end = 67;
+DataDepEdge_PointsTo_start = 68;
+DataDepEdge_PointsTo_end = 78;
 PDGEdge_start = 1;
-PDGEdge_end = 76;
+PDGEdge_end = 78;
 hasFunction = [
 29,29,30,30,30,30,29,30,29,29,29,29,29,29,29,30,30,30,30,30,30,30,30,30,30,30,30,30,29,30,29,30,0
 ];
 hasSource = [
-5,7,29,29,29,29,29,29,29,29,29,29,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,9,9,9,2,13,15,16,17,17,18,18,18,5,25,27,28,14,24,7,10,13,15,20,25,27,28,29,29,10,11,12,30,20,21,22,7,9,10,13,15,18,20,5,25,27,28
+5,7,29,29,29,29,29,29,29,29,29,29,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,9,9,9,2,13,15,16,17,17,18,18,18,5,25,27,28,14,24,7,10,13,15,20,25,27,28,5,5,29,29,10,11,12,30,20,21,22,7,9,10,13,15,18,20,5,25,27,28
 ];
 hasDest = [
-29,5,9,1,10,11,12,2,13,14,15,7,16,17,18,19,3,20,21,22,23,4,5,24,25,26,27,28,6,8,15,14,10,13,14,7,19,23,20,27,25,24,24,26,28,6,15,25,5,9,2,13,17,5,5,27,33,31,31,31,31,32,32,32,32,2,2,9,2,2,2,17,2,2,2,2
+29,5,9,1,10,11,12,2,13,14,15,7,16,17,18,19,3,20,21,22,23,4,5,24,25,26,27,28,6,8,15,14,10,13,14,7,19,23,20,27,25,24,24,26,28,6,15,25,5,9,2,13,17,5,5,27,29,1,33,31,31,31,31,32,32,32,32,2,2,9,2,2,2,17,2,2,2,2
 ];
 hasParamIdx = array1d(Param, [
 
@@ -213,13 +227,15 @@ constraint :: "XDCallAllowed"
 % Data never leaves enclave except via parameters or return for valid XDC
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-constraint :: "NonRetNonParmDataEnclaveSafe"  forall (e in DataEdgeNoRet)      (xdedge(e)==false);
+constraint :: "NonRetNonParmDataEnclaveSafe"
+ forall (e in DataEdgeEnclaveSafe) (xdedge(e) == false);
 
 constraint :: "XDCDataReturnAllowed"
  forall (e in DataDepEdge_Ret) (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[esTaint(e), hasLabelLevel[edTaint(e)]]));
 
 constraint :: "XDCParmAllowed"
- forall (e in Parameter)       (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[esTaint(e), hasLabelLevel[edTaint(e)]]));
+ forall (e in DataDepEdge_ArgPass_In union DataDepEdge_ArgPass_Out)
+   (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[esTaint(e), hasLabelLevel[edTaint(e)]]));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Labels can only be cooerced inside enclave via parameters or return by noblest functions that are so blest
@@ -229,27 +245,13 @@ constraint :: "XDCParmAllowed"
 % Intra-function and function-to-global edges %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Note: this constraint subsumed by
-% AnnotatedFunContentCoercible and 
-% UnannotatedFunContentTaintMatch,
-% so it is commented out
-
 % For intra-function data edges:
 %   -If the function is un-annotated, the taints must match
 %   -If the function is annotated, both endpoints
 %    must have labels which are in the ARCtaints of the function.
-% predicate intraFunctionEdge(PDGEdgeIdx: e) =
-%   (hasFunction[hasSource[e]] == hasFunction[hasDest[e]] /\
-%    hasFunction[hasSource[e]] != 0);
-% constraint :: "UnannotatedIntraFunctionDataEdgeTaintsMatch"
-%   forall (e in DataEdgeNoRet)
-%     (intraFunctionEdge(e) /\ !sourceAnnotFun(e)
-%       -> esTaint(e) == edTaint(e));
-% constraint :: "AnnotatedIntraFunctionDataEdgeInArctaints"
-%   forall (e in DataEdgeNoRet)
-%     (intraFunctionEdge(e) /\  sourceAnnotFun(e)
-%       -> isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)]) /\
-%          isInArctaint(esFunTaint(e), esTaint(e), hasLabelLevel[esTaint(e)]));
+% Note: this constraint subsumed by
+% AnnotatedFunContentCoercible and 
+% UnannotatedFunContentTaintMatch
 
 % For data edges between a function and external data not in any
 % function:
@@ -273,10 +275,10 @@ predicate destFunExternAnnotated(PDGEdgeIdx: e) =
   (destFunExternEdge(e) /\ destAnnotFun(e));
 
 constraint :: "UnannotatedExternDataEdgeTaintsMatch"
-  forall (e in DataEdgeParam)
+  forall (e in DataDepEdge)
     (externUnannotated(e) -> esTaint(e) == edTaint(e));
 constraint :: "AnnotatedExternDataEdgeInArctaints"
-  forall (e in DataEdgeParam)
+  forall (e in DataDepEdge)
     ((srcFunExternAnnotated(e) ->
        isInArctaint(esFunTaint(e), edTaint(e), hasLabelLevel[edTaint(e)])) /\
      (destFunExternAnnotated(e) ->
@@ -291,11 +293,11 @@ constraint :: "AnnotatedExternDataEdgeInArctaints"
 %   -If the callee (source) function is annotated, the taint on the dest node
 %    must be in the callee's rettaints (or it's a cross-domain edge)
 constraint :: "retEdgeFromUnannotatedTaintsMatch"
-  forall (e in DataDepEdge_Ret)
+  forall (e in DataDepEdge_Ret union DataDepEdge_Indirect_Ret)
     (not sourceAnnotFun(e)
       -> esTaint(e) == edTaint(e));
 constraint :: "returnNodeInRettaints"
-  forall (e in DataDepEdge_Ret)
+  forall (e in DataDepEdge_Ret union DataDepEdge_Indirect_Ret)
     (sourceAnnotFun(e)
       -> (hasRettaints[esFunCdf(e), edTaint(e)] \/ xdedge(e)));
 
@@ -304,13 +306,13 @@ constraint :: "returnNodeInRettaints"
 %   -If the destination function is annotated, the taint on the source node
 %    must be in the argtaints of the corresponding parameter index
 %    (or it's a cross-domain edge)
-constraint :: "paramEdgeToUnannotatedTaintsMatch"
-  forall (e in Parameter_In)
-    (isParam_ActualIn(hasDest[e]) /\ not isFunCall(hasSource[e]) /\ not destAnnotFun(e)
+constraint :: "argPassInEdgeToUnannotatedTaintsMatch"
+  forall (e in DataDepEdge_ArgPass_In union DataDepEdge_ArgPass_Indirect_In)
+    (not destAnnotFun(e)
       -> esTaint(e) == edTaint(e));
-constraint :: "parameterInSourceInArgtaints"
-  forall (e in Parameter_In)
-    (isParam_ActualIn(hasDest[e]) /\ not isFunCall(hasSource[e]) /\ destAnnotFun(e)
+constraint :: "argPassInSourceInArgtaints"
+  forall (e in DataDepEdge_ArgPass_In union DataDepEdge_ArgPass_Indirect_In)
+    (destAnnotFun(e)
       -> hasArgtaints[edFunCdf(e), hasParamIdx[hasDest[e]], esTaint(e)] \/ xdedge(e));
 
 % For callee to caller parameter-out edges:
@@ -318,34 +320,23 @@ constraint :: "parameterInSourceInArgtaints"
 %   -If the source function is annotated, the taint on the destination node
 %    must be in the argtaints of the corresponding parameter index
 %    (or it's a cross-domain edge)
-constraint :: "paramEdgeFromUnannotatedTaintsMatch"
-  forall (e in Parameter_Out)
-    (isParam_ActualOut(hasSource[e]) /\ not sourceAnnotFun(e)
+constraint :: "argPassOutFromUnannotatedTaintsMatch"
+  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
+    (not sourceAnnotFun(e)
       -> esTaint(e) == edTaint(e));
-constraint :: "parameterOutDestInArgtaints"
-  forall (e in Parameter_Out)
-    (isParam_ActualOut(hasSource[e]) /\ sourceAnnotFun(e)
+constraint :: "argPassOutDestInArgtaints"
+  forall (e in DataDepEdge_ArgPass_Out union DataDepEdge_ArgPass_Indirect_Out)
+    (sourceAnnotFun(e)
       -> hasArgtaints[esFunCdf(e), hasParamIdx[hasSource[e]], edTaint(e)] \/ xdedge(e));
 
-% Some Parameter edges are not covered in the above sets. If they are
-% intra-function or function-extern edges, they will be constrained by
-% UnannotatedExternDataEdgeTaintsMatch and
+% Parameter_Field edges are not captured by Argpass_In and Argpass_Out.
+% If they are intra-function or function-extern edges, they will be 
+% constrained appropriately by UnannotatedExternDataEdgeTaintsMatch and
 % AnnotatedExternDataEdgeInArctaints.
 % If they are inter-function edges, however, they are unconstrained.
-% Therefore we introduce the below constraints on inter-function "other"
-% parameter edges to say that the taints must match. This is conservative;
-% I do not know whether any inter-function parameter edges exist which are
-% not included in the above constraints, and if so, what the constraints on
-% them ought to be.
-constraint :: "interFunOtherParamInTaintsMatch"
-  forall (e in Parameter_In)
-    (not isParam_ActualIn(hasDest[e]) /\ interFunEdge(e)
-      -> esTaint(e) == edTaint(e) \/ xdedge(e));
-constraint :: "interFunOtherParamOutTaintsMatch"
-  forall (e in Parameter_Out)
-    % this one is longer because there is an inter-fun edge from funcall to param_actualOut that should be unconstrained
-    (not isParam_ActualOut(hasSource[e]) /\ not (isParam_ActualOut(hasDest[e]) /\ isFunCall(hasSource[e])) /\ interFunEdge(e)
-      -> esTaint(e) == edTaint(e) \/ xdedge(e));
+% Therefore we introduce the below constraints on inter-function Parameter_Field
+% edges to say that the taints must match. This is conservative, as I don't
+% know exactly what the constraints on these edges ought to be.
 constraint :: "interFunParameterFieldTaintsMatch"
   forall (e in Parameter_Field)
     (interFunEdge(e)
@@ -360,9 +351,9 @@ constraint :: "IndirectCallSameEnclave"
   forall (e in ControlDep_Indirect_CallInv)
     (xdedge(e) == false);
 
-% MISSING:
-% Parameter and return edges of indirect calls must satisfy 
+% ArgPass and Ret edges of indirect calls must satisfy 
 % the same constraints as their direct call counter-parts.
+% They are included in the unions above for inter-function edges.
 
 % Endpoints of a points-to edge must be in the same enclave.
 constraint :: "PointsToSameEnclave"
@@ -380,9 +371,11 @@ constraint :: "PointsToTaintsMatch"
   forall (e in DataDepEdge_PointsTo)
     (esTaint(e) == edTaint(e));
 
-% MISSING:
 % If two global variables are connected by a def-use edge,
 % they must have the same taint.
+constraint :: "GlobalDefUseTaintsMatch"
+  forall (e in DataDepEdge_GlobalDefUse)
+    (esTaint(e) == edTaint(e));
 
 % Any function whose address is taken in the program 
 % cannot have a function annotation. Indirect callees,
@@ -537,12 +530,26 @@ int: ControlDep_end;
 
 int: DataDepEdge_DefUse_start;
 int: DataDepEdge_DefUse_end;
+int: DataDepEdge_GlobalDefUse_start;
+int: DataDepEdge_GlobalDefUse_end;
 int: DataDepEdge_RAW_start;
 int: DataDepEdge_RAW_end;
 int: DataDepEdge_Ret_start;
 int: DataDepEdge_Ret_end;
+int: DataDepEdge_Indirect_Ret_start;
+int: DataDepEdge_Indirect_Ret_end;
 int: DataDepEdge_Alias_start;
 int: DataDepEdge_Alias_end;
+int: DataDepEdge_ArgPass_In_start;
+int: DataDepEdge_ArgPass_In_end;
+int: DataDepEdge_ArgPass_Out_start;
+int: DataDepEdge_ArgPass_Out_end;
+int: DataDepEdge_ArgPass_Indirect_In_start;
+int: DataDepEdge_ArgPass_Indirect_In_end;
+int: DataDepEdge_ArgPass_Indirect_Out_start;
+int: DataDepEdge_ArgPass_Indirect_Out_end;
+int: DataDepEdge_Callee_start;
+int: DataDepEdge_Callee_end;
 int: DataDepEdge_start;
 int: DataDepEdge_end;
 
@@ -579,9 +586,16 @@ set of int: ControlDep_Other = ControlDep_Other_start .. ControlDep_Other_end;
 set of int: ControlDep = ControlDep_start .. ControlDep_end;
 
 set of int: DataDepEdge_DefUse = DataDepEdge_DefUse_start .. DataDepEdge_DefUse_end;
+set of int: DataDepEdge_GlobalDefUse = DataDepEdge_GlobalDefUse_start .. DataDepEdge_GlobalDefUse_end;
 set of int: DataDepEdge_RAW  = DataDepEdge_RAW_start .. DataDepEdge_RAW_end;
 set of int: DataDepEdge_Ret  = DataDepEdge_Ret_start .. DataDepEdge_Ret_end;
+set of int: DataDepEdge_Indirect_Ret = DataDepEdge_Indirect_Ret_start .. DataDepEdge_Indirect_Ret_end;
 set of int: DataDepEdge_Alias = DataDepEdge_Alias_start .. DataDepEdge_Alias_end;
+set of int: DataDepEdge_ArgPass_In  = DataDepEdge_ArgPass_In_start .. DataDepEdge_ArgPass_In_end;
+set of int: DataDepEdge_ArgPass_Out = DataDepEdge_ArgPass_Out_start .. DataDepEdge_ArgPass_Out_end;
+set of int: DataDepEdge_ArgPass_Indirect_In  = DataDepEdge_ArgPass_Indirect_In_start  .. DataDepEdge_ArgPass_Indirect_In_end;
+set of int: DataDepEdge_ArgPass_Indirect_Out = DataDepEdge_ArgPass_Indirect_Out_start .. DataDepEdge_ArgPass_Indirect_Out_end;
+set of int: DataDepEdge_Callee = DataDepEdge_Callee_start .. DataDepEdge_Callee_end;
 set of int: DataDepEdge = DataDepEdge_start .. DataDepEdge_end;
 
 set of int: Parameter_In = Parameter_In_start .. Parameter_In_end;
@@ -614,10 +628,11 @@ array[FunctionEntry]  of bool: userAnnotatedFunction;
 
 set of int: Global              = VarNode_StaticGlobal union VarNode_StaticModule;
 set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union Param;
-set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_CallRet;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
-set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
-set of int: DataEdgeParam       = DataDepEdge union Parameter;
+set of int: DataEdgeEnclaveSafe = DataDepEdge_DefUse union DataDepEdge_GlobalDefUse union DataDepEdge_RAW union 
+                                  DataDepEdge_Indirect_Ret union DataDepEdge_Alias union
+                                  DataDepEdge_ArgPass_Indirect_In union 
+                                  DataDepEdge_ArgPass_Indirect_Out;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves

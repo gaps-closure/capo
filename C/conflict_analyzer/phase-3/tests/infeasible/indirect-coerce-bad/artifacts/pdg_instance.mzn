@@ -43,26 +43,38 @@ PDGNode_end = 23;
 ControlDep_CallInv_start = 0;
 ControlDep_CallInv_end = -1;
 ControlDep_Indirect_CallInv_start = 1;
-ControlDep_Indirect_CallInv_end = 2;
+ControlDep_Indirect_CallInv_end = 1;
 ControlDep_CallRet_start = 0;
 ControlDep_CallRet_end = -1;
-ControlDep_Entry_start = 3;
-ControlDep_Entry_end = 21;
+ControlDep_Entry_start = 2;
+ControlDep_Entry_end = 20;
 ControlDep_Br_start = 0;
 ControlDep_Br_end = -1;
 ControlDep_Other_start = 0;
 ControlDep_Other_end = -1;
 ControlDep_start = 1;
-ControlDep_end = 21;
-DataDepEdge_DefUse_start = 22;
-DataDepEdge_DefUse_end = 31;
-DataDepEdge_RAW_start = 32;
-DataDepEdge_RAW_end = 33;
+ControlDep_end = 20;
+DataDepEdge_DefUse_start = 21;
+DataDepEdge_DefUse_end = 30;
+DataDepEdge_RAW_start = 31;
+DataDepEdge_RAW_end = 32;
 DataDepEdge_Ret_start = 0;
 DataDepEdge_Ret_end = -1;
+DataDepEdge_Indirect_Ret_start = 33;
+DataDepEdge_Indirect_Ret_end = 33;
 DataDepEdge_Alias_start = 34;
 DataDepEdge_Alias_end = 34;
-DataDepEdge_start = 22;
+DataDepEdge_ArgPass_In_start = 0;
+DataDepEdge_ArgPass_In_end = -1;
+DataDepEdge_ArgPass_Out_start = 0;
+DataDepEdge_ArgPass_Out_end = -1;
+DataDepEdge_ArgPass_Indirect_In_start = 0;
+DataDepEdge_ArgPass_Indirect_In_end = -1;
+DataDepEdge_ArgPass_Indirect_Out_start = 0;
+DataDepEdge_ArgPass_Indirect_Out_end = -1;
+DataDepEdge_Callee_start = 35;
+DataDepEdge_Callee_end = 35;
+DataDepEdge_start = 21;
 DataDepEdge_end = 34;
 Parameter_In_start = 0;
 Parameter_In_end = -1;
@@ -70,26 +82,28 @@ Parameter_Out_start = 0;
 Parameter_Out_end = -1;
 Parameter_Field_start = 0;
 Parameter_Field_end = -1;
+Parameter_Indirect_In_start = 0;
+Parameter_Indirect_In_end = -1;
 Parameter_start = 0;
 Parameter_end = -1;
-Anno_Global_start = 35;
-Anno_Global_end = 35;
-Anno_Var_start = 36;
-Anno_Var_end = 39;
+Anno_Global_start = 36;
+Anno_Global_end = 36;
+Anno_Var_start = 37;
+Anno_Var_end = 40;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 35;
-Anno_end = 39;
+Anno_start = 36;
+Anno_end = 40;
 PDGEdge_start = 1;
-PDGEdge_end = 39;
+PDGEdge_end = 40;
 hasFunction = [
 20,20,20,21,20,21,20,20,20,20,20,20,20,21,21,21,21,21,21,20,21,21,0
 ];
 hasSource = [
-3,3,20,20,20,20,20,20,20,20,20,20,20,21,21,21,21,21,21,21,21,7,8,8,9,12,3,14,14,14,19,11,18,15,20,21,15,16,17
+3,20,20,20,20,20,20,20,20,20,20,20,21,21,21,21,21,21,21,21,7,8,8,9,12,3,14,14,14,19,11,18,6,15,3,20,21,15,16,17
 ];
 hasDest = [
-20,21,7,8,9,10,1,11,2,12,3,13,5,4,15,16,17,18,19,6,14,10,12,11,13,3,13,19,18,15,6,12,19,14,23,22,22,22,22
+21,7,8,9,10,1,11,2,12,3,13,5,4,15,16,17,18,19,6,14,10,12,11,13,3,13,19,18,15,6,12,19,21,14,12,23,22,22,22,22
 ];
 hasParamIdx = array1d(Param, [
 

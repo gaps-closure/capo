@@ -60,36 +60,50 @@ DataDepEdge_RAW_start = 40;
 DataDepEdge_RAW_end = 41;
 DataDepEdge_Ret_start = 42;
 DataDepEdge_Ret_end = 42;
+DataDepEdge_Indirect_Ret_start = 0;
+DataDepEdge_Indirect_Ret_end = -1;
 DataDepEdge_Alias_start = 43;
 DataDepEdge_Alias_end = 46;
+DataDepEdge_ArgPass_In_start = 0;
+DataDepEdge_ArgPass_In_end = -1;
+DataDepEdge_ArgPass_Out_start = 0;
+DataDepEdge_ArgPass_Out_end = -1;
+DataDepEdge_ArgPass_Indirect_In_start = 0;
+DataDepEdge_ArgPass_Indirect_In_end = -1;
+DataDepEdge_ArgPass_Indirect_Out_start = 0;
+DataDepEdge_ArgPass_Indirect_Out_end = -1;
+DataDepEdge_Callee_start = 47;
+DataDepEdge_Callee_end = 47;
 DataDepEdge_start = 24;
 DataDepEdge_end = 46;
 Parameter_In_start = 0;
 Parameter_In_end = -1;
-Parameter_Out_start = 0;
-Parameter_Out_end = -1;
+Parameter_Out_start = 48;
+Parameter_Out_end = 48;
 Parameter_Field_start = 0;
 Parameter_Field_end = -1;
-Parameter_start = 0;
-Parameter_end = -1;
-Anno_Global_start = 47;
-Anno_Global_end = 48;
+Parameter_Indirect_In_start = 0;
+Parameter_Indirect_In_end = -1;
+Parameter_start = 48;
+Parameter_end = 48;
+Anno_Global_start = 49;
+Anno_Global_end = 50;
 Anno_Var_start = 0;
 Anno_Var_end = -1;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 47;
-Anno_end = 48;
+Anno_start = 49;
+Anno_end = 50;
 PDGEdge_start = 1;
-PDGEdge_end = 48;
+PDGEdge_end = 50;
 hasFunction = [
 23,23,24,24,23,24,23,23,23,23,23,23,23,24,24,24,24,24,24,24,24,0,23,24,0
 ];
 hasSource = [
-4,5,23,23,23,23,23,23,23,23,23,23,24,24,24,24,24,24,24,24,24,24,24,22,7,7,7,2,8,10,11,13,14,15,15,4,18,19,20,9,17,5,8,10,13,18,22,23
+4,5,23,23,23,23,23,23,23,23,23,23,24,24,24,24,24,24,24,24,24,24,24,22,7,7,7,2,8,10,11,13,14,15,15,4,18,19,20,9,17,5,8,10,13,18,4,4,22,23
 ];
 hasDest = [
-23,4,7,1,2,8,9,10,11,12,13,5,14,15,16,3,4,17,18,19,20,21,6,11,13,10,9,8,9,12,12,5,16,18,17,17,19,20,21,10,18,4,2,8,8,4,25,25
+23,4,7,1,2,8,9,10,11,12,13,5,14,15,16,3,4,17,18,19,20,21,6,11,13,10,9,8,9,12,12,5,16,18,17,17,19,20,21,10,18,4,2,8,8,4,23,1,25,25
 ];
 hasParamIdx = array1d(Param, [
 

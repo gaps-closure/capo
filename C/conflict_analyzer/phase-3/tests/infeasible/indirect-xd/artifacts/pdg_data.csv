@@ -1,38 +1,54 @@
-Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %2, metadata !16, metadata !DIExpression()), !dbg !17',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,10,13,3,-1
-Node,2,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %3, metadata !18, metadata !DIExpression()), !dbg !19',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,7,4,-1
-Node,3,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %2, metadata !28, metadata !DIExpression()), !dbg !29',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,25,7,6,-1
-Node,4,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %3, metadata !31, metadata !DIExpression()), !dbg !32',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,28,7,12,-1
-Node,5,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32 (i32)** %4, metadata !33, metadata !DIExpression()), !dbg !35',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,29,9,14,-1
-Node,6,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %5, metadata !36, metadata !DIExpression()), !dbg !37',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,30,7,16,-1
-Node,7,Inst_FunCall,,'  %11 = call i32 %9(i32 noundef %10), !dbg !30',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,30,11,19,-1
-Node,8,Inst_Ret,,'  ret i32 %9, !dbg !24',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,3,13,-1
-Node,9,Inst_Ret,,'  ret i32 0, !dbg !31',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,32,3,21,-1
-Node,10,Inst_Other,,'  %2 = alloca i32, align 4',35,,,,-1,-1,0,-1
-Node,11,Inst_Other,,'  %3 = alloca i32, align 4',35,,,,-1,-1,1,-1
-Node,12,Inst_Other,,'  store i32 %0, i32* %2, align 4',35,,,,-1,-1,2,-1
-Node,13,Inst_Other,PURPLE,'  %4 = bitcast i32* %3 to i8*, !dbg !20',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,3,5,-1
-Node,14,Inst_Other,,'  %5 = getelementptr inbounds [7 x i8], [7 x i8]* @.str, i32 0, i32 0',35,,,,-1,-1,6,-1
-Node,15,Inst_Other,,'  %6 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',35,,,,-1,-1,7,-1
-Node,16,Inst_Other,,'  store i32 5, i32* %3, align 4, !dbg !19',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,7,9,-1
-Node,17,Inst_Other,,'  %7 = load i32, i32* %3, align 4, !dbg !21',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,10,10,-1
-Node,18,Inst_Other,,'  %8 = load i32, i32* %2, align 4, !dbg !22',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,14,11,-1
-Node,19,Inst_Other,,'  %9 = mul nsw i32 %7, %8, !dbg !23',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,12,12,-1
-Node,20,Inst_Other,,'  %1 = alloca i32, align 4',36,,,,-1,-1,0,-1
-Node,21,Inst_Other,,'  %2 = alloca i32, align 4',36,,,,-1,-1,1,-1
-Node,22,Inst_Other,,'  %3 = alloca i32, align 4',36,,,,-1,-1,2,-1
-Node,23,Inst_Other,,'  %4 = alloca i32 (i32)*, align 8',36,,,,-1,-1,3,-1
-Node,24,Inst_Other,,'  %5 = alloca i32, align 4',36,,,,-1,-1,4,-1
-Node,25,Inst_Other,,'  store i32 0, i32* %1, align 4',36,,,,-1,-1,5,-1
-Node,26,Inst_Other,ORANGE,'  %6 = bitcast i32* %2 to i8*, !dbg !18',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,25,3,7,-1
-Node,27,Inst_Other,,'  %7 = getelementptr inbounds [7 x i8], [7 x i8]* @.str.2, i32 0, i32 0',36,,,,-1,-1,8,-1
-Node,28,Inst_Other,,'  %8 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',36,,,,-1,-1,9,-1
-Node,29,Inst_Other,,'  store i32 1, i32* %2, align 4, !dbg !17',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,25,7,11,-1
-Node,30,Inst_Other,,'  store i32 3, i32* %3, align 4, !dbg !20',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,28,7,13,-1
-Node,31,Inst_Other,,'  store i32 (i32)* @foo, i32 (i32)** %4, align 8, !dbg !25',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,29,9,15,-1
-Node,32,Inst_Other,,'  %9 = load i32 (i32)*, i32 (i32)** %4, align 8, !dbg !28',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,30,13,17,-1
-Node,33,Inst_Other,,'  %10 = load i32, i32* %3, align 4, !dbg !29',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,30,16,18,-1
-Node,34,Inst_Other,,'  store i32 %11, i32* %5, align 4, !dbg !27',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,30,7,20,-1
-Node,35,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %2, metadata !16, metadata !DIExpression()), !dbg !17',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,10,13,3,-1
+Node,2,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %3, metadata !18, metadata !DIExpression()), !dbg !19',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,7,4,-1
+Node,3,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %3, metadata !28, metadata !DIExpression()), !dbg !29',52,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,20,13,3,-1
+Node,4,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %4, metadata !30, metadata !DIExpression()), !dbg !31',52,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,20,20,5,-1
+Node,5,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %2, metadata !39, metadata !DIExpression()), !dbg !40',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,29,7,7,-1
+Node,6,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %3, metadata !42, metadata !DIExpression()), !dbg !43',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,32,7,13,-1
+Node,7,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32 (i32)** %4, metadata !44, metadata !DIExpression()), !dbg !46',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,33,9,15,-1
+Node,8,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %5, metadata !47, metadata !DIExpression()), !dbg !48',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,34,7,17,-1
+Node,9,Inst_FunCall,,'  %12 = call i32 %10(i32 noundef %11), !dbg !30',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,34,11,20,-1
+Node,10,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32* %6, metadata !52, metadata !DIExpression()), !dbg !53',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,7,22,-1
+Node,11,Inst_FunCall,,'  %15 = call i32 @bar(i32 noundef %13, i32 noundef %14), !dbg !35',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,11,25,-1
+Node,12,Inst_Ret,,'  ret i32 %9, !dbg !24',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,3,13,-1
+Node,13,Inst_Ret,,'  ret i32 %7, !dbg !23',52,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,21,3,9,-1
+Node,14,Inst_Ret,,'  ret i32 0, !dbg !36',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,38,3,27,-1
+Node,15,Inst_Other,,'  %2 = alloca i32, align 4',51,,,,-1,-1,0,-1
+Node,16,Inst_Other,,'  %3 = alloca i32, align 4',51,,,,-1,-1,1,-1
+Node,17,Inst_Other,,'  store i32 %0, i32* %2, align 4',51,,,,-1,-1,2,-1
+Node,18,Inst_Other,PURPLE,'  %4 = bitcast i32* %3 to i8*, !dbg !20',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,3,5,-1
+Node,19,Inst_Other,,'  %5 = getelementptr inbounds [7 x i8], [7 x i8]* @.str, i32 0, i32 0',51,,,,-1,-1,6,-1
+Node,20,Inst_Other,,'  %6 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',51,,,,-1,-1,7,-1
+Node,21,Inst_Other,,'  store i32 5, i32* %3, align 4, !dbg !19',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,7,9,-1
+Node,22,Inst_Other,,'  %7 = load i32, i32* %3, align 4, !dbg !21',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,10,10,-1
+Node,23,Inst_Other,,'  %8 = load i32, i32* %2, align 4, !dbg !22',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,14,11,-1
+Node,24,Inst_Other,,'  %9 = mul nsw i32 %7, %8, !dbg !23',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,17,12,12,-1
+Node,25,Inst_Other,,'  %3 = alloca i32, align 4',52,,,,-1,-1,0,-1
+Node,26,Inst_Other,,'  %4 = alloca i32, align 4',52,,,,-1,-1,1,-1
+Node,27,Inst_Other,,'  store i32 %0, i32* %3, align 4',52,,,,-1,-1,2,-1
+Node,28,Inst_Other,,'  store i32 %1, i32* %4, align 4',52,,,,-1,-1,4,-1
+Node,29,Inst_Other,,'  %5 = load i32, i32* %3, align 4, !dbg !20',52,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,21,10,6,-1
+Node,30,Inst_Other,,'  %6 = load i32, i32* %4, align 4, !dbg !21',52,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,21,14,7,-1
+Node,31,Inst_Other,,'  %7 = mul nsw i32 %5, %6, !dbg !22',52,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,21,12,8,-1
+Node,32,Inst_Other,,'  %1 = alloca i32, align 4',53,,,,-1,-1,0,-1
+Node,33,Inst_Other,,'  %2 = alloca i32, align 4',53,,,,-1,-1,1,-1
+Node,34,Inst_Other,,'  %3 = alloca i32, align 4',53,,,,-1,-1,2,-1
+Node,35,Inst_Other,,'  %4 = alloca i32 (i32)*, align 8',53,,,,-1,-1,3,-1
+Node,36,Inst_Other,,'  %5 = alloca i32, align 4',53,,,,-1,-1,4,-1
+Node,37,Inst_Other,,'  %6 = alloca i32, align 4',53,,,,-1,-1,5,-1
+Node,38,Inst_Other,,'  store i32 0, i32* %1, align 4',53,,,,-1,-1,6,-1
+Node,39,Inst_Other,ORANGE,'  %7 = bitcast i32* %2 to i8*, !dbg !18',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,29,3,8,-1
+Node,40,Inst_Other,,'  %8 = getelementptr inbounds [7 x i8], [7 x i8]* @.str.2, i32 0, i32 0',53,,,,-1,-1,9,-1
+Node,41,Inst_Other,,'  %9 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0',53,,,,-1,-1,10,-1
+Node,42,Inst_Other,,'  store i32 1, i32* %2, align 4, !dbg !17',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,29,7,12,-1
+Node,43,Inst_Other,,'  store i32 3, i32* %3, align 4, !dbg !20',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,32,7,14,-1
+Node,44,Inst_Other,,'  store i32 (i32)* @foo, i32 (i32)** %4, align 8, !dbg !25',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,33,9,16,-1
+Node,45,Inst_Other,,'  %10 = load i32 (i32)*, i32 (i32)** %4, align 8, !dbg !28',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,34,13,18,-1
+Node,46,Inst_Other,,'  %11 = load i32, i32* %3, align 4, !dbg !29',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,34,16,19,-1
+Node,47,Inst_Other,,'  store i32 %12, i32* %5, align 4, !dbg !27',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,34,7,21,-1
+Node,48,Inst_Other,,'  %13 = load i32, i32* %2, align 4, !dbg !33',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,15,23,-1
+Node,49,Inst_Other,,'  %14 = load i32, i32* %3, align 4, !dbg !34',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,18,24,-1
+Node,50,Inst_Other,,'  store i32 %15, i32* %6, align 4, !dbg !32',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,36,7,26,-1
+Node,51,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32 @foo(i32 noundef %0) #0 !dbg !10 {
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
@@ -49,105 +65,195 @@ define dso_local i32 @foo(i32 noundef %0) #0 !dbg !10 {
   %9 = mul nsw i32 %7, %8, !dbg !23
   ret i32 %9, !dbg !24
 }
-',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,10,-1,-1,-1
-Node,36,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @main() #0 !dbg !25 {
+',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,10,-1,-1,-1
+Node,52,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @bar(i32 noundef %0, i32 noundef %1) #0 !dbg !25 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  store i32 %0, i32* %3, align 4
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !28, metadata !DIExpression()), !dbg !29
+  store i32 %1, i32* %4, align 4
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !30, metadata !DIExpression()), !dbg !31
+  %5 = load i32, i32* %3, align 4, !dbg !32
+  %6 = load i32, i32* %4, align 4, !dbg !33
+  %7 = mul nsw i32 %5, %6, !dbg !34
+  ret i32 %7, !dbg !35
+}
+',52,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,20,-1,-1,-1
+Node,53,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !36 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
   %4 = alloca i32 (i32)*, align 8
   %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
   store i32 0, i32* %1, align 4
-  call void @llvm.dbg.declare(metadata i32* %2, metadata !28, metadata !DIExpression()), !dbg !29
-  %6 = bitcast i32* %2 to i8*, !dbg !30
-  %7 = getelementptr inbounds [7 x i8], [7 x i8]* @.str.2, i32 0, i32 0
-  %8 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
-  call void @llvm.var.annotation(i8* %6, i8* %7, i8* %8, i32 25, i8* null), !dbg !30
-  store i32 1, i32* %2, align 4, !dbg !29
-  call void @llvm.dbg.declare(metadata i32* %3, metadata !31, metadata !DIExpression()), !dbg !32
-  store i32 3, i32* %3, align 4, !dbg !32
-  call void @llvm.dbg.declare(metadata i32 (i32)** %4, metadata !33, metadata !DIExpression()), !dbg !35
-  store i32 (i32)* @foo, i32 (i32)** %4, align 8, !dbg !35
-  call void @llvm.dbg.declare(metadata i32* %5, metadata !36, metadata !DIExpression()), !dbg !37
-  %9 = load i32 (i32)*, i32 (i32)** %4, align 8, !dbg !38
-  %10 = load i32, i32* %3, align 4, !dbg !39
-  %11 = call i32 %9(i32 noundef %10), !dbg !40
-  store i32 %11, i32* %5, align 4, !dbg !37
-  ret i32 0, !dbg !41
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !39, metadata !DIExpression()), !dbg !40
+  %7 = bitcast i32* %2 to i8*, !dbg !41
+  %8 = getelementptr inbounds [7 x i8], [7 x i8]* @.str.2, i32 0, i32 0
+  %9 = getelementptr inbounds [71 x i8], [71 x i8]* @.str.1, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %7, i8* %8, i8* %9, i32 29, i8* null), !dbg !41
+  store i32 1, i32* %2, align 4, !dbg !40
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !42, metadata !DIExpression()), !dbg !43
+  store i32 3, i32* %3, align 4, !dbg !43
+  call void @llvm.dbg.declare(metadata i32 (i32)** %4, metadata !44, metadata !DIExpression()), !dbg !46
+  store i32 (i32)* @foo, i32 (i32)** %4, align 8, !dbg !46
+  call void @llvm.dbg.declare(metadata i32* %5, metadata !47, metadata !DIExpression()), !dbg !48
+  %10 = load i32 (i32)*, i32 (i32)** %4, align 8, !dbg !49
+  %11 = load i32, i32* %3, align 4, !dbg !50
+  %12 = call i32 %10(i32 noundef %11), !dbg !51
+  store i32 %12, i32* %5, align 4, !dbg !48
+  call void @llvm.dbg.declare(metadata i32* %6, metadata !52, metadata !DIExpression()), !dbg !53
+  %13 = load i32, i32* %2, align 4, !dbg !54
+  %14 = load i32, i32* %3, align 4, !dbg !55
+  %15 = call i32 @bar(i32 noundef %13, i32 noundef %14), !dbg !56
+  store i32 %15, i32* %6, align 4, !dbg !53
+  ret i32 0, !dbg !57
 }
-',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,21,-1,-1,-1
-Node,37,Param_FormalIn,,'No Value',35,,,Not Found,-1,-1,-1,0
-Node,38,Param_FormalOut,,'No Value',35,,,Not Found,-1,-1,-1,0
-Node,39,Annotation_Var,,'  call void @llvm.var.annotation(i8* %4, i8* %5, i8* %6, i32 14, i8* null), !dbg !20',35,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,3,8,-1
-Node,40,Annotation_Var,,'  call void @llvm.var.annotation(i8* %6, i8* %7, i8* %8, i32 25, i8* null), !dbg !18',36,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,25,3,10,-1
-Edge,1,ControlDep_Indirect_CallInv,0,,,7,35,,,,,
-Edge,2,ControlDep_Entry,0,,,35,10,,,,,
-Edge,3,ControlDep_Entry,0,,,35,11,,,,,
-Edge,4,ControlDep_Entry,0,,,35,12,,,,,
-Edge,5,ControlDep_Entry,0,,,35,1,,,,,
-Edge,6,ControlDep_Entry,0,,,35,2,,,,,
-Edge,7,ControlDep_Entry,0,,,35,13,,,,,
-Edge,8,ControlDep_Entry,0,,,35,14,,,,,
-Edge,9,ControlDep_Entry,0,,,35,15,,,,,
-Edge,10,ControlDep_Entry,0,,,35,16,,,,,
-Edge,11,ControlDep_Entry,0,,,35,17,,,,,
-Edge,12,ControlDep_Entry,0,,,35,18,,,,,
-Edge,13,ControlDep_Entry,0,,,35,19,,,,,
-Edge,14,ControlDep_Entry,0,,,35,8,,,,,
-Edge,15,ControlDep_Entry,0,,,36,21,,,,,
-Edge,16,ControlDep_Entry,0,,,36,22,,,,,
-Edge,17,ControlDep_Entry,0,,,36,23,,,,,
-Edge,18,ControlDep_Entry,0,,,36,24,,,,,
-Edge,19,ControlDep_Entry,0,,,36,25,,,,,
-Edge,20,ControlDep_Entry,0,,,36,3,,,,,
-Edge,21,ControlDep_Entry,0,,,36,26,,,,,
-Edge,22,ControlDep_Entry,0,,,36,27,,,,,
-Edge,23,ControlDep_Entry,0,,,36,28,,,,,
-Edge,24,ControlDep_Entry,0,,,36,29,,,,,
-Edge,25,ControlDep_Entry,0,,,36,4,,,,,
-Edge,26,ControlDep_Entry,0,,,36,30,,,,,
-Edge,27,ControlDep_Entry,0,,,36,5,,,,,
-Edge,28,ControlDep_Entry,0,,,36,31,,,,,
-Edge,29,ControlDep_Entry,0,,,36,6,,,,,
-Edge,30,ControlDep_Entry,0,,,36,32,,,,,
-Edge,31,ControlDep_Entry,0,,,36,33,,,,,
-Edge,32,ControlDep_Entry,0,,,36,7,,,,,
-Edge,33,ControlDep_Entry,0,,,36,34,,,,,
-Edge,34,ControlDep_Entry,0,,,36,9,,,,,
-Edge,35,ControlDep_Entry,0,,,36,20,,,,,
-Edge,36,DataDepEdge_DefUse,0,,,10,18,,,,,
-Edge,37,DataDepEdge_DefUse,0,,,10,12,,,,,
-Edge,38,DataDepEdge_DefUse,0,,,11,17,,,,,
-Edge,39,DataDepEdge_DefUse,0,,,11,16,,,,,
-Edge,40,DataDepEdge_DefUse,0,,,11,13,,,,,
-Edge,41,DataDepEdge_DefUse,0,,,17,19,,,,,
-Edge,42,DataDepEdge_DefUse,0,,,18,19,,,,,
-Edge,43,DataDepEdge_DefUse,0,,,19,8,,,,,
-Edge,44,DataDepEdge_DefUse,0,,,20,25,,,,,
-Edge,45,DataDepEdge_DefUse,0,,,21,29,,,,,
-Edge,46,DataDepEdge_DefUse,0,,,21,26,,,,,
-Edge,47,DataDepEdge_DefUse,0,,,22,33,,,,,
-Edge,48,DataDepEdge_DefUse,0,,,22,30,,,,,
-Edge,49,DataDepEdge_DefUse,0,,,23,32,,,,,
-Edge,50,DataDepEdge_DefUse,0,,,23,31,,,,,
-Edge,51,DataDepEdge_DefUse,0,,,24,34,,,,,
-Edge,52,DataDepEdge_DefUse,0,,,32,7,,,,,
-Edge,53,DataDepEdge_DefUse,0,,,33,7,,,,,
-Edge,54,DataDepEdge_DefUse,0,,,7,34,,,,,
-Edge,55,DataDepEdge_RAW,0,,,12,18,,,,,
-Edge,56,DataDepEdge_RAW,0,,,16,17,,,,,
-Edge,57,DataDepEdge_RAW,0,,,30,33,,,,,
-Edge,58,DataDepEdge_RAW,0,,,31,32,,,,,
-Edge,59,DataDepEdge_Alias,0,,,13,11,,,,,
-Edge,60,DataDepEdge_Alias,0,,,26,21,,,,,
-Edge,61,Parameter_In,0,,,37,18,,,,,
-Edge,62,Parameter_In,0,,,35,37,,,,,
-Edge,63,Parameter_Out,0,,,35,38,,,,,
-Edge,64,Anno_Var,0,,,35,39,,,,,
-Edge,65,Anno_Var,0,,,13,39,,,,,
-Edge,66,Anno_Var,0,,,14,39,,,,,
-Edge,67,Anno_Var,0,,,15,39,,,,,
-Edge,68,Anno_Var,0,,,36,40,,,,,
-Edge,69,Anno_Var,0,,,26,40,,,,,
-Edge,70,Anno_Var,0,,,27,40,,,,,
-Edge,71,Anno_Var,0,,,28,40,,,,,
+',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,25,-1,-1,-1
+Node,54,Param_FormalIn,,'No Value',51,,,Not Found,-1,-1,-1,0
+Node,55,Param_FormalIn,,'No Value',52,,,Not Found,-1,-1,-1,0
+Node,56,Param_FormalIn,,'No Value',52,,,Not Found,-1,-1,-1,1
+Node,57,Param_FormalOut,,'No Value',51,,,Not Found,-1,-1,-1,0
+Node,58,Param_FormalOut,,'No Value',52,,,Not Found,-1,-1,-1,0
+Node,59,Param_FormalOut,,'No Value',52,,,Not Found,-1,-1,-1,1
+Node,60,Param_ActualIn,,'No Value',52,,,Not Found,-1,-1,-1,0
+Node,61,Param_ActualIn,,'No Value',52,,,Not Found,-1,-1,-1,1
+Node,62,Param_ActualIn,,'No Value',51,,,Not Found,-1,-1,-1,0
+Node,63,Param_ActualOut,,'No Value',52,,,Not Found,-1,-1,-1,0
+Node,64,Param_ActualOut,,'No Value',52,,,Not Found,-1,-1,-1,1
+Node,65,Param_ActualOut,,'No Value',51,,,Not Found,-1,-1,-1,0
+Node,66,Annotation_Var,,'  call void @llvm.var.annotation(i8* %4, i8* %5, i8* %6, i32 14, i8* null), !dbg !20',51,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,14,3,8,-1
+Node,67,Annotation_Var,,'  call void @llvm.var.annotation(i8* %7, i8* %8, i8* %9, i32 29, i8* null), !dbg !18',53,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,29,3,11,-1
+Edge,1,ControlDep_CallInv,0,,,11,52,,,,,
+Edge,2,ControlDep_Indirect_CallInv,0,,,9,51,,,,,
+Edge,3,ControlDep_CallRet,0,,,13,11,,,,,
+Edge,4,ControlDep_Entry,0,,,51,16,,,,,
+Edge,5,ControlDep_Entry,0,,,51,17,,,,,
+Edge,6,ControlDep_Entry,0,,,51,1,,,,,
+Edge,7,ControlDep_Entry,0,,,51,2,,,,,
+Edge,8,ControlDep_Entry,0,,,51,18,,,,,
+Edge,9,ControlDep_Entry,0,,,51,19,,,,,
+Edge,10,ControlDep_Entry,0,,,51,20,,,,,
+Edge,11,ControlDep_Entry,0,,,51,21,,,,,
+Edge,12,ControlDep_Entry,0,,,51,22,,,,,
+Edge,13,ControlDep_Entry,0,,,51,23,,,,,
+Edge,14,ControlDep_Entry,0,,,51,24,,,,,
+Edge,15,ControlDep_Entry,0,,,51,12,,,,,
+Edge,16,ControlDep_Entry,0,,,51,15,,,,,
+Edge,17,ControlDep_Entry,0,,,52,25,,,,,
+Edge,18,ControlDep_Entry,0,,,52,26,,,,,
+Edge,19,ControlDep_Entry,0,,,52,27,,,,,
+Edge,20,ControlDep_Entry,0,,,52,3,,,,,
+Edge,21,ControlDep_Entry,0,,,52,28,,,,,
+Edge,22,ControlDep_Entry,0,,,52,4,,,,,
+Edge,23,ControlDep_Entry,0,,,52,29,,,,,
+Edge,24,ControlDep_Entry,0,,,52,30,,,,,
+Edge,25,ControlDep_Entry,0,,,52,31,,,,,
+Edge,26,ControlDep_Entry,0,,,52,13,,,,,
+Edge,27,ControlDep_Entry,0,,,53,33,,,,,
+Edge,28,ControlDep_Entry,0,,,53,34,,,,,
+Edge,29,ControlDep_Entry,0,,,53,35,,,,,
+Edge,30,ControlDep_Entry,0,,,53,36,,,,,
+Edge,31,ControlDep_Entry,0,,,53,37,,,,,
+Edge,32,ControlDep_Entry,0,,,53,38,,,,,
+Edge,33,ControlDep_Entry,0,,,53,5,,,,,
+Edge,34,ControlDep_Entry,0,,,53,39,,,,,
+Edge,35,ControlDep_Entry,0,,,53,40,,,,,
+Edge,36,ControlDep_Entry,0,,,53,41,,,,,
+Edge,37,ControlDep_Entry,0,,,53,42,,,,,
+Edge,38,ControlDep_Entry,0,,,53,6,,,,,
+Edge,39,ControlDep_Entry,0,,,53,43,,,,,
+Edge,40,ControlDep_Entry,0,,,53,7,,,,,
+Edge,41,ControlDep_Entry,0,,,53,44,,,,,
+Edge,42,ControlDep_Entry,0,,,53,8,,,,,
+Edge,43,ControlDep_Entry,0,,,53,45,,,,,
+Edge,44,ControlDep_Entry,0,,,53,46,,,,,
+Edge,45,ControlDep_Entry,0,,,53,9,,,,,
+Edge,46,ControlDep_Entry,0,,,53,47,,,,,
+Edge,47,ControlDep_Entry,0,,,53,10,,,,,
+Edge,48,ControlDep_Entry,0,,,53,48,,,,,
+Edge,49,ControlDep_Entry,0,,,53,49,,,,,
+Edge,50,ControlDep_Entry,0,,,53,11,,,,,
+Edge,51,ControlDep_Entry,0,,,53,50,,,,,
+Edge,52,ControlDep_Entry,0,,,53,14,,,,,
+Edge,53,ControlDep_Entry,0,,,53,32,,,,,
+Edge,54,DataDepEdge_DefUse,0,,,15,23,,,,,
+Edge,55,DataDepEdge_DefUse,0,,,15,17,,,,,
+Edge,56,DataDepEdge_DefUse,0,,,16,22,,,,,
+Edge,57,DataDepEdge_DefUse,0,,,16,21,,,,,
+Edge,58,DataDepEdge_DefUse,0,,,16,18,,,,,
+Edge,59,DataDepEdge_DefUse,0,,,22,24,,,,,
+Edge,60,DataDepEdge_DefUse,0,,,23,24,,,,,
+Edge,61,DataDepEdge_DefUse,0,,,24,12,,,,,
+Edge,62,DataDepEdge_DefUse,0,,,25,29,,,,,
+Edge,63,DataDepEdge_DefUse,0,,,25,27,,,,,
+Edge,64,DataDepEdge_DefUse,0,,,26,30,,,,,
+Edge,65,DataDepEdge_DefUse,0,,,26,28,,,,,
+Edge,66,DataDepEdge_DefUse,0,,,29,31,,,,,
+Edge,67,DataDepEdge_DefUse,0,,,30,31,,,,,
+Edge,68,DataDepEdge_DefUse,0,,,31,13,,,,,
+Edge,69,DataDepEdge_DefUse,0,,,32,38,,,,,
+Edge,70,DataDepEdge_DefUse,0,,,33,48,,,,,
+Edge,71,DataDepEdge_DefUse,0,,,33,42,,,,,
+Edge,72,DataDepEdge_DefUse,0,,,33,39,,,,,
+Edge,73,DataDepEdge_DefUse,0,,,34,49,,,,,
+Edge,74,DataDepEdge_DefUse,0,,,34,46,,,,,
+Edge,75,DataDepEdge_DefUse,0,,,34,43,,,,,
+Edge,76,DataDepEdge_DefUse,0,,,35,45,,,,,
+Edge,77,DataDepEdge_DefUse,0,,,35,44,,,,,
+Edge,78,DataDepEdge_DefUse,0,,,36,47,,,,,
+Edge,79,DataDepEdge_DefUse,0,,,37,50,,,,,
+Edge,80,DataDepEdge_DefUse,0,,,45,9,,,,,
+Edge,81,DataDepEdge_DefUse,0,,,46,9,,,,,
+Edge,82,DataDepEdge_DefUse,0,,,9,47,,,,,
+Edge,83,DataDepEdge_DefUse,0,,,48,11,,,,,
+Edge,84,DataDepEdge_DefUse,0,,,49,11,,,,,
+Edge,85,DataDepEdge_DefUse,0,,,11,50,,,,,
+Edge,86,DataDepEdge_RAW,0,,,17,23,,,,,
+Edge,87,DataDepEdge_RAW,0,,,21,22,,,,,
+Edge,88,DataDepEdge_RAW,0,,,27,29,,,,,
+Edge,89,DataDepEdge_RAW,0,,,28,30,,,,,
+Edge,90,DataDepEdge_RAW,0,,,43,46,,,,,
+Edge,91,DataDepEdge_RAW,0,,,44,45,,,,,
+Edge,92,DataDepEdge_Ret,0,,,13,11,,,,,
+Edge,93,DataDepEdge_Indirect_Ret,0,,,12,51,,,,,
+Edge,94,DataDepEdge_Alias,0,,,18,16,,,,,
+Edge,95,DataDepEdge_Alias,0,,,39,33,,,,,
+Edge,96,DataDepEdge_ArgPass_In,0,,,48,60,,,,,
+Edge,97,DataDepEdge_ArgPass_In,0,,,49,61,,,,,
+Edge,98,DataDepEdge_ArgPass_Out,0,,,63,48,,,,,
+Edge,99,DataDepEdge_ArgPass_Out,0,,,64,49,,,,,
+Edge,100,DataDepEdge_ArgPass_Indirect_In,0,,,46,62,,,,,
+Edge,101,DataDepEdge_ArgPass_Indirect_Out,0,,,65,46,,,,,
+Edge,102,DataDepEdge_Callee,0,,,9,45,,,,,
+Edge,103,DataDepEdge_Callee,0,,,11,52,,,,,
+Edge,104,Parameter_In,0,,,54,23,,,,,
+Edge,105,Parameter_In,0,,,51,54,,,,,
+Edge,106,Parameter_In,0,,,52,55,,,,,
+Edge,107,Parameter_In,0,,,52,56,,,,,
+Edge,108,Parameter_In,0,,,55,29,,,,,
+Edge,109,Parameter_In,0,,,56,30,,,,,
+Edge,110,Parameter_In,0,,,48,60,,,,,
+Edge,111,Parameter_In,0,,,49,61,,,,,
+Edge,112,Parameter_In,0,,,11,60,,,,,
+Edge,113,Parameter_In,0,,,11,61,,,,,
+Edge,114,Parameter_In,0,,,60,55,,,,,
+Edge,115,Parameter_In,0,,,61,56,,,,,
+Edge,116,Parameter_Out,0,,,51,57,,,,,
+Edge,117,Parameter_Out,0,,,52,58,,,,,
+Edge,118,Parameter_Out,0,,,52,59,,,,,
+Edge,119,Parameter_Out,0,,,48,63,,,,,
+Edge,120,Parameter_Out,0,,,49,64,,,,,
+Edge,121,Parameter_Out,0,,,11,63,,,,,
+Edge,122,Parameter_Out,0,,,11,64,,,,,
+Edge,123,Parameter_Out,0,,,11,1,,,,,
+Edge,124,Anno_Var,0,,,51,66,,,,,
+Edge,125,Anno_Var,0,,,18,66,,,,,
+Edge,126,Anno_Var,0,,,19,66,,,,,
+Edge,127,Anno_Var,0,,,20,66,,,,,
+Edge,128,Anno_Var,0,,,53,67,,,,,
+Edge,129,Anno_Var,0,,,39,67,,,,,
+Edge,130,Anno_Var,0,,,40,67,,,,,
+Edge,131,Anno_Var,0,,,41,67,,,,,

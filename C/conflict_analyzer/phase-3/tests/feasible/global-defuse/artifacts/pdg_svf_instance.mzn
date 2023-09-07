@@ -1,0 +1,117 @@
+Inst_FunCall_start = 1;
+Inst_FunCall_end = 1;
+Inst_Ret_start = 2;
+Inst_Ret_end = 2;
+Inst_Br_start = 0;
+Inst_Br_end = -1;
+Inst_Other_start = 3;
+Inst_Other_end = 6;
+Inst_start = 1;
+Inst_end = 6;
+VarNode_StaticGlobal_start = 7;
+VarNode_StaticGlobal_end = 8;
+VarNode_StaticModule_start = 0;
+VarNode_StaticModule_end = -1;
+VarNode_StaticFunction_start = 0;
+VarNode_StaticFunction_end = -1;
+VarNode_StaticOther_start = 0;
+VarNode_StaticOther_end = -1;
+VarNode_start = 7;
+VarNode_end = 8;
+FunctionEntry_start = 9;
+FunctionEntry_end = 9;
+Param_FormalIn_start = 0;
+Param_FormalIn_end = -1;
+Param_FormalOut_start = 0;
+Param_FormalOut_end = -1;
+Param_ActualIn_start = 0;
+Param_ActualIn_end = -1;
+Param_ActualOut_start = 0;
+Param_ActualOut_end = -1;
+Param_start = 10;
+Param_end = 9;
+Annotation_Var_start = 0;
+Annotation_Var_end = -1;
+Annotation_Global_start = 10;
+Annotation_Global_end = 10;
+Annotation_Other_start = 0;
+Annotation_Other_end = -1;
+Annotation_start = 10;
+Annotation_end = 10;
+PDGNode_start = 1;
+PDGNode_end = 10;
+ControlDep_CallInv_start = 0;
+ControlDep_CallInv_end = -1;
+ControlDep_Indirect_CallInv_start = 0;
+ControlDep_Indirect_CallInv_end = -1;
+ControlDep_CallRet_start = 0;
+ControlDep_CallRet_end = -1;
+ControlDep_Entry_start = 1;
+ControlDep_Entry_end = 6;
+ControlDep_Br_start = 0;
+ControlDep_Br_end = -1;
+ControlDep_Other_start = 0;
+ControlDep_Other_end = -1;
+ControlDep_start = 1;
+ControlDep_end = 6;
+DataDepEdge_DefUse_start = 7;
+DataDepEdge_DefUse_end = 10;
+DataDepEdge_GlobalDefUse_start = 0;
+DataDepEdge_GlobalDefUse_end = -1;
+DataDepEdge_RAW_start = 0;
+DataDepEdge_RAW_end = -1;
+DataDepEdge_Ret_start = 0;
+DataDepEdge_Ret_end = -1;
+DataDepEdge_Indirect_Ret_start = 0;
+DataDepEdge_Indirect_Ret_end = -1;
+DataDepEdge_Alias_start = 0;
+DataDepEdge_Alias_end = -1;
+DataDepEdge_ArgPass_In_start = 0;
+DataDepEdge_ArgPass_In_end = -1;
+DataDepEdge_ArgPass_Out_start = 0;
+DataDepEdge_ArgPass_Out_end = -1;
+DataDepEdge_ArgPass_Indirect_In_start = 0;
+DataDepEdge_ArgPass_Indirect_In_end = -1;
+DataDepEdge_ArgPass_Indirect_Out_start = 0;
+DataDepEdge_ArgPass_Indirect_Out_end = -1;
+DataDepEdge_Callee_start = 0;
+DataDepEdge_Callee_end = -1;
+DataDepEdge_start = 7;
+DataDepEdge_end = 10;
+Parameter_In_start = 0;
+Parameter_In_end = -1;
+Parameter_Out_start = 0;
+Parameter_Out_end = -1;
+Parameter_Field_start = 0;
+Parameter_Field_end = -1;
+Parameter_start = 11;
+Parameter_end = 10;
+Anno_Global_start = 11;
+Anno_Global_end = 11;
+Anno_Var_start = 0;
+Anno_Var_end = -1;
+Anno_Other_start = 0;
+Anno_Other_end = -1;
+Anno_start = 11;
+Anno_end = 11;
+DataDepEdge_PointsTo_start = 0;
+DataDepEdge_PointsTo_end = -1;
+PDGEdge_start = 1;
+PDGEdge_end = 11;
+hasFunction = [
+9,9,9,9,9,9,0,0,9,0
+];
+hasSource = [
+9,9,9,9,9,9,8,3,5,6,7
+];
+hasDest = [
+4,5,6,1,2,3,5,4,1,1,10
+];
+hasParamIdx = array1d(Param, [
+
+]);
+userAnnotatedFunction = array1d(FunctionEntry, [
+false
+]);
+MaxFuncParms = 1;
+constraint :: "TaintOnNodeIdx7" taint[7]=ORANGE_NOSHARE;

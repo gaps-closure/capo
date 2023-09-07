@@ -56,42 +56,56 @@ ControlDep_start = 1;
 ControlDep_end = 42;
 DataDepEdge_DefUse_start = 43;
 DataDepEdge_DefUse_end = 60;
+DataDepEdge_GlobalDefUse_start = 0;
+DataDepEdge_GlobalDefUse_end = -1;
 DataDepEdge_RAW_start = 61;
 DataDepEdge_RAW_end = 61;
 DataDepEdge_Ret_start = 62;
 DataDepEdge_Ret_end = 63;
+DataDepEdge_Indirect_Ret_start = 0;
+DataDepEdge_Indirect_Ret_end = -1;
 DataDepEdge_Alias_start = 64;
 DataDepEdge_Alias_end = 68;
+DataDepEdge_ArgPass_In_start = 69;
+DataDepEdge_ArgPass_In_end = 70;
+DataDepEdge_ArgPass_Out_start = 71;
+DataDepEdge_ArgPass_Out_end = 72;
+DataDepEdge_ArgPass_Indirect_In_start = 0;
+DataDepEdge_ArgPass_Indirect_In_end = -1;
+DataDepEdge_ArgPass_Indirect_Out_start = 0;
+DataDepEdge_ArgPass_Indirect_Out_end = -1;
+DataDepEdge_Callee_start = 73;
+DataDepEdge_Callee_end = 74;
 DataDepEdge_start = 43;
-DataDepEdge_end = 68;
-Parameter_In_start = 69;
-Parameter_In_end = 79;
-Parameter_Out_start = 80;
-Parameter_Out_end = 85;
-Parameter_Field_start = 86;
-Parameter_Field_end = 93;
-Parameter_start = 69;
-Parameter_end = 93;
-Anno_Global_start = 94;
-Anno_Global_end = 94;
-Anno_Var_start = 95;
-Anno_Var_end = 106;
+DataDepEdge_end = 74;
+Parameter_In_start = 75;
+Parameter_In_end = 85;
+Parameter_Out_start = 86;
+Parameter_Out_end = 93;
+Parameter_Field_start = 94;
+Parameter_Field_end = 101;
+Parameter_start = 75;
+Parameter_end = 101;
+Anno_Global_start = 102;
+Anno_Global_end = 102;
+Anno_Var_start = 103;
+Anno_Var_end = 114;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 94;
-Anno_end = 106;
-DataDepEdge_PointsTo_start = 107;
-DataDepEdge_PointsTo_end = 121;
+Anno_start = 102;
+Anno_end = 114;
+DataDepEdge_PointsTo_start = 115;
+DataDepEdge_PointsTo_end = 129;
 PDGEdge_start = 1;
-PDGEdge_end = 121;
+PDGEdge_end = 129;
 hasFunction = [
 39,39,39,39,40,40,41,41,41,39,40,41,39,39,39,39,39,39,39,39,40,40,40,40,40,40,40,40,40,40,41,41,41,41,41,41,41,41,39,40,41,39,39,40,40,39,39,40,40,40,40,39,39,40,40,39,39,39,40,41,0
 ];
 hasSource = [
-4,9,10,11,39,39,39,39,39,39,39,39,39,39,39,39,39,40,40,40,40,40,40,40,40,40,40,40,40,40,41,41,41,41,41,41,41,41,41,41,41,41,13,14,14,14,19,20,21,21,22,22,28,29,31,32,32,32,37,38,23,10,11,16,19,24,34,37,39,20,4,40,44,38,9,50,51,52,53,39,4,40,9,54,56,42,46,44,48,50,54,52,56,39,39,16,17,18,40,24,25,26,41,34,35,36,56,13,16,19,20,54,21,24,28,29,34,37,38,19,37
+4,9,10,11,39,39,39,39,39,39,39,39,39,39,39,39,39,40,40,40,40,40,40,40,40,40,40,40,40,40,41,41,41,41,41,41,41,41,41,41,41,41,13,14,14,14,19,20,21,21,22,22,28,29,31,32,32,32,37,38,23,10,11,16,19,24,34,37,20,38,54,56,4,9,39,20,4,40,44,38,9,50,51,52,53,39,20,4,4,40,38,9,9,42,46,44,48,50,54,52,56,39,39,16,17,18,40,24,25,26,41,34,35,36,56,13,16,19,20,54,21,24,28,29,34,37,38,19,37
 ];
 hasDest = [
-40,39,9,4,14,15,1,2,16,17,18,19,3,20,4,10,13,21,22,23,5,6,24,25,26,27,28,29,30,11,32,33,7,34,35,36,37,8,38,9,12,31,15,20,19,16,3,4,28,23,27,24,29,30,33,38,37,34,8,9,28,9,4,14,14,22,32,32,42,50,50,44,28,52,52,44,45,42,43,46,54,48,56,20,38,43,47,45,49,51,55,53,57,61,58,58,58,58,59,59,59,59,60,60,60,60,32,32,14,14,14,14,14,22,14,14,32,32,32,14,32
+40,39,9,4,14,15,1,2,16,17,18,19,3,20,4,10,13,22,23,5,6,24,25,26,27,28,29,30,11,21,31,32,33,7,34,35,36,37,8,38,9,12,15,20,19,16,3,4,28,23,27,24,29,30,33,38,37,34,8,9,28,9,4,14,14,22,32,32,50,52,20,38,40,39,42,50,50,44,28,52,52,44,45,42,43,46,54,54,1,48,56,56,1,43,47,45,49,51,55,53,57,61,58,58,58,58,59,59,59,59,60,60,60,60,32,32,14,14,14,14,14,22,14,14,32,32,32,14,32
 ];
 hasParamIdx = array1d(Param, [
 1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1

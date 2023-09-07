@@ -30,27 +30,47 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 declare void @llvm.var.annotation(i8*, i8*, i8*, i32, i8*) #2
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @main() #0 !dbg !25 {
+define dso_local i32 @bar(i32 noundef %0, i32 noundef %1) #0 !dbg !25 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  store i32 %0, i32* %3, align 4
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !28, metadata !DIExpression()), !dbg !29
+  store i32 %1, i32* %4, align 4
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !30, metadata !DIExpression()), !dbg !31
+  %5 = load i32, i32* %3, align 4, !dbg !32
+  %6 = load i32, i32* %4, align 4, !dbg !33
+  %7 = mul nsw i32 %5, %6, !dbg !34
+  ret i32 %7, !dbg !35
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !36 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
   %4 = alloca i32 (i32)*, align 8
   %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
   store i32 0, i32* %1, align 4
-  call void @llvm.dbg.declare(metadata i32* %2, metadata !28, metadata !DIExpression()), !dbg !29
-  %6 = bitcast i32* %2 to i8*, !dbg !30
-  call void @llvm.var.annotation(i8* %6, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 25, i8* null), !dbg !30
-  store i32 1, i32* %2, align 4, !dbg !29
-  call void @llvm.dbg.declare(metadata i32* %3, metadata !31, metadata !DIExpression()), !dbg !32
-  store i32 3, i32* %3, align 4, !dbg !32
-  call void @llvm.dbg.declare(metadata i32 (i32)** %4, metadata !33, metadata !DIExpression()), !dbg !35
-  store i32 (i32)* @foo, i32 (i32)** %4, align 8, !dbg !35
-  call void @llvm.dbg.declare(metadata i32* %5, metadata !36, metadata !DIExpression()), !dbg !37
-  %7 = load i32 (i32)*, i32 (i32)** %4, align 8, !dbg !38
-  %8 = load i32, i32* %3, align 4, !dbg !39
-  %9 = call i32 %7(i32 noundef %8), !dbg !40
-  store i32 %9, i32* %5, align 4, !dbg !37
-  ret i32 0, !dbg !41
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !39, metadata !DIExpression()), !dbg !40
+  %7 = bitcast i32* %2 to i8*, !dbg !41
+  call void @llvm.var.annotation(i8* %7, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 29, i8* null), !dbg !41
+  store i32 1, i32* %2, align 4, !dbg !40
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !42, metadata !DIExpression()), !dbg !43
+  store i32 3, i32* %3, align 4, !dbg !43
+  call void @llvm.dbg.declare(metadata i32 (i32)** %4, metadata !44, metadata !DIExpression()), !dbg !46
+  store i32 (i32)* @foo, i32 (i32)** %4, align 8, !dbg !46
+  call void @llvm.dbg.declare(metadata i32* %5, metadata !47, metadata !DIExpression()), !dbg !48
+  %8 = load i32 (i32)*, i32 (i32)** %4, align 8, !dbg !49
+  %9 = load i32, i32* %3, align 4, !dbg !50
+  %10 = call i32 %8(i32 noundef %9), !dbg !51
+  store i32 %10, i32* %5, align 4, !dbg !48
+  call void @llvm.dbg.declare(metadata i32* %6, metadata !52, metadata !DIExpression()), !dbg !53
+  %11 = load i32, i32* %2, align 4, !dbg !54
+  %12 = load i32, i32* %3, align 4, !dbg !55
+  %13 = call i32 @bar(i32 noundef %11, i32 noundef %12), !dbg !56
+  store i32 %13, i32* %6, align 4, !dbg !53
+  ret i32 0, !dbg !57
 }
 
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -62,7 +82,7 @@ attributes #2 = { inaccessiblememonly nofree nosync nounwind willreturn }
 !llvm.ident = !{!9}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "Ubuntu clang version 14.0.0-1ubuntu1.1", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "8736b39c8ce8f9f5b87c215f11e9aba4")
+!1 = !DIFile(filename: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "42a6a8941ff89e7f9c5a98dd74396714")
 !2 = !{i32 7, !"Dwarf Version", i32 5}
 !3 = !{i32 2, !"Debug Info Version", i32 3}
 !4 = !{i32 1, !"wchar_size", i32 4}
@@ -72,7 +92,7 @@ attributes #2 = { inaccessiblememonly nofree nosync nounwind willreturn }
 !8 = !{i32 7, !"frame-pointer", i32 2}
 !9 = !{!"Ubuntu clang version 14.0.0-1ubuntu1.1"}
 !10 = distinct !DISubprogram(name: "foo", scope: !11, file: !11, line: 10, type: !12, scopeLine: 10, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !15)
-!11 = !DIFile(filename: "prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "8736b39c8ce8f9f5b87c215f11e9aba4")
+!11 = !DIFile(filename: "prog.c", directory: "/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca", checksumkind: CSK_MD5, checksum: "42a6a8941ff89e7f9c5a98dd74396714")
 !12 = !DISubroutineType(types: !13)
 !13 = !{!14, !14}
 !14 = !DIBasicType(name: "int", size: 32, encoding: DW_ATE_signed)
@@ -86,20 +106,36 @@ attributes #2 = { inaccessiblememonly nofree nosync nounwind willreturn }
 !22 = !DILocation(line: 17, column: 14, scope: !10)
 !23 = !DILocation(line: 17, column: 12, scope: !10)
 !24 = !DILocation(line: 17, column: 3, scope: !10)
-!25 = distinct !DISubprogram(name: "main", scope: !11, file: !11, line: 21, type: !26, scopeLine: 21, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !15)
+!25 = distinct !DISubprogram(name: "bar", scope: !11, file: !11, line: 20, type: !26, scopeLine: 20, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !15)
 !26 = !DISubroutineType(types: !27)
-!27 = !{!14}
-!28 = !DILocalVariable(name: "b", scope: !25, file: !11, line: 25, type: !14)
-!29 = !DILocation(line: 25, column: 7, scope: !25)
-!30 = !DILocation(line: 25, column: 3, scope: !25)
-!31 = !DILocalVariable(name: "mul", scope: !25, file: !11, line: 28, type: !14)
-!32 = !DILocation(line: 28, column: 7, scope: !25)
-!33 = !DILocalVariable(name: "f", scope: !25, file: !11, line: 29, type: !34)
-!34 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !12, size: 64)
-!35 = !DILocation(line: 29, column: 9, scope: !25)
-!36 = !DILocalVariable(name: "c", scope: !25, file: !11, line: 30, type: !14)
-!37 = !DILocation(line: 30, column: 7, scope: !25)
-!38 = !DILocation(line: 30, column: 13, scope: !25)
-!39 = !DILocation(line: 30, column: 16, scope: !25)
-!40 = !DILocation(line: 30, column: 11, scope: !25)
-!41 = !DILocation(line: 32, column: 3, scope: !25)
+!27 = !{!14, !14, !14}
+!28 = !DILocalVariable(name: "y", arg: 1, scope: !25, file: !11, line: 20, type: !14)
+!29 = !DILocation(line: 20, column: 13, scope: !25)
+!30 = !DILocalVariable(name: "z", arg: 2, scope: !25, file: !11, line: 20, type: !14)
+!31 = !DILocation(line: 20, column: 20, scope: !25)
+!32 = !DILocation(line: 21, column: 10, scope: !25)
+!33 = !DILocation(line: 21, column: 14, scope: !25)
+!34 = !DILocation(line: 21, column: 12, scope: !25)
+!35 = !DILocation(line: 21, column: 3, scope: !25)
+!36 = distinct !DISubprogram(name: "main", scope: !11, file: !11, line: 25, type: !37, scopeLine: 25, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !15)
+!37 = !DISubroutineType(types: !38)
+!38 = !{!14}
+!39 = !DILocalVariable(name: "b", scope: !36, file: !11, line: 29, type: !14)
+!40 = !DILocation(line: 29, column: 7, scope: !36)
+!41 = !DILocation(line: 29, column: 3, scope: !36)
+!42 = !DILocalVariable(name: "mul", scope: !36, file: !11, line: 32, type: !14)
+!43 = !DILocation(line: 32, column: 7, scope: !36)
+!44 = !DILocalVariable(name: "f", scope: !36, file: !11, line: 33, type: !45)
+!45 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !12, size: 64)
+!46 = !DILocation(line: 33, column: 9, scope: !36)
+!47 = !DILocalVariable(name: "c", scope: !36, file: !11, line: 34, type: !14)
+!48 = !DILocation(line: 34, column: 7, scope: !36)
+!49 = !DILocation(line: 34, column: 13, scope: !36)
+!50 = !DILocation(line: 34, column: 16, scope: !36)
+!51 = !DILocation(line: 34, column: 11, scope: !36)
+!52 = !DILocalVariable(name: "d", scope: !36, file: !11, line: 36, type: !14)
+!53 = !DILocation(line: 36, column: 7, scope: !36)
+!54 = !DILocation(line: 36, column: 15, scope: !36)
+!55 = !DILocation(line: 36, column: 18, scope: !36)
+!56 = !DILocation(line: 36, column: 11, scope: !36)
+!57 = !DILocation(line: 38, column: 3, scope: !36)

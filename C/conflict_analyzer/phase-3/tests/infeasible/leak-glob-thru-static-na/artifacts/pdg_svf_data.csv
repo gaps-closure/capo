@@ -7,7 +7,7 @@ Node,6,Inst_Other,,'  %2 = alloca i32**, align 8',12,,,,-1,-1,1,-1
 Node,7,Inst_Other,,'  store i32 0, i32* %1, align 4',12,,,,-1,-1,2,-1
 Node,8,Inst_Other,,'  store i32** %3, i32*** %2, align 8, !dbg !30',12,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,50,9,5,-1
 Node,9,VarNode_StaticGlobal,ORANGE_NOSHARE,'@x = dso_local global [3 x i32] [i32 1, i32 2, i32 3], align 4, !dbg !0',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,31,-1,-1,-1
-Node,10,VarNode_StaticFunction,,'@bar.y = internal global i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 0), align 8, !dbg !5',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,39,-1,-1,-1
+Node,10,VarNode_StaticFunction,,'@bar.y = internal global i32* getelementptr inbounds ([3 x i32], [3 x i32]* @x, i32 0, i32 0), align 8, !dbg !5',11,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,39,-1,-1,-1
 Node,11,FunctionEntry,BAR,'; Function Attrs: noinline nounwind optnone uwtable
 define dso_local i32** @bar() #0 !dbg !7 {
   ret i32** @bar.y, !dbg !26
@@ -40,9 +40,11 @@ Edge,12,DataDepEdge_DefUse,0,,,5,7,,,,,
 Edge,13,DataDepEdge_DefUse,0,,,6,8,,,,,
 Edge,14,DataDepEdge_DefUse,0,,,2,8,,,,,
 Edge,15,DataDepEdge_Ret,0,,,3,2,,,,,
-Edge,16,Anno_Global,0,,,9,13,,,,,
-Edge,17,Anno_Global,0,,,11,13,,,,,
-Edge,18,DataDepEdge_PointsTo,0,,,10,9,,,,,
-Edge,19,DataDepEdge_PointsTo,0,,,3,10,,,,,
-Edge,20,DataDepEdge_PointsTo,0,,,6,10,,,,,
-Edge,21,DataDepEdge_PointsTo,0,,,2,10,,,,,
+Edge,16,DataDepEdge_Callee,0,,,2,11,,,,,
+Edge,17,Parameter_Out,0,,,2,1,,,,,
+Edge,18,Anno_Global,0,,,9,13,,,,,
+Edge,19,Anno_Global,0,,,11,13,,,,,
+Edge,20,DataDepEdge_PointsTo,0,,,10,9,,,,,
+Edge,21,DataDepEdge_PointsTo,0,,,3,10,,,,,
+Edge,22,DataDepEdge_PointsTo,0,,,6,10,,,,,
+Edge,23,DataDepEdge_PointsTo,0,,,2,10,,,,,

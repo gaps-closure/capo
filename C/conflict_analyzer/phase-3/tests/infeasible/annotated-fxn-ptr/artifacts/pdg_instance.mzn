@@ -60,36 +60,50 @@ DataDepEdge_RAW_start = 16;
 DataDepEdge_RAW_end = 16;
 DataDepEdge_Ret_start = 0;
 DataDepEdge_Ret_end = -1;
+DataDepEdge_Indirect_Ret_start = 17;
+DataDepEdge_Indirect_Ret_end = 17;
 DataDepEdge_Alias_start = 0;
 DataDepEdge_Alias_end = -1;
+DataDepEdge_ArgPass_In_start = 0;
+DataDepEdge_ArgPass_In_end = -1;
+DataDepEdge_ArgPass_Out_start = 0;
+DataDepEdge_ArgPass_Out_end = -1;
+DataDepEdge_ArgPass_Indirect_In_start = 0;
+DataDepEdge_ArgPass_Indirect_In_end = -1;
+DataDepEdge_ArgPass_Indirect_Out_start = 0;
+DataDepEdge_ArgPass_Indirect_Out_end = -1;
+DataDepEdge_Callee_start = 18;
+DataDepEdge_Callee_end = 18;
 DataDepEdge_start = 11;
-DataDepEdge_end = 16;
+DataDepEdge_end = 17;
 Parameter_In_start = 0;
 Parameter_In_end = -1;
 Parameter_Out_start = 0;
 Parameter_Out_end = -1;
 Parameter_Field_start = 0;
 Parameter_Field_end = -1;
+Parameter_Indirect_In_start = 0;
+Parameter_Indirect_In_end = -1;
 Parameter_start = 0;
 Parameter_end = -1;
-Anno_Global_start = 17;
-Anno_Global_end = 17;
+Anno_Global_start = 19;
+Anno_Global_end = 19;
 Anno_Var_start = 0;
 Anno_Var_end = -1;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 17;
-Anno_end = 17;
+Anno_start = 19;
+Anno_end = 19;
 PDGEdge_start = 1;
-PDGEdge_end = 17;
+PDGEdge_end = 19;
 hasFunction = [
 11,11,10,11,11,11,11,11,11,10,11,0
 ];
 hasSource = [
-2,10,11,11,11,11,11,11,11,11,5,6,6,9,2,8,10
+2,10,11,11,11,11,11,11,11,11,5,6,6,9,2,8,3,2,10
 ];
 hasDest = [
-10,3,5,6,7,1,8,9,2,4,7,9,8,2,4,9,12
+10,3,5,6,7,1,8,9,2,4,7,9,8,2,4,9,10,9,12
 ];
 hasParamIdx = array1d(Param, [
 
