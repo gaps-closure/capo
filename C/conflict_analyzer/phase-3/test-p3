@@ -29,6 +29,7 @@ run () {
     python3 -m conflict_analyzer --temp-dir tmp-ca --pdg-lib ../../pdg2/build/libpdg.so \
             --dump-ptg ../../pdg2/svf/Release-build/bin/dump-ptg \
             --pts-to-algo $1 \
+            --no-findmus \
             tests/$2/$3/prog.c 2>&1 >ca-output.txt
     STATUS=$?
 

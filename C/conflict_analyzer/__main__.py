@@ -102,7 +102,7 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         collated_map = collate_source_map(entities, args.temp_dir)
         logger.info("Collated source maps")
         out = run_cmdline([zinc_src.cle_instance, pdg_instance, zinc_src.enclave_instance, 
-            *[ f.read_text() for f in args.constraint_files]], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map) 
+            *[ f.read_text() for f in args.constraint_files]], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map, args.no_findmus) 
         logger.info("Produced JSON result from minizinc")
         return out
 
@@ -131,6 +131,7 @@ def parsed_args() -> Args:
     parser.add_argument('--artifact', help="artifact json path", type=Path, required=False)
     parser.add_argument('--conflicts', help="conflicts json path", type=Path, required=False, default=Path("conflicts.json"))
     parser.add_argument('--output-json', help="whether to output json", action='store_true')
+    parser.add_argument('--no-findmus', help="don't run findMUS on unsatisfiable minizinc instances", action='store_true')
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args())
     args.temp_dir = args.temp_dir.resolve()
