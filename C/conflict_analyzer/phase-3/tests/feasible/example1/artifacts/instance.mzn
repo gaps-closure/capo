@@ -9,10 +9,10 @@ hasGuardOperation = [ nullGuardOperation, allow, allow, allow, allow ];
 isOneway = [ false, false, false, false, false ];
 cdfForRemoteLevel = array2d(cleLabel, Level, [
   nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, EWMA_MAIN_cdf_0,
-  nullCdf, XDLINKAGE_GET_A_cdf_1, XDLINKAGE_GET_A_cdf_0,
+  nullCdf, EWMA_MAIN_cdf_0, nullCdf,
+  nullCdf, XDLINKAGE_GET_A_cdf_0, XDLINKAGE_GET_A_cdf_1,
   nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, ORANGE_cdf_0,
+  nullCdf, ORANGE_cdf_0, nullCdf,
   nullCdf, nullCdf, nullCdf
 ]);
 hasRettaints = array2d(cdf, cleLabel, [
@@ -164,9 +164,9 @@ constraint :: "TaintOnNodeIdx74" taint[74]=ORANGE;
 constraint :: "TaintOnNodeIdx75" taint[75]=PURPLE;
 constraint :: "TaintOnNodeIdx76" taint[76]=XDLINKAGE_GET_A;
 constraint :: "TaintOnNodeIdx77" taint[77]=EWMA_MAIN;
-Level = { nullLevel, orange, purple };
-Enclave = { nullEnclave, orange_E, purple_E };
-hasEnclaveLevel = [ nullLevel, orange, purple ];
+Level = { nullLevel, purple, orange };
+Enclave = { nullEnclave, purple_E, orange_E };
+hasEnclaveLevel = [ nullLevel, purple, orange ];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flag to include/exclude debug output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

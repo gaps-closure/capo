@@ -1,179 +1,158 @@
-cleLabel = { nullCleLabel, EWMA_SHAREABLE, XDLINKAGE_GET_EWMA, EWMA_MAIN, PURPLE, ORANGE, ORANGE_SHAREABLE, TAG_RESPONSE_GET_EWMA, TAG_REQUEST_GET_EWMA };
-hasLabelLevel = [ nullLevel, orange, orange, purple, purple, orange, orange, nullLevel, nullLevel ];
-isFunctionAnnotation = [ false, true, true, true, false, false, false, false, false ];
-cdf = { nullCdf, EWMA_SHAREABLE_cdf_0, XDLINKAGE_GET_EWMA_cdf_0, XDLINKAGE_GET_EWMA_cdf_1, EWMA_MAIN_cdf_0, ORANGE_SHAREABLE_cdf_0 };
-fromCleLabel = [ nullCleLabel, EWMA_SHAREABLE, XDLINKAGE_GET_EWMA, XDLINKAGE_GET_EWMA, EWMA_MAIN, ORANGE_SHAREABLE ];
-hasRemotelevel = [ nullLevel, orange, orange, purple, purple, purple ];
-hasDirection = [ nullDirection, egress, bidirectional, bidirectional, bidirectional, egress ];
-hasGuardOperation = [ nullGuardOperation, allow, allow, allow, allow, allow ];
-isOneway = [ false, false, false, false, false, false ];
+cleLabel = { nullCleLabel, MAIN, A, B };
+hasLabelLevel = [ nullLevel, orange, orange, orange ];
+isFunctionAnnotation = [ false, true, false, false ];
+cdf = { nullCdf, MAIN_cdf_0 };
+fromCleLabel = [ nullCleLabel, MAIN ];
+hasRemotelevel = [ nullLevel, orange ];
+hasDirection = [ nullDirection, bidirectional ];
+hasGuardOperation = [ nullGuardOperation, allow ];
+isOneway = [ false, false ];
 cdfForRemoteLevel = array2d(cleLabel, Level, [
-  nullCdf, nullCdf, nullCdf,
-  nullCdf, EWMA_SHAREABLE_cdf_0, nullCdf,
-  nullCdf, XDLINKAGE_GET_EWMA_cdf_0, XDLINKAGE_GET_EWMA_cdf_1,
-  nullCdf, nullCdf, EWMA_MAIN_cdf_0,
-  nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, ORANGE_SHAREABLE_cdf_0,
-  nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, nullCdf
+  nullCdf, nullCdf,
+  nullCdf, MAIN_cdf_0,
+  nullCdf, nullCdf,
+  nullCdf, nullCdf
 ]);
 hasRettaints = array2d(cdf, cleLabel, [
-  false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, false, true, false, false,
-  false, false, false, false, false, false, false, true, false,
-  false, false, false, false, false, false, false, true, false,
-  false, false, false, false, true, false, false, false, false,
-  false, false, false, false, false, false, false, false, false
+  false, false, false, false,
+  false, false, true, true
 ]);
 hasCodtaints = array2d(cdf, cleLabel, [
-  false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, true, true, false, false,
-  false, false, false, false, false, true, true, false, false,
-  false, false, false, false, false, true, true, false, false,
-  false, false, false, false, true, false, false, true, true,
-  false, false, false, false, false, false, false, false, false
+  false, false, false, false,
+  false, false, true, true
 ]);
 hasArgtaints = array3d(cdf, parmIdx, cleLabel, [
-  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, true, false, false, false, false, false, false, false, false, true, false, false, false,
-  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
-  false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false
+  false, false, false, false,
+  false, false, false, false
 ]);
 hasARCtaints = array2d(cdf, cleLabel, [
-  false, false, false, false, false, false, false, false, false,
-  false, true, false, false, false, true, true, false, false,
-  false, false, true, false, false, true, true, true, false,
-  false, false, true, false, false, true, true, true, false,
-  false, false, false, true, true, false, false, true, true,
-  false, false, false, false, false, false, false, false, false
+  false, false, false, false,
+  false, true, true, true
 ]);
 Inst_FunCall_start = 1;
-Inst_FunCall_end = 14;
-Inst_Ret_start = 15;
-Inst_Ret_end = 20;
-Inst_Br_start = 21;
-Inst_Br_end = 24;
-Inst_Other_start = 25;
-Inst_Other_end = 65;
+Inst_FunCall_end = 6;
+Inst_Ret_start = 7;
+Inst_Ret_end = 8;
+Inst_Br_start = 0;
+Inst_Br_end = -1;
+Inst_Other_start = 9;
+Inst_Other_end = 39;
 Inst_start = 1;
-Inst_end = 65;
-VarNode_StaticGlobal_start = 0;
-VarNode_StaticGlobal_end = -1;
+Inst_end = 39;
+VarNode_StaticGlobal_start = 40;
+VarNode_StaticGlobal_end = 40;
 VarNode_StaticModule_start = 0;
 VarNode_StaticModule_end = -1;
-VarNode_StaticFunction_start = 66;
-VarNode_StaticFunction_end = 68;
+VarNode_StaticFunction_start = 0;
+VarNode_StaticFunction_end = -1;
 VarNode_StaticOther_start = 0;
 VarNode_StaticOther_end = -1;
-VarNode_start = 66;
-VarNode_end = 68;
-FunctionEntry_start = 69;
-FunctionEntry_end = 74;
-Param_FormalIn_start = 75;
-Param_FormalIn_end = 76;
-Param_FormalOut_start = 77;
-Param_FormalOut_end = 78;
-Param_ActualIn_start = 79;
-Param_ActualIn_end = 80;
-Param_ActualOut_start = 81;
-Param_ActualOut_end = 82;
-Param_start = 75;
-Param_end = 82;
-Annotation_Var_start = 0;
-Annotation_Var_end = -1;
-Annotation_Global_start = 83;
-Annotation_Global_end = 83;
+VarNode_start = 40;
+VarNode_end = 40;
+FunctionEntry_start = 41;
+FunctionEntry_end = 42;
+Param_FormalIn_start = 43;
+Param_FormalIn_end = 47;
+Param_FormalOut_start = 48;
+Param_FormalOut_end = 52;
+Param_ActualIn_start = 53;
+Param_ActualIn_end = 57;
+Param_ActualOut_start = 58;
+Param_ActualOut_end = 62;
+Param_start = 43;
+Param_end = 62;
+Annotation_Var_start = 63;
+Annotation_Var_end = 65;
+Annotation_Global_start = 66;
+Annotation_Global_end = 66;
 Annotation_Other_start = 0;
 Annotation_Other_end = -1;
-Annotation_start = 83;
-Annotation_end = 83;
+Annotation_start = 63;
+Annotation_end = 66;
 PDGNode_start = 1;
-PDGNode_end = 83;
+PDGNode_end = 66;
 ControlDep_CallInv_start = 1;
-ControlDep_CallInv_end = 5;
+ControlDep_CallInv_end = 1;
 ControlDep_Indirect_CallInv_start = 0;
 ControlDep_Indirect_CallInv_end = -1;
-ControlDep_CallRet_start = 6;
-ControlDep_CallRet_end = 10;
-ControlDep_Entry_start = 11;
-ControlDep_Entry_end = 75;
-ControlDep_Br_start = 76;
-ControlDep_Br_end = 85;
+ControlDep_CallRet_start = 2;
+ControlDep_CallRet_end = 2;
+ControlDep_Entry_start = 3;
+ControlDep_Entry_end = 41;
+ControlDep_Br_start = 0;
+ControlDep_Br_end = -1;
 ControlDep_Other_start = 0;
 ControlDep_Other_end = -1;
 ControlDep_start = 1;
-ControlDep_end = 85;
-DataDepEdge_DefUse_start = 86;
-DataDepEdge_DefUse_end = 138;
+ControlDep_end = 41;
+DataDepEdge_DefUse_start = 42;
+DataDepEdge_DefUse_end = 65;
 DataDepEdge_GlobalDefUse_start = 0;
 DataDepEdge_GlobalDefUse_end = -1;
-DataDepEdge_RAW_start = 139;
-DataDepEdge_RAW_end = 146;
-DataDepEdge_Ret_start = 147;
-DataDepEdge_Ret_end = 151;
+DataDepEdge_RAW_start = 66;
+DataDepEdge_RAW_end = 67;
+DataDepEdge_Ret_start = 68;
+DataDepEdge_Ret_end = 68;
 DataDepEdge_Indirect_Ret_start = 0;
 DataDepEdge_Indirect_Ret_end = -1;
-DataDepEdge_Alias_start = 0;
-DataDepEdge_Alias_end = -1;
-DataDepEdge_ArgPass_In_start = 152;
-DataDepEdge_ArgPass_In_end = 153;
-DataDepEdge_ArgPass_Out_start = 154;
-DataDepEdge_ArgPass_Out_end = 155;
+DataDepEdge_Alias_start = 69;
+DataDepEdge_Alias_end = 71;
+DataDepEdge_ArgPass_In_start = 72;
+DataDepEdge_ArgPass_In_end = 72;
+DataDepEdge_ArgPass_Out_start = 73;
+DataDepEdge_ArgPass_Out_end = 73;
 DataDepEdge_ArgPass_Indirect_In_start = 0;
 DataDepEdge_ArgPass_Indirect_In_end = -1;
 DataDepEdge_ArgPass_Indirect_Out_start = 0;
 DataDepEdge_ArgPass_Indirect_Out_end = -1;
-DataDepEdge_Callee_start = 156;
-DataDepEdge_Callee_end = 160;
-DataDepEdge_start = 86;
-DataDepEdge_end = 160;
-Parameter_In_start = 161;
-Parameter_In_end = 170;
-Parameter_Out_start = 171;
-Parameter_Out_end = 181;
-Parameter_Field_start = 0;
-Parameter_Field_end = -1;
-Parameter_start = 161;
-Parameter_end = 181;
-Anno_Global_start = 182;
-Anno_Global_end = 186;
-Anno_Var_start = 0;
-Anno_Var_end = -1;
+DataDepEdge_Callee_start = 74;
+DataDepEdge_Callee_end = 74;
+DataDepEdge_start = 42;
+DataDepEdge_end = 74;
+Parameter_In_start = 75;
+Parameter_In_end = 84;
+Parameter_Out_start = 85;
+Parameter_Out_end = 88;
+Parameter_Field_start = 89;
+Parameter_Field_end = 104;
+Parameter_start = 75;
+Parameter_end = 104;
+Anno_Global_start = 105;
+Anno_Global_end = 106;
+Anno_Var_start = 107;
+Anno_Var_end = 118;
 Anno_Other_start = 0;
 Anno_Other_end = -1;
-Anno_start = 182;
-Anno_end = 186;
-DataDepEdge_PointsTo_start = 0;
-DataDepEdge_PointsTo_end = -1;
+Anno_start = 105;
+Anno_end = 118;
+DataDepEdge_PointsTo_start = 119;
+DataDepEdge_PointsTo_end = 133;
 PDGEdge_start = 1;
-PDGEdge_end = 186;
+PDGEdge_end = 133;
 hasFunction = [
-69,69,69,69,70,70,70,70,70,71,71,71,71,74,69,70,71,72,73,74,71,71,71,71,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,70,70,70,71,71,71,71,71,71,71,71,71,71,71,72,72,72,72,73,73,73,73,73,74,74,69,72,73,69,70,71,72,73,74,69,69,69,69,69,69,69,69,0
+41,41,41,42,42,42,41,42,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,42,42,42,42,42,42,42,42,42,42,42,0,41,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,41,41,42,0
 ];
 hasSource = [
-6,8,9,12,14,15,16,17,18,19,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,69,70,70,70,70,70,70,70,70,70,70,70,70,71,71,71,71,71,71,71,71,71,71,71,71,71,71,71,71,71,71,71,71,72,72,72,72,72,73,73,73,73,73,73,74,74,74,74,22,22,22,22,22,22,22,22,22,22,66,66,66,67,67,67,68,68,68,68,25,25,26,26,27,31,32,33,34,35,4,37,38,38,39,39,6,8,42,43,9,44,44,45,45,45,45,47,48,12,50,51,52,53,55,56,58,59,60,61,63,64,14,28,29,36,40,41,49,57,62,15,16,17,18,19,42,43,81,82,6,8,9,12,14,75,69,69,76,42,43,9,9,79,80,69,69,6,8,42,43,9,9,9,12,14,67,68,69,70,71
+3,8,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,41,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,40,9,10,10,10,10,11,11,11,11,16,21,23,25,27,28,29,29,30,30,36,37,38,39,26,31,8,13,18,32,28,58,3,28,3,42,43,46,53,54,55,56,57,28,3,3,42,43,44,44,45,48,49,49,50,53,54,54,55,58,59,59,60,40,41,41,41,13,14,15,18,19,20,42,32,33,34,13,16,18,21,23,25,27,28,58,29,32,36,37,10,10
 ];
 hasDest = [
-72,73,69,70,71,9,12,14,6,8,25,26,27,28,1,29,2,3,30,31,32,33,34,35,4,36,37,15,39,5,6,40,7,8,41,42,43,9,16,38,45,10,11,46,21,47,48,22,12,49,50,51,13,23,52,53,54,24,17,44,56,57,58,18,55,59,60,61,62,63,19,64,65,14,20,12,49,50,51,13,23,52,53,54,24,37,36,34,58,57,55,63,62,60,59,31,28,32,29,30,33,33,4,35,4,36,15,42,40,43,41,40,41,9,9,16,50,49,54,52,47,46,48,22,49,13,13,53,54,56,57,18,61,61,62,19,65,20,31,32,37,42,43,50,58,63,9,12,14,6,8,79,80,42,43,72,73,69,70,71,31,75,76,32,79,80,79,80,75,76,77,78,1,1,81,82,81,82,1,1,1,83,83,83,83,83
+42,3,9,10,11,12,1,13,14,15,16,17,2,18,19,20,21,22,23,24,25,26,27,28,3,7,30,31,4,5,32,33,34,35,36,37,38,39,6,8,29,17,12,27,25,16,13,26,23,21,18,17,22,24,26,28,3,36,31,35,32,37,38,6,6,28,36,3,10,11,30,53,28,42,53,53,43,36,37,43,44,45,46,47,58,58,1,48,44,45,46,47,49,50,51,52,54,55,56,57,59,60,61,62,66,66,63,64,63,63,63,64,64,64,65,65,65,65,10,10,11,11,11,10,10,11,11,11,30,11,11,40,11
 ];
 hasParamIdx = array1d(Param, [
-1,2,1,2,1,2,1,2
+1,-1,-1,-1,-1,1,-1,-1,-1,-1,1,-1,-1,-1,-1,1,-1,-1,-1,-1
 ]);
 userAnnotatedFunction = array1d(FunctionEntry, [
-true,true,true,false,false,false
+true,false
 ]);
-MaxFuncParms = 2;
-constraint :: "TaintOnNodeIdx67" taint[67]=ORANGE;
-constraint :: "TaintOnNodeIdx68" taint[68]=ORANGE;
-constraint :: "TaintOnNodeIdx69" taint[69]=EWMA_SHAREABLE;
-constraint :: "TaintOnNodeIdx70" taint[70]=XDLINKAGE_GET_EWMA;
-constraint :: "TaintOnNodeIdx71" taint[71]=EWMA_MAIN;
-Level = { nullLevel, orange, purple };
-Enclave = { nullEnclave, orange_E, purple_E };
-hasEnclaveLevel = [ nullLevel, orange, purple ];
+MaxFuncParms = 1;
+constraint :: "TaintOnNodeIdx13" taint[13]=A;
+constraint :: "TaintOnNodeIdx18" taint[18]=A;
+constraint :: "TaintOnNodeIdx32" taint[32]=A;
+constraint :: "TaintOnNodeIdx40" taint[40]=B;
+constraint :: "TaintOnNodeIdx41" taint[41]=MAIN;
+Level = { nullLevel, orange };
+Enclave = { nullEnclave, orange_E };
+hasEnclaveLevel = [ nullLevel, orange ];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flag to include/exclude debug output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
