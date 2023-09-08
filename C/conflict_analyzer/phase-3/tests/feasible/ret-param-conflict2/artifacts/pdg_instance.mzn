@@ -56,6 +56,8 @@ ControlDep_start = 1;
 ControlDep_end = 16;
 DataDepEdge_DefUse_start = 17;
 DataDepEdge_DefUse_end = 26;
+DataDepEdge_GlobalDefUse_start = 0;
+DataDepEdge_GlobalDefUse_end = -1;
 DataDepEdge_RAW_start = 27;
 DataDepEdge_RAW_end = 28;
 DataDepEdge_Ret_start = 29;
@@ -103,7 +105,7 @@ hasSource = [
 3,4,17,17,17,17,17,17,17,17,18,18,18,18,18,18,16,15,15,6,6,8,9,10,11,14,7,13,4,14,25,3,19,17,20,14,3,23,24,17,14,3,3,19,21,23,25,17,18
 ];
 hasDest = [
-17,3,6,7,1,8,9,10,2,4,11,12,13,14,3,5,13,14,13,8,7,9,2,2,12,3,8,14,3,23,14,17,8,19,9,23,23,19,20,21,25,25,1,20,22,24,26,27,27
+17,3,6,7,1,8,9,10,2,4,12,13,14,3,5,11,13,14,13,8,7,9,2,2,12,3,8,14,3,23,14,17,8,19,9,23,23,19,20,21,25,25,1,20,22,24,26,27,27
 ];
 hasParamIdx = array1d(Param, [
 1,-1,1,-1,1,-1,1,-1

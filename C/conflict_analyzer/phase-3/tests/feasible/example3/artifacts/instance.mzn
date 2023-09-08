@@ -9,12 +9,12 @@ hasGuardOperation = [ nullGuardOperation, allow, allow, allow, allow, allow ];
 isOneway = [ false, false, false, false, false, false ];
 cdfForRemoteLevel = array2d(cleLabel, Level, [
   nullCdf, nullCdf, nullCdf,
-  nullCdf, EWMA_SHAREABLE_cdf_0, nullCdf,
-  nullCdf, XDLINKAGE_GET_EWMA_cdf_0, XDLINKAGE_GET_EWMA_cdf_1,
-  nullCdf, nullCdf, EWMA_MAIN_cdf_0,
+  nullCdf, nullCdf, EWMA_SHAREABLE_cdf_0,
+  nullCdf, XDLINKAGE_GET_EWMA_cdf_1, XDLINKAGE_GET_EWMA_cdf_0,
+  nullCdf, EWMA_MAIN_cdf_0, nullCdf,
   nullCdf, nullCdf, nullCdf,
   nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, ORANGE_SHAREABLE_cdf_0,
+  nullCdf, ORANGE_SHAREABLE_cdf_0, nullCdf,
   nullCdf, nullCdf, nullCdf,
   nullCdf, nullCdf, nullCdf
 ]);
@@ -171,9 +171,9 @@ constraint :: "TaintOnNodeIdx68" taint[68]=ORANGE;
 constraint :: "TaintOnNodeIdx69" taint[69]=EWMA_SHAREABLE;
 constraint :: "TaintOnNodeIdx70" taint[70]=XDLINKAGE_GET_EWMA;
 constraint :: "TaintOnNodeIdx71" taint[71]=EWMA_MAIN;
-Level = { nullLevel, orange, purple };
-Enclave = { nullEnclave, orange_E, purple_E };
-hasEnclaveLevel = [ nullLevel, orange, purple ];
+Level = { nullLevel, purple, orange };
+Enclave = { nullEnclave, purple_E, orange_E };
+hasEnclaveLevel = [ nullLevel, purple, orange ];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Flag to include/exclude debug output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

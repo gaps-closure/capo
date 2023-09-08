@@ -9,12 +9,12 @@ hasGuardOperation = [ nullGuardOperation, allow, allow, allow, allow, allow ];
 isOneway = [ false, false, false, false, false, false ];
 cdfForRemoteLevel = array2d(cleLabel, Level, [
   nullCdf, nullCdf, nullCdf,
-  nullCdf, EWMA_SHAREABLE_cdf_0, nullCdf,
-  nullCdf, XDLINKAGE_GET_EWMA_cdf_0, XDLINKAGE_GET_EWMA_cdf_1,
-  nullCdf, nullCdf, EWMA_MAIN_cdf_0,
+  nullCdf, nullCdf, EWMA_SHAREABLE_cdf_0,
+  nullCdf, XDLINKAGE_GET_EWMA_cdf_1, XDLINKAGE_GET_EWMA_cdf_0,
+  nullCdf, EWMA_MAIN_cdf_0, nullCdf,
   nullCdf, nullCdf, nullCdf,
   nullCdf, nullCdf, nullCdf,
-  nullCdf, nullCdf, ORANGE_SHAREABLE_cdf_0,
+  nullCdf, ORANGE_SHAREABLE_cdf_0, nullCdf,
   nullCdf, nullCdf, nullCdf,
   nullCdf, nullCdf, nullCdf
 ]);
