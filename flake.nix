@@ -30,7 +30,7 @@
                 };
                 devShells = {
                     default = with pkgs; pkgs.mkShell {
-                        packages = [ capoPython pdgPkgs.default ];
+                        packages = [ capoPython pdgPkgs.default llvmPackages_14.llvm clang_14 ];
                         shellHook = ''
                             export PDG=${pdgPkgs.default.out};
                             export CAPO=${capoPython.out};

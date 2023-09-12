@@ -69,7 +69,7 @@ def opt(pdg_so: Path, dump_ptg: Path, pts: str, bitcode: bytes, temp_dir: Path) 
         raise ProcessException("llvm-dis failed", out)
     
     # Run opt pass on .bc file
-    args: List[Union[Path, str]] = ['opt-14', '-enable-new-pm=0', '-load',
+    args: List[Union[Path, str]] = ['opt', '-enable-new-pm=0', '-load',
                                     pdg_so, '-minizinc', '-zinc-debug', out_bc_path]
     out = subprocess.run(args, cwd=temp_dir, capture_output=True)
     if out.returncode != 0:

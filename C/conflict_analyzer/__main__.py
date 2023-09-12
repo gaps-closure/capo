@@ -35,6 +35,9 @@ class Args:
     conflicts: Optional[Path]
     constraint_files: List[Path]
     artifact: Optional[Path]
+    dump_ptg: Path
+    pts_to_algo: str 
+    no_findmus: bool
     log_level: Literal['INFO', 'DEBUG', 'ERROR'] 
 
 SourceEntity = Tuple[Path, Transform] 
