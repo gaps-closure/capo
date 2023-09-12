@@ -38,7 +38,7 @@ def unify_pdg_svf(pdg_csv: CsvData, pdg_ids: CsvData, svf_edges: CsvData, svf_id
         for [*_, decl, glob_name, _, _] in svf_ids
         if decl == "declaration"
     }
-    print(llid_to_pdg_node)
+
     def ignore(llid: LLId) -> bool:
         return llid[0][:5] == "llvm." or llid == ("", "", "") or llid[0] in externs   
 
