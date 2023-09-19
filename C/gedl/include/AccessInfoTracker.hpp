@@ -48,6 +48,7 @@ class AccessInfoTracker : public llvm::ModulePass {
   std::map<std::string, std::string> domainMap;
   std::map<std::string, std::string> funcMap;
   std::map<std::string, std::set<std::string>> callsiteMap;
+  std::map<std::string, std::string> callerMap;
   std::map<std::string, std::set<std::string>> callsiteLines;
   std::map<std::string, std::string> annotationMap;
   std::ofstream edl_file;

@@ -235,7 +235,10 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
       edl_file << "\t\t\t\t\"occurs\": [\n";
 
       //For every callsite of the function, generate an occurs object with the filepath and linenums
+      int i = 0;
       for (auto filePath : callsiteMap[funcName]){
+        if(domainMap[funcName] != importDomain || domainMap[callerMap[filePath]] != domain)
+          continue;
         edl_file << "\t\t\t\t\t{\"file\": \"" << filePath << "\", \"lines\": [";
         int startLine = 0;
 
@@ -248,7 +251,11 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
           }
           edl_file << lineNum;
         }
-        edl_file << "]}\n";
+        if(i < callsiteMap[funcName].size() - 1)
+          edl_file << "]},\n";
+        else
+          edl_file << "]}\n";
+        i++;
       }
       edl_file << "\t\t\t\t]\n\t\t\t}";
     }  
@@ -447,6 +454,9 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
             filePath = debugInfo->getDirectory().str() + "/" + debugInfo->getFilename().str();
             lineNum = std::to_string(debugInfo->getLine());
           }
+          //Add callsite to filePath -> caller map 
+          callerMap[filePath] = function.getName().str();
+
           //Add callsite filepath to map if an entry exists, otherwise create new entry with single filepath
           if (callsiteMap.count(callFuncName) > 0){
             callsiteMap[callFuncName].insert(filePath);
