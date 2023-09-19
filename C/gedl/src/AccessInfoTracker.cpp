@@ -236,7 +236,6 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
       edl_file << "\t\t\t\t\"occurs\": [\n";
 
       //For every callsite of the function, generate an occurs object with the filepath and linenums
-      int i = 0;
       std::map<std::string, std::set<std::string>> occurs;
       for (auto filePath : callsiteMap[funcName]){
         if(domain != funcToDomain[callerMap[filePath]] || importDomain != funcToDomain[funcName])
