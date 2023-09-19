@@ -237,28 +237,39 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
 
       //For every callsite of the function, generate an occurs object with the filepath and linenums
       int i = 0;
+      std::map<std::string, std::set<std::string>> occurs;
       for (auto filePath : callsiteMap[funcName]){
         if(domain != funcToDomain[callerMap[filePath]] || importDomain != funcToDomain[funcName])
           continue;
 
-        edl_file << "\t\t\t\t\t{\"file\": \"" << filePath << "\", \"lines\": [";
-        int startLine = 0;
-
-        //For every linenum for the filepath, insert the linenum in the field
+        std::set<std::string> lines;
         for (auto lineNum : callsiteLines[(funcName + ":" + filePath)]){
-          if (startLine == 0){
-            startLine = 1;
-          } else{
-            edl_file << ",";
-          }
-          edl_file << lineNum;
+          lines.insert(lineNum);
         }
-        if(i < callsiteMap[funcName].size() - 1)
+        occurs[filePath] = lines;
+      }
+
+      // print occurs objects
+      size_t i = 0;
+      for(auto occur : occurs) {
+        auto filePath = occur.first;
+        auto lines = occur.second;
+        edl_file << "\t\t\t\t\t{\"file\": \"" << filePath << "\", \"lines\": [";
+        size_t j = 0;
+        for(auto line : lines) {
+          edl_file << line; 
+          if(j < lines.size() - 1)
+            edl_file << ",";
+          j++;
+        }
+        if(i < occurs.size() - 1)
           edl_file << "]},\n";
         else
           edl_file << "]}\n";
         i++;
       }
+
+
       edl_file << "\t\t\t\t]\n\t\t\t}";
     }  
     edl_file << "\n\t\t]";
