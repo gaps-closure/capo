@@ -60,6 +60,7 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
       domainMap.insert(make_pair(domain, funcFilepath));
     }
     funcMap.insert(make_pair(functionName, funcFilepath));
+    funcToDomain[functionName] = domain;
   }
 
   //Function to create lists for all defined functions and imported functions across all domains
@@ -237,8 +238,9 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
       //For every callsite of the function, generate an occurs object with the filepath and linenums
       int i = 0;
       for (auto filePath : callsiteMap[funcName]){
-        if(domainMap[funcName] != importDomain || domainMap[callerMap[filePath]] != domain)
+        if(domain != funcToDomain[callerMap[filePath]] || importDomain != funcToDomain[funcName])
           continue;
+
         edl_file << "\t\t\t\t\t{\"file\": \"" << filePath << "\", \"lines\": [";
         int startLine = 0;
 

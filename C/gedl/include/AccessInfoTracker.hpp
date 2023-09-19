@@ -46,6 +46,7 @@ class AccessInfoTracker : public llvm::ModulePass {
   ProgramDependencyGraph *PDG;
   llvm::CallGraph *CG;
   std::map<std::string, std::string> domainMap;
+  std::map<std::string, std::string> funcToDomain;
   std::map<std::string, std::string> funcMap;
   std::map<std::string, std::set<std::string>> callsiteMap;
   std::map<std::string, std::string> callerMap;
