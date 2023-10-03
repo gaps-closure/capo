@@ -202,12 +202,14 @@ constraint :: "IndirectCallSameEnclave"
 % the same constraints as their direct call counter-parts.
 % They are included in the unions above for inter-function edges.
 
-% Endpoints of a points-to edge must be in the same enclave.
-constraint :: "PointsToSameEnclave"
+% Cross-Domain Points-To Edges must have compatible taints.
+% Note: The reason cross domain points-to edges are not disallowed completely
+% is because passing arrays necessitates cross-domain points-to edges.
+constraint :: "PointsToXD"
   forall (e in DataDepEdge_PointsTo)
-    (xdedge(e) == false);
+    (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[edTaint(e), hasLabelLevel[esTaint(e)]]));
 
-% Endpoints of a points-to edge must have the same taint
+% Endpoints of a points-to edge must have the same taint unless they are cross-domain
 % (including cases in which either endpoint is 
 % global/module-static/function).
 % Sometimes pointer dependencies are captured by a chain
@@ -216,7 +218,7 @@ constraint :: "PointsToSameEnclave"
 % same taint, even in annotated functions.
 constraint :: "PointsToTaintsMatch"
   forall (e in DataDepEdge_PointsTo)
-    (esTaint(e) == edTaint(e));
+    ((not xdedge(e)) -> esTaint(e) == edTaint(e));
 
 % If two global variables are connected by a def-use edge,
 % they must have the same taint.
