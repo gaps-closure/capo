@@ -10,7 +10,6 @@
 #include "ProgramDependencyGraph.hpp"
 #include "llvm/Analysis/CallGraph.h"
 #include "llvm/IR/Module.h"
-#include "llvm/PassAnalysisSupport.h"
 #include "llvm/Pass.h"
 
 namespace pdg {
