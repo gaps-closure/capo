@@ -207,7 +207,7 @@ constraint :: "IndirectCallSameEnclave"
 % is because passing arrays necessitates cross-domain points-to edges.
 constraint :: "PointsToXD"
   forall (e in DataDepEdge_PointsTo)
-    (xdedge(e) -> allowOrRedact(cdfForRemoteLevel[edTaint(e), hasLabelLevel[esTaint(e)]]));
+    (xdedge(e) -> (allowOrRedact(cdfForRemoteLevel[edTaint(e), hasLabelLevel[esTaint(e)]]) /\ not isFunctionEntry(hasDest[e])));
 
 % Endpoints of a points-to edge must have the same taint unless they are cross-domain
 % (including cases in which either endpoint is 
