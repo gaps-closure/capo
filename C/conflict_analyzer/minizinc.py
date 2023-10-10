@@ -192,7 +192,7 @@ def run_model(instances: List[str], constraint_files: List[Path],
     raise RuntimeError("Minizinc return status {result.status}") 
 
 def run_cmdline(instances: List[str], constraint_files: List[Path], 
-    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: SourceMap) -> MinizincResult:
+    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: SourceMap, no_findmus) -> MinizincResult:
     (temp_dir / 'instance.mzn').write_text("\n".join(instances))    
     
     mzn_args: List[Union[str, os.PathLike]] = [
@@ -206,8 +206,12 @@ def run_cmdline(instances: List[str], constraint_files: List[Path],
     if output.returncode != 0 or "Error" in output.stdout:
         raise ProcessException("minizinc failure", output)     
     if "UNSATISFIABLE" in output.stdout:
-        mus = run_findmus(instances, constraint_files, temp_dir)
-        raise FindmusException(mus, pdg_lookup, source_map)
+        if no_findmus:
+            print("UNSATISFIABLE")
+            exit(0)
+        else:
+            mus = run_findmus(instances, constraint_files, temp_dir)
+            raise FindmusException(mus, pdg_lookup, source_map)
     else:
         soln, cut = parse_solution(output.stdout)
         res = from_solution(soln, pdg_lookup)

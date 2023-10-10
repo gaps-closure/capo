@@ -169,7 +169,7 @@ void pdg::ProgramDependencyGraph::buildPDGForFunc(Function *Func)
 bool pdg::ProgramDependencyGraph::processIndirectCallInst(CallInst *CI, InstructionWrapper *instW)
 {
   auto &pdgUtils = PDGUtils::getInstance();
-  Type *t = CI->getCalledValue()->getType();
+  Type *t = CI->getCalledOperand()->getType();
   FunctionType *funcTy = cast<FunctionType>(cast<PointerType>(t)->getElementType());
   // collect all possible function with same function signature
   std::vector<Function *> indirect_call_candidates = collectIndirectCallCandidates(funcTy, *(CI->getFunction()));
@@ -218,7 +218,7 @@ bool pdg::ProgramDependencyGraph::processCallInst(InstructionWrapper *instW)
     if (isIndirectCallOrInlineAsm(CI))
       return processIndirectCallInst(CI, instW); // indirect function call get func type for indirect call inst
 
-    if (Function *f = dyn_cast<Function>(CI->getCalledValue()->stripPointerCasts())) // handle case for bitcast
+    if (Function *f = dyn_cast<Function>(CI->getCalledOperand()->stripPointerCasts())) // handle case for bitcast
       callee = f;
 
     // handle intrinsic functions
@@ -389,7 +389,7 @@ Instruction *pdg::ProgramDependencyGraph::getArgAllocaInst(Argument &arg)
     {
       if (DLV->isParameter() && DLV->getScope()->getSubprogram() == arg.getParent()->getSubprogram() && DLV->getArg()-1 == arg.getArgNo())
       {
-        Instruction *allocaInst = dyn_cast<Instruction>(dbgInst->getVariableLocation());
+        Instruction *allocaInst = dyn_cast<Instruction>(dbgInst->getVariableLocationOp(0));
         return allocaInst;
       }
     }
@@ -428,8 +428,8 @@ bool pdg::ProgramDependencyGraph::isFuncTypeMatch(FunctionType *funcTy1, Functio
     {
       if (isStructPointer(funcTy1->getParamType(i)) && isStructPointer(funcTy2->getParamType(i)))
       {
-        std::string func1ParamName = funcTy1->getParamType(i)->getPointerElementType()->getStructName();
-        std::string func2ParamName = funcTy2->getParamType(i)->getPointerElementType()->getStructName();
+        std::string func1ParamName = funcTy1->getParamType(i)->getPointerElementType()->getStructName().str();
+        std::string func2ParamName = funcTy2->getParamType(i)->getPointerElementType()->getStructName().str();
         if (nameMatch(func1ParamName, func2ParamName))
           continue;
       }
@@ -442,7 +442,7 @@ bool pdg::ProgramDependencyGraph::isFuncTypeMatch(FunctionType *funcTy1, Functio
 
 bool pdg::ProgramDependencyGraph::isIndirectCallOrInlineAsm(CallInst *CI)
 {
-  const Value *V = CI->getCalledValue();
+  const Value *V = CI->getCalledOperand();
   if (isa<Function>(V) || isa<Constant>(V))
     return false;
   if (CI->isInlineAsm())
@@ -1171,7 +1171,7 @@ void pdg::ProgramDependencyGraph::buildActualParameterTrees(CallInst *CI)
   // processing indirect call. Pick the first candidate function
   if (CI->getCalledFunction() == nullptr)
   {
-    if (Function *f = dyn_cast<Function>(CI->getCalledValue()->stripPointerCasts())) // Call to bitcast case
+    if (Function *f = dyn_cast<Function>(CI->getCalledOperand()->stripPointerCasts())) // Call to bitcast case
     {
       called_func = f;
     }
@@ -1250,7 +1250,7 @@ Function *pdg::ProgramDependencyGraph::getCalledFunction(CallInst *CI)
     return nullptr;
   Function *calledFunc = CI->getCalledFunction();
   if (calledFunc == nullptr)
-    return dyn_cast<Function>(CI->getCalledValue()->stripPointerCasts()); // handle case for bitcast
+    return dyn_cast<Function>(CI->getCalledOperand()->stripPointerCasts()); // handle case for bitcast
   return calledFunc;
   // assert(calledFunc != nullptr && "Cannot find called function");
   // return calledFunc;
@@ -1378,7 +1378,7 @@ void pdg::ProgramDependencyGraph::connectCallerAndActualTrees(Function *caller)
 
 Value *pdg::ProgramDependencyGraph::getCallSiteParamVal(CallInst *CI, unsigned idx)
 {
-  unsigned arg_size = CI->getNumArgOperands();
+  unsigned arg_size = CI->arg_size();
   if (idx >= arg_size)
   {
     assert(false && "Index out of bound for accesssing call instruction arg!");

@@ -1,0 +1,84 @@
+Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32*** %1, metadata !24, metadata !DIExpression()), !dbg !25',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,39,9,1,-1
+Node,2,Inst_FunCall,,'  %2 = call noalias i8* @malloc(i64 noundef 8) #3, !dbg !26',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,39,20,2,-1
+Node,3,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32*** %2, metadata !35, metadata !DIExpression()), !dbg !36',20,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,51,9,3,-1
+Node,4,Inst_FunCall,,'  %3 = call i32** @bar(), !dbg !27',20,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,51,13,4,-1
+Node,5,Inst_Ret,,'  ret i32** %6, !dbg !31',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,41,3,9,-1
+Node,6,Inst_Ret,,'  ret i32 0, !dbg !28',20,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,52,3,6,-1
+Node,7,Inst_Other,,'  %1 = alloca i32**, align 8',19,,,,-1,-1,0,-1
+Node,8,Inst_Other,,'  %3 = bitcast i8* %2 to i32**, !dbg !27',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,39,13,3,-1
+Node,9,Inst_Other,,'  store i32** %3, i32*** %1, align 8, !dbg !25',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,39,9,4,-1
+Node,10,Inst_Other,,'  %4 = load i32**, i32*** %1, align 8, !dbg !28',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,40,4,5,-1
+Node,11,Inst_Other,,'  %5 = getelementptr inbounds [3 x i32], [3 x i32]* @x, i64 0, i64 0',19,,,,-1,-1,6,-1
+Node,12,Inst_Other,,'  store i32* %5, i32** %4, align 8, !dbg !29',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,40,6,7,-1
+Node,13,Inst_Other,,'  %6 = load i32**, i32*** %1, align 8, !dbg !30',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,41,10,8,-1
+Node,14,Inst_Other,,'  %1 = alloca i32, align 4',20,,,,-1,-1,0,-1
+Node,15,Inst_Other,,'  %2 = alloca i32**, align 8',20,,,,-1,-1,1,-1
+Node,16,Inst_Other,,'  store i32 0, i32* %1, align 4',20,,,,-1,-1,2,-1
+Node,17,Inst_Other,,'  store i32** %3, i32*** %2, align 8, !dbg !26',20,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,51,9,5,-1
+Node,18,VarNode_StaticGlobal,ORANGE_NOSHARE,'@x = dso_local global [3 x i32] [i32 1, i32 2, i32 3], align 4, !dbg !0',0,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,31,-1,-1,-1
+Node,19,FunctionEntry,BAR,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32** @bar() #0 !dbg !21 {
+  %1 = alloca i32**, align 8
+  call void @llvm.dbg.declare(metadata i32*** %1, metadata !24, metadata !DIExpression()), !dbg !25
+  %2 = call noalias i8* @malloc(i64 noundef 8) #3, !dbg !26
+  %3 = bitcast i8* %2 to i32**, !dbg !27
+  store i32** %3, i32*** %1, align 8, !dbg !25
+  %4 = load i32**, i32*** %1, align 8, !dbg !28
+  %5 = getelementptr inbounds [3 x i32], [3 x i32]* @x, i64 0, i64 0
+  store i32* %5, i32** %4, align 8, !dbg !29
+  %6 = load i32**, i32*** %1, align 8, !dbg !30
+  ret i32** %6, !dbg !31
+}
+',19,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,37,-1,-1,-1
+Node,20,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !32 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32**, align 8
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata i32*** %2, metadata !35, metadata !DIExpression()), !dbg !36
+  %3 = call i32** @bar(), !dbg !37
+  store i32** %3, i32*** %2, align 8, !dbg !36
+  ret i32 0, !dbg !38
+}
+',20,,,/home/mlevatich/m/build/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,44,-1,-1,-1
+Node,21,Annotation_Global,,'@llvm.global.annotations = appending global [2 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast ([3 x i32]* @x to i8*), i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 31, i8* null }, { i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32** ()* @bar to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.2, i32 0, i32 0), i8* getelementptr inbounds ([71 x i8], [71 x i8]* @.str.1, i32 0, i32 0), i32 37, i8* null }], section "llvm.metadata"',0,,,Not Found,-1,-1,-1,-1
+Edge,1,ControlDep_CallInv,0,,,4,19,,,,,
+Edge,2,ControlDep_CallRet,0,,,5,4,,,,,
+Edge,3,ControlDep_Entry,0,,,19,7,,,,,
+Edge,4,ControlDep_Entry,0,,,19,1,,,,,
+Edge,5,ControlDep_Entry,0,,,19,2,,,,,
+Edge,6,ControlDep_Entry,0,,,19,8,,,,,
+Edge,7,ControlDep_Entry,0,,,19,9,,,,,
+Edge,8,ControlDep_Entry,0,,,19,10,,,,,
+Edge,9,ControlDep_Entry,0,,,19,11,,,,,
+Edge,10,ControlDep_Entry,0,,,19,12,,,,,
+Edge,11,ControlDep_Entry,0,,,19,13,,,,,
+Edge,12,ControlDep_Entry,0,,,19,5,,,,,
+Edge,13,ControlDep_Entry,0,,,20,14,,,,,
+Edge,14,ControlDep_Entry,0,,,20,15,,,,,
+Edge,15,ControlDep_Entry,0,,,20,16,,,,,
+Edge,16,ControlDep_Entry,0,,,20,3,,,,,
+Edge,17,ControlDep_Entry,0,,,20,4,,,,,
+Edge,18,ControlDep_Entry,0,,,20,17,,,,,
+Edge,19,ControlDep_Entry,0,,,20,6,,,,,
+Edge,20,DataDepEdge_DefUse,0,,,18,11,,,,,
+Edge,21,DataDepEdge_DefUse,0,,,7,13,,,,,
+Edge,22,DataDepEdge_DefUse,0,,,7,10,,,,,
+Edge,23,DataDepEdge_DefUse,0,,,7,9,,,,,
+Edge,24,DataDepEdge_DefUse,0,,,2,8,,,,,
+Edge,25,DataDepEdge_DefUse,0,,,8,9,,,,,
+Edge,26,DataDepEdge_DefUse,0,,,10,12,,,,,
+Edge,27,DataDepEdge_DefUse,0,,,11,12,,,,,
+Edge,28,DataDepEdge_DefUse,0,,,13,5,,,,,
+Edge,29,DataDepEdge_DefUse,0,,,14,16,,,,,
+Edge,30,DataDepEdge_DefUse,0,,,15,17,,,,,
+Edge,31,DataDepEdge_DefUse,0,,,4,17,,,,,
+Edge,32,DataDepEdge_RAW,0,,,9,10,,,,,
+Edge,33,DataDepEdge_Ret,0,,,5,4,,,,,
+Edge,34,DataDepEdge_Alias,0,,,8,2,,,,,
+Edge,35,DataDepEdge_Alias,0,,,10,8,,,,,
+Edge,36,DataDepEdge_Alias,0,,,13,8,,,,,
+Edge,37,DataDepEdge_Callee,0,,,4,19,,,,,
+Edge,38,Parameter_Out,0,,,4,1,,,,,
+Edge,39,Anno_Global,0,,,18,21,,,,,
+Edge,40,Anno_Global,0,,,19,21,,,,,

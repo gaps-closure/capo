@@ -220,8 +220,8 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
           iter++) {
         auto transFunc = *iter;
         if (transFunc->isDeclaration()) continue;
-        if (definedFuncList.find(transFunc->getName()) != definedFuncList.end() ||
-            staticFuncList.find(transFunc->getName()) != staticFuncList.end())
+        if (definedFuncList.find(transFunc->getName().str()) != definedFuncList.end() ||
+            staticFuncList.find(transFunc->getName().str()) != staticFuncList.end())
           crossBoundary = true;
         getIntraFuncReadWriteInfoForFunc(*transFunc);
       }
@@ -423,9 +423,9 @@ void pdg::AccessInfoTracker::populateAnnotationMap(Module &M){
                   //Create constant from the label's value
                   if (ConstantDataArray *LabelArray = dyn_cast<ConstantDataArray>(LabelValue)) {
                     //Get the label as a string and cut off the terminating /00
-                    std::string LabelStringg = LabelArray->getAsString().substr(0,LabelArray->getAsString().size()-1);
+                    std::string LabelStringg = LabelArray->getAsString().str().substr(0,LabelArray->getAsString().size()-1);
                     //Add the function and label to the annotation map
-                    annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName()] = LabelStringg;
+                    annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName().str()] = LabelStringg;
                   }
                 }
               }
@@ -457,7 +457,7 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
             lineNum = std::to_string(debugInfo->getLine());
           } //If the function call is indirect, get from stripped indirect called value
           else { 
-            Value* indirectValue = callInst->getCalledValue();
+            Value* indirectValue = callInst->getCalledOperand();
             Value* strippedVal = indirectValue-> stripPointerCasts();
             StringRef iFuncName = strippedVal->getName();
             //Get the debug information from which filepath and linenum can be determined
@@ -522,7 +522,7 @@ std::vector<Function *> pdg::AccessInfoTracker::getTransitiveClosure(
          calleeNodeI++) {
       if (!calleeNodeI->second->getFunction()) continue;
       auto funcName = calleeNodeI->second->getFunction()->getName();
-      if (blackFuncList.find(funcName) != blackFuncList.end()) continue;
+      if (blackFuncList.find(funcName.str()) != blackFuncList.end()) continue;
       Function *calleeFunc = calleeNodeI->second->getFunction();
       if (calleeFunc->isDeclaration()) continue;
       if (seen.find(calleeFunc) != seen.end()) continue;
@@ -694,14 +694,14 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
         funcName = calledFunction->getName().str();
       }
       else{
-        Value* v = ecallInst->getCalledValue();
+        Value* v = ecallInst->getCalledOperand();
         Value* sv = v->stripPointerCasts();
-        funcName = sv->getName();
+        funcName = sv->getName().str();
         
       }
       //if (ecallInst->getCalledFunction() != argW->getFunc()) continue;
       if (funcName != argW->getFunc()->getName().str()) continue;
-      if (ecallInst->getNumArgOperands() < argW->getArg()->getArgNo()) continue;
+      if (ecallInst->arg_size() < argW->getArg()->getArgNo()) continue;
 
       Value *v = ecallInst->getOperand(argW->getArg()->getArgNo());
       if (isa<Instruction>(v) || isa<Argument>(v)) {

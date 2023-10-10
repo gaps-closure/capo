@@ -7,7 +7,7 @@ pdg::CallWrapper::CallWrapper(llvm::CallInst *CI)
   this->CI = CI;
   Function *calledFunc = CI->getCalledFunction();
   if (calledFunc == nullptr) {
-    if (Function *f = dyn_cast<Function>(CI->getCalledValue()->stripPointerCasts()))
+    if (Function *f = dyn_cast<Function>(CI->getCalledOperand()->stripPointerCasts()))
     {
       calledFunc = f;
     } else {

@@ -1,0 +1,3 @@
+calc_ewma EWMA_SHAREABLE 0
+get_ewma XDLINKAGE_GET_EWMA 0
+ewma_main EWMA_MAIN 0

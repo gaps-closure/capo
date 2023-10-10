@@ -23,7 +23,6 @@ def build_pdg() -> None:
     subprocess.check_call(
         ['cmake', '--build', 'build', '--', '-j', '8'], cwd=cwd)
 
-
 def build_verifier() -> None:
     cwd = Path('compliance')
     subprocess.check_call(['make', '-j', '8'], cwd=cwd)
@@ -39,7 +38,6 @@ def build_gedl() -> None:
 def clean_pdg() -> None:
     cwd = Path('pdg2')
     subprocess.check_call(['rm', '-rf', 'build'], cwd=cwd)
-
 
 def clean_verifier() -> None:
     cwd = Path('compliance')
@@ -59,9 +57,9 @@ class Args:
 def build() -> None:
     submodules()
     build_pdg()
-    build_ect()
+#    build_ect()
     build_gedl()
-    build_verifier()
+#    build_verifier()
 
 
 def clean() -> None:

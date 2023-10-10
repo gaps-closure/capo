@@ -51,9 +51,9 @@ def install(args: Type[Args], should_install_python_package: bool = False) -> Di
     args.output = args.output.resolve()
     install_pdg(args.output)
     install_gedl(args.output)
-    install_verifier(args.output)
+#    install_verifier(args.output)
     install_gedl_schema(args.output)
-    install_ect(args.output)
+#    install_ect(args.output)
     if should_install_python_package:
         install_python_package(args.output)
     return {

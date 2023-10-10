@@ -275,15 +275,18 @@ def compute_zinc_validated(cle: List[LabelledCleJson], max_fn_parms: int, logger
     
     return ZincSrc(cle_s, enc_s)
 
-def compute_zinc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: str, logger: Logger) -> ZincSrc:
+# Get maximum function parameters
+# Ugly, but no other way to get this without digging into the opt pass
+def getMaxFnParms(pdg: str) -> int:
+    for l in pdg.splitlines():
+        if 'MaxFuncParams' in l:
+            v = int(l.split()[-1][:-1])
+            return v if v > 0 else 1
+    raise CLEUsageError("MaxFuncParms not found in PDG instance")
 
-    # Get maximum function parameters
-    # Ugly, but no other way to get this without digging into the opt pass
-    def getMaxFnParms(pdg: str) -> int:
-        for l in pdg.splitlines():
-            if 'MaxFuncParms' in l: return int(l.split()[-1][:-1])
-        raise CLEUsageError("MaxFuncParms not found in PDG instance")
+def compute_zinc(cle: List[LabelledCleJson], fn_args: str, max_fn_parms: int, one_way: str, logger: Logger) -> ZincSrc:
 
+    
     # Convert functionArgs file contents into a dictionary mapping labels to number of args
     def fnArgsToDict(fn_args: str) -> Dict[str,int]:
         args_d = {}
@@ -307,7 +310,6 @@ def compute_zinc(cle: List[LabelledCleJson], fn_args: str, pdg: str, one_way: st
         return { anno for anno in ow_d if ow_d[anno] == 0 }
 
     # First validate the CLE JSON, then convert to mzn
-    max_fn_parms = getMaxFnParms(pdg)
     validateCle(cle, max_fn_parms, fnArgsToDict(fn_args), oneWayToSet(one_way))
     return compute_zinc_validated(cle, max_fn_parms, logger)
 
@@ -342,7 +344,7 @@ def main():
     output = compute_zinc(
         json.loads(args.cle_json.read_text()),
         args.function_args.read_text(),
-        args.pdg_instance.read_text(), 
+        getMaxFnParms(args.pdg_instance.read_text()), 
         args.one_way.read_text(),
         logger
     )

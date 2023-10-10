@@ -1,0 +1,2 @@
+get_ewma XDLINKAGE_GET_EWMA 1
+ewma_main EWMA_MAIN 0

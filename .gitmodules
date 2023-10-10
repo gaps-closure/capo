@@ -5,3 +5,7 @@
 	path = C/ect
 	url = ../ect.git
 	branch = develop
+[submodule "svf"]
+	path = svf
+	url = ../svf.git
+	branch = develop

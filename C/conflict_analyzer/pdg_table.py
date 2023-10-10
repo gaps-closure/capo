@@ -11,6 +11,7 @@ class PdgLookupNode:
     llvm: str
     source_file: str
     source_line: Optional[int]
+    has_annotation: str
 
     def llvm_name(self) -> Optional[str]:
         match = re.search(r'@((\w|\.)*)', self.llvm)
@@ -22,7 +23,7 @@ class PdgLookupNode:
     def with_source_map(self, source_map: SourceMap) -> 'PdgLookupNode':
         line = self.source_line if self.source_line else -1
         source, line = source_map((self.source_file, line))
-        return PdgLookupNode(self.node_type, self.llvm, source, line)
+        return PdgLookupNode(self.node_type, self.llvm, source, line, self.has_annotation)
 
 @dataclass
 class PdgLookupEdge:
@@ -41,8 +42,8 @@ class PdgLookupTable:
     nodes: Dict[int, PdgLookupNode] 
     edges: Dict[int, PdgLookupEdge] 
     def __init__(self, pdg_csv: list):
-        self.nodes = { int(num): PdgLookupNode(type_, llvm, source, int(line) if int(line) != -1 else None) 
-            for [node_or_edge, num, type_, _, llvm, _, _, _, source, line, *_] 
+        self.nodes = { int(num): PdgLookupNode(type_, llvm, source, int(line) if int(line) != -1 else None, anno) 
+            for [node_or_edge, num, type_, anno, llvm, _, _, _, source, line, *_] 
             in pdg_csv if node_or_edge == 'Node' 
         } 
         self.edges = { int(num): PdgLookupEdge(type_, int(source), int(dest)) 

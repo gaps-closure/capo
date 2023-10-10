@@ -1,0 +1,85 @@
+[
+    {
+        "cle-label": "PURPLE",
+        "cle-json": {
+            "level": "purple"
+        }
+    },
+    {
+        "cle-label": "ORANGE",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "purple",
+                    "direction": "egress",
+                    "guarddirective": {
+                        "operation": "allow"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "EWMA_MAIN",
+        "cle-json": {
+            "level": "purple",
+            "cdf": [
+                {
+                    "remotelevel": "purple",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [],
+                    "codtaints": [
+                        "PURPLE",
+                        "TAG_RESPONSE_GET_A"
+                    ],
+                    "rettaints": [
+                        "PURPLE"
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "XDLINKAGE_GET_A",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "purple",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [],
+                    "codtaints": [
+                        "ORANGE"
+                    ],
+                    "rettaints": [
+                        "TAG_RESPONSE_GET_A"
+                    ],
+                    "idempotent": true,
+                    "num_tries": 30,
+                    "timeout": 1000
+                },
+                {
+                    "remotelevel": "orange",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [],
+                    "codtaints": [
+                        "ORANGE"
+                    ],
+                    "rettaints": [
+                        "TAG_RESPONSE_GET_A"
+                    ]
+                }
+            ]
+        }
+    }
+]

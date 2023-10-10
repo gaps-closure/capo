@@ -1,0 +1,108 @@
+#!/usr/bin/python3
+
+from dash import Dash, Input, Output, callback, dash_table, html
+import dash_bootstrap_components as dbc
+
+from copy import copy
+import pandas as pd
+import sys
+
+df = None
+
+def formatNode(n):
+    
+    # Get containing function as string
+    trimDef = lambda ll: next(filter(lambda l: l[:6] == "define", ll.split('\n')))[:-2]
+    fxn_str = ''
+    if int(n['In function']) != 0:
+        fxn = df.loc[(df['Type'] == 'Node') & (df['ID'] == n['In function'])].to_dict()
+        fxn_str = trimDef(list(fxn['llvm'].values())[0])
+
+    # Nicely format node with html components
+    # line_no = int(n['Line number'])
+    # src = n['Source file'][(n['Source file'].rindex('/') + 1):]
+    ll = n['llvm']
+    if n['Subtype'] == "FunctionEntry": ll = trimDef(ll)
+    return [
+        html.Strong("Function: "), fxn_str,           html.Br(),
+        html.Strong("Instruction: "), ll,             html.Br(),
+        html.Strong("Subtype: "), n['Subtype'],       html.Br(),
+        html.Strong("Annotation: "), n['Annotation'], html.Br()
+        # html.Strong("Source"), src, ":", line_no,     html.Br()
+    ]
+
+def get_endpt_data(active_cell, to=False):
+
+    # Get cell from dataframe
+    cell = df.iloc[int(active_cell['row_id'])].to_dict()
+    from_str = ''
+    to_str = ''
+
+    # Nodes are formatted in the first box
+    if cell['Type'] == 'Node':
+        from_str = formatNode(cell)
+
+    # Edges have both of their nodes formatted
+    elif cell['Type'] == 'Edge':
+        from_id   = cell['Edge source']
+        to_id     = cell['Edge destination']
+        from_data = df.loc[(df['Type'] == 'Node') & (df['ID'] == from_id)].to_dict()
+        to_data   = df.loc[(df['Type'] == 'Node') & (df['ID'] == to_id)].to_dict()
+
+        # Why are the fields given as single-element dictionaries?
+        for k in from_data: from_data[k] = list(from_data[k].values())[0]
+        for k in to_data: to_data[k] = list(to_data[k].values())[0]
+
+        from_str  = formatNode(from_data)
+        to_str    = formatNode(to_data)
+    
+    # Only return a to_str if one was requested
+    return to_str if to else from_str
+
+@callback(Output('tbl_out_from', 'children'), Input('tbl', 'active_cell'))
+def update_graphs(active_cell):
+    return get_endpt_data(active_cell, False) if active_cell else ''
+
+@callback(Output('tbl_out_to', 'children'), Input('tbl', 'active_cell'))
+def update_graphs(active_cell):
+    return get_endpt_data(active_cell, True) if active_cell else ''
+
+def main():
+
+    # Arg validation
+    if len(sys.argv) != 3:
+        print("Usage: ./pdg_csv_viewer [feasible|infeasible] prog-name")
+        exit(0)
+    fname = 'tests/{}/{}/artifacts/pdg_svf_data.csv'.format(sys.argv[1], sys.argv[2])
+
+    # Init dataframe
+    global df
+    cols = [
+        'Type', 'ID', 'Subtype', 'Annotation', 'llvm', 
+        'In function', 'Edge source', 'Edge destination', 
+        'Source file', 'Line number', 'DBG1', 'DBG2', 'Parameter index'
+    ]
+    cst = {'overflow': 'hidden', 'textOverflow': 'auto', 'maxWidth': 0}
+    df = pd.read_csv(
+        fname, header=None, names=cols, 
+        dtype=str, quotechar="'", lineterminator='\n')
+    df['id'] = df.index
+    dt = df.to_dict('records')
+
+    # Init app
+    cs = [{"name": i, "id": i} for i in df.columns]
+    app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+    app.layout = dbc.Container([
+        dbc.Label('Click any cell of an edge row in the table:'),
+        dash_table.DataTable(
+            data=dt, columns=cs, style_cell=cst, id='tbl', 
+            sort_action='native', filter_action='native',
+            page_size=10
+        ),
+        'From Node:', dbc.Alert(id='tbl_out_from'),
+        'To Node:',   dbc.Alert(id='tbl_out_to'),
+    ])
+    app.run(debug=True)
+
+if __name__ == "__main__":
+    main()

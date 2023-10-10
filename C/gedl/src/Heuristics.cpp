@@ -161,7 +161,7 @@ void Heuristics::checkPrintf(llvm::CallInst* callInst, int argNum,
       if (llvm::ConstantDataArray* arr =
               llvm::dyn_cast<llvm::ConstantDataArray>(var->getInitializer())) {
         std::set<unsigned> stringIdx =
-            parseFormatString(arr->getAsString(), startIdx);
+            parseFormatString(arr->getAsString().str(), startIdx);
         if (stringIdx.find(argNum) != stringIdx.end()) {
           argW->getAttribute().setString();
         }
