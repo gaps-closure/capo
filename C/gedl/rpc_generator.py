@@ -769,7 +769,7 @@ class GEDLProcessor:
         s += t + 'pthread_t tid[NXDRPC];' + n
         tidIndex = 0
         for (x,y,f,fd) in self.inCalls(e):
-          s += t + f'void (*_req_{f})(void *) = _wrapper_request_{f}; '
+          s += t + f'void (*_req_{f})(void *) = _wrapper_request_{f};' + n
           s += t + 'pthread_create(&tid[' + str(tidIndex) + '], NULL, _req_' + f + ', NULL);' + n
           tidIndex += 1
         s += t + 'for (int i = 0; i < NXDRPC; i++) pthread_join(tid[i], NULL);' + n
