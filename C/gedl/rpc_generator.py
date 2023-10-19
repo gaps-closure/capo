@@ -177,7 +177,7 @@ class GEDLProcessor:
     def funcle(f, ls, params):
       pre = "RPC" if e in self.masters else "HANDLE_REQUEST"
       lbls = [ l['clelabl'] for (l, o) in ls ]
-      ret = json.dumps([ l['clelabl'] for (l, o) in ls if not o]) if e in self.masters else "[]"
+      ret = json.dumps([ l['clelabl'] for (l, o) in ls if not o]) 
       s = f"#pragma cle def {pre}_{f.upper()} " 
       s += ("\\" + n).join([
         '{"level": "' + e + '", ',
