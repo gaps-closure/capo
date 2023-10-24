@@ -1,5 +1,6 @@
 import csv
 import argparse
+import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -47,9 +48,10 @@ def unify_pdg_svf(pdg_csv: CsvData, pdg_ids: CsvData, svf_edges: CsvData, svf_id
     for [src, dst] in svf_edges:
         src_llid, dst_llid = svf_to_llid[src], svf_to_llid[dst]
         if not (ignore(src_llid) or ignore(dst_llid) or src_llid == dst_llid):
-            src, dst = llid_to_pdg_node[src_llid], llid_to_pdg_node[dst_llid]
-            pdg_csv.append(['Edge', str(e_id), newtypes[0], '0', '', '', src, dst, '', '', '', '', ''])
-            e_id = e_id + 1
+            if src_llid in llid_to_pdg_node and dst_id in llid_to_pdg_node:
+                src, dst = llid_to_pdg_node[src_llid], llid_to_pdg_node[dst_llid]
+                pdg_csv.append(['Edge', str(e_id), newtypes[0], '0', '', '', src, dst, '', '', '', '', ''])
+                e_id = e_id + 1
 
     return pdg_csv
 
