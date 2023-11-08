@@ -70,10 +70,10 @@ def update_graphs(active_cell):
 def main():
 
     # Arg validation
-    if len(sys.argv) != 3:
-        print("Usage: ./pdg_csv_viewer [feasible|infeasible] prog-name")
+    if len(sys.argv) != 2:
+        print("Usage: ./pdg_csv_viewer filename")
         exit(0)
-    fname = 'tests/{}/{}/artifacts/pdg_svf_data.csv'.format(sys.argv[1], sys.argv[2])
+    fname = sys.argv[1]
 
     # Init dataframe
     global df

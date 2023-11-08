@@ -104,8 +104,8 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         output_zinc(zinc_src, pdg_instance, args.temp_dir)
         collated_map = collate_source_map(entities, args.temp_dir)
         logger.info("Collated source maps")
-        out = run_cmdline([zinc_src.cle_instance, pdg_instance, zinc_src.enclave_instance, 
-            *[ f.read_text() for f in args.constraint_files]], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map, args.no_findmus) 
+        out = run_cmdline([*[ f.read_text() for f in args.constraint_files], 
+            zinc_src.cle_instance, pdg_instance, zinc_src.enclave_instance], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map, args.no_findmus) 
         logger.info("Produced JSON result from minizinc")
         return out
 
