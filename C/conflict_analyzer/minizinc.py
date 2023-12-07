@@ -197,6 +197,7 @@ def run_cmdline(instances: List[str], constraint_files: List[Path],
     
     mzn_args: List[Union[str, os.PathLike]] = [
         'minizinc',
+        '--no-optimize',
         '--solver',
         'Gecode',
         *constraint_files,
@@ -296,7 +297,7 @@ def run_findmus(strings: List[str], sources: List[Path], temp_dir: Path) -> List
         '--subsolver',
         'Gecode',
         '--depth',
-        '3',
+        'mzn',
         '--output-json',
         *sources,
         temp_dir / 'instance.mzn'
