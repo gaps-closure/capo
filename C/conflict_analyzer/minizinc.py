@@ -14,6 +14,11 @@ from typing import Any, Callable, Iterable, List, Set, Optional, Dict, Tuple, Ty
 from .pdg_table import PdgLookupTable, PdgLookupNode, SourceMap
 from .exceptions import ProcessException, FindmusException, Mus
 
+from .z3CA import ConflictAnalyzer
+from .z3CLE import CLE
+from .z3PDG import PDG
+
+import z3
 
 class TopologyAssignment(TypedDict):
     name: str
@@ -192,7 +197,8 @@ def run_model(instances: List[str], constraint_files: List[Path],
     raise RuntimeError("Minizinc return status {result.status}") 
 
 def run_cmdline(instances: List[str], constraint_files: List[Path], 
-    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: SourceMap, no_findmus) -> MinizincResult:
+    pdg_lookup: PdgLookupTable, temp_dir: Path, source_map: SourceMap, z3_explanation,
+    pdg_csv, max_fn_params, cle_json, function_args, one_way) -> MinizincResult:
     (temp_dir / 'instance.mzn').write_text("\n".join(instances))    
     
     mzn_args: List[Union[str, os.PathLike]] = [
@@ -207,8 +213,19 @@ def run_cmdline(instances: List[str], constraint_files: List[Path],
     if output.returncode != 0 or "Error" in output.stdout:
         raise ProcessException("minizinc failure", output)     
     if "UNSATISFIABLE" in output.stdout:
-        if no_findmus:
-            print("UNSATISFIABLE")
+        if z3_explanation:
+            print("UNSATISFIABLE - Consulting z3 conflict analyzer for explanation...")
+            pdg = PDG(pdg_csv, max_fn_params)
+            cle = CLE(cle_json, function_args, max_fn_params, one_way)
+            print("encoding...")
+            ca = ConflictAnalyzer(pdg, cle, "int", True)
+            res = ca.solve()
+            print(str(res))
+            if res == z3.sat:
+                print("WARNING: z3 and minizinc models disagree: z3 reports SAT")
+            else:
+                with open(temp_dir / 'explain.smt2', 'w') as out: ca.explain(out)
+                print("see 'explain.smt2' for unsat core and explanation")
             exit(0)
         else:
             mus = run_findmus(instances, constraint_files, temp_dir)

@@ -37,7 +37,7 @@ class Args:
     artifact: Optional[Path]
     dump_ptg: Path
     pts_to_algo: str 
-    no_findmus: bool
+    z3_explanation: bool
     log_level: Literal['INFO', 'DEBUG', 'ERROR'] 
 
 SourceEntity = Tuple[Path, Transform] 
@@ -105,7 +105,8 @@ def start(args: Args, logger: Logger) -> MinizincResult:
         collated_map = collate_source_map(entities, args.temp_dir)
         logger.info("Collated source maps")
         out = run_cmdline([*[ f.read_text() for f in args.constraint_files], 
-            zinc_src.cle_instance, pdg_instance, zinc_src.enclave_instance], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map, args.no_findmus) 
+            zinc_src.cle_instance, pdg_instance, zinc_src.enclave_instance], [], PdgLookupTable(opt_out.pdg_csv), args.temp_dir, collated_map, args.z3_explanation,
+            args.temp_dir / 'pdg_svf_data.csv', max_fn_parms, args.temp_dir / 'collated.json', args.temp_dir / 'functionArgs.txt', args.temp_dir / 'oneway.txt')
         logger.info("Produced JSON result from minizinc")
         return out
 
@@ -134,12 +135,13 @@ def parsed_args() -> Args:
     parser.add_argument('--artifact', help="artifact json path", type=Path, required=False)
     parser.add_argument('--conflicts', help="conflicts json path", type=Path, required=False, default=Path("conflicts.json"))
     parser.add_argument('--output-json', help="whether to output json", action='store_true')
-    parser.add_argument('--no-findmus', help="don't run findMUS on unsatisfiable minizinc instances", action='store_true')
+    parser.add_argument('--no-z3', help="run findMUS instead of z3 on unsatisfiable minizinc instances", action='store_true')
     parser.add_argument('--log-level', '-v', choices=[ logging.getLevelName(l) for l in [ logging.DEBUG, logging.INFO, logging.ERROR]] , default="ERROR")
     args = parser.parse_args(namespace=Args())
     args.temp_dir = args.temp_dir.resolve()
     args.pdg_lib = args.pdg_lib.resolve()
     args.dump_ptg = args.dump_ptg.resolve()
+    args.z3_explanation = not(args.no_z3)
     return args
 
 def setup_logger(log_level: Literal['INFO', 'DEBUG', 'ERROR']) -> Logger:
