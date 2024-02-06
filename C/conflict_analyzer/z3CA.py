@@ -68,7 +68,6 @@ class ConflictAnalyzer:
             core = core_s.unsat_core()
             core_s = Solver()
         core_s.add(self.assumptions + [fml for fml in core])
-        with open('core.smt2', 'w') as out: out.write(core_s.sexpr() + "(check-sat)")
         print("unsat core time (s): {}".format(int(time() - t)))
         handle.write(explain_all([(fml, self.explanations[fml]) for fml in core], self.pdg.pdg_csv))
 
