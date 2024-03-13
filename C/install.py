@@ -20,6 +20,13 @@ def install_gedl(out: Path) -> None:
     out_lib.mkdir(parents=True, exist_ok=True)
     copyfile(path / 'build' / 'libgedl.so', out_lib / 'libgedl.so')
 
+def install_divider(out: Path) -> None:
+    path = Path('divider/divider')
+    out_bin = out / 'bin'
+    out_bin.mkdir(parents=True, exist_ok=True)
+    copyfile(path / 'divider', out_bin / 'divider_plugin')
+    os.chmod(out_bin / 'divider_plugin', 0o755)
+
 def install_verifier(out: Path) -> None:
     path = Path('compliance')
     out_bin = out / 'bin'
@@ -52,6 +59,7 @@ def install(args: Type[Args], should_install_python_package: bool = False) -> Di
     install_pdg(args.output)
     install_gedl(args.output)
 #    install_verifier(args.output)
+    install_divider(args.output)
     install_gedl_schema(args.output)
 #    install_ect(args.output)
     if should_install_python_package:

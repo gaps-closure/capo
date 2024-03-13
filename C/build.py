@@ -34,6 +34,11 @@ def build_gedl() -> None:
     subprocess.check_call(
         ['cmake', '--build', 'build', '--', '-j', '8'], cwd=cwd)
 
+def build_divider() -> None:
+    cwd = Path('divider/divider')
+    subprocess.check_call(['cmake', '-B', 'build'], cwd=cwd)
+    subprocess.check_call(
+        ['cmake', '--build', 'build', '--', '-j', '8'], cwd=cwd)
 
 def clean_pdg() -> None:
     cwd = Path('pdg2')
@@ -48,6 +53,9 @@ def clean_gedl() -> None:
     cwd = Path('gedl')
     subprocess.check_call(['rm', '-rf', 'build'], cwd=cwd)
 
+def clean_divider() -> None:
+    cwd = Path('divider/divider')
+    subprocess.check_call(['rm', '-rf', 'build'], cwd=cwd)
 
 @dataclass
 class Args:
@@ -59,6 +67,7 @@ def build() -> None:
     build_pdg()
 #    build_ect()
     build_gedl()
+    build_divider()
 #    build_verifier()
 
 
@@ -66,6 +75,7 @@ def clean() -> None:
     clean_pdg()
     clean_gedl()
     clean_verifier()
+    clean_divider()
 
 
 def main() -> None:
