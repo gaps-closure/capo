@@ -1,0 +1,83 @@
+{
+  "source_path": "../test/example2",
+  "enclaves": [
+    {
+      "name": "Purple_E",
+      "level":"purple",
+      "assignedClasses": [
+        "Parent",
+        "Extra"
+      ]
+    },
+    {
+      "name": "Orange_E",
+      "level":"orange",
+      "assignedClasses": [
+        "Parent",
+        "Example2"
+      ]
+    }
+  ],
+
+  "levels": [
+    "orange",
+    "purple"
+  ],
+ 
+  "functions": [
+    {
+      "name": "main",
+      "level": "orange",
+      "enclave": "Orange_E",
+      "line": 540
+    }
+  ],
+  
+  "global_scoped_vars": [
+    {
+        "name": "bar",
+        "level": "purple",
+        "enclave": "purple_E"
+    }
+  ],
+  "cuts":[
+     {
+        "callee":{
+           "level":"purple",
+           "type":"Extra"
+        },
+        "allowedCallers":[
+           {
+              "level":"orange",
+              "type":"Example1"
+           }
+        ],
+        "methodSignature":{
+           "parameterTypes":[
+           ],
+           "fqcn":"Extra",
+           "name":"getValue",
+           "returnType":"int"
+        }
+     },
+     {
+        "callee":{
+           "level":"purple",
+           "type":"Extra"
+        },
+        "allowedCallers":[
+           {
+              "level":"orange",
+              "type":"Example1"
+           }
+        ],
+        "methodSignature":{
+           "parameterTypes":[
+           ],
+           "fqcn":"Extra",
+           "name":"Extra",
+           "returnType":"Extra"
+        }
+     }
+  ]
+}

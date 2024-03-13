@@ -1,0 +1,51 @@
+{
+  "source_path": "../test/foo",
+  "enclaves": [
+    "orange_E",
+    "purple_E"
+  ],
+  "levels": [
+    "orange",
+    "purple"
+  ],
+  "functions": [
+    {
+      "name": "get_a",
+      "level": "orange",
+      "enclave": "orange_E",
+      "line": 47
+    },
+    {
+      "name": "ewma_main",
+      "level": "purple",
+      "enclave": "purple_E",
+      "line": 69
+    },
+    {
+      "name": "get_b",
+      "level": "purple",
+      "enclave": "purple_E",
+      "line": 58
+    },
+    {
+      "name": "calc_ewma",
+      "level": "purple",
+      "enclave": "purple_E",
+      "line": 39
+    },
+    {
+      "name": "main",
+      "level": "purple",
+      "enclave": "purple_E",
+      "line": 87
+    }
+  ],
+  "global_scoped_vars": [
+    {
+        "name": "bar",
+        "level": "purple",
+        "enclave": "purple_E",
+        "line": 87
+    }
+  ]
+}
