@@ -32,16 +32,3 @@ EXTRA=""\
 
 bin/divider $EXTRA ../test/websrv/topology.json --
 ```
-
-export ODIR=/tmp/sediment
-export IDIR=./divvied
-export EDIR=./divvied-working   
-export PROG=example2
-export IPCMODE=multithreaded 
-export CLOSURE_TOOLS=/opt/closure 
-export CLOSURE_LIBS=${CLOSURE_TOOLS}/lib
-export INURI="ipc:///tmp/sock_sub"
-export OUTURI="ipc:///tmp/sock_pub"  
-export ENCLAVES="orange purple"
-
-$(RPCGENERATOR) -o $(ODIR) -g $(ODIR)/$(PROG).gedl -i $(IPC_MODE) -a $(CLOSURE_LIBS) -n $(INURI) -t $(OUTURI) -e $(EDIR) -E $(ENCLAVES) -x xdconf.ini -m $(PROG) --cle $(ODIR)/$(PROG).all.clemap.json &&
