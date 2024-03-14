@@ -24,7 +24,7 @@ def install_divider(out: Path) -> None:
     path = Path('divider/divider')
     out_bin = out / 'bin'
     out_bin.mkdir(parents=True, exist_ok=True)
-    copyfile(path / 'divider', out_bin / 'divider_plugin')
+    copyfile(path / 'build/bin/divider', out_bin / 'divider_plugin')
     os.chmod(out_bin / 'divider_plugin', 0o755)
 
 def install_verifier(out: Path) -> None:
