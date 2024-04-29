@@ -79,6 +79,8 @@ set of int: PDGNodeIdx  = PDGNode_start .. PDGNode_end;
 
 int: ControlDep_CallInv_start;
 int: ControlDep_CallInv_end;
+int: ControlDep_Indirect_CallInv_start;
+int: ControlDep_Indirect_CallInv_end;
 int: ControlDep_CallRet_start;
 int: ControlDep_CallRet_end;
 int: ControlDep_Entry_start;
@@ -92,12 +94,26 @@ int: ControlDep_end;
 
 int: DataDepEdge_DefUse_start;
 int: DataDepEdge_DefUse_end;
+int: DataDepEdge_GlobalDefUse_start;
+int: DataDepEdge_GlobalDefUse_end;
 int: DataDepEdge_RAW_start;
 int: DataDepEdge_RAW_end;
 int: DataDepEdge_Ret_start;
 int: DataDepEdge_Ret_end;
+int: DataDepEdge_Indirect_Ret_start;
+int: DataDepEdge_Indirect_Ret_end;
 int: DataDepEdge_Alias_start;
 int: DataDepEdge_Alias_end;
+int: DataDepEdge_ArgPass_In_start;
+int: DataDepEdge_ArgPass_In_end;
+int: DataDepEdge_ArgPass_Out_start;
+int: DataDepEdge_ArgPass_Out_end;
+int: DataDepEdge_ArgPass_Indirect_In_start;
+int: DataDepEdge_ArgPass_Indirect_In_end;
+int: DataDepEdge_ArgPass_Indirect_Out_start;
+int: DataDepEdge_ArgPass_Indirect_Out_end;
+int: DataDepEdge_Callee_start;
+int: DataDepEdge_Callee_end;
 int: DataDepEdge_start;
 int: DataDepEdge_end;
 
@@ -119,10 +135,14 @@ int: Anno_Other_end;
 int: Anno_start;
 int: Anno_end;
 
+int: DataDepEdge_PointsTo_start;
+int: DataDepEdge_PointsTo_end;
+
 int: PDGEdge_start;
 int: PDGEdge_end;
 
 set of int: ControlDep_CallInv = ControlDep_CallInv_start .. ControlDep_CallInv_end;
+set of int: ControlDep_Indirect_CallInv = ControlDep_Indirect_CallInv_start .. ControlDep_Indirect_CallInv_end;
 set of int: ControlDep_CallRet = ControlDep_CallRet_start .. ControlDep_CallRet_end;
 set of int: ControlDep_Entry = ControlDep_Entry_start .. ControlDep_Entry_end;
 set of int: ControlDep_Br = ControlDep_Br_start .. ControlDep_Br_end;
@@ -130,9 +150,16 @@ set of int: ControlDep_Other = ControlDep_Other_start .. ControlDep_Other_end;
 set of int: ControlDep = ControlDep_start .. ControlDep_end;
 
 set of int: DataDepEdge_DefUse = DataDepEdge_DefUse_start .. DataDepEdge_DefUse_end;
+set of int: DataDepEdge_GlobalDefUse = DataDepEdge_GlobalDefUse_start .. DataDepEdge_GlobalDefUse_end;
 set of int: DataDepEdge_RAW  = DataDepEdge_RAW_start .. DataDepEdge_RAW_end;
 set of int: DataDepEdge_Ret  = DataDepEdge_Ret_start .. DataDepEdge_Ret_end;
+set of int: DataDepEdge_Indirect_Ret = DataDepEdge_Indirect_Ret_start .. DataDepEdge_Indirect_Ret_end;
 set of int: DataDepEdge_Alias = DataDepEdge_Alias_start .. DataDepEdge_Alias_end;
+set of int: DataDepEdge_ArgPass_In  = DataDepEdge_ArgPass_In_start .. DataDepEdge_ArgPass_In_end;
+set of int: DataDepEdge_ArgPass_Out = DataDepEdge_ArgPass_Out_start .. DataDepEdge_ArgPass_Out_end;
+set of int: DataDepEdge_ArgPass_Indirect_In  = DataDepEdge_ArgPass_Indirect_In_start  .. DataDepEdge_ArgPass_Indirect_In_end;
+set of int: DataDepEdge_ArgPass_Indirect_Out = DataDepEdge_ArgPass_Indirect_Out_start .. DataDepEdge_ArgPass_Indirect_Out_end;
+set of int: DataDepEdge_Callee = DataDepEdge_Callee_start .. DataDepEdge_Callee_end;
 set of int: DataDepEdge = DataDepEdge_start .. DataDepEdge_end;
 
 set of int: Parameter_In = Parameter_In_start .. Parameter_In_end;
@@ -144,6 +171,8 @@ set of int: Anno_Global = Anno_Global_start .. Anno_Global_end;
 set of int: Anno_Var = Anno_Var_start .. Anno_Var_end;
 set of int: Anno_Other = Anno_Other_start .. Anno_Other_end;
 set of int: Anno = Anno_start .. Anno_end;
+
+set of int: DataDepEdge_PointsTo = DataDepEdge_PointsTo_start .. DataDepEdge_PointsTo_end;
 
 set of int: PDGEdgeIdx = PDGEdge_start .. PDGEdge_end;
 
@@ -163,11 +192,11 @@ array[FunctionEntry]  of bool: userAnnotatedFunction;
 
 set of int: Global              = VarNode_StaticGlobal union VarNode_StaticModule;
 set of int: NonAnnotation       = Inst union VarNode union FunctionEntry union Param;
-set of int: ControlDep_Call     = ControlDep_CallInv union ControlDep_CallRet;
 set of int: ControlDep_NonCall  = ControlDep_Entry union ControlDep_Br union ControlDep_Other;
-set of int: DataEdgeNoRet       = DataDepEdge_DefUse union DataDepEdge_RAW union DataDepEdge_Alias;
-set of int: DataEdgeNoRetParam  = DataEdgeNoRet union Parameter;
-set of int: DataEdgeParam       = DataDepEdge union Parameter;
+set of int: DataEdgeEnclaveSafe = DataDepEdge_DefUse union DataDepEdge_GlobalDefUse union DataDepEdge_RAW union 
+                                  DataDepEdge_Indirect_Ret union DataDepEdge_Alias union
+                                  DataDepEdge_ArgPass_Indirect_In union 
+                                  DataDepEdge_ArgPass_Indirect_Out;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Security Levels and Enclaves
@@ -199,40 +228,20 @@ array[cdf]                            of Direction:      hasDirection;
 array[cdf]                            of bool:           isOneway;
 array[cleLabel, Level]                of cdf:            cdfForRemoteLevel;
 
-set of cdf: functionCdf = { x | x in cdf where isFunctionAnnotation[fromCleLabel[x]]==true };
-
-array[functionCdf, cleLabel]          of bool:           hasRettaints;
-array[functionCdf, cleLabel]          of bool:           hasCodtaints;
-array[functionCdf, parmIdx, cleLabel] of bool:           hasArgtaints;
-array[functionCdf, cleLabel]          of bool:           hasARCtaints;
+array[cdf, cleLabel]          of bool:           hasRettaints;
+array[cdf, cleLabel]          of bool:           hasCodtaints;
+array[cdf, parmIdx, cleLabel] of bool:           hasArgtaints;
+array[cdf, cleLabel]          of bool:           hasARCtaints;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Debug flag and decision variables for the solver
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-bool:                                                    debug;
+bool:                              debug;
 
-array[PDGNodeIdx]                     of var Enclave:    nodeEnclave;
-array[PDGNodeIdx]                     of var Level:      nodeLevel;
-array[PDGNodeIdx]                     of var cleLabel:   taint;
-array[PDGNodeIdx]                     of var cleLabel:   ftaint;
-
-array[PDGEdgeIdx]                     of var Enclave:    esEnclave;
-array[PDGEdgeIdx]                     of var Enclave:    edEnclave;
-
-array[PDGEdgeIdx]                     of var cleLabel:   esTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edTaint;
-
-array[PDGEdgeIdx]                     of var cleLabel:   esFunTaint;
-array[PDGEdgeIdx]                     of var cleLabel:   edFunTaint;
-
-array[PDGEdgeIdx]                     of var cdf:        esFunCdf;
-array[PDGEdgeIdx]                     of var cdf:        edFunCdf;
-
-array[PDGEdgeIdx]                     of var bool:       xdedge;
-array[PDGEdgeIdx]                     of var bool:       tcedge;
-
-array[PDGEdgeIdx]                     of var bool:       coerced;
+array[PDGNodeIdx] of var Enclave:  nodeEnclave;
+array[PDGNodeIdx] of var cleLabel: taint;
+array[PDGEdgeIdx] of var bool:     coerced;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -1,0 +1,122 @@
+Node,1,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata i32** %2, metadata !17, metadata !DIExpression()), !dbg !18',22,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,43,14,2,-1
+Node,2,Inst_FunCall,,'  %7 = call i32 (i8*, ...) @printf(i8* noundef %6, i32 noundef %5), !dbg !20',22,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,5,7,-1
+Node,3,Inst_FunCall,,'  call void @llvm.dbg.declare(metadata [5 x i32]* %2, metadata !25, metadata !DIExpression()), !dbg !29',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,53,9,3,-1
+Node,4,Inst_FunCall,,'  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 16 %6, i8* align 16 bitcast ([5 x i32]* @__const.main.buf to i8*), i64 20, i1 false), !dbg !20',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,53,9,9,-1
+Node,5,Inst_FunCall,,'  %8 = call i32 @foo(i32* noundef %7), !dbg !23',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,55,5,11,-1
+Node,6,Inst_Ret,,'  ret i32 0, !dbg !21',22,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,46,5,8,-1
+Node,7,Inst_Ret,,'  ret i32 0, !dbg !24',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,56,5,12,-1
+Node,8,Inst_Other,,'  %2 = alloca i32*, align 8',22,,,,-1,-1,0,-1
+Node,9,Inst_Other,,'  store i32* %0, i32** %2, align 8',22,,,,-1,-1,1,-1
+Node,10,Inst_Other,,'  %3 = load i32*, i32** %2, align 8, !dbg !19',22,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,20,3,-1
+Node,11,Inst_Other,,'  %4 = getelementptr inbounds i32, i32* %3, i64 0, !dbg !19',22,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,20,4,-1
+Node,12,Inst_Other,,'  %5 = load i32, i32* %4, align 4, !dbg !19',22,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,45,20,5,-1
+Node,13,Inst_Other,,'  %6 = getelementptr inbounds [4 x i8], [4 x i8]* @.str, i64 0, i64 0',22,,,,-1,-1,6,-1
+Node,14,Inst_Other,,'  %1 = alloca i32, align 4',23,,,,-1,-1,0,-1
+Node,15,Inst_Other,,'  %2 = alloca [5 x i32], align 16',23,,,,-1,-1,1,-1
+Node,16,Inst_Other,,'  store i32 0, i32* %1, align 4',23,,,,-1,-1,2,-1
+Node,17,Inst_Other,GREEN_SHAREABLE,'  %3 = bitcast [5 x i32]* %2 to i8*, !dbg !21',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,53,5,4,-1
+Node,18,Inst_Other,,'  %4 = getelementptr inbounds [16 x i8], [16 x i8]* @.str.3, i32 0, i32 0',23,,,,-1,-1,5,-1
+Node,19,Inst_Other,,'  %5 = getelementptr inbounds [64 x i8], [64 x i8]* @.str.2, i32 0, i32 0',23,,,,-1,-1,6,-1
+Node,20,Inst_Other,,'  %6 = bitcast [5 x i32]* %2 to i8*, !dbg !20',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,53,9,8,-1
+Node,21,Inst_Other,,'  %7 = getelementptr inbounds [5 x i32], [5 x i32]* %2, i64 0, i64 0, !dbg !22',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,55,9,10,-1
+Node,22,FunctionEntry,FOO,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @foo(i32* noundef %0) #0 !dbg !10 {
+  %2 = alloca i32*, align 8
+  store i32* %0, i32** %2, align 8
+  call void @llvm.dbg.declare(metadata i32** %2, metadata !17, metadata !DIExpression()), !dbg !18
+  %3 = load i32*, i32** %2, align 8, !dbg !19
+  %4 = getelementptr inbounds i32, i32* %3, i64 0, !dbg !19
+  %5 = load i32, i32* %4, align 4, !dbg !19
+  %6 = getelementptr inbounds [4 x i8], [4 x i8]* @.str, i64 0, i64 0
+  %7 = call i32 (i8*, ...) @printf(i8* noundef %6, i32 noundef %5), !dbg !20
+  ret i32 0, !dbg !21
+}
+',22,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,43,-1,-1,-1
+Node,23,FunctionEntry,,'; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !22 {
+  %1 = alloca i32, align 4
+  %2 = alloca [5 x i32], align 16
+  store i32 0, i32* %1, align 4
+  call void @llvm.dbg.declare(metadata [5 x i32]* %2, metadata !25, metadata !DIExpression()), !dbg !29
+  %3 = bitcast [5 x i32]* %2 to i8*, !dbg !30
+  %4 = getelementptr inbounds [16 x i8], [16 x i8]* @.str.3, i32 0, i32 0
+  %5 = getelementptr inbounds [64 x i8], [64 x i8]* @.str.2, i32 0, i32 0
+  call void @llvm.var.annotation(i8* %3, i8* %4, i8* %5, i32 53, i8* null), !dbg !30
+  %6 = bitcast [5 x i32]* %2 to i8*, !dbg !29
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 16 %6, i8* align 16 bitcast ([5 x i32]* @__const.main.buf to i8*), i64 20, i1 false), !dbg !29
+  %7 = getelementptr inbounds [5 x i32], [5 x i32]* %2, i64 0, i64 0, !dbg !31
+  %8 = call i32 @foo(i32* noundef %7), !dbg !32
+  ret i32 0, !dbg !33
+}
+',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,49,-1,-1,-1
+Node,24,Param_FormalIn,,'No Value',22,,,Not Found,-1,-1,-1,0
+Node,25,Param_FormalIn,,'No Value',22,,,Not Found,-1,-1,-1,-1
+Node,26,Param_FormalOut,,'No Value',22,,,Not Found,-1,-1,-1,0
+Node,27,Param_FormalOut,,'No Value',22,,,Not Found,-1,-1,-1,-1
+Node,28,Param_ActualIn,,'No Value',22,,,Not Found,-1,-1,-1,0
+Node,29,Param_ActualIn,,'No Value',22,,,Not Found,-1,-1,-1,-1
+Node,30,Param_ActualOut,,'No Value',22,,,Not Found,-1,-1,-1,0
+Node,31,Param_ActualOut,,'No Value',22,,,Not Found,-1,-1,-1,-1
+Node,32,Annotation_Var,,'  call void @llvm.var.annotation(i8* %3, i8* %4, i8* %5, i32 53, i8* null), !dbg !21',23,,,/home/bflin/gaps/capo/C/conflict_analyzer/phase-3/tmp-ca/prog.c,53,5,7,-1
+Node,33,Annotation_Global,,'@llvm.global.annotations = appending global [1 x { i8*, i8*, i8*, i32, i8* }] [{ i8*, i8*, i8*, i32, i8* } { i8* bitcast (i32 (i32*)* @foo to i8*), i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i32 0, i32 0), i8* getelementptr inbounds ([64 x i8], [64 x i8]* @.str.2, i32 0, i32 0), i32 43, i8* null }], section "llvm.metadata"',0,,,Not Found,-1,-1,-1,-1
+Edge,1,ControlDep_CallInv,0,,,5,22,,,,,
+Edge,2,ControlDep_CallRet,0,,,6,5,,,,,
+Edge,3,ControlDep_Entry,0,,,22,8,,,,,
+Edge,4,ControlDep_Entry,0,,,22,9,,,,,
+Edge,5,ControlDep_Entry,0,,,22,1,,,,,
+Edge,6,ControlDep_Entry,0,,,22,10,,,,,
+Edge,7,ControlDep_Entry,0,,,22,11,,,,,
+Edge,8,ControlDep_Entry,0,,,22,12,,,,,
+Edge,9,ControlDep_Entry,0,,,22,13,,,,,
+Edge,10,ControlDep_Entry,0,,,22,2,,,,,
+Edge,11,ControlDep_Entry,0,,,22,6,,,,,
+Edge,12,ControlDep_Entry,0,,,23,15,,,,,
+Edge,13,ControlDep_Entry,0,,,23,16,,,,,
+Edge,14,ControlDep_Entry,0,,,23,3,,,,,
+Edge,15,ControlDep_Entry,0,,,23,17,,,,,
+Edge,16,ControlDep_Entry,0,,,23,18,,,,,
+Edge,17,ControlDep_Entry,0,,,23,19,,,,,
+Edge,18,ControlDep_Entry,0,,,23,20,,,,,
+Edge,19,ControlDep_Entry,0,,,23,4,,,,,
+Edge,20,ControlDep_Entry,0,,,23,21,,,,,
+Edge,21,ControlDep_Entry,0,,,23,5,,,,,
+Edge,22,ControlDep_Entry,0,,,23,7,,,,,
+Edge,23,ControlDep_Entry,0,,,23,14,,,,,
+Edge,24,DataDepEdge_DefUse,0,,,8,10,,,,,
+Edge,25,DataDepEdge_DefUse,0,,,8,9,,,,,
+Edge,26,DataDepEdge_DefUse,0,,,10,11,,,,,
+Edge,27,DataDepEdge_DefUse,0,,,11,12,,,,,
+Edge,28,DataDepEdge_DefUse,0,,,12,2,,,,,
+Edge,29,DataDepEdge_DefUse,0,,,13,2,,,,,
+Edge,30,DataDepEdge_DefUse,0,,,14,16,,,,,
+Edge,31,DataDepEdge_DefUse,0,,,15,21,,,,,
+Edge,32,DataDepEdge_DefUse,0,,,15,20,,,,,
+Edge,33,DataDepEdge_DefUse,0,,,15,17,,,,,
+Edge,34,DataDepEdge_DefUse,0,,,20,4,,,,,
+Edge,35,DataDepEdge_DefUse,0,,,21,5,,,,,
+Edge,36,DataDepEdge_RAW,0,,,9,10,,,,,
+Edge,37,DataDepEdge_Ret,0,,,6,5,,,,,
+Edge,38,DataDepEdge_Alias,0,,,17,15,,,,,
+Edge,39,DataDepEdge_Alias,0,,,20,15,,,,,
+Edge,40,DataDepEdge_ArgPass_In,0,,,21,28,,,,,
+Edge,41,DataDepEdge_ArgPass_Out,0,,,30,21,,,,,
+Edge,42,DataDepEdge_Callee,0,,,5,22,,,,,
+Edge,43,Parameter_In,0,,,24,10,,,,,
+Edge,44,Parameter_In,0,,,22,24,,,,,
+Edge,45,Parameter_In,0,,,21,28,,,,,
+Edge,46,Parameter_In,0,,,5,28,,,,,
+Edge,47,Parameter_In,0,,,28,24,,,,,
+Edge,48,Parameter_In,0,,,29,25,,,,,
+Edge,49,Parameter_Out,0,,,22,26,,,,,
+Edge,50,Parameter_Out,0,,,21,30,,,,,
+Edge,51,Parameter_Out,0,,,5,30,,,,,
+Edge,52,Parameter_Out,0,,,5,1,,,,,
+Edge,53,Parameter_Field,0,,,24,25,,,,,
+Edge,54,Parameter_Field,0,,,26,27,,,,,
+Edge,55,Parameter_Field,0,,,28,29,,,,,
+Edge,56,Parameter_Field,0,,,30,31,,,,,
+Edge,57,Anno_Global,0,,,22,33,,,,,
+Edge,58,Anno_Var,0,,,23,32,,,,,
+Edge,59,Anno_Var,0,,,17,32,,,,,
+Edge,60,Anno_Var,0,,,18,32,,,,,
+Edge,61,Anno_Var,0,,,19,32,,,,,

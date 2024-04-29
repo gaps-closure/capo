@@ -3,8 +3,11 @@ from dataclasses import dataclass
 from pathlib import Path
 import re
 from subprocess import CompletedProcess
-from typing import Dict, List, Optional, Tuple, TypedDict, Union
-from .pdg_table import PdgLookupTable, PdgLookupNode
+from typing import Callable, Dict, List, Optional, Tuple, TypedDict, Union
+from .pdg_table import PdgLookupTable, PdgLookupNode, SourceMap
+
+
+
 
 class Mus(TypedDict):
     leaf_name: str
@@ -84,7 +87,7 @@ class ConflictJSON(TypedDict):
 Diag = Union[PdgLookupNode, Tuple[PdgLookupNode, PdgLookupNode]]
 Diags = Dict[str, List[Diag]]
 class FindmusException(Exception):
-    def __init__(self, mus: List[Mus], table: PdgLookupTable, source_map: Dict[Tuple[str, int], Tuple[str, int]]): 
+    def __init__(self, mus: List[Mus], table: PdgLookupTable, source_map: SourceMap): 
         votes: Dict[str, Tuple[int, List[Mus]]] = OrderedDict() 
         for m in mus:
             if m['constraint_name'] in votes:

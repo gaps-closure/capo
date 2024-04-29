@@ -49,7 +49,7 @@ bool pdg::SGXGenerator::runOnModule(Module &M) {
           // Skip intrinsic and non-call functions
           if (Function *called = callInst->getCalledFunction()) {
             if (!called->isIntrinsic() &&
-                definedFuncs.find(called->getName()) != definedFuncs.end()) {
+                definedFuncs.find(called->getName().str()) != definedFuncs.end()) {
               CALLLoc call = getCALLInfo(callInst);
               insertInMap(call.filepath, call);
             }
@@ -109,7 +109,7 @@ pdg::CALLLoc pdg::SGXGenerator::getCALLInfo(CallInst *callInst) {
                     callInst->getCalledFunction()->getName().str().length();
   std::string filename = file->getFilename().str();
   std::string filepath = file->getDirectory().str() + "/" + filename;
-  bool hasParam = callInst->getNumArgOperands();
+  bool hasParam = callInst->arg_size();
   bool isVoid = called->getReturnType()->isVoidTy();
   // Create ECALLLoc struct and return
   return CALLLoc(filepath, filename, line, column, hasParam, isVoid);

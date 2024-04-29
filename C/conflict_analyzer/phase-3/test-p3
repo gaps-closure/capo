@@ -1,0 +1,79 @@
+#!/bin/bash
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+if [[ ("$#" -ne 2) && ("$#" -ne 3) ]]
+then
+    die $'usage: ./test-p3 [ander|fspta] [feasible|infeasible] prog_name\n       ./test-p3 [ander|fspta]  all'
+fi
+if [[ ("$1" != "ander") && ("$1" != "fspta") ]]
+then
+    die "error: first arugment must be one of: ander, fspta"
+fi
+if [[ ("$2" != "all") && ("$2" != "feasible") && ("$2" != "infeasible") ]]
+then
+    die "error: second arugment must be one of: all, feasible, infeasible"
+fi
+if [[ (("$2" == "feasible") || ("$2" == "infeasible")) && ("$#" != 3) ]]
+then
+    die "error: second argument is [feasible|infeasible] but no prog_name given"
+fi
+
+run () {
+    ERR=$'\n    conflict analysis errored (see above)'
+
+    mkdir tmp-ca
+    python3 -m conflict_analyzer --temp-dir tmp-ca --pdg-lib ../../pdg2/build/libpdg.so \
+            --dump-ptg ../../pdg2/svf/Release-build/bin/dump-ptg \
+            --pts-to-algo $1 \
+            --no-findmus \
+            tests/$2/$3/prog.c 2>&1 >ca-output.txt
+    STATUS=$?
+
+    touch tests/$2/$3/artifacts/xyzxyz \
+    && rm tests/$2/$3/artifacts/* \
+    && mv tmp-ca/* tests/$2/$3/artifacts \
+    && rm -rf tmp-ca
+    
+    if [[ $STATUS -ne 0 ]]
+    then
+        rm ca-output.txt
+        (rm -rf tmp-ca 2> /dev/null && echo $"FAILURE $2/$3 $ERR")
+    else
+        minizinc tests/$2/$3/artifacts/instance.mzn 2> /dev/null | tail -n 1 | grep -q "UNSATISFIABLE"
+        STATUS=$?
+        if [[ ($STATUS == 0 && "$2" == "feasible") ]]
+        then
+            ERR=$'\n    instance.mzn is unsatisfiable'
+            EDGE=$'\n    TODO: edge diff'
+            echo $"FAILURE $2/$3 $ERR"
+        elif [[ ($STATUS != 0 && "$2" == "infeasible") ]]
+        then
+            ERR=$'\n    instance.mzn is satisfiable'
+            EDGE=$'\n    TODO: edge diff'
+            echo $"FAILURE $2/$3 $ERR"
+        else
+            echo $"SUCCESS $2/$3"
+        fi
+    fi
+}
+
+export PYTHONPATH="${PYTHONPATH}:../.."
+if [ "$#" -eq 3 ]
+then
+    run $1 $2 $3
+    echo $'\nSee ca-output.txt for conflict analyzer output'
+else
+    for prog in $(find tests/infeasible -maxdepth 1 -type d -printf "%P ")
+    do
+        run $1 infeasible $prog
+    done
+    for prog in $(find tests/feasible -maxdepth 1 -type d -printf "%P ")
+    do
+        run $1 feasible $prog
+    done
+    rm ca-output.txt 2> /dev/null
+fi

@@ -1,0 +1,121 @@
+[
+    {
+        "cle-label": "PURPLE",
+        "cle-json": {
+            "level": "purple"
+        }
+    },
+    {
+        "cle-label": "ORANGE",
+        "cle-json": {
+            "level": "orange"
+        }
+    },
+    {
+        "cle-label": "ORANGE_SHAREABLE",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "purple",
+                    "direction": "egress",
+                    "guarddirective": {
+                        "operation": "allow"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "EWMA_SHAREABLE",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "orange",
+                    "direction": "egress",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [
+                        [
+                            "ORANGE"
+                        ],
+                        [
+                            "ORANGE"
+                        ]
+                    ],
+                    "codtaints": [
+                        "ORANGE",
+                        "ORANGE_SHAREABLE"
+                    ],
+                    "rettaints": [
+                        "ORANGE_SHAREABLE"
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "XDLINKAGE_GET_EWMA",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "orange",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [],
+                    "codtaints": [
+                        "ORANGE",
+                        "ORANGE_SHAREABLE"
+                    ],
+                    "rettaints": [
+                        "TAG_RESPONSE_GET_EWMA"
+                    ]
+                },
+                {
+                    "remotelevel": "purple",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [],
+                    "codtaints": [
+                        "ORANGE",
+                        "ORANGE_SHAREABLE"
+                    ],
+                    "rettaints": [
+                        "TAG_RESPONSE_GET_EWMA"
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "cle-label": "EWMA_MAIN",
+        "cle-json": {
+            "level": "purple",
+            "cdf": [
+                {
+                    "remotelevel": "purple",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [],
+                    "codtaints": [
+                        "PURPLE",
+                        "TAG_REQUEST_GET_EWMA",
+                        "TAG_RESPONSE_GET_EWMA"
+                    ],
+                    "rettaints": [
+                        "PURPLE"
+                    ]
+                }
+            ]
+        }
+    }
+]

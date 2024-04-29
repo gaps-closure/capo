@@ -60,6 +60,7 @@ bool pdg::AccessInfoTracker::runOnModule(Module &M) {
       domainMap.insert(make_pair(domain, funcFilepath));
     }
     funcMap.insert(make_pair(functionName, funcFilepath));
+    funcToDomain[functionName] = domain;
   }
 
   //Function to create lists for all defined functions and imported functions across all domains
@@ -219,8 +220,8 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
           iter++) {
         auto transFunc = *iter;
         if (transFunc->isDeclaration()) continue;
-        if (definedFuncList.find(transFunc->getName()) != definedFuncList.end() ||
-            staticFuncList.find(transFunc->getName()) != staticFuncList.end())
+        if (definedFuncList.find(transFunc->getName().str()) != definedFuncList.end() ||
+            staticFuncList.find(transFunc->getName().str()) != staticFuncList.end())
           crossBoundary = true;
         getIntraFuncReadWriteInfoForFunc(*transFunc);
       }
@@ -235,21 +236,39 @@ void pdg::AccessInfoTracker::createDomain(std::string domain, Module &M) {
       edl_file << "\t\t\t\t\"occurs\": [\n";
 
       //For every callsite of the function, generate an occurs object with the filepath and linenums
+      std::map<std::string, std::set<std::string>> occurs;
       for (auto filePath : callsiteMap[funcName]){
-        edl_file << "\t\t\t\t\t{\"file\": \"" << filePath << "\", \"lines\": [";
-        int startLine = 0;
+        if(domain != funcToDomain[callerMap[filePath]] || importDomain != funcToDomain[funcName])
+          continue;
 
-        //For every linenum for the filepath, insert the linenum in the field
+        std::set<std::string> lines;
         for (auto lineNum : callsiteLines[(funcName + ":" + filePath)]){
-          if (startLine == 0){
-            startLine = 1;
-          } else{
-            edl_file << ",";
-          }
-          edl_file << lineNum;
+          lines.insert(lineNum);
         }
-        edl_file << "]}\n";
+        occurs[filePath] = lines;
       }
+
+      // print occurs objects
+      size_t i = 0;
+      for(auto occur : occurs) {
+        auto filePath = occur.first;
+        auto lines = occur.second;
+        edl_file << "\t\t\t\t\t{\"file\": \"" << filePath << "\", \"lines\": [";
+        size_t j = 0;
+        for(auto line : lines) {
+          edl_file << line; 
+          if(j < lines.size() - 1)
+            edl_file << ",";
+          j++;
+        }
+        if(i < occurs.size() - 1)
+          edl_file << "]},\n";
+        else
+          edl_file << "]}\n";
+        i++;
+      }
+
+
       edl_file << "\t\t\t\t]\n\t\t\t}";
     }  
     edl_file << "\n\t\t]";
@@ -404,9 +423,9 @@ void pdg::AccessInfoTracker::populateAnnotationMap(Module &M){
                   //Create constant from the label's value
                   if (ConstantDataArray *LabelArray = dyn_cast<ConstantDataArray>(LabelValue)) {
                     //Get the label as a string and cut off the terminating /00
-                    std::string LabelStringg = LabelArray->getAsString().substr(0,LabelArray->getAsString().size()-1);
+                    std::string LabelStringg = LabelArray->getAsString().str().substr(0,LabelArray->getAsString().size()-1);
                     //Add the function and label to the annotation map
-                    annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName()] = LabelStringg;
+                    annotationMap[ValuesStruct->getOperand(0)->getOperand(0)->getName().str()] = LabelStringg;
                   }
                 }
               }
@@ -438,7 +457,7 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
             lineNum = std::to_string(debugInfo->getLine());
           } //If the function call is indirect, get from stripped indirect called value
           else { 
-            Value* indirectValue = callInst->getCalledValue();
+            Value* indirectValue = callInst->getCalledOperand();
             Value* strippedVal = indirectValue-> stripPointerCasts();
             StringRef iFuncName = strippedVal->getName();
             //Get the debug information from which filepath and linenum can be determined
@@ -447,6 +466,9 @@ void pdg::AccessInfoTracker::populateCallsiteMap(Module &M) {
             filePath = debugInfo->getDirectory().str() + "/" + debugInfo->getFilename().str();
             lineNum = std::to_string(debugInfo->getLine());
           }
+          //Add callsite to filePath -> caller map 
+          callerMap[filePath] = function.getName().str();
+
           //Add callsite filepath to map if an entry exists, otherwise create new entry with single filepath
           if (callsiteMap.count(callFuncName) > 0){
             callsiteMap[callFuncName].insert(filePath);
@@ -500,7 +522,7 @@ std::vector<Function *> pdg::AccessInfoTracker::getTransitiveClosure(
          calleeNodeI++) {
       if (!calleeNodeI->second->getFunction()) continue;
       auto funcName = calleeNodeI->second->getFunction()->getName();
-      if (blackFuncList.find(funcName) != blackFuncList.end()) continue;
+      if (blackFuncList.find(funcName.str()) != blackFuncList.end()) continue;
       Function *calleeFunc = calleeNodeI->second->getFunction();
       if (calleeFunc->isDeclaration()) continue;
       if (seen.find(calleeFunc) != seen.end()) continue;
@@ -672,14 +694,14 @@ void pdg::AccessInfoTracker::getIntraFuncReadWriteInfoForArg(
         funcName = calledFunction->getName().str();
       }
       else{
-        Value* v = ecallInst->getCalledValue();
+        Value* v = ecallInst->getCalledOperand();
         Value* sv = v->stripPointerCasts();
-        funcName = sv->getName();
+        funcName = sv->getName().str();
         
       }
       //if (ecallInst->getCalledFunction() != argW->getFunc()) continue;
       if (funcName != argW->getFunc()->getName().str()) continue;
-      if (ecallInst->getNumArgOperands() < argW->getArg()->getArgNo()) continue;
+      if (ecallInst->arg_size() < argW->getArg()->getArgNo()) continue;
 
       Value *v = ecallInst->getOperand(argW->getArg()->getArgNo());
       if (isa<Instruction>(v) || isa<Argument>(v)) {

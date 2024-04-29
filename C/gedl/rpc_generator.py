@@ -177,7 +177,7 @@ class GEDLProcessor:
     def funcle(f, ls, params):
       pre = "RPC" if e in self.masters else "HANDLE_REQUEST"
       lbls = [ l['clelabl'] for (l, o) in ls ]
-      ret = json.dumps([ l['clelabl'] for (l, o) in ls if not o]) if e in self.masters else "[]"
+      ret = json.dumps([ l['clelabl'] for (l, o) in ls if not o]) 
       s = f"#pragma cle def {pre}_{f.upper()} " 
       s += ("\\" + n).join([
         '{"level": "' + e + '", ',
@@ -460,23 +460,22 @@ class GEDLProcessor:
     ##############################################################################################################
     # D4 Marshalling function parameters to and from packet
     ##############################################################################################################
-    def cc_get_param_type(direction):
-      for q in fd['params']:
-        if 'sz' in q:
-          if not isinstance(q['sz'],int):
-            print("Parameter", q['name'], "has a non-int array size")
-            sys.exit()
-          if not 'dir' in q:
-            print ("Parameter", q['name'], "needs a direction to proceed")
-            sys.exit()
-          if q['dir'] in [direction,'inout']:
-            return ('array')
-        else:
-          if 'dir' in q and q['dir'] != 'in':
-            print("Parameter", q['name'], "is a scalar, so must have 'dir' =", direction, "if specified")
-            sys.exit()
-          if direction == 'in':
-            return ('scalar')
+    def cc_get_param_type(q, direction):
+      if 'sz' in q:
+        if not isinstance(q['sz'],int):
+          print("Parameter", q['name'], "has a non-int array size")
+          sys.exit()
+        if not 'dir' in q:
+          print ("Parameter", q['name'], "needs a direction to proceed")
+          sys.exit()
+        if q['dir'] in [direction,'inout']:
+          return ('array')
+      else:
+        if 'dir' in q and q['dir'] != 'in':
+          print("Parameter", q['name'], "is a scalar, so must have 'dir' =", direction, "if specified")
+          sys.exit()
+        if direction == 'in':
+          return ('scalar')
       return ('none')
     # Copy from cross domain function parameter contents into request packet
     #     green:  request_send_camcmd.pan = pan
@@ -486,7 +485,7 @@ class GEDLProcessor:
         s += t + pkt_name(True) + '.dummy = 0;'  + n  # matches IDL convention on void (ARQ avoid?)
       else:
         for q in fd['params']:
-          param_type = cc_get_param_type('in')
+          param_type = cc_get_param_type(q, 'in')
           if (param_type == 'scalar'):
             s += t + pkt_name(True) + '.' + q['name'] + ' = '
             if fill:  s +=  q['name'] + ';' + n
@@ -504,7 +503,7 @@ class GEDLProcessor:
       s = ''
       if len(fd['params']) != 0:
         for q in fd['params']:
-          param_type = cc_get_param_type('out')
+          param_type = cc_get_param_type(q, 'out')
           if (param_type == 'array'):
             s += t + 'for(int i=0; i<' + str(q['sz']) + '; i++) ' + q['name'] + '[i] = '
             s += pkt_name(False) + '.' + q['name'] + '[i];' + n
@@ -517,7 +516,7 @@ class GEDLProcessor:
         for q in fd['params']:
           if q['dir'] == 'inout':
             print ("XXX: inout parameters are UNESTED!")
-            param_type = cc_get_param_type('in')
+            param_type = cc_get_param_type(q, 'in')
             if (param_type == 'scalar'):
               s += t + t + t + pkt_name(False) + '.' + q['name'] + ' = ' + pkt_name(True) + '.' + q['name'] + ';' + n
             if (param_type == 'array'):
@@ -770,7 +769,8 @@ class GEDLProcessor:
         s += t + 'pthread_t tid[NXDRPC];' + n
         tidIndex = 0
         for (x,y,f,fd) in self.inCalls(e):
-          s += t + 'pthread_create(&tid[' + str(tidIndex) + '], NULL, _wrapper_request_' + f + ', NULL);' + n
+          s += t + f'void (*_req_{f})(void *) = _wrapper_request_{f};' + n
+          s += t + 'pthread_create(&tid[' + str(tidIndex) + '], NULL, _req_' + f + ', NULL);' + n
           tidIndex += 1
         s += t + 'for (int i = 0; i < NXDRPC; i++) pthread_join(tid[i], NULL);' + n
         s += t + 'return 0;' + n

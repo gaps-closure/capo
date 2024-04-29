@@ -1,0 +1,30 @@
+[
+    {
+        "cle-label": "ORANGE",
+        "cle-json": {
+            "level": "orange"
+        }
+    },
+    {
+        "cle-label": "FOO",
+        "cle-json": {
+            "level": "orange",
+            "cdf": [
+                {
+                    "remotelevel": "orange",
+                    "direction": "bidirectional",
+                    "guarddirective": {
+                        "operation": "allow"
+                    },
+                    "argtaints": [],
+                    "codtaints": [
+                        "ORANGE"
+                    ],
+                    "rettaints": [
+                        "ORANGE"
+                    ]
+                }
+            ]
+        }
+    }
+]
